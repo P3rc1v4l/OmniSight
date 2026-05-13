@@ -1,0 +1,38 @@
+name: Build Aletheos Stream (.exe)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Manueller Start-Button auf GitHub
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Abhängigkeiten installieren
+        run: npm install
+
+      - name: Icons generieren
+        run: node scripts/generate-icons.js
+
+      - name: App bauen (.exe)
+        run: npm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Installer hochladen (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: aletheos-stream-windows
+          path: dist/*.exe
+          retention-days: 30
