@@ -1,24 +1,25 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  // Window Controls
-  minimize: () => ipcRenderer.send('window-minimize'),
-  maximize: () => ipcRenderer.send('window-maximize'),
-  close: () => ipcRenderer.send('window-close'),
+  minimize:           () => ipcRenderer.send('window-minimize'),
+  maximize:           () => ipcRenderer.send('window-maximize'),
+  close:              () => ipcRenderer.send('window-close'),
+  setFullscreen:      (f) => ipcRenderer.send('window-fullscreen', f),
+  isFullscreen:       () => ipcRenderer.invoke('window-is-fullscreen'),
+  onFullscreenChange: (cb) => ipcRenderer.on('fullscreen-change', (_, v) => cb(v)),
+  onSessionsCleared:  (cb) => ipcRenderer.on('sessions-cleared', cb),
 
-  // Theme
-  getTheme: () => ipcRenderer.invoke('get-theme'),
-  setTheme: (theme) => ipcRenderer.send('set-theme', theme),
+  getTheme:    () => ipcRenderer.invoke('get-theme'),
+  setTheme:    (v) => ipcRenderer.send('set-theme', v),
 
-  // Provider Sessions
-  getProviderSession: (providerId) => ipcRenderer.invoke('get-provider-session', providerId),
-  setProviderSession: (providerId, data) => ipcRenderer.send('set-provider-session', { providerId, data }),
-  clearProviderSession: (providerId) => ipcRenderer.send('clear-provider-session', providerId),
+  getSettings: () => ipcRenderer.invoke('get-settings'),
+  setSettings: (v) => ipcRenderer.send('set-settings', v),
 
-  // Provider öffnen
-  openProvider: (providerId, url) => ipcRenderer.send('open-provider', { providerId, url }),
-  onShowProvider: (callback) => ipcRenderer.on('show-provider', (_, data) => callback(data)),
+  getAllSessions:        () => ipcRenderer.invoke('get-all-sessions'),
+  setProviderLoggedIn:  (id, v) => ipcRenderer.send('set-provider-logged-in', { providerId: id, loggedIn: v }),
+  clearAllSessions:     () => ipcRenderer.send('clear-all-sessions'),
+  clearProviderSession: (id) => ipcRenderer.send('clear-provider-session', id),
 
-  // Extern öffnen
-  openExternal: (url) => ipcRenderer.send('open-external', url),
+  setupWebviewSession: (partition) => ipcRenderer.send('setup-webview-session', partition),
+  openExternal:        (url) => ipcRenderer.send('open-external', url),
 });
