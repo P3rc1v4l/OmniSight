@@ -1,0 +1,47 @@
+{
+  "name": "aletheos-stream",
+  "version": "1.0.0",
+  "description": "Aletheos Stream – Dein zentrales Streaming-Hub",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.aletheos.stream",
+    "productName": "Aletheos Stream",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "src/assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "src/assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "src/assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "keywords": ["streaming", "electron", "hub"],
+  "author": "Aletheos",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0"
+  }
+}
