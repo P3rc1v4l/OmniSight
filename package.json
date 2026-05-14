@@ -1,7 +1,7 @@
 {
-  "name": "aletheos-stream",
-  "version": "1.0.3",
-  "description": "Aletheos Stream – Dein zentrales Streaming-Hub",
+  "name": "omnisight",
+  "version": "1.0.4",
+  "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
@@ -10,8 +10,8 @@
     "build:linux": "electron-builder --linux"
   },
   "build": {
-    "appId": "com.aletheos.stream",
-    "productName": "Aletheos Stream",
+    "appId": "com.omnisight.app",
+    "productName": "OmniSight",
     "directories": { "output": "dist" },
     "win":   { "target": "nsis",     "icon": "src/assets/icon.ico" },
     "mac":   { "target": "dmg",      "icon": "src/assets/icon.icns" },
@@ -24,7 +24,7 @@
     }
   },
   "keywords": ["streaming","electron","hub"],
-  "author": "Aletheos",
+  "author": "OmniSight",
   "license": "MIT",
   "devDependencies": {
     "electron": "^29.0.0",
