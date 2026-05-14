@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -13,8 +13,8 @@
     "appId": "com.omnisight.app",
     "productName": "OmniSight",
     "directories": { "output": "dist" },
-    "win":   { "target": "nsis",     "icon": "src/assets/icon.ico" },
-    "mac":   { "target": "dmg",      "icon": "src/assets/icon.icns" },
+    "win":   { "target": "nsis",     "icon": "src/assets/icon.png" },
+    "mac":   { "target": "dmg",      "icon": "src/assets/icon.png" },
     "linux": { "target": "AppImage", "icon": "src/assets/icon.png" },
     "nsis": {
       "oneClick": false,

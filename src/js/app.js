@@ -4,105 +4,92 @@
 // PROVIDER CONFIG (alphabetisch)
 // ════════════════════════════════
 const PROVIDERS = {
-  apple:        { name:'Apple TV+',      tag:'Apple Originals',          url:'https://tv.apple.com',              color:'#555555', partition:'persist:apple' },
-  ard:          { name:'ARD Mediathek',  tag:'Öffentlich-rechtlich',      url:'https://www.ardmediathek.de',       color:'#003D6B', partition:'persist:ard' },
-  burning:      { name:'BurningSeries',  tag:'Serien & Anime',            url:'https://bs.to',                     color:'#C0392B', partition:'persist:burning' },
-  cineto:       { name:'Cine.to',        tag:'Filme & Serien',            url:'https://cine.to',                   color:'#8B5CF6', partition:'persist:cineto' },
-  crunchyroll:  { name:'Crunchyroll',    tag:'Anime & Manga',             url:'https://www.crunchyroll.com',       color:'#F47521', partition:'persist:crunchyroll' },
-  dazn:         { name:'DAZN',           tag:'Sport Live-Streams',        url:'https://www.dazn.com',              color:'#F8D200', partition:'persist:dazn' },
-  disney:       { name:'Disney+',        tag:'Marvel, Star Wars & mehr',  url:'https://www.disneyplus.com',        color:'#113CCF', partition:'persist:disney' },
-  hbomax:       { name:'Max (HBO)',       tag:'HBO Originals & mehr',      url:'https://www.max.com',               color:'#0031DB', partition:'persist:hbomax' },
-  joyn:         { name:'Joyn',           tag:'Kostenlos streamen',        url:'https://www.joyn.de',               color:'#E4001B', partition:'persist:joyn' },
-  mubi:         { name:'MUBI',           tag:'Arthouse & Kino',           url:'https://mubi.com',                  color:'#213F5E', partition:'persist:mubi' },
-  netflix:      { name:'Netflix',        tag:'Filme & Serien',            url:'https://www.netflix.com',           color:'#E50914', partition:'persist:netflix' },
-  paramountplus:{ name:'Paramount+',     tag:'Paramount Originals',       url:'https://www.paramountplus.com',     color:'#0064FF', partition:'persist:paramountplus' },
-  prime:        { name:'Prime Video',    tag:'Amazon Originals',          url:'https://www.primevideo.com',        color:'#00A8E1', partition:'persist:prime' },
-  rtl:          { name:'RTL+',           tag:'RTL Serien & Shows',        url:'https://plus.rtl.de',               color:'#FF6B00', partition:'persist:rtl' },
-  skygo:        { name:'Sky Go',         tag:'Sky Serien & Sport',        url:'https://www.sky.de/entertainment/sky-go', color:'#00205B', partition:'persist:skygo' },
-  twitch:       { name:'Twitch',         tag:'Live-Streams & Gaming',     url:'https://www.twitch.tv',             color:'#9146FF', partition:'persist:twitch' },
-  youtube:      { name:'YouTube',        tag:'Videos & Streams',          url:'https://www.youtube.com',           color:'#FF0000', partition:'persist:youtube' },
-  zdf:          { name:'ZDF Mediathek',  tag:'Öffentlich-rechtlich',      url:'https://www.zdf.de',                color:'#163A6A', partition:'persist:zdf' },
+  apple:        { name:'Apple TV+',      tag:'Apple Originals',           url:'https://tv.apple.com',                   color:'#555555', partition:'persist:apple' },
+  ard:          { name:'ARD Mediathek',  tag:'Öffentlich-rechtlich',       url:'https://www.ardmediathek.de',            color:'#003D6B', partition:'persist:ard' },
+  burning:      { name:'BurningSeries',  tag:'Serien & Anime',             url:'https://bs.to',                          color:'#C0392B', partition:'persist:burning' },
+  cineto:       { name:'Cine.to',        tag:'Filme & Serien',             url:'https://cine.to',                        color:'#8B5CF6', partition:'persist:cineto' },
+  crunchyroll:  { name:'Crunchyroll',    tag:'Anime & Manga',              url:'https://www.crunchyroll.com',            color:'#F47521', partition:'persist:crunchyroll' },
+  dazn:         { name:'DAZN',           tag:'Sport Live-Streams',         url:'https://www.dazn.com',                   color:'#F8D200', partition:'persist:dazn' },
+  disney:       { name:'Disney+',        tag:'Marvel, Star Wars & mehr',   url:'https://www.disneyplus.com',             color:'#113CCF', partition:'persist:disney' },
+  hbomax:       { name:'Max (HBO)',       tag:'HBO Originals & mehr',       url:'https://www.max.com',                    color:'#0031DB', partition:'persist:hbomax' },
+  joyn:         { name:'Joyn',           tag:'Kostenlos streamen',         url:'https://www.joyn.de',                    color:'#E4001B', partition:'persist:joyn' },
+  mubi:         { name:'MUBI',           tag:'Arthouse & Kino',            url:'https://mubi.com',                       color:'#213F5E', partition:'persist:mubi' },
+  netflix:      { name:'Netflix',        tag:'Filme & Serien',             url:'https://www.netflix.com',                color:'#E50914', partition:'persist:netflix' },
+  paramountplus:{ name:'Paramount+',     tag:'Paramount Originals',        url:'https://www.paramountplus.com',          color:'#0064FF', partition:'persist:paramountplus' },
+  prime:        { name:'Prime Video',    tag:'Amazon Originals',           url:'https://www.primevideo.com',             color:'#00A8E1', partition:'persist:prime' },
+  rtl:          { name:'RTL+',           tag:'RTL Serien & Shows',         url:'https://plus.rtl.de',                    color:'#FF6B00', partition:'persist:rtl' },
+  skygo:        { name:'Sky Go',         tag:'Sky Serien & Sport',         url:'https://www.sky.de/entertainment/sky-go',color:'#00205B', partition:'persist:skygo' },
+  twitch:       { name:'Twitch',         tag:'Live-Streams & Gaming',      url:'https://www.twitch.tv',                  color:'#9146FF', partition:'persist:twitch' },
+  youtube:      { name:'YouTube',        tag:'Videos & Streams',           url:'https://www.youtube.com',                color:'#FF0000', partition:'persist:youtube' },
+  zdf:          { name:'ZDF Mediathek',  tag:'Öffentlich-rechtlich',       url:'https://www.zdf.de',                     color:'#163A6A', partition:'persist:zdf' },
 };
 
-// Favicons (Google S2 Favicon-Service als Fallback)
 function getFaviconUrl(id) {
-  const urls = {
-    apple:        'https://tv.apple.com/favicon.ico',
-    ard:          'https://www.ardmediathek.de/favicon.ico',
-    burning:      'https://bs.to/favicon.ico',
-    cineto:       'https://cine.to/favicon.ico',
-    crunchyroll:  'https://www.crunchyroll.com/favicon.ico',
-    dazn:         'https://www.dazn.com/favicon.ico',
-    disney:       'https://www.disneyplus.com/favicon.ico',
-    hbomax:       'https://www.max.com/favicon.ico',
-    joyn:         'https://www.joyn.de/favicon.ico',
-    mubi:         'https://mubi.com/favicon.ico',
-    netflix:      'https://www.netflix.com/favicon.ico',
-    paramountplus:'https://www.paramountplus.com/favicon.ico',
-    prime:        'https://www.primevideo.com/favicon.ico',
-    rtl:          'https://plus.rtl.de/favicon.ico',
-    skygo:        'https://www.sky.de/favicon.ico',
-    twitch:       'https://www.twitch.tv/favicon.ico',
-    youtube:      'https://www.youtube.com/favicon.ico',
-    zdf:          'https://www.zdf.de/favicon.ico',
+  const map = {
+    apple:'https://www.google.com/s2/favicons?sz=64&domain=tv.apple.com',
+    ard:'https://www.google.com/s2/favicons?sz=64&domain=ardmediathek.de',
+    burning:'https://www.google.com/s2/favicons?sz=64&domain=bs.to',
+    cineto:'https://www.google.com/s2/favicons?sz=64&domain=cine.to',
+    crunchyroll:'https://www.google.com/s2/favicons?sz=64&domain=crunchyroll.com',
+    dazn:'https://www.google.com/s2/favicons?sz=64&domain=dazn.com',
+    disney:'https://www.google.com/s2/favicons?sz=64&domain=disneyplus.com',
+    hbomax:'https://www.google.com/s2/favicons?sz=64&domain=max.com',
+    joyn:'https://www.google.com/s2/favicons?sz=64&domain=joyn.de',
+    mubi:'https://www.google.com/s2/favicons?sz=64&domain=mubi.com',
+    netflix:'https://www.google.com/s2/favicons?sz=64&domain=netflix.com',
+    paramountplus:'https://www.google.com/s2/favicons?sz=64&domain=paramountplus.com',
+    prime:'https://www.google.com/s2/favicons?sz=64&domain=primevideo.com',
+    rtl:'https://www.google.com/s2/favicons?sz=64&domain=plus.rtl.de',
+    skygo:'https://www.google.com/s2/favicons?sz=64&domain=sky.de',
+    twitch:'https://www.google.com/s2/favicons?sz=64&domain=twitch.tv',
+    youtube:'https://www.google.com/s2/favicons?sz=64&domain=youtube.com',
+    zdf:'https://www.google.com/s2/favicons?sz=64&domain=zdf.de',
   };
-  return urls[id] || `https://www.google.com/s2/favicons?sz=32&domain=${PROVIDERS[id]?.url}`;
+  return map[id] || `https://www.google.com/s2/favicons?sz=64&domain=${new URL(PROVIDERS[id]?.url||'https://example.com').hostname}`;
 }
-
-// SVG-Logos für Karten-Banner
-const LOGOS = {
-  netflix:      `<svg viewBox="0 0 111 30" fill="currentColor" height="24"><path d="M105.062 14.28L111 30c-1.75-.25-3.499-.563-5.28-.845l-3.345-8.686-3.437 7.969c-1.687-.282-3.344-.376-5.031-.595l6.031-13.75L94.468 0h5.063l3.062 7.874L105.875 0h5.124l-5.937 14.28zM90.47 0h-4.594v27.25c1.5.094 3.062.156 4.594.343V0zm-8.937 26.937c-4.187-.281-8.375-.53-12.656-.625V0h4.595v21.875c2.75.062 5.5.281 8.061.438v4.624zM64.25 10.657v4.594h-6.406V26H53.22V0h13.125v4.657H57.844v6h6.406zM44.7 26.25c-1.719 0-3.469-.094-5.188-.156V4.657H34.45V0h15.344v4.657H44.7V26.25zM23.044 5.688L16.5 26.937c-1.532-.062-3.063-.094-4.594-.094l-6.75-21.156v21.25H.5V0h6.313l6.843 21.563L19.5 0H26v26.937c-1-.031-1.969-.094-2.956-.094V5.688z"/></svg>`,
-  prime:        `<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:18px;font-weight:800;letter-spacing:-.5px">prime</span><span style="font-size:7px;letter-spacing:.18em;font-weight:700;opacity:.6">VIDEO</span></div>`,
-  disney:       `<div style="display:flex;align-items:baseline;gap:2px"><span style="font-family:Georgia,serif;font-size:22px;font-weight:bold">Disney</span><span style="font-size:24px;font-weight:900;color:#4FC3F7;line-height:1">+</span></div>`,
-  crunchyroll:  `<svg viewBox="0 0 200 45" height="26" fill="currentColor"><text x="2" y="36" font-family="sans-serif" font-size="34" font-weight="900">crunchyroll</text></svg>`,
-  burning:      `<div style="display:flex;flex-direction:column;align-items:center;gap:3px"><svg viewBox="0 0 40 44" height="30" fill="none"><path d="M20 2C12 2 5 10 6 20C7 28 13 34 20 40C27 34 33 28 34 20C35 10 28 2 20 2Z" fill="#C0392B"/><path d="M20 12C17 16 15 21 18 25C21 29 24 24 23 20C22 17 20 14 20 12Z" fill="white" opacity=".85"/></svg><span style="font-size:8px;font-weight:700;letter-spacing:.05em;opacity:.8">BurningSeries</span></div>`,
-  cineto:       `<svg viewBox="0 0 120 42" height="26" fill="currentColor"><text x="2" y="34" font-family="sans-serif" font-size="36" font-weight="900" letter-spacing="-1">cine.to</text></svg>`,
-  youtube:      `<svg viewBox="0 0 90 22" height="22" fill="currentColor"><path d="M27.97 3.66s-.29-2.07-1.19-2.98c-1.14-1.2-2.41-1.2-3-1.27C20.54-.08 15 0 15 0H14.99S9.46-.08 6.22.41c-.58.07-1.86.07-3 1.27C2.32 2.59 2.03 4.66 2.03 4.66S1.74 7.09 1.74 9.52v2.27c0 2.43.29 4.86.29 4.86s.29 2.07 1.19 2.98c1.14 1.2 2.63 1.16 3.3 1.28C8.45 21 15 21 15 21s5.54-.08 7.78-.57c.58-.07 1.86-.07 3-1.27.9-.91 1.19-2.98 1.19-2.98s.29-2.43.29-4.86V9.52c0-2.43-.29-4.86-.29-4.86zM12.06 13.72V6.26l8.1 3.74-8.1 3.72z"/><text x="32" y="16" font-family="sans-serif" font-size="15" font-weight="700">YouTube</text></svg>`,
-  twitch:       `<svg viewBox="0 0 100 26" height="26" fill="currentColor"><path d="M2.15 0L0 5.52v19.24h6.62V28h3.72l3.72-3.24h5.66L27 17V0H2.15zm22.54 15.93l-4.44 3.86H13.6l-3.72 3.24v-3.24H4.3V2.31h20.38v13.62zm-4.44-8.97v7.72h-2.3V6.96h2.3zm-6.16 0v7.72h-2.3V6.96h2.3z"/><text x="32" y="19" font-family="sans-serif" font-size="17" font-weight="800">Twitch</text></svg>`,
-  dazn:         `<svg viewBox="0 0 80 30" height="28" fill="currentColor"><text x="0" y="26" font-family="sans-serif" font-size="30" font-weight="900" letter-spacing="-1">DAZN</text></svg>`,
-  hbomax:       `<svg viewBox="0 0 80 28" height="26" fill="currentColor"><text x="0" y="23" font-family="sans-serif" font-size="26" font-weight="900">max</text></svg>`,
-  joyn:         `<svg viewBox="0 0 70 28" height="26" fill="currentColor"><text x="0" y="23" font-family="sans-serif" font-size="26" font-weight="900">joyn</text></svg>`,
-  mubi:         `<svg viewBox="0 0 80 28" height="26" fill="currentColor"><text x="0" y="23" font-family="sans-serif" font-size="26" font-weight="900">MUBI</text></svg>`,
-  apple:        `<svg viewBox="0 0 110 28" height="24" fill="currentColor"><text x="0" y="22" font-family="sans-serif" font-size="20" font-weight="700">Apple TV+</text></svg>`,
-  paramountplus:`<svg viewBox="0 0 120 28" height="24" fill="currentColor"><text x="0" y="22" font-family="sans-serif" font-size="18" font-weight="700">Paramount+</text></svg>`,
-  rtl:          `<svg viewBox="0 0 70 28" height="26" fill="currentColor"><text x="0" y="23" font-family="sans-serif" font-size="26" font-weight="900">RTL+</text></svg>`,
-  skygo:        `<svg viewBox="0 0 90 28" height="26" fill="currentColor"><text x="0" y="23" font-family="sans-serif" font-size="22" font-weight="800">Sky Go</text></svg>`,
-  ard:          `<svg viewBox="0 0 110 28" height="24" fill="currentColor"><text x="0" y="22" font-family="sans-serif" font-size="17" font-weight="700">ARD Mediathek</text></svg>`,
-  zdf:          `<svg viewBox="0 0 120 28" height="24" fill="currentColor"><text x="0" y="22" font-family="sans-serif" font-size="17" font-weight="700">ZDF Mediathek</text></svg>`,
-};
 
 // ════════════════════════════════
 // STATE
 // ════════════════════════════════
-let currentProvider  = null;   // aktiver Stream-Provider
-let currentWebview   = null;   // Webview im Stream-View
-let pipWebview       = null;   // Webview im PiP-Fenster
-let pipProviderId    = null;   // Provider-ID im PiP
-let isFullscreen     = false;
-let fsHoverTimer     = null;
-let fsAutoHide       = null;
-let clockInterval    = null;
-let settings         = {};
-let imgEditorState   = { providerId: null, url: '', x: 0, y: 0 };
+let currentProvider = null;
+let currentWebview  = null;
+let pipProviderId   = null;
+let isFullscreen    = false;
+let fsHoverTimer    = null;
+let fsAutoHide      = null;
+let clockInterval   = null;
+let settings        = {};
+let imgEditorState  = { providerId:null, url:'', x:0, y:0 };
+
+// Uhr-Drag-State
+let clockDragActive    = false;
+let clockPrevSettings  = null; // Snapshot beim Öffnen des Uhr-Tabs
+let clockUnsaved       = false;
+
+// Search debounce
+let searchTimer = null;
 
 // ════════════════════════════════
 // INIT
 // ════════════════════════════════
 async function init() {
   settings = await window.electronAPI.getSettings();
-  // Defaults sicherstellen
   settings.favorites        = settings.favorites        || [];
   settings.cardImages       = settings.cardImages       || {};
   settings.cardImageOffsets = settings.cardImageOffsets || {};
-  settings.clock            = settings.clock            || { enabled:false, position:'bottom-right', color:'#ffffff', opacity:0.85 };
+  settings.clock            = settings.clock            || { enabled:false, position:{x:null,y:null}, color:'#ffffff', opacity:0.85, size:22 };
+  settings.fontSize         = settings.fontSize         || 'medium';
+  settings.accentColor      = settings.accentColor      || '#30c5bb';
 
   applySettings(settings, false);
+  applyFontSize(settings.fontSize);
 
   const theme = await window.electronAPI.getTheme();
   setTheme(theme, false);
 
   buildProviderGrid();
   buildSidebarSubMenus();
+  setupClock();
 
   setupTitlebar();
   setupThemeToggle();
@@ -112,7 +99,9 @@ async function init() {
   setupFullscreenExit();
   setupESCKey();
   setupPip();
-  setupClock();
+  setupSearch();
+  setupImageEditor();
+  setupClockUnsavedDialog();
 
   window.electronAPI.onFullscreenChange(v => { isFullscreen = v; updateFullscreenUI(); });
   window.electronAPI.onSessionsCleared(() => buildSettingsAccountTab());
@@ -124,7 +113,7 @@ async function init() {
 // ════════════════════════════════
 // THEME
 // ════════════════════════════════
-function setTheme(t, save = true) {
+function setTheme(t, save=true) {
   document.documentElement.setAttribute('data-theme', t);
   const tog = document.getElementById('theme-toggle');
   if (tog) tog.checked = (t === 'light');
@@ -135,47 +124,62 @@ function setupThemeToggle() {
 }
 
 // ════════════════════════════════
+// FONT SIZE
+// ════════════════════════════════
+function applyFontSize(size) {
+  document.documentElement.setAttribute('data-fontsize', size || 'medium');
+}
+
+// ════════════════════════════════
 // SETTINGS ANWENDEN
 // ════════════════════════════════
-const DEFAULTS = { appBg:'', appBgImage:'', cardBg:'', accentColor:'#7c6cff', cardImages:{}, cardImageOffsets:{}, logoImage:'', favorites:[], clock:{ enabled:false, position:'bottom-right', color:'#ffffff', opacity:0.85 } };
+const DEFAULTS = {
+  appBgImage:'', accentColor:'#30c5bb', cardImages:{}, cardImageOffsets:{},
+  logoImage:'', favorites:[], fontSize:'medium',
+  clock:{ enabled:false, position:{x:null,y:null}, color:'#ffffff', opacity:0.85, size:22 },
+};
 
-function applySettings(s, save = true) {
+function applySettings(s, save=true) {
   const root = document.documentElement;
 
-  // Hintergrund
+  // Hintergrundbild
+  const mc = document.getElementById('main-content');
   if (s.appBgImage) {
-    document.body.style.backgroundImage    = `url("${s.appBgImage}")`;
-    document.body.style.backgroundSize     = 'cover';
-    document.body.style.backgroundPosition = 'center';
+    if (mc) {
+      mc.style.backgroundImage    = `url("${s.appBgImage}")`;
+      mc.style.backgroundSize     = 'cover';
+      mc.style.backgroundPosition = 'center';
+      mc.classList.add('has-bg');
+    }
+    // Sidebar-Farbe ans Bild anpassen → dominante Farbe nicht extrahierbar ohne Canvas,
+    // daher setzen wir ein semi-transparentes Overlay via CSS-Variable
+    root.style.setProperty('--bgs', 'rgba(10,10,20,0.72)');
   } else {
-    document.body.style.backgroundImage = '';
-    if (s.appBg) root.style.setProperty('--bg', s.appBg);
-    else         root.style.removeProperty('--bg');
+    if (mc) { mc.style.backgroundImage = ''; mc.classList.remove('has-bg'); }
+    root.style.removeProperty('--bgs');
   }
 
-  if (s.cardBg) root.style.setProperty('--bgc', s.cardBg);
-  else          root.style.removeProperty('--bgc');
-
-  root.style.setProperty('--acc', s.accentColor || '#7c6cff');
+  // Akzentfarbe
+  root.style.setProperty('--acc', s.accentColor || '#30c5bb');
+  const accRgb = hexToRgb(s.accentColor || '#30c5bb');
+  if (accRgb) root.style.setProperty('--accg', `rgba(${accRgb},0.18)`);
 
   // Logo
   const li = document.getElementById('logo-img');
-  const ls = document.getElementById('logo-svg');
-  if (s.logoImage && li && ls) { li.src = s.logoImage; li.style.display = 'block'; ls.style.display = 'none'; }
-  else if (li && ls)           { li.style.display = 'none'; ls.style.display = 'block'; }
+  if (li && s.logoImage) li.src = s.logoImage;
+  else if (li) li.src = 'assets/icon.png';
 
-  // Karten-Bilder & Offsets
+  // Karten-Bilder
   Object.entries(s.cardImages || {}).forEach(([id, url]) => {
-    const banner = document.querySelector(`.provider-card[data-id="${id}"] .card-banner-img`);
-    if (!banner) return;
+    const el = document.querySelector(`.provider-card[data-id="${id}"] .card-banner-img`);
+    if (!el) return;
     if (url) {
-      const off = (s.cardImageOffsets || {})[id] || { x:0, y:0 };
-      banner.style.backgroundImage    = `url("${url}")`;
-      banner.style.backgroundPosition = `calc(50% + ${off.x}px) calc(50% + ${off.y}px)`;
-      banner.style.opacity = '1';
+      const off = (s.cardImageOffsets||{})[id] || {x:0,y:0};
+      el.style.backgroundImage    = `url("${url}")`;
+      el.style.backgroundPosition = `calc(50% + ${off.x}px) calc(50% + ${off.y}px)`;
+      el.style.opacity = '1';
     } else {
-      banner.style.backgroundImage = '';
-      banner.style.opacity = '0';
+      el.style.backgroundImage = ''; el.style.opacity = '0';
     }
   });
 
@@ -183,6 +187,11 @@ function applySettings(s, save = true) {
   setupClock();
 
   if (save) window.electronAPI.setSettings(s);
+}
+
+function hexToRgb(hex) {
+  const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r ? `${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}` : null;
 }
 
 // ════════════════════════════════
@@ -208,13 +217,20 @@ function setupNavigation() {
   document.querySelectorAll('.nav-btn[data-view]').forEach(btn => {
     btn.addEventListener('click', () => {
       const v = btn.dataset.view;
-      if (v === 'home') { maybeMinimizeToPin(); showView('home'); }
+      if (v === 'home') { maybeMoveToPip(); showView('home'); }
+      else if (v === 'stream') {
+        if (!currentProvider && !pipProviderId) { showView('nothing'); }
+        else if (currentProvider) showView('stream');
+        else if (pipProviderId) restoreFromPip();
+      }
       else showView(v);
     });
   });
 
   setupToggle('nav-fav-toggle',       'nav-sub-favorites');
   setupToggle('nav-providers-toggle', 'nav-sub-providers');
+
+  document.getElementById('goto-home-btn')?.addEventListener('click', () => showView('home'));
 }
 
 function setupToggle(btnId, subId) {
@@ -227,58 +243,59 @@ function setupToggle(btnId, subId) {
 }
 
 // ════════════════════════════════
-// PROVIDER GRID & SIDEBAR AUFBAUEN
+// PROVIDER GRID
 // ════════════════════════════════
 function buildProviderGrid() {
   const grid = document.getElementById('providers-grid');
   if (!grid) return;
   grid.innerHTML = '';
 
-  const favs = settings.favorites || [];
-  const sorted = Object.entries(PROVIDERS).sort((a,b) => a[1].name.localeCompare(b[1].name));
+  const favs    = settings.favorites || [];
+  const sorted  = Object.entries(PROVIDERS).sort((a,b) => a[1].name.localeCompare(b[1].name));
+  const favList = sorted.filter(([id]) => favs.includes(id));
+  const rest    = sorted.filter(([id]) => !favs.includes(id));
 
-  // Favoriten-Sektion
-  const favEntries = sorted.filter(([id]) => favs.includes(id));
-  const restEntries = sorted.filter(([id]) => !favs.includes(id));
-
-  if (favEntries.length) {
-    const lbl = document.createElement('div');
-    lbl.className = 'grid-section-label';
-    lbl.textContent = '⭐ Favoriten';
-    grid.appendChild(lbl);
-    favEntries.forEach(([id, p]) => grid.appendChild(createProviderCard(id, p, true)));
+  if (favList.length) {
+    addGridLabel(grid, '⭐ Favoriten');
+    favList.forEach(([id,p]) => grid.appendChild(createCard(id,p,true)));
   }
-
-  if (restEntries.length) {
-    if (favEntries.length) {
-      const lbl = document.createElement('div');
-      lbl.className = 'grid-section-label';
-      lbl.textContent = 'Alle Anbieter';
-      grid.appendChild(lbl);
-    }
-    restEntries.forEach(([id, p]) => grid.appendChild(createProviderCard(id, p, false)));
+  if (rest.length) {
+    if (favList.length) addGridLabel(grid, 'Alle Anbieter');
+    rest.forEach(([id,p]) => grid.appendChild(createCard(id,p,false)));
   }
 }
 
-function createProviderCard(id, p, isFav) {
+function addGridLabel(grid, text) {
+  const el = document.createElement('div');
+  el.className = 'grid-section-label';
+  el.textContent = text;
+  grid.appendChild(el);
+}
+
+function createCard(id, p, isFav) {
   const card = document.createElement('div');
   card.className = 'provider-card';
   card.dataset.id = id;
   card.style.setProperty('--card-color', p.color);
 
-  const imgUrl = (settings.cardImages || {})[id] || '';
-  const off    = (settings.cardImageOffsets || {})[id] || { x:0, y:0 };
+  const imgUrl = (settings.cardImages||{})[id] || '';
+  const off    = (settings.cardImageOffsets||{})[id] || {x:0,y:0};
+  const fav    = getFaviconUrl(id);
+
+  // Farbverlauf aus Provider-Farbe
+  const col = p.color;
 
   card.innerHTML = `
-    <button class="card-star ${isFav ? 'active' : ''}" data-id="${id}" title="${isFav ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}">
-      <svg width="13" height="13" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" ${isFav ? 'fill="currentColor"' : 'fill="none"'}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    <button class="card-star ${isFav?'active':''}" data-id="${id}">
+      <svg width="12" height="12" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" ${isFav?'fill="currentColor"':'fill="none"'}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
     </button>
     <div class="card-banner">
-      <div class="card-banner-img" style="background-image:${imgUrl ? `url('${imgUrl}')` : 'none'};background-position:calc(50% + ${off.x}px) calc(50% + ${off.y}px);background-size:cover;position:absolute;inset:0;opacity:${imgUrl ? 1 : 0};transition:opacity .3s"></div>
-      <div class="card-banner-logo-bg"><img src="${getFaviconUrl(id)}" onerror="this.style.display='none'" alt=""/></div>
-      <div class="card-banner-overlay"></div>
-      <div class="card-banner-circle"></div>
-      <div class="card-logo">${LOGOS[id] || `<span style="font-size:18px;font-weight:800">${p.name}</span>`}</div>
+      <div class="card-banner-gradient" style="background:radial-gradient(ellipse at center, ${col}55 0%, ${col}22 50%, transparent 80%)"></div>
+      <div class="card-banner-img" style="background-image:${imgUrl?`url('${imgUrl}')`:'none'};background-position:calc(50% + ${off.x}px) calc(50% + ${off.y}px);background-size:cover;position:absolute;inset:0;opacity:${imgUrl?1:0};transition:opacity .3s"></div>
+      <img class="card-favicon" src="${fav}" alt="${p.name}"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        style="position:relative;z-index:2;width:52px;height:52px;object-fit:contain;border-radius:10px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4));transition:transform .2s"/>
+      <div class="card-favicon-placeholder" style="display:none;position:relative;z-index:2;width:52px;height:52px;background:${col}33;border-radius:10px;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:white">${p.name.charAt(0)}</div>
     </div>
     <div class="card-body">
       <div class="card-info">
@@ -289,26 +306,15 @@ function createProviderCard(id, p, isFav) {
     </div>
   `;
 
-  // Stern-Klick
-  card.querySelector('.card-star').addEventListener('click', e => {
-    e.stopPropagation();
-    toggleFavorite(id);
-  });
-
-  // Karte-Klick → Provider öffnen
-  card.addEventListener('click', e => {
-    if (e.target.closest('.card-star')) return;
-    openProvider(id);
-  });
-
+  card.querySelector('.card-star').addEventListener('click', e => { e.stopPropagation(); toggleFavorite(id); });
+  card.addEventListener('click', e => { if (!e.target.closest('.card-star')) openProvider(id); });
   return card;
 }
 
 function toggleFavorite(id) {
   const favs = settings.favorites || [];
   const idx  = favs.indexOf(id);
-  if (idx === -1) favs.push(id);
-  else favs.splice(idx, 1);
+  if (idx === -1) favs.push(id); else favs.splice(idx,1);
   settings.favorites = favs;
   window.electronAPI.setSettings(settings);
   buildProviderGrid();
@@ -319,42 +325,35 @@ function toggleFavorite(id) {
 // SIDEBAR UNTERMENÜS
 // ════════════════════════════════
 function buildSidebarSubMenus() {
-  buildFavoritesSubMenu();
-  buildProvidersSubMenu();
+  buildFavSub();
+  buildProvidersSub();
 }
 
-function buildFavoritesSubMenu() {
-  const sub  = document.getElementById('nav-sub-favorites');
+function buildFavSub() {
+  const sub = document.getElementById('nav-sub-favorites');
   if (!sub) return;
   sub.innerHTML = '';
   const favs = settings.favorites || [];
   if (!favs.length) {
-    const hint = document.createElement('div');
-    hint.style.cssText = 'padding:6px 10px;font-size:11px;color:var(--tx3)';
-    hint.textContent = 'Noch keine Favoriten';
-    sub.appendChild(hint);
-    return;
+    const h = document.createElement('div');
+    h.style.cssText = 'padding:5px 10px;font-size:11px;color:var(--tx3)';
+    h.textContent = 'Noch keine Favoriten';
+    sub.appendChild(h); return;
   }
-  favs.forEach(id => {
-    const p = PROVIDERS[id];
-    if (!p) return;
-    sub.appendChild(createSubBtn(id, p));
-  });
+  favs.forEach(id => { const p = PROVIDERS[id]; if(p) sub.appendChild(makeSubBtn(id,p)); });
 }
 
-function buildProvidersSubMenu() {
+function buildProvidersSub() {
   const sub = document.getElementById('nav-sub-providers');
   if (!sub) return;
   sub.innerHTML = '';
-  Object.entries(PROVIDERS)
-    .sort((a,b) => a[1].name.localeCompare(b[1].name))
-    .forEach(([id, p]) => sub.appendChild(createSubBtn(id, p)));
+  Object.entries(PROVIDERS).sort((a,b)=>a[1].name.localeCompare(b[1].name))
+    .forEach(([id,p]) => sub.appendChild(makeSubBtn(id,p)));
 }
 
-function createSubBtn(id, p) {
+function makeSubBtn(id, p) {
   const btn = document.createElement('button');
   btn.className = 'nav-sub-btn';
-  btn.dataset.id = id;
   btn.innerHTML = `<img src="${getFaviconUrl(id)}" onerror="this.outerHTML='<span class=\\'dot\\' style=\\'background:${p.color}\\'></span>'" alt="" width="14" height="14" style="border-radius:2px;object-fit:contain;flex-shrink:0"/>${p.name}`;
   btn.addEventListener('click', () => openProvider(id));
   return btn;
@@ -367,18 +366,14 @@ function openProvider(id) {
   const p = PROVIDERS[id];
   if (!p) return;
 
-  // Laufenden Stream → PiP
+  // Laufenden Stream → PiP (nur wenn anderer Provider)
   if (currentWebview && currentProvider && currentProvider !== id) {
     moveToPip(currentProvider, currentWebview);
-    currentWebview  = null;
-    currentProvider = null;
+    currentWebview = null; currentProvider = null;
   }
 
-  // War schon PiP für diesen Provider? → zurückholen
-  if (pipProviderId === id) {
-    restoreFromPip();
-    return;
-  }
+  // War PiP für diesen Provider? → restore
+  if (pipProviderId === id) { restoreFromPip(); return; }
 
   currentProvider = id;
   showLoading(`${p.name} wird geöffnet…`);
@@ -387,7 +382,6 @@ function openProvider(id) {
 
   window.electronAPI.setupWebviewSession(p.partition);
 
-  // Alten Webview im Stream-View entfernen (nicht den PiP!)
   const wrap = document.getElementById('webview-wrap');
   if (wrap) wrap.innerHTML = '';
 
@@ -397,7 +391,6 @@ function openProvider(id) {
   wv.setAttribute('allowpopups', '');
   wv.setAttribute('useragent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
   wv.style.cssText = 'width:100%;height:100%;border:none;display:flex';
-
   currentWebview = wv;
   if (wrap) wrap.appendChild(wv);
 
@@ -409,9 +402,7 @@ function openProvider(id) {
     let diag = '';
     try {
       const r = await window.electronAPI.checkUrl(p.url);
-      diag = r.ok
-        ? `Webseite erreichbar (HTTP ${r.status}), aber Einbettung blockiert.`
-        : `Verbindungsfehler: ${r.error}`;
+      diag = r.ok ? `Webseite erreichbar (HTTP ${r.status}), aber Einbettung blockiert.` : `Verbindungsfehler: ${r.error}`;
     } catch {}
     showWebviewError(p, e.errorCode, e.errorDescription, diag);
   });
@@ -420,153 +411,132 @@ function openProvider(id) {
 }
 
 // ════════════════════════════════
-// STREAM STOPPEN (zurück zur Main Page)
+// STREAM STOP
 // ════════════════════════════════
 function stopStream() {
   if (isFullscreen) window.electronAPI.setFullscreen(false);
   const wrap = document.getElementById('webview-wrap');
   if (wrap) wrap.innerHTML = '';
-  currentWebview  = null;
-  currentProvider = null;
-  // PiP bleibt unverändert
+  currentWebview = null; currentProvider = null;
   showView('home');
 }
 
 // ════════════════════════════════
-// ZURÜCK (ohne Stream zu stoppen)
+// BACK (Stream → PiP)
 // ════════════════════════════════
-function goBack() {
-  if (isFullscreen) window.electronAPI.setFullscreen(false);
-  // Stream läuft weiter, View wechseln
-  maybeMinimizeToPin();
-  showView('home');
-}
-
-// Falls Stream läuft und wir die View verlassen → PiP
-function maybeMinimizeToPin() {
+function maybeMoveToPip() {
   if (currentWebview && currentProvider) {
     moveToPip(currentProvider, currentWebview);
-    currentWebview  = null;
-    currentProvider = null;
+    currentWebview = null; currentProvider = null;
   }
 }
 
 // ════════════════════════════════
-// PiP
+// PIP – Webview DOM-Node direkt verschieben (kein Reload)
 // ════════════════════════════════
 function setupPip() {
   const pip = document.getElementById('pip-window');
+  if (!pip) return;
 
-  // Drag & Drop
-  let drag = false, ox = 0, oy = 0;
-  const topbar = document.getElementById('pip-topbar');
-  topbar?.addEventListener('mousedown', e => {
-    drag = true;
+  // Drag
+  let drag=false, ox=0, oy=0;
+  document.getElementById('pip-topbar')?.addEventListener('mousedown', e => {
+    drag=true;
     const r = pip.getBoundingClientRect();
-    ox = e.clientX - r.left;
-    oy = e.clientY - r.top;
+    ox = e.clientX - r.left; oy = e.clientY - r.top;
     e.preventDefault();
   });
   document.addEventListener('mousemove', e => {
     if (!drag) return;
-    let nx = e.clientX - ox;
-    let ny = e.clientY - oy;
-    nx = Math.max(0, Math.min(window.innerWidth  - pip.offsetWidth,  nx));
-    ny = Math.max(0, Math.min(window.innerHeight - pip.offsetHeight, ny));
-    pip.style.left   = nx + 'px';
-    pip.style.top    = ny + 'px';
-    pip.style.right  = 'auto';
-    pip.style.bottom = 'auto';
+    let nx = Math.max(0, Math.min(window.innerWidth  - pip.offsetWidth,  e.clientX - ox));
+    let ny = Math.max(0, Math.min(window.innerHeight - pip.offsetHeight, e.clientY - oy));
+    pip.style.left=nx+'px'; pip.style.top=ny+'px';
+    pip.style.right='auto'; pip.style.bottom='auto';
   });
-  document.addEventListener('mouseup', () => { drag = false; });
+  document.addEventListener('mouseup', () => { drag=false; });
 
-  // Expand → zurück zum großen Fenster
   document.getElementById('pip-expand')?.addEventListener('click', restoreFromPip);
-
-  // Close
-  document.getElementById('pip-close')?.addEventListener('click', () => {
-    const pip = document.getElementById('pip-window');
+  document.getElementById('pip-close')?.addEventListener('click',  () => {
     pip.style.display = 'none';
     document.getElementById('pip-content').innerHTML = '';
-    pipWebview    = null;
     pipProviderId = null;
   });
 }
 
-function moveToPip(providerId, webview) {
+function moveToPip(providerId, webviewNode) {
   const pip     = document.getElementById('pip-window');
   const content = document.getElementById('pip-content');
   const title   = document.getElementById('pip-title');
   if (!pip || !content) return;
 
-  // Alten PiP-Inhalt entfernen
+  // Webview DOM-Node direkt in PiP verschieben – kein Reload!
   content.innerHTML = '';
+  if (webviewNode && webviewNode.parentNode) {
+    webviewNode.parentNode.removeChild(webviewNode);
+  }
+  if (webviewNode) {
+    webviewNode.style.cssText = 'width:100%;height:100%;border:none;display:flex';
+    content.appendChild(webviewNode);
+  }
 
-  // Den laufenden Webview in den PiP verschieben
-  // Da wir den DOM-Node nicht direkt verschieben können ohne Reload,
-  // erstellen wir einen neuen Webview mit gleicher Partition & URL
-  const p  = PROVIDERS[providerId];
-  if (!p) return;
-
-  const newWv = document.createElement('webview');
-  newWv.setAttribute('partition', p.partition);
-  newWv.setAttribute('src', p.url);
-  newWv.setAttribute('allowpopups', '');
-  newWv.setAttribute('useragent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36');
-  newWv.style.cssText = 'width:100%;height:100%;border:none;display:flex';
-
-  content.appendChild(newWv);
-  pipWebview    = newWv;
   pipProviderId = providerId;
+  if (title) title.textContent = PROVIDERS[providerId]?.name || providerId;
 
-  if (title) title.textContent = p.name;
+  // Reset position to bottom-right
+  pip.style.left='auto'; pip.style.top='auto';
+  pip.style.right='24px'; pip.style.bottom='24px';
   pip.style.display = 'flex';
 }
 
 function restoreFromPip() {
   if (!pipProviderId) return;
-  const id = pipProviderId;
+  const id      = pipProviderId;
+  const pip     = document.getElementById('pip-window');
+  const content = document.getElementById('pip-content');
+  const wrap    = document.getElementById('webview-wrap');
+  if (!content || !wrap) return;
 
-  // PiP schließen
-  const pip = document.getElementById('pip-window');
+  // Webview zurück in den Stream-View verschieben – kein Reload!
+  const wv = content.querySelector('webview');
+  if (wv) {
+    wv.parentNode.removeChild(wv);
+    wv.style.cssText = 'width:100%;height:100%;border:none;display:flex';
+    wrap.innerHTML = '';
+    wrap.appendChild(wv);
+    currentWebview  = wv;
+  }
+
+  content.innerHTML = '';
   pip.style.display = 'none';
-  document.getElementById('pip-content').innerHTML = '';
-  pipWebview    = null;
-  pipProviderId = null;
+  pipProviderId   = null;
+  currentProvider = id;
 
-  // Provider normal öffnen
-  openProvider(id);
+  document.getElementById('stream-title').textContent = PROVIDERS[id]?.name || id;
+  document.getElementById('btn-watching').style.display = 'flex';
+  showView('stream');
 }
 
 // ════════════════════════════════
 // STREAM CONTROLS
 // ════════════════════════════════
 function setupStreamControls() {
-  // Zurück: Stream → PiP, Home anzeigen
-  document.getElementById('back-btn')?.addEventListener('click', goBack);
-
-  // Stop: Stream beenden, Home
+  document.getElementById('back-btn')?.addEventListener('click', () => {
+    if (isFullscreen) window.electronAPI.setFullscreen(false);
+    maybeMoveToPip();
+    showView('home');
+  });
   document.getElementById('btn-stop')?.addEventListener('click', () => {
-    if (!confirm('Stream beenden und zur Übersicht zurückkehren?')) return;
+    if (!confirm('Stream beenden und zur Übersicht?')) return;
     stopStream();
   });
-
-  // Miniplayer
   document.getElementById('btn-pip')?.addEventListener('click', () => {
     if (currentWebview && currentProvider) {
-      moveToPip(currentProvider, currentWebview);
-      currentWebview  = null;
-      currentProvider = null;
-      showView('home');
+      maybeMoveToPip(); showView('home');
     }
   });
-
-  // Vollbild
   document.getElementById('btn-fullscreen')?.addEventListener('click', () => {
     window.electronAPI.setFullscreen(!isFullscreen);
   });
-
-  // Abmelden
   document.getElementById('btn-logout-provider')?.addEventListener('click', () => {
     if (!currentProvider) return;
     const p = PROVIDERS[currentProvider];
@@ -578,7 +548,7 @@ function setupStreamControls() {
 }
 
 // ════════════════════════════════
-// VOLLBILD
+// FULLSCREEN
 // ════════════════════════════════
 function updateFullscreenUI() {
   const topbar  = document.getElementById('stream-topbar');
@@ -588,51 +558,36 @@ function updateFullscreenUI() {
   const btn     = document.getElementById('btn-fullscreen');
 
   if (isFullscreen) {
-    [topbar, sidebar, tb].forEach(el => el?.classList.add('hidden'));
-    if (wrap) { wrap.style.cssText = 'position:fixed;inset:0;z-index:500;background:#000'; }
-    if (btn)  { btn.innerHTML = svgMinimize() + ' Beenden'; }
+    [topbar,sidebar,tb].forEach(el=>el?.classList.add('hidden'));
+    if (wrap) wrap.style.cssText = 'position:fixed;inset:0;z-index:500;background:#000';
+    if (btn)  btn.innerHTML = svgMin()+' Beenden';
   } else {
-    [topbar, sidebar, tb].forEach(el => el?.classList.remove('hidden'));
-    if (wrap) { wrap.style.cssText = ''; }
-    if (btn)  { btn.innerHTML = svgFullscreen() + ' Vollbild'; }
+    [topbar,sidebar,tb].forEach(el=>el?.classList.remove('hidden'));
+    if (wrap) wrap.style.cssText = '';
+    if (btn)  btn.innerHTML = svgMax()+' Vollbild';
     document.getElementById('fs-exit-btn')?.classList.remove('visible');
   }
 }
 
-function svgFullscreen() { return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`; }
-function svgMinimize()   { return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 3 3 3 3 8"/><polyline points="21 8 21 3 16 3"/><polyline points="3 16 3 21 8 21"/><polyline points="16 21 21 21 21 16"/></svg>`; }
+function svgMax() { return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`; }
+function svgMin() { return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 3 3 3 3 8"/><polyline points="21 8 21 3 16 3"/><polyline points="3 16 3 21 8 21"/><polyline points="16 21 21 21 21 16"/></svg>`; }
 
-// ════════════════════════════════
-// VOLLBILD EXIT (1 Sek hover in 3×3 cm Bereich)
-// ════════════════════════════════
 function setupFullscreenExit() {
   const btn = document.getElementById('fs-exit-btn');
   if (!btn) return;
-
   document.addEventListener('mousemove', e => {
     if (!isFullscreen) return;
-    const zone = 113; // ~3cm bei 96dpi
-    const cx   = window.innerWidth / 2;
-    const inZ  = Math.abs(e.clientX - cx) < zone / 2 && e.clientY < zone;
-
+    const zone = 113, cx = window.innerWidth/2;
+    const inZ  = Math.abs(e.clientX-cx) < zone/2 && e.clientY < zone;
     if (inZ) {
-      if (!fsHoverTimer) {
-        fsHoverTimer = setTimeout(() => {
-          btn.classList.add('visible');
-          clearTimeout(fsAutoHide);
-          fsAutoHide = setTimeout(() => btn.classList.remove('visible'), 3000);
-        }, 1000);
-      }
-    } else {
-      clearTimeout(fsHoverTimer);
-      fsHoverTimer = null;
-    }
+      if (!fsHoverTimer) fsHoverTimer = setTimeout(() => {
+        btn.classList.add('visible');
+        clearTimeout(fsAutoHide);
+        fsAutoHide = setTimeout(()=>btn.classList.remove('visible'), 3000);
+      }, 1000);
+    } else { clearTimeout(fsHoverTimer); fsHoverTimer=null; }
   });
-
-  btn.addEventListener('click', () => {
-    window.electronAPI.setFullscreen(false);
-    btn.classList.remove('visible');
-  });
+  btn.addEventListener('click', () => { window.electronAPI.setFullscreen(false); btn.classList.remove('visible'); });
 }
 
 function setupESCKey() {
@@ -642,66 +597,373 @@ function setupESCKey() {
 }
 
 // ════════════════════════════════
-// EINSTELLUNGEN
+// SEARCH
+// ════════════════════════════════
+function setupSearch() {
+  const input   = document.getElementById('search-input');
+  const clearBtn= document.getElementById('search-clear');
+  const results = document.getElementById('search-results');
+
+  input?.addEventListener('input', () => {
+    const q = input.value.trim();
+    clearBtn.style.display = q ? 'block' : 'none';
+    clearTimeout(searchTimer);
+    if (!q) { results.style.display='none'; results.innerHTML=''; return; }
+    searchTimer = setTimeout(() => runSearch(q), 500);
+  });
+
+  clearBtn?.addEventListener('click', () => {
+    input.value=''; clearBtn.style.display='none';
+    results.style.display='none'; results.innerHTML='';
+  });
+}
+
+async function runSearch(q) {
+  const results = document.getElementById('search-results');
+  results.style.display = 'block';
+
+  // Provider-Suche
+  const providerMatches = Object.entries(PROVIDERS).filter(([,p]) =>
+    p.name.toLowerCase().includes(q.toLowerCase())
+  );
+
+  // YouTube-Link?
+  const ytId = extractYouTubeId(q);
+
+  results.innerHTML = `<div class="search-loading">Suche läuft…</div>`;
+
+  let html = `<div class="search-results-header"><span class="search-results-title">Ergebnisse für „${escHtml(q)}"</span></div>`;
+
+  // Provider-Treffer
+  if (providerMatches.length) {
+    html += `<div style="margin-bottom:10px;font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em">Anbieter</div>`;
+    providerMatches.forEach(([id,p]) => {
+      html += `<div class="search-result-item" style="cursor:pointer" onclick="openProvider('${id}')">
+        <img src="${getFaviconUrl(id)}" style="width:40px;height:40px;object-fit:contain;border-radius:8px;background:${p.color}22;padding:4px" onerror="this.style.display='none'"/>
+        <div class="search-result-info">
+          <span class="search-result-title">${p.name}</span>
+          <span class="search-result-meta">${p.tag}</span>
+          <div class="search-result-actions">
+            <button class="search-action-btn primary" onclick="event.stopPropagation();openProvider('${id}')">▶ Öffnen</button>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // YouTube direkt
+  if (ytId) {
+    html += `<div style="margin:10px 0 6px;font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em">YouTube Video</div>`;
+    html += `<div class="search-yt-result">
+      <img class="search-yt-thumb" src="https://img.youtube.com/vi/${ytId}/mqdefault.jpg" onerror="this.style.display='none'"/>
+      <div class="search-yt-info">
+        <div class="search-yt-title">YouTube Video</div>
+        <div class="search-yt-channel">${escHtml(q)}</div>
+        <div class="search-result-actions" style="margin-top:6px">
+          <button class="search-action-btn primary" onclick="openProvider('youtube');setTimeout(()=>{if(window._currentWv)window._currentWv.loadURL('https://www.youtube.com/watch?v=${ytId}')},1500)">▶ In OmniSight öffnen</button>
+          <button class="search-action-btn" onclick="window.electronAPI.openExternal('https://www.youtube.com/watch?v=${ytId}')">↗ Browser</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Titel-Suche via OMDB
+  if (!ytId) {
+    try {
+      const data = await window.electronAPI.searchTitle(q);
+      if (data.Search && data.Search.length) {
+        html += `<div style="margin:10px 0 6px;font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em">Filme & Serien</div>`;
+        data.Search.slice(0,5).forEach(item => {
+          const typeLabel = item.Type === 'movie' ? 'Film' : item.Type === 'series' ? 'Serie' : item.Type;
+          const wseUrl = `https://www.werstreamt.es/filme-und-serien/?q=${encodeURIComponent(item.Title)}`;
+          html += `<div class="search-result-item">
+            ${item.Poster && item.Poster !== 'N/A'
+              ? `<img class="search-result-poster" src="${item.Poster}" onerror="this.outerHTML='<div class=search-result-poster-placeholder><svg width=24 height=24 viewBox=\\'0 0 24 24\\' fill=none stroke=currentColor stroke-width=1.5><rect x=3 y=3 width=18 height=18 rx=2/></svg></div>'"/>`
+              : `<div class="search-result-poster-placeholder"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>`
+            }
+            <div class="search-result-info">
+              <span class="search-result-type">${typeLabel}</span>
+              <span class="search-result-title">${escHtml(item.Title)}</span>
+              <span class="search-result-meta">${item.Year || ''}</span>
+              <div class="search-result-actions">
+                <button class="search-action-btn primary" onclick="window.electronAPI.openExternal('${wseUrl}')">↗ Bei werstreamt.es suchen</button>
+                <button class="search-action-btn" onclick="window.electronAPI.openExternal('https://www.imdb.com/title/${item.imdbID}')">IMDb</button>
+              </div>
+            </div>
+          </div>`;
+        });
+      } else if (!providerMatches.length && !ytId) {
+        html += `<div class="search-empty">Keine Ergebnisse gefunden für „${escHtml(q)}".<br><br>
+          <button class="search-action-btn primary" onclick="window.electronAPI.openExternal('https://www.werstreamt.es/filme-und-serien/?q=${encodeURIComponent(q)}')">↗ Bei werstreamt.es suchen</button>
+        </div>`;
+      }
+    } catch {}
+  }
+
+  // Immer: werstreamt.es Link
+  if (!ytId) {
+    html += `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:11px;color:var(--tx3)">Auf welcher Plattform ist der Titel verfügbar?</span>
+      <button class="search-action-btn" onclick="window.electronAPI.openExternal('https://www.werstreamt.es/filme-und-serien/?q=${encodeURIComponent(q)}')">↗ werstreamt.es</button>
+    </div>`;
+  }
+
+  results.innerHTML = html;
+}
+
+function extractYouTubeId(str) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/,
+  ];
+  for (const p of patterns) { const m = str.match(p); if (m) return m[1]; }
+  return null;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Global für Search (YouTube direct open)
+window.openProvider = openProvider;
+
+// ════════════════════════════════
+// CLOCK
+// ════════════════════════════════
+function setupClock() {
+  clearInterval(clockInterval);
+  const widget = document.getElementById('clock-widget');
+  const timeEl = document.getElementById('clock-time');
+  if (!widget || !timeEl) return;
+
+  const clk = settings.clock || {};
+  if (!clk.enabled) { widget.style.display='none'; return; }
+
+  // Position
+  const pos = clk.position || {};
+  widget.style.display = 'block';
+  if (pos.x !== null && pos.x !== undefined && pos.y !== null && pos.y !== undefined) {
+    widget.style.left   = pos.x + 'px';
+    widget.style.top    = pos.y + 'px';
+    widget.style.right  = 'auto';
+    widget.style.bottom = 'auto';
+  } else {
+    // Default: rechts unten
+    widget.style.left   = 'auto';
+    widget.style.top    = 'auto';
+    widget.style.right  = '16px';
+    widget.style.bottom = '16px';
+  }
+
+  widget.style.color     = clk.color   || '#ffffff';
+  widget.style.opacity   = clk.opacity ?? 0.85;
+  widget.style.fontSize  = (clk.size || 22) + 'px';
+
+  const tick = () => {
+    const n = new Date();
+    timeEl.textContent = `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+  };
+  tick();
+  clockInterval = setInterval(tick, 1000);
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+// Live-Uhr-Preview während Einstellungen offen
+function previewClock() {
+  const widget = document.getElementById('clock-widget');
+  if (!widget) return;
+  const enabled = document.getElementById('clock-enabled')?.checked;
+  const color   = document.getElementById('clock-color-text')?.value || '#ffffff';
+  const opacity = (parseInt(document.getElementById('clock-opacity')?.value)||85) / 100;
+  const size    = parseInt(document.getElementById('clock-size')?.value) || 22;
+
+  if (!enabled) { widget.style.display='none'; return; }
+  widget.style.display   = 'block';
+  widget.style.color     = color;
+  widget.style.opacity   = opacity;
+  widget.style.fontSize  = size + 'px';
+  clockUnsaved = true;
+  document.getElementById('clock-unsaved-hint')?.style && (document.getElementById('clock-unsaved-hint').style.display='block');
+}
+
+// Uhr per Maus verschieben
+function startClockDrag() {
+  const widget = document.getElementById('clock-widget');
+  if (!widget) return;
+
+  // Uhr einblenden
+  widget.style.display  = 'block';
+  widget.classList.add('draggable', 'clock-drag-active');
+  clockDragActive = true;
+
+  let drag=false, ox=0, oy=0;
+  function onDown(e) {
+    drag=true;
+    const r = widget.getBoundingClientRect();
+    ox = e.clientX - r.left; oy = e.clientY - r.top;
+    e.preventDefault();
+  }
+  function onMove(e) {
+    if (!drag) return;
+    let nx = Math.max(0, Math.min(window.innerWidth  - widget.offsetWidth,  e.clientX-ox));
+    let ny = Math.max(0, Math.min(window.innerHeight - widget.offsetHeight, e.clientY-oy));
+    widget.style.left='auto'; widget.style.right='auto';
+    widget.style.top='auto';  widget.style.bottom='auto';
+    widget.style.left=nx+'px'; widget.style.top=ny+'px';
+  }
+  function onUp() {
+    if (!drag) return;
+    drag=false;
+    // Position speichern (nur temporär bis "Speichern")
+    const r = widget.getBoundingClientRect();
+    settings.clock._pendingPos = { x: Math.round(r.left), y: Math.round(r.top) };
+    clockUnsaved = true;
+    document.getElementById('clock-unsaved-hint').style.display = 'block';
+  }
+
+  widget.addEventListener('mousedown', onDown);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+
+  // Drag-Modus beenden
+  document.getElementById('clock-drag-mode-btn').textContent = '✓ Fertig';
+  document.getElementById('clock-drag-mode-btn').onclick = () => stopClockDrag(onDown, onMove, onUp);
+}
+
+function stopClockDrag(onDown, onMove, onUp) {
+  const widget = document.getElementById('clock-widget');
+  widget?.classList.remove('draggable','clock-drag-active');
+  document.removeEventListener('mousemove', onMove);
+  document.removeEventListener('mouseup', onUp);
+  widget?.removeEventListener('mousedown', onDown);
+  clockDragActive = false;
+  document.getElementById('clock-drag-mode-btn').textContent = '✋ Uhr verschieben';
+  document.getElementById('clock-drag-mode-btn').onclick = startClockDrag;
+}
+
+// Dialog: nicht gespeicherte Uhren-Änderungen
+function setupClockUnsavedDialog() {
+  document.getElementById('clock-save-btn')?.addEventListener('click', () => {
+    saveClockSettings();
+    document.getElementById('clock-unsaved-overlay').style.display = 'none';
+  });
+  document.getElementById('clock-disable-btn')?.addEventListener('click', () => {
+    settings.clock.enabled = false;
+    window.electronAPI.setSettings(settings);
+    setupClock();
+    clockUnsaved = false;
+    document.getElementById('clock-unsaved-overlay').style.display = 'none';
+  });
+  document.getElementById('clock-cancel-btn')?.addEventListener('click', () => {
+    // Zurück zu alten Einstellungen
+    if (clockPrevSettings) {
+      settings.clock = JSON.parse(JSON.stringify(clockPrevSettings));
+      setupClock();
+    }
+    clockUnsaved = false;
+    document.getElementById('clock-unsaved-overlay').style.display = 'none';
+  });
+}
+
+function saveClockSettings() {
+  const pos = settings.clock._pendingPos || settings.clock.position || {};
+  settings.clock = {
+    enabled:  document.getElementById('clock-enabled')?.checked ?? settings.clock.enabled,
+    position: settings.clock._pendingPos || settings.clock.position || {x:null,y:null},
+    color:    document.getElementById('clock-color-text')?.value || '#ffffff',
+    opacity:  (parseInt(document.getElementById('clock-opacity')?.value)||85)/100,
+    size:     parseInt(document.getElementById('clock-size')?.value)||22,
+  };
+  delete settings.clock._pendingPos;
+  window.electronAPI.setSettings(settings);
+  setupClock();
+  clockUnsaved = false;
+  document.getElementById('clock-unsaved-hint').style.display = 'none';
+}
+
+// ════════════════════════════════
+// SETTINGS PANEL
 // ════════════════════════════════
 function setupSettingsPanel() {
   const panel   = document.getElementById('settings-panel');
   const overlay = document.getElementById('settings-overlay');
 
-  document.getElementById('btn-settings')?.addEventListener('click', openSettings);
+  document.getElementById('btn-settings')?.addEventListener('click', () => {
+    openSettings();
+  });
   document.getElementById('settings-close')?.addEventListener('click', closeSettings);
   overlay?.addEventListener('click', closeSettings);
 
   // Tabs
   document.querySelectorAll('.stab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.stab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.stab-content').forEach(c=>c.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById(`stab-${tab.dataset.tab}`)?.classList.add('active');
-      if (tab.dataset.tab === 'account') buildSettingsAccountTab();
-      if (tab.dataset.tab === 'cards')   buildSettingsCardTab();
+      if (tab.dataset.tab==='account') buildSettingsAccountTab();
+      if (tab.dataset.tab==='cards')   buildSettingsCardTab();
+      if (tab.dataset.tab==='clock')   syncClockUI();
     });
   });
 
   // Color pickers
-  linkColor('set-app-bg-color', 'set-app-bg-text');
-  linkColor('set-card-bg-color','set-card-bg-text');
-  linkColor('set-accent-color', 'set-accent-text');
-  linkColor('clock-color',      'clock-color-text');
+  linkColor('set-accent-color','set-accent-text');
+  linkColor('clock-color','clock-color-text');
 
-  // Reset
+  // Reset buttons
   document.querySelectorAll('.reset-btn[data-reset]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const key = btn.dataset.reset;
-      settings[key] = JSON.parse(JSON.stringify(DEFAULTS[key] ?? ''));
-      syncSettingsUI();
+      const k = btn.dataset.reset;
+      if (k==='accentColor') { settings.accentColor='#30c5bb'; syncAppearanceUI(); }
+      else if (k==='logoImage') { settings.logoImage=''; const li=document.getElementById('logo-img'); if(li) li.src='assets/icon.png'; }
+      else if (k==='appBgImage') { settings.appBgImage=''; updatePreview('prev-app-bg',null); }
       applySettings(settings);
-      if (key.includes('card')) buildSettingsCardTab();
     });
   });
 
-  // Bild-Pick
+  // Image pick buttons
   document.querySelectorAll('.pick-btn[data-pick]').forEach(btn => {
     btn.addEventListener('click', () => handlePickImage(btn.dataset.pick));
   });
 
-  // Uhr-Slider
-  const opSlider = document.getElementById('clock-opacity');
-  const opVal    = document.getElementById('clock-opacity-val');
-  opSlider?.addEventListener('input', () => { opVal.textContent = opSlider.value + '%'; });
+  // Font size buttons
+  document.querySelectorAll('.font-size-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.font-size-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      settings.fontSize = btn.dataset.size;
+      applyFontSize(settings.fontSize);
+    });
+  });
 
-  // Speichern
+  // Clock live preview
+  ['clock-enabled','clock-color','clock-opacity','clock-size'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', previewClock);
+    document.getElementById(id)?.addEventListener('change', previewClock);
+  });
+  document.getElementById('clock-color-text')?.addEventListener('input', previewClock);
+
+  // Clock opacity/size label
+  document.getElementById('clock-opacity')?.addEventListener('input', e => {
+    document.getElementById('clock-opacity-val').textContent = e.target.value+'%';
+  });
+  document.getElementById('clock-size')?.addEventListener('input', e => {
+    document.getElementById('clock-size-val').textContent = e.target.value+'px';
+  });
+
+  // Clock drag button
+  document.getElementById('clock-drag-mode-btn')?.addEventListener('click', startClockDrag);
+
+  // Save
   document.getElementById('settings-save')?.addEventListener('click', () => {
-    settings.appBg       = document.getElementById('set-app-bg-text').value.trim();
-    settings.cardBg      = document.getElementById('set-card-bg-text').value.trim();
-    settings.accentColor = document.getElementById('set-accent-text').value.trim() || '#7c6cff';
-    settings.clock = {
-      enabled:  document.getElementById('clock-enabled').checked,
-      position: document.getElementById('clock-position').value,
-      color:    document.getElementById('clock-color-text').value.trim() || '#ffffff',
-      opacity:  parseInt(document.getElementById('clock-opacity').value) / 100,
-    };
+    settings.accentColor = document.getElementById('set-accent-text')?.value.trim() || '#30c5bb';
+    settings.logoImage   = settings.logoImage || '';
+    if (clockUnsaved) {
+      document.getElementById('clock-unsaved-overlay').style.display='flex';
+      return;
+    }
     applySettings(settings);
     closeSettings();
   });
@@ -713,17 +975,24 @@ function setupSettingsPanel() {
     buildSettingsAccountTab();
   });
 
-  syncSettingsUI();
+  syncAppearanceUI();
 }
 
 function openSettings() {
+  clockPrevSettings = JSON.parse(JSON.stringify(settings.clock));
+  clockUnsaved      = false;
   document.getElementById('settings-panel')?.classList.add('open');
   document.getElementById('settings-overlay')?.classList.add('open');
   buildSettingsAccountTab();
   buildSettingsCardTab();
+  syncClockUI();
 }
 
 function closeSettings() {
+  if (clockUnsaved) {
+    document.getElementById('clock-unsaved-overlay').style.display='flex';
+    return;
+  }
   document.getElementById('settings-panel')?.classList.remove('open');
   document.getElementById('settings-overlay')?.classList.remove('open');
 }
@@ -731,68 +1000,70 @@ function closeSettings() {
 async function handlePickImage(dest) {
   const url = await window.electronAPI.pickImage(dest);
   if (!url) return;
-  if (dest === 'logo') {
+  if (dest==='logo') {
     settings.logoImage = url;
+    const li = document.getElementById('logo-img'); if(li) li.src=url;
     updatePreview('prev-logo', url);
-    applySettings(settings);
-  } else if (dest === 'appBgImage') {
+  } else if (dest==='appBgImage') {
     settings.appBgImage = url;
     updatePreview('prev-app-bg', url);
-    applySettings(settings);
   } else if (dest.startsWith('card_')) {
     const id = dest.replace('card_','');
-    settings.cardImages = settings.cardImages || {};
     settings.cardImages[id] = url;
     applySettings(settings);
     buildProviderGrid();
     buildSettingsCardTab();
     openImageEditor(id, url);
+    return;
   }
+  applySettings(settings);
 }
 
 function updatePreview(id, url) {
   const el = document.getElementById(id);
-  if (el) el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:6px"/>`;
+  if (!el) return;
+  if (url) el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:6px"/>`;
+  else el.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
 }
 
 function linkColor(cId, tId) {
-  const c = document.getElementById(cId);
-  const t = document.getElementById(tId);
-  if (!c || !t) return;
-  c.addEventListener('input', () => { t.value = c.value; });
-  t.addEventListener('input', () => { if (/^#[0-9a-fA-F]{6}$/.test(t.value)) c.value = t.value; });
+  const c=document.getElementById(cId), t=document.getElementById(tId);
+  if(!c||!t) return;
+  c.addEventListener('input', ()=>{ t.value=c.value; });
+  t.addEventListener('input', ()=>{ if(/^#[0-9a-fA-F]{6}$/.test(t.value)) c.value=t.value; });
 }
 
-function syncSettingsUI() {
-  const s = settings;
-  setColorPair('set-app-bg-color', 'set-app-bg-text',   s.appBg      ||'#0a0a0f', s.appBg      ||'');
-  setColorPair('set-card-bg-color','set-card-bg-text',   s.cardBg     ||'#18181f', s.cardBg     ||'');
-  setColorPair('set-accent-color', 'set-accent-text',    s.accentColor||'#7c6cff', s.accentColor||'');
-  if (s.logoImage)  updatePreview('prev-logo',   s.logoImage);
-  if (s.appBgImage) updatePreview('prev-app-bg', s.appBgImage);
+function syncAppearanceUI() {
+  const acc = settings.accentColor||'#30c5bb';
+  const ca  = document.getElementById('set-accent-color');
+  const ta  = document.getElementById('set-accent-text');
+  if(ca) ca.value=acc; if(ta) ta.value=acc;
 
-  const clk = s.clock || {};
-  const ce = document.getElementById('clock-enabled');
-  const cp = document.getElementById('clock-position');
-  const cc = document.getElementById('clock-color');
-  const ct = document.getElementById('clock-color-text');
-  const co = document.getElementById('clock-opacity');
-  const cv = document.getElementById('clock-opacity-val');
-  if (ce) ce.checked  = !!clk.enabled;
-  if (cp) cp.value    = clk.position || 'bottom-right';
-  const col = clk.color || '#ffffff';
-  if (cc) cc.value = col;
-  if (ct) ct.value = col;
-  const op = Math.round((clk.opacity ?? 0.85) * 100);
-  if (co) co.value = op;
-  if (cv) cv.textContent = op + '%';
+  if(settings.appBgImage) updatePreview('prev-app-bg', settings.appBgImage);
+  if(settings.logoImage)  updatePreview('prev-logo', settings.logoImage);
+
+  // Font size
+  document.querySelectorAll('.font-size-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.size === (settings.fontSize||'medium'));
+  });
 }
 
-function setColorPair(cId, tId, cVal, tVal) {
-  const c = document.getElementById(cId);
-  const t = document.getElementById(tId);
-  if (c) c.value = cVal;
-  if (t) t.value = tVal;
+function syncClockUI() {
+  const clk = settings.clock||{};
+  const ce=document.getElementById('clock-enabled');
+  const cc=document.getElementById('clock-color');
+  const ct=document.getElementById('clock-color-text');
+  const co=document.getElementById('clock-opacity');
+  const cv=document.getElementById('clock-opacity-val');
+  const cs=document.getElementById('clock-size');
+  const csv=document.getElementById('clock-size-val');
+  if(ce) ce.checked = !!clk.enabled;
+  const col = clk.color||'#ffffff';
+  if(cc) cc.value=col; if(ct) ct.value=col;
+  const op = Math.round((clk.opacity??0.85)*100);
+  if(co) co.value=op; if(cv) cv.textContent=op+'%';
+  const sz = clk.size||22;
+  if(cs) cs.value=sz; if(csv) csv.textContent=sz+'px';
 }
 
 // ════════════════════════════════
@@ -802,108 +1073,29 @@ function buildSettingsCardTab() {
   const list = document.getElementById('card-image-list');
   if (!list) return;
   list.innerHTML = '';
-
-  Object.entries(PROVIDERS)
-    .sort((a,b) => a[1].name.localeCompare(b[1].name))
-    .forEach(([id, p]) => {
-      const imgUrl = (settings.cardImages || {})[id] || '';
-      const item   = document.createElement('div');
-      item.className = 'card-img-item';
-      item.innerHTML = `
-        <span class="card-img-dot" style="background:${p.color}"></span>
-        <span class="card-img-name">${p.name}</span>
-        <div class="img-preview" id="prev-card-${id}">
-          ${imgUrl
-            ? `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:6px"/>`
-            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`
-          }
-        </div>
-        <button class="pick-btn" style="max-width:68px;font-size:11px" data-card="${id}">Bild</button>
-        ${imgUrl ? `<button class="pick-btn" style="max-width:58px;font-size:11px;color:var(--acc);border-color:var(--acc)" data-edit="${id}">✎ Edit</button>` : ''}
-        ${imgUrl ? `<button class="reset-btn" data-card-reset="${id}" title="Entfernen">↺</button>` : ''}
-      `;
-
-      item.querySelector(`[data-card="${id}"]`)?.addEventListener('click', () => handlePickImage(`card_${id}`));
-      item.querySelector(`[data-edit="${id}"]`)?.addEventListener('click', () => openImageEditor(id, imgUrl));
-      item.querySelector(`[data-card-reset="${id}"]`)?.addEventListener('click', () => {
-        delete settings.cardImages[id];
-        delete (settings.cardImageOffsets || {})[id];
-        applySettings(settings);
-        buildProviderGrid();
-        buildSettingsCardTab();
-      });
-
-      list.appendChild(item);
+  Object.entries(PROVIDERS).sort((a,b)=>a[1].name.localeCompare(b[1].name)).forEach(([id,p]) => {
+    const imgUrl = (settings.cardImages||{})[id]||'';
+    const item   = document.createElement('div');
+    item.className = 'card-img-item';
+    item.innerHTML = `
+      <span class="card-img-dot" style="background:${p.color}"></span>
+      <span class="card-img-name">${p.name}</span>
+      <div class="img-preview" id="prev-card-${id}">
+        ${imgUrl ? `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:6px"/>` : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`}
+      </div>
+      <button class="pick-btn" style="max-width:60px;font-size:11px" data-card="${id}">Bild</button>
+      ${imgUrl?`<button class="pick-btn" style="max-width:52px;font-size:11px;color:var(--acc);border-color:var(--acc)" data-edit="${id}">✎</button>`:''}
+      ${imgUrl?`<button class="reset-btn" data-card-reset="${id}">↺</button>`:''}
+    `;
+    item.querySelector(`[data-card="${id}"]`)?.addEventListener('click', ()=>handlePickImage(`card_${id}`));
+    item.querySelector(`[data-edit="${id}"]`)?.addEventListener('click', ()=>openImageEditor(id, imgUrl));
+    item.querySelector(`[data-card-reset="${id}"]`)?.addEventListener('click', ()=>{
+      delete settings.cardImages[id]; delete (settings.cardImageOffsets||{})[id];
+      applySettings(settings); buildProviderGrid(); buildSettingsCardTab();
     });
-}
-
-// ════════════════════════════════
-// IMAGE EDITOR (Position anpassen)
-// ════════════════════════════════
-function openImageEditor(providerId, imgUrl) {
-  const overlay = document.getElementById('img-editor-overlay');
-  const imgEl   = document.getElementById('img-editor-img');
-  const title   = document.getElementById('img-editor-title');
-  if (!overlay || !imgEl) return;
-
-  const off = (settings.cardImageOffsets || {})[providerId] || { x:0, y:0 };
-  imgEditorState = { providerId, url: imgUrl, x: off.x, y: off.y };
-
-  if (title) title.textContent = `Banner: ${PROVIDERS[providerId]?.name || providerId}`;
-
-  imgEl.style.backgroundImage    = `url("${imgUrl}")`;
-  imgEl.style.backgroundSize     = 'cover';
-  imgEl.style.backgroundRepeat   = 'no-repeat';
-  imgEl.style.backgroundPosition = `calc(50% + ${off.x}px) calc(50% + ${off.y}px)`;
-
-  const px = document.getElementById('pos-x');
-  const py = document.getElementById('pos-y');
-  const pvx = document.getElementById('pos-x-val');
-  const pvy = document.getElementById('pos-y-val');
-  if (px) { px.value = off.x; }
-  if (py) { py.value = off.y; }
-  if (pvx) pvx.textContent = off.x;
-  if (pvy) pvy.textContent = off.y;
-
-  px?.addEventListener('input', () => {
-    imgEditorState.x = parseInt(px.value);
-    if (pvx) pvx.textContent = px.value;
-    imgEl.style.backgroundPosition = `calc(50% + ${imgEditorState.x}px) calc(50% + ${imgEditorState.y}px)`;
+    list.appendChild(item);
   });
-  py?.addEventListener('input', () => {
-    imgEditorState.y = parseInt(py.value);
-    if (pvy) pvy.textContent = py.value;
-    imgEl.style.backgroundPosition = `calc(50% + ${imgEditorState.x}px) calc(50% + ${imgEditorState.y}px)`;
-  });
-
-  overlay.style.display = 'flex';
 }
-
-document.getElementById('img-editor-close')?.addEventListener('click', () => {
-  document.getElementById('img-editor-overlay').style.display = 'none';
-});
-
-document.getElementById('img-editor-save')?.addEventListener('click', () => {
-  const { providerId, url, x, y } = imgEditorState;
-  settings.cardImages       = settings.cardImages       || {};
-  settings.cardImageOffsets = settings.cardImageOffsets || {};
-  settings.cardImages[providerId]       = url;
-  settings.cardImageOffsets[providerId] = { x, y };
-  applySettings(settings);
-  buildProviderGrid();
-  buildSettingsCardTab();
-  document.getElementById('img-editor-overlay').style.display = 'none';
-});
-
-document.getElementById('img-editor-remove')?.addEventListener('click', () => {
-  const { providerId } = imgEditorState;
-  delete (settings.cardImages || {})[providerId];
-  delete (settings.cardImageOffsets || {})[providerId];
-  applySettings(settings);
-  buildProviderGrid();
-  buildSettingsCardTab();
-  document.getElementById('img-editor-overlay').style.display = 'none';
-});
 
 // ════════════════════════════════
 // SETTINGS: ACCOUNT-TAB
@@ -912,58 +1104,85 @@ async function buildSettingsAccountTab() {
   const list = document.getElementById('session-list');
   if (!list) return;
   list.innerHTML = '<div class="loading-sessions">Login-Status wird geprüft…</div>';
-
-  const results = await window.electronAPI.getAllSessions();
+  const res = await window.electronAPI.getAllSessions();
   list.innerHTML = '';
-
-  Object.entries(PROVIDERS)
-    .sort((a,b) => a[1].name.localeCompare(b[1].name))
-    .forEach(([id, p]) => {
-      const loggedIn = !!results[id];
-      const item = document.createElement('div');
-      item.className = 'session-item';
-      item.innerHTML = `
-        <span class="session-dot ${loggedIn ? 'active' : ''}"></span>
-        <span class="session-name">${p.name}</span>
-        <span class="session-status">${loggedIn ? '✓ Eingeloggt' : '–'}</span>
-        ${loggedIn ? `<button class="session-logout-btn" data-id="${id}">Abmelden</button>` : ''}
-      `;
-      item.querySelector('.session-logout-btn')?.addEventListener('click', () => {
-        window.electronAPI.clearProviderSession(id);
-        if (currentProvider === id) stopStream();
-        buildSettingsAccountTab();
-      });
-      list.appendChild(item);
+  Object.entries(PROVIDERS).sort((a,b)=>a[1].name.localeCompare(b[1].name)).forEach(([id,p]) => {
+    const on = !!res[id];
+    const item = document.createElement('div');
+    item.className = 'session-item';
+    item.innerHTML = `
+      <span class="session-dot ${on?'active':''}"></span>
+      <span class="session-name">${p.name}</span>
+      <span class="session-status">${on?'✓ Eingeloggt':'–'}</span>
+      ${on?`<button class="session-logout-btn" data-id="${id}">Abmelden</button>`:''}
+    `;
+    item.querySelector('.session-logout-btn')?.addEventListener('click', ()=>{
+      window.electronAPI.clearProviderSession(id);
+      if(currentProvider===id) stopStream();
+      buildSettingsAccountTab();
     });
+    list.appendChild(item);
+  });
 }
 
 // ════════════════════════════════
-// UHR
+// IMAGE EDITOR
 // ════════════════════════════════
-function setupClock() {
-  clearInterval(clockInterval);
-  const widget = document.getElementById('clock-widget');
-  const timeEl = document.getElementById('clock-time');
-  if (!widget || !timeEl) return;
+function setupImageEditor() {
+  const pxEl  = document.getElementById('pos-x');
+  const pyEl  = document.getElementById('pos-y');
+  const pvx   = document.getElementById('pos-x-val');
+  const pvy   = document.getElementById('pos-y-val');
+  const imgEl = document.getElementById('img-editor-img');
 
-  const clk = settings.clock || {};
-  if (!clk.enabled) { widget.style.display = 'none'; return; }
+  pxEl?.addEventListener('input', ()=>{
+    imgEditorState.x = parseInt(pxEl.value);
+    if(pvx) pvx.textContent=pxEl.value;
+    if(imgEl) imgEl.style.backgroundPosition=`calc(50% + ${imgEditorState.x}px) calc(50% + ${imgEditorState.y}px)`;
+  });
+  pyEl?.addEventListener('input', ()=>{
+    imgEditorState.y = parseInt(pyEl.value);
+    if(pvy) pvy.textContent=pyEl.value;
+    if(imgEl) imgEl.style.backgroundPosition=`calc(50% + ${imgEditorState.x}px) calc(50% + ${imgEditorState.y}px)`;
+  });
 
-  // Position
-  widget.className = `clock-widget pos-${clk.position || 'bottom-right'}`;
-  widget.style.color   = clk.color   || '#ffffff';
-  widget.style.opacity = clk.opacity ?? 0.85;
-  widget.style.display = 'block';
+  document.getElementById('img-editor-close')?.addEventListener('click', ()=>{
+    document.getElementById('img-editor-overlay').style.display='none';
+  });
+  document.getElementById('img-editor-save')?.addEventListener('click', ()=>{
+    const {providerId,url,x,y}=imgEditorState;
+    settings.cardImages[providerId]             = url;
+    settings.cardImageOffsets                   = settings.cardImageOffsets||{};
+    settings.cardImageOffsets[providerId]       = {x,y};
+    applySettings(settings); buildProviderGrid(); buildSettingsCardTab();
+    document.getElementById('img-editor-overlay').style.display='none';
+  });
+  document.getElementById('img-editor-remove')?.addEventListener('click', ()=>{
+    const {providerId}=imgEditorState;
+    delete settings.cardImages[providerId];
+    delete (settings.cardImageOffsets||{})[providerId];
+    applySettings(settings); buildProviderGrid(); buildSettingsCardTab();
+    document.getElementById('img-editor-overlay').style.display='none';
+  });
+}
 
-  const tick = () => {
-    const now  = new Date();
-    const h    = String(now.getHours()).padStart(2,'0');
-    const m    = String(now.getMinutes()).padStart(2,'0');
-    const s    = String(now.getSeconds()).padStart(2,'0');
-    timeEl.textContent = `${h}:${m}:${s}`;
-  };
-  tick();
-  clockInterval = setInterval(tick, 1000);
+function openImageEditor(providerId, imgUrl) {
+  const overlay = document.getElementById('img-editor-overlay');
+  const imgEl   = document.getElementById('img-editor-img');
+  const title   = document.getElementById('img-editor-title');
+  if (!overlay||!imgEl) return;
+  const off = (settings.cardImageOffsets||{})[providerId]||{x:0,y:0};
+  imgEditorState = {providerId, url:imgUrl, x:off.x, y:off.y};
+  if(title) title.textContent=`Banner: ${PROVIDERS[providerId]?.name||providerId}`;
+  imgEl.style.backgroundImage    = `url("${imgUrl}")`;
+  imgEl.style.backgroundSize     = 'cover';
+  imgEl.style.backgroundRepeat   = 'no-repeat';
+  imgEl.style.backgroundPosition = `calc(50% + ${off.x}px) calc(50% + ${off.y}px)`;
+  const px=document.getElementById('pos-x'), py=document.getElementById('pos-y');
+  const pvx=document.getElementById('pos-x-val'), pvy=document.getElementById('pos-y-val');
+  if(px){px.value=off.x;} if(py){py.value=off.y;}
+  if(pvx) pvx.textContent=off.x; if(pvy) pvy.textContent=off.y;
+  overlay.style.display='flex';
 }
 
 // ════════════════════════════════
@@ -974,22 +1193,19 @@ function showWebviewError(provider, code, desc, diag) {
   if (!wrap) return;
   wrap.innerHTML = `
     <div class="webview-error">
-      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <h3>${provider.name} konnte nicht geladen werden</h3>
-      <p>${diag || 'Mögliche Ursachen: Keine Internetverbindung, die Seite ist down oder blockiert den Zugriff.'}</p>
-      ${code ? `<span class="err-code">Fehlercode: ${code} – ${desc||'Unbekannt'}</span>` : ''}
+      <p>${diag||'Keine Verbindung oder die Seite blockiert den Zugriff.'}</p>
+      ${code?`<span class="err-code">Fehlercode: ${code} – ${desc||'Unbekannt'}</span>`:''}
       <a href="#" onclick="window.electronAPI.openExternal('${provider.url}');return false;">Im Browser öffnen →</a>
-    </div>
-  `;
+    </div>`;
 }
 
 // ════════════════════════════════
 // LOADING
 // ════════════════════════════════
-function showLoading(text = 'Wird geladen…') {
-  document.getElementById('loading-text').textContent = text;
+function showLoading(text='Wird geladen…') {
+  document.getElementById('loading-text').textContent=text;
   document.getElementById('loading-overlay').classList.add('active');
 }
 function hideLoading() {
@@ -997,33 +1213,6 @@ function hideLoading() {
 }
 
 // ════════════════════════════════
-// EVENT DELEGATION für dynamische Elemente
+// START
 // ════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
-  // img-editor Listener nach DOM-Load setzen
-  document.getElementById('img-editor-close')?.addEventListener('click', () => {
-    document.getElementById('img-editor-overlay').style.display = 'none';
-  });
-  document.getElementById('img-editor-save')?.addEventListener('click', () => {
-    const { providerId, url, x, y } = imgEditorState;
-    settings.cardImages       = settings.cardImages || {};
-    settings.cardImageOffsets = settings.cardImageOffsets || {};
-    settings.cardImages[providerId]       = url;
-    settings.cardImageOffsets[providerId] = { x, y };
-    applySettings(settings);
-    buildProviderGrid();
-    buildSettingsCardTab();
-    document.getElementById('img-editor-overlay').style.display = 'none';
-  });
-  document.getElementById('img-editor-remove')?.addEventListener('click', () => {
-    const { providerId } = imgEditorState;
-    delete (settings.cardImages || {})[providerId];
-    delete (settings.cardImageOffsets || {})[providerId];
-    applySettings(settings);
-    buildProviderGrid();
-    buildSettingsCardTab();
-    document.getElementById('img-editor-overlay').style.display = 'none';
-  });
-
-  init();
-});
+document.addEventListener('DOMContentLoaded', init);
