@@ -27,5 +27,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   searchTitle:          (q) => ipcRenderer.invoke('search-title', q),
   searchTitleDetail:    (id) => ipcRenderer.invoke('search-title-detail', id),
 
+  getTrending:          () => ipcRenderer.invoke('get-trending'),
+  getNewReleases:       () => ipcRenderer.invoke('get-new-releases'),
+
   openExternal:         (url) => ipcRenderer.send('open-external', url),
 });

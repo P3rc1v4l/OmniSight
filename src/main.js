@@ -21,16 +21,19 @@ const AD_DOMAINS = [
 ];
 
 function isAd(url) {
-  try { const h = new URL(url).hostname; return AD_DOMAINS.some(d => h === d || h.endsWith('.'+d)); }
+  try { const h = new URL(url).hostname; return AD_DOMAINS.some(d => h===d || h.endsWith('.'+d)); }
   catch { return false; }
 }
 
 function setupSession(ses) {
+  // SSL-Fehler ignorieren (fix für bs.to / cine.to)
   ses.setCertificateVerifyProc((_, cb) => cb(0));
   ses.setUserAgent(CHROME_UA);
+
   try {
     ses.webRequest.onBeforeRequest({ urls:['<all_urls>'] }, (d, cb) => cb({ cancel: isAd(d.url) }));
   } catch {}
+
   try {
     ses.webRequest.onBeforeSendHeaders({ urls:['<all_urls>'] }, (d, cb) => {
       const h = d.requestHeaders;
@@ -44,12 +47,14 @@ function setupSession(ses) {
       cb({ requestHeaders: h });
     });
   } catch {}
+
   try {
     ses.webRequest.onHeadersReceived({ urls:['<all_urls>'] }, (d, cb) => {
       const h = d.responseHeaders || {};
       for (const k of Object.keys(h)) {
         const l = k.toLowerCase();
-        if (['x-frame-options','content-security-policy','x-content-type-options','strict-transport-security'].includes(l)) delete h[k];
+        if (['x-frame-options','content-security-policy','x-content-type-options',
+             'strict-transport-security','x-xss-protection'].includes(l)) delete h[k];
       }
       cb({ responseHeaders: h });
     });
@@ -85,9 +90,10 @@ ipcMain.handle('window-is-fullscreen', () => mainWindow?.isFullScreen()??false);
 ipcMain.handle('get-theme',    () => store.get('theme','dark'));
 ipcMain.on('set-theme',        (_, v) => store.set('theme',v));
 ipcMain.handle('get-settings', () => store.get('settings', {
-  appBgImage:'', accentColor:'#30c5bb', cardImages:{}, cardImageOffsets:{},
-  logoImage:'', favorites:[], fontSize:'medium',
-  clock:{ enabled:false, position:{ x: null, y: null }, color:'#ffffff', opacity:0.85, size:22 },
+  appBgImage:'', accentColor:'#30c5bb',
+  cardImages:{}, cardImageOffsets:{}, logoImage:'',
+  favorites:[], fontSize: 14,
+  clock:{ enabled:false, position:{x:16,y:52}, color:'#bfbfbf', opacity:0.85, size:22 },
 }));
 ipcMain.on('set-settings', (_, v) => store.set('settings',v));
 
@@ -102,14 +108,13 @@ ipcMain.handle('pick-image', async (_, dest) => {
   const src = result.filePaths[0];
   const dir  = path.join(app.getPath('userData'),'userImages');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir,{recursive:true});
-  const ext = path.extname(src);
-  const fn  = `${dest}_${Date.now()}${ext}`;
+  const fn  = `${dest}_${Date.now()}${path.extname(src)}`;
   const dp  = path.join(dir, fn);
   fs.copyFileSync(src, dp);
   return `file://${dp.replace(/\\/g,'/')}`;
 });
 
-// Sessions – echter Cookie-Check
+// Sessions
 const LOGIN_CHECKS = {
   netflix:      { url:'https://www.netflix.com',            name:'NetflixId' },
   prime:        { url:'https://www.amazon.de',              name:'session-id' },
@@ -136,7 +141,7 @@ ipcMain.handle('get-all-sessions', async () => {
   for (const [id, check] of Object.entries(LOGIN_CHECKS)) {
     try {
       const ses = session.fromPartition(`persist:${id}`);
-      const cookies = await ses.cookies.get({ url: check.url, name: check.name });
+      const cookies = await ses.cookies.get({ url:check.url, name:check.name });
       result[id] = cookies.length > 0;
     } catch { result[id] = false; }
   }
@@ -158,36 +163,68 @@ ipcMain.on('setup-webview-session', (_, partition) => {
   setupSession(session.fromPartition(partition));
 });
 
-// URL check (Diagnose)
-ipcMain.handle('check-url', async (_, url) => {
-  try {
-    const r = await session.defaultSession.fetch(url, { method:'HEAD', headers:{ 'User-Agent':CHROME_UA } });
-    return { ok:true, status:r.status };
-  } catch(e) { return { ok:false, error:e.message }; }
-});
-
-// OMDB / Suche – Proxy damit kein API-Key im Frontend sichtbar ist
+// OMDB Suche (kostenloser API-Key)
+const OMDB_KEY = 'trilogy';
 ipcMain.handle('search-title', async (_, query) => {
   try {
-    // OMDB free key (public demo key, rate limited but works for demo)
-    const encoded = encodeURIComponent(query);
     const r = await session.defaultSession.fetch(
-      `https://www.omdbapi.com/?s=${encoded}&apikey=trilogy`,
-      { headers:{ 'User-Agent': CHROME_UA } }
+      `https://www.omdbapi.com/?s=${encodeURIComponent(query)}&apikey=${OMDB_KEY}`,
+      { headers:{ 'User-Agent':CHROME_UA } }
     );
-    const data = await r.json();
-    return data;
+    return await r.json();
   } catch(e) { return { Error: e.message }; }
 });
 
 ipcMain.handle('search-title-detail', async (_, imdbId) => {
   try {
     const r = await session.defaultSession.fetch(
-      `https://www.omdbapi.com/?i=${imdbId}&apikey=trilogy`,
-      { headers:{ 'User-Agent': CHROME_UA } }
+      `https://www.omdbapi.com/?i=${imdbId}&apikey=${OMDB_KEY}&plot=short`,
+      { headers:{ 'User-Agent':CHROME_UA } }
     );
     return await r.json();
   } catch(e) { return { Error: e.message }; }
+});
+
+// Trending – TMDB kostenlose API
+const TMDB_KEY = '2dca580c2a14b55200e784d157207b4d'; // öffentlicher Demo-Key
+ipcMain.handle('get-trending', async () => {
+  try {
+    const [movies, shows] = await Promise.all([
+      session.defaultSession.fetch(
+        `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}&language=de-DE`,
+        { headers:{ 'User-Agent':CHROME_UA } }
+      ).then(r=>r.json()),
+      session.defaultSession.fetch(
+        `https://api.themoviedb.org/3/trending/tv/week?api_key=${TMDB_KEY}&language=de-DE`,
+        { headers:{ 'User-Agent':CHROME_UA } }
+      ).then(r=>r.json()),
+    ]);
+    return { movies: movies.results?.slice(0,10)||[], shows: shows.results?.slice(0,10)||[] };
+  } catch(e) { return { error: e.message }; }
+});
+
+ipcMain.handle('get-new-releases', async () => {
+  try {
+    const [movies, shows] = await Promise.all([
+      session.defaultSession.fetch(
+        `https://api.themoviedb.org/3/movie/now_playing?api_key=${TMDB_KEY}&language=de-DE&region=DE`,
+        { headers:{ 'User-Agent':CHROME_UA } }
+      ).then(r=>r.json()),
+      session.defaultSession.fetch(
+        `https://api.themoviedb.org/3/tv/on_the_air?api_key=${TMDB_KEY}&language=de-DE`,
+        { headers:{ 'User-Agent':CHROME_UA } }
+      ).then(r=>r.json()),
+    ]);
+    return { movies: movies.results?.slice(0,10)||[], shows: shows.results?.slice(0,10)||[] };
+  } catch(e) { return { error: e.message }; }
+});
+
+// URL-Diagnose
+ipcMain.handle('check-url', async (_, url) => {
+  try {
+    const r = await session.defaultSession.fetch(url, { method:'HEAD', headers:{ 'User-Agent':CHROME_UA } });
+    return { ok:true, status:r.status };
+  } catch(e) { return { ok:false, error:e.message }; }
 });
 
 ipcMain.on('open-external', (_, url) => shell.openExternal(url));
