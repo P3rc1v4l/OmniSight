@@ -10,7 +10,7 @@
 </head>
 <body>
 
-<!-- ══ TITLEBAR ══ -->
+<!-- TITLEBAR -->
 <div class="titlebar" id="titlebar">
   <div class="titlebar-left">
     <img class="app-logo" src="assets/icon.png" id="logo-img" alt="OmniSight"/>
@@ -23,7 +23,7 @@
   </div>
 </div>
 
-<!-- ══ SIDEBAR ══ -->
+<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <nav class="sidebar-nav">
     <button class="nav-btn active" data-view="home">
@@ -38,10 +38,14 @@
     </button>
     <div class="nav-sub" id="nav-sub-favorites"></div>
 
-    <!-- NEU: Neuigkeiten -->
     <button class="nav-btn" data-view="news">
       <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
       <span>Neuigkeiten</span>
+    </button>
+
+    <button class="nav-btn" data-view="upcoming">
+      <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Upcoming</span>
     </button>
 
     <button class="nav-btn has-sub" id="nav-providers-toggle">
@@ -60,10 +64,7 @@
   <div class="sidebar-bottom">
     <div class="theme-row">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <label class="toggle-switch">
-        <input type="checkbox" id="theme-toggle"/>
-        <span class="toggle-slider"></span>
-      </label>
+      <label class="toggle-switch"><input type="checkbox" id="theme-toggle"/><span class="toggle-slider"></span></label>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </div>
     <button class="sidebar-icon-btn" id="btn-settings">
@@ -73,10 +74,10 @@
   </div>
 </aside>
 
-<!-- ══ MAIN ══ -->
+<!-- MAIN -->
 <main class="main-content" id="main-content">
 
-  <!-- HOME VIEW -->
+  <!-- HOME -->
   <div class="view active" id="view-home">
     <div class="search-bar-wrap">
       <div class="search-bar" id="search-bar">
@@ -84,25 +85,58 @@
         <input type="text" id="search-input" placeholder="Film, Serie, YouTube oder Anbieter suchen…" autocomplete="off"/>
         <button class="search-clear" id="search-clear" style="display:none">✕</button>
       </div>
-      <!-- Dropdown Suchergebnisse -->
       <div class="search-dropdown" id="search-dropdown" style="display:none"></div>
     </div>
     <div class="providers-grid" id="providers-grid"></div>
   </div>
 
-  <!-- NEWS VIEW -->
+  <!-- NEWS -->
   <div class="view" id="view-news">
-    <div class="view-header-row">
-      <h2 class="view-title">Neuigkeiten</h2>
-      <div class="news-tabs">
-        <button class="news-tab active" data-tab="trending">🔥 Trending</button>
-        <button class="news-tab" data-tab="new">✨ Neu erschienen</button>
+    <div class="news-section-wrap">
+      <!-- Filme – obere Hälfte -->
+      <div class="news-half" id="news-movies-half">
+        <div class="news-half-header">
+          <span class="news-half-title">🔥 Trending Filme</span>
+          <div class="news-tab-btns">
+            <button class="news-tab active" data-news-tab="trending" data-type="movies">Trending</button>
+            <button class="news-tab" data-news-tab="new" data-type="movies">Neu</button>
+          </div>
+        </div>
+        <div class="slideshow-wrap" id="movies-slideshow">
+          <button class="slide-arrow left" id="movies-prev">&#8249;</button>
+          <div class="slide-track" id="movies-track"></div>
+          <button class="slide-arrow right" id="movies-next">&#8250;</button>
+          <div class="slide-dots" id="movies-dots"></div>
+        </div>
+      </div>
+      <!-- Serien – untere Hälfte -->
+      <div class="news-half" id="news-shows-half">
+        <div class="news-half-header">
+          <span class="news-half-title">🔥 Trending Serien</span>
+          <div class="news-tab-btns">
+            <button class="news-tab active" data-news-tab="trending" data-type="shows">Trending</button>
+            <button class="news-tab" data-news-tab="new" data-type="shows">Neu</button>
+          </div>
+        </div>
+        <div class="slideshow-wrap" id="shows-slideshow">
+          <button class="slide-arrow left" id="shows-prev">&#8249;</button>
+          <div class="slide-track" id="shows-track"></div>
+          <button class="slide-arrow right" id="shows-next">&#8250;</button>
+          <div class="slide-dots" id="shows-dots"></div>
+        </div>
       </div>
     </div>
-    <div id="news-content"></div>
   </div>
 
-  <!-- STREAM VIEW -->
+  <!-- UPCOMING -->
+  <div class="view" id="view-upcoming">
+    <div class="view-header-row">
+      <h2 class="view-title">📅 Upcoming – Nächste 30 Tage</h2>
+    </div>
+    <div id="upcoming-content"><div class="news-loading">Wird geladen…</div></div>
+  </div>
+
+  <!-- STREAM -->
   <div class="view" id="view-stream">
     <div class="stream-topbar" id="stream-topbar">
       <button class="back-btn" id="back-btn">
@@ -129,16 +163,14 @@
       </button>
     </div>
     <div class="webview-wrap" id="webview-wrap"></div>
-
-    <!-- Vollbild Exit -->
-    <div class="fs-exit-zone" id="fs-exit-zone">
+    <div class="fs-exit-zone">
       <div class="fs-exit-btn" id="fs-exit-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="8 3 3 3 3 8"/><polyline points="21 8 21 3 16 3"/><polyline points="3 16 3 21 8 21"/><polyline points="16 21 21 21 21 16"/></svg>
       </div>
     </div>
   </div>
 
-  <!-- NICHTS LÄUFT -->
+  <!-- NOTHING -->
   <div class="view" id="view-nothing">
     <div class="nothing-running">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.3"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
@@ -149,36 +181,32 @@
   </div>
 </main>
 
-<!-- ══ PIP ══ -->
+<!-- PIP -->
 <div class="pip-window" id="pip-window" style="display:none">
   <div class="pip-topbar" id="pip-topbar">
     <span class="pip-title" id="pip-title">Stream</span>
     <div class="pip-controls">
-      <button class="pip-btn" id="pip-expand">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-      </button>
-      <button class="pip-btn close" id="pip-close">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      <button class="pip-btn" id="pip-expand"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>
+      <button class="pip-btn close" id="pip-close"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
   </div>
   <div class="pip-content" id="pip-content"></div>
 </div>
 
-<!-- ══ SETTINGS ══ -->
+<!-- SETTINGS -->
 <div class="settings-overlay" id="settings-overlay"></div>
 <div class="settings-panel" id="settings-panel">
   <div class="settings-header">
     <span>Einstellungen</span>
-    <span class="settings-version">v1.0.6</span>
+    <span class="settings-version">v1.0.7</span>
     <button class="settings-close" id="settings-close">✕</button>
   </div>
-
   <div class="settings-tabs">
     <button class="stab active" data-tab="appearance">Design</button>
     <button class="stab" data-tab="cards">Karten</button>
     <button class="stab" data-tab="account">Account</button>
     <button class="stab" data-tab="clock">Uhr</button>
+    <button class="stab" data-tab="plugins">Plugins</button>
   </div>
 
   <!-- Design -->
@@ -192,7 +220,7 @@
       </div>
     </div>
     <div class="settings-section">
-      <label class="settings-label">Hintergrundbild (Übersicht)</label>
+      <label class="settings-label">Hintergrundbild</label>
       <div class="img-pick-row">
         <div class="img-preview" id="prev-app-bg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
         <button class="pick-btn" data-pick="appBgImage">Bild wählen</button>
@@ -215,7 +243,7 @@
 
   <!-- Karten -->
   <div class="stab-content" id="stab-cards">
-    <p class="settings-hint">Eigenes Banner-Bild pro Karte. Position nach dem Wählen anpassbar.</p>
+    <p class="settings-hint">Eigenes Banner-Bild pro Karte.</p>
     <div id="card-image-list"></div>
   </div>
 
@@ -235,10 +263,7 @@
     <div class="settings-section">
       <label class="settings-label">Uhr anzeigen</label>
       <div class="clock-toggle-row">
-        <label class="toggle-switch">
-          <input type="checkbox" id="clock-enabled"/>
-          <span class="toggle-slider"></span>
-        </label>
+        <label class="toggle-switch"><input type="checkbox" id="clock-enabled"/><span class="toggle-slider"></span></label>
         <span class="clock-status-label" id="clock-status-label">Deaktiviert</span>
       </div>
     </div>
@@ -258,25 +283,49 @@
       <input type="range" id="clock-size" min="12" max="60" value="22" class="settings-range"/>
     </div>
     <div class="settings-section">
-      <label class="settings-label">Position verschieben</label>
-      <p class="settings-hint">Klicke den Button, dann die Uhr mit der Maus ziehen.</p>
+      <label class="settings-label">Position</label>
+      <p class="settings-hint">Klicke „Uhr verschieben", dann die Uhr mit der Maus ziehen und loslassen.</p>
       <button class="pick-btn" id="clock-drag-mode-btn" style="text-align:center">✋ Uhr verschieben</button>
     </div>
-    <div id="clock-unsaved-hint" style="display:none">
-      <p class="settings-hint" style="color:#FFB300;margin-top:4px">⚠ Ungespeicherte Änderungen</p>
+    <p class="settings-hint" id="clock-unsaved-hint" style="display:none;color:#FFB300">⚠ Nicht gespeicherte Änderungen</p>
+  </div>
+
+  <!-- Plugins -->
+  <div class="stab-content" id="stab-plugins">
+    <p class="settings-hint">Installiere Adblocker-Listen oder eigene Plugins. Empfohlene Listen:</p>
+    <div class="plugin-preset-list">
+      <div class="plugin-preset">
+        <span class="plugin-preset-name">EasyList (Standard-Adblocker)</span>
+        <button class="plugin-install-btn" data-list="https://easylist.to/easylist/easylist.txt">Installieren</button>
+      </div>
+      <div class="plugin-preset">
+        <span class="plugin-preset-name">EasyList Germany</span>
+        <button class="plugin-install-btn" data-list="https://easylist.to/easylistgermany/easylistgermany.txt">Installieren</button>
+      </div>
+      <div class="plugin-preset">
+        <span class="plugin-preset-name">EasyPrivacy</span>
+        <button class="plugin-install-btn" data-list="https://easylist.to/easylist/easyprivacy.txt">Installieren</button>
+      </div>
+      <div class="plugin-preset">
+        <span class="plugin-preset-name">uBlock Origin-Filter</span>
+        <button class="plugin-install-btn" data-list="https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/filters.txt">Installieren</button>
+      </div>
     </div>
+    <div class="settings-divider"></div>
+    <div class="settings-section">
+      <label class="settings-label">Geblockte Domains</label>
+      <p class="settings-hint" id="plugin-domain-count">Standard: aktiv</p>
+    </div>
+    <div id="plugin-list"></div>
   </div>
 
   <button class="settings-save-btn" id="settings-save">Speichern & Schließen</button>
 </div>
 
-<!-- ══ IMAGE EDITOR ══ -->
+<!-- IMAGE EDITOR -->
 <div class="img-editor-overlay" id="img-editor-overlay" style="display:none">
   <div class="img-editor">
-    <div class="img-editor-header">
-      <span id="img-editor-title">Banner anpassen</span>
-      <button class="settings-close" id="img-editor-close">✕</button>
-    </div>
+    <div class="img-editor-header"><span id="img-editor-title">Banner anpassen</span><button class="settings-close" id="img-editor-close">✕</button></div>
     <div class="img-editor-canvas"><div class="img-editor-img" id="img-editor-img"></div></div>
     <div class="img-editor-controls">
       <label class="settings-label">Position X: <span id="pos-x-val">0</span>px</label>
@@ -291,7 +340,7 @@
   </div>
 </div>
 
-<!-- ══ CLOCK UNSAVED DIALOG ══ -->
+<!-- CLOCK UNSAVED DIALOG -->
 <div class="modal-overlay" id="clock-unsaved-overlay" style="display:none">
   <div class="modal">
     <h3>Nicht gespeicherte Uhren-Änderungen</h3>
@@ -304,12 +353,12 @@
   </div>
 </div>
 
-<!-- ══ CLOCK WIDGET ══ -->
+<!-- CLOCK WIDGET -->
 <div class="clock-widget" id="clock-widget" style="display:none">
   <span id="clock-time">00:00:00</span>
 </div>
 
-<!-- ══ LOADING ══ -->
+<!-- LOADING -->
 <div class="loading-overlay" id="loading-overlay">
   <div class="loading-ring"></div>
   <span id="loading-text">Wird geladen…</span>
