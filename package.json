@@ -24,7 +24,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "DEIN-GITHUB-USERNAME",
+      "owner": "P3rc1v4l",
       "repo": "aletheos-stream"
     }
   },
