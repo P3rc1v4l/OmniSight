@@ -25,7 +25,7 @@
     "publish": {
       "provider": "github",
       "owner": "P3rc1v4l",
-      "repo": "aletheos-stream"
+      "repo": "OmniSight"
     }
   },
   "keywords": ["streaming","electron","hub"],
