@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -13,14 +13,19 @@
     "appId": "com.omnisight.app",
     "productName": "OmniSight",
     "directories": { "output": "dist" },
-    "win":   { "target": "nsis", "icon": "src/assets/icon.png" },
-    "mac":   { "target": "dmg",  "icon": "src/assets/icon.png" },
+    "win":   { "target": "nsis",     "icon": "src/assets/icon.png" },
+    "mac":   { "target": "dmg",      "icon": "src/assets/icon.png" },
     "linux": { "target": "AppImage", "icon": "src/assets/icon.png" },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "DEIN-GITHUB-USERNAME",
+      "repo": "aletheos-stream"
     }
   },
   "keywords": ["streaming","electron","hub"],
@@ -28,9 +33,11 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^29.0.0",
-    "electron-builder": "^24.9.1"
+    "electron-builder": "^24.9.1",
+    "electron-updater": "^6.1.7"
   },
   "dependencies": {
-    "electron-store": "^8.2.0"
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.1.7"
   }
 }
