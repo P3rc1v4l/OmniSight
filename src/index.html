@@ -9,17 +9,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 </head>
 <body>
-<!-- Particle canvas (animierter Hintergrund) -->
 <canvas id="particles-canvas"></canvas>
 
 <!-- TITLEBAR -->
 <div class="titlebar" id="titlebar">
   <div class="titlebar-left">
-    <img class="app-logo" src="assets/icon.png" id="logo-img" alt="OmniSight" style="mix-blend-mode:screen;background:transparent"/>
+    <img class="app-logo" src="assets/icon.png" id="logo-img" alt="OmniSight" style="mix-blend-mode:screen"/>
     <span class="app-name">OMNI<span class="accent">SIGHT</span></span>
   </div>
-  <div class="titlebar-center" id="offline-banner" style="display:none">
-    <span class="offline-badge">⚠ Keine Internetverbindung</span>
+  <div class="titlebar-center">
+    <div class="offline-badge" id="offline-banner" style="display:none">⚠ Keine Verbindung</div>
+    <div class="vpn-badge" id="vpn-badge" style="display:none"></div>
   </div>
   <div class="titlebar-controls">
     <button class="win-btn" id="btn-minimize">&#9472;</button>
@@ -30,7 +30,7 @@
 
 <!-- UPDATE BANNER -->
 <div class="update-banner" id="update-banner" style="display:none">
-  <span>🚀 Ein Update ist verfügbar!</span>
+  <span id="update-text">🚀 Update verfügbar!</span>
   <button id="btn-download-update">Herunterladen</button>
   <button id="btn-install-update" style="display:none">Jetzt installieren</button>
   <button class="update-dismiss" id="btn-dismiss-update">✕</button>
@@ -42,78 +42,82 @@
 
     <button class="nav-btn active" data-view="home">
       <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span>Übersicht</span>
+      <span data-i18n="overview">Übersicht</span>
     </button>
 
     <!-- Favoriten -->
     <button class="nav-btn has-sub" id="nav-fav-toggle">
       <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-      <span>Favoriten</span>
+      <span data-i18n="favorites">Favoriten</span>
       <svg class="chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="nav-sub" id="nav-sub-favorites">
-      <div class="nav-sub-search"><input type="text" class="nav-sub-search-input" id="fav-search" placeholder="Favoriten suchen…"/></div>
+      <div class="nav-sub-search"><input class="nav-sub-search-input" id="fav-search" placeholder="Suchen…" type="text"/></div>
       <div id="nav-sub-favorites-list"></div>
     </div>
 
-    <!-- Watchlist -->
+    <!-- Gemerkt -->
     <button class="nav-btn" data-view="watchlist">
       <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-      <span>Gemerkt</span>
+      <span data-i18n="watchlist">Gemerkt</span>
     </button>
 
     <!-- Neuigkeiten -->
     <button class="nav-btn" data-view="news">
       <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
-      <span>Neuigkeiten</span>
+      <span data-i18n="news">Neuigkeiten</span>
     </button>
 
     <!-- Upcoming -->
     <button class="nav-btn" data-view="upcoming">
       <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span>Upcoming</span>
+      <span data-i18n="upcoming">Upcoming</span>
+    </button>
+
+    <!-- Statistiken -->
+    <button class="nav-btn" data-view="stats">
+      <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Statistiken</span>
     </button>
 
     <!-- Stream -->
     <button class="nav-btn" data-view="stream" id="btn-watching" style="display:none">
       <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-      <span>Schaut gerade</span>
+      <span data-i18n="watchingNow">Schaut gerade</span>
     </button>
 
   </nav>
 
-  <!-- Spacer -->
   <div style="flex:1"></div>
 
-  <!-- Anbieter (unten, über Theme-Toggle) -->
+  <!-- Anbieter (öffnet nach oben) -->
   <div class="sidebar-providers-section">
-    <button class="nav-btn has-sub" id="nav-providers-toggle" style="margin-bottom:4px">
+    <button class="nav-btn has-sub" id="nav-providers-toggle">
       <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-      <span>Anbieter</span>
+      <span data-i18n="providers">Anbieter</span>
       <svg class="chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
-    <!-- Öffnet nach OBEN -->
-    <div class="nav-sub nav-sub-up" id="nav-sub-providers">
-      <div class="nav-sub-search"><input type="text" class="nav-sub-search-input" id="prov-search" placeholder="Anbieter suchen…"/></div>
-      <div id="nav-sub-providers-list" style="overflow-y:auto;max-height:200px"></div>
+    <div class="nav-sub-up" id="nav-sub-providers">
+      <div class="nav-sub-search"><input class="nav-sub-search-input" id="prov-search" placeholder="Anbieter suchen…" type="text"/></div>
+      <div id="nav-sub-providers-list"></div>
     </div>
   </div>
 
-  <!-- Theme Toggle (mittig) -->
+  <!-- Bottom -->
   <div class="sidebar-bottom">
     <div class="theme-row">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <label class="toggle-switch"><input type="checkbox" id="theme-toggle"/><span class="toggle-slider"></span></label>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </div>
-    <!-- Profile Switcher -->
+    <!-- Profile -->
     <div class="profile-row">
       <select class="profile-select" id="profile-select"></select>
       <button class="profile-add-btn" id="btn-add-profile" title="Profil hinzufügen">+</button>
     </div>
     <button class="sidebar-icon-btn" id="btn-settings">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      <span>Einstellungen</span>
+      <span data-i18n="settings">Einstellungen</span>
     </button>
   </div>
 </aside>
@@ -123,18 +127,19 @@
 
   <!-- HOME -->
   <div class="view active" id="view-home">
-    <div class="search-bar-wrap">
-      <div class="search-bar" id="search-bar">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="search-input" placeholder="Film, Serie, YouTube oder Anbieter suchen…" autocomplete="off"/>
-        <button class="search-clear" id="search-clear" style="display:none">✕</button>
+    <div class="home-topbar">
+      <div class="search-bar-wrap">
+        <div class="search-bar" id="search-bar">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-input" placeholder="Film, Serie, YouTube oder Anbieter suchen…" autocomplete="off"/>
+          <button class="search-clear" id="search-clear" style="display:none">✕</button>
+        </div>
+        <div class="search-dropdown" id="search-dropdown" style="display:none"></div>
       </div>
-      <div class="search-dropdown" id="search-dropdown" style="display:none"></div>
-    </div>
-    <div class="home-controls">
       <div class="layout-toggle">
         <button class="layout-btn active" id="layout-normal" title="Normal">▦</button>
         <button class="layout-btn" id="layout-compact" title="Kompakt">▪</button>
+        <button class="layout-btn" id="layout-mini" title="Mini">·</button>
       </div>
     </div>
     <div class="providers-grid" id="providers-grid"></div>
@@ -145,16 +150,8 @@
     <div class="watchlist-header">
       <h2 class="view-title">📌 Gemerkt</h2>
       <div class="watchlist-sort">
-        <select id="wl-category-filter" class="wl-select">
-          <option value="all">Alle</option>
-          <option value="movie">Filme</option>
-          <option value="tv">Serien</option>
-          <option value="anime">Anime</option>
-        </select>
-        <select id="wl-sort" class="wl-select">
-          <option value="alpha">A–Z</option>
-          <option value="date">Erscheinungsdatum</option>
-        </select>
+        <select id="wl-category-filter" class="wl-select"><option value="all">Alle</option><option value="movie">Filme</option><option value="tv">Serien</option><option value="anime">Anime</option></select>
+        <select id="wl-sort" class="wl-select"><option value="alpha">A–Z</option><option value="date">Erscheinungsdatum</option></select>
       </div>
     </div>
     <div id="watchlist-content"></div>
@@ -162,91 +159,91 @@
 
   <!-- NEWS -->
   <div class="view" id="view-news">
-    <div class="news-section-wrap">
-      <!-- Filme – obere Hälfte -->
-      <div class="news-half" id="news-movies-half">
-        <div class="news-bg-image" id="news-movies-bg"></div>
-        <div class="news-half-header">
-          <span class="news-half-title" id="movies-half-title">🔥 Trending Filme</span>
-          <div style="display:flex;gap:6px;align-items:center">
-            <div class="news-tab-btns">
-              <button class="news-tab active" data-news-tab="trending" data-type="movies">Trending</button>
-              <button class="news-tab" data-news-tab="new" data-type="movies">Neu</button>
-            </div>
-            <button class="hidden-toggle-btn" id="movies-show-hidden" title="Ausgeblendete anzeigen">👁</button>
-          </div>
-        </div>
-        <div class="slideshow-wrap">
-          <button class="slide-arrow left" id="movies-prev">&#8249;</button>
-          <div class="slide-track" id="movies-track"></div>
-          <button class="slide-arrow right" id="movies-next">&#8250;</button>
-          <div class="slide-dots" id="movies-dots"></div>
-        </div>
+    <div class="media-view-wrap" id="news-wrap">
+      <!-- Tab-Switcher oben links -->
+      <div class="media-type-switcher" id="news-switcher">
+        <button class="media-type-btn active" data-media="movies" id="news-btn-movies">
+          🎬 <span>Filme</span>
+        </button>
+        <button class="media-type-btn" data-media="shows" id="news-btn-shows">
+          📺 <span>Serien</span>
+        </button>
       </div>
-      <!-- Serien – untere Hälfte -->
-      <div class="news-half" id="news-shows-half">
-        <div class="news-bg-image" id="news-shows-bg"></div>
-        <div class="news-half-header">
-          <span class="news-half-title" id="shows-half-title">🔥 Trending Serien</span>
-          <div style="display:flex;gap:6px;align-items:center">
-            <div class="news-tab-btns">
-              <button class="news-tab active" data-news-tab="trending" data-type="shows">Trending</button>
-              <button class="news-tab" data-news-tab="new" data-type="shows">Neu</button>
-            </div>
-            <button class="hidden-toggle-btn" id="shows-show-hidden" title="Ausgeblendete anzeigen">👁</button>
-          </div>
-        </div>
-        <div class="slideshow-wrap">
-          <button class="slide-arrow left" id="shows-prev">&#8249;</button>
-          <div class="slide-track" id="shows-track"></div>
-          <button class="slide-arrow right" id="shows-next">&#8250;</button>
-          <div class="slide-dots" id="shows-dots"></div>
-        </div>
+      <!-- Tab-Buttons Trending/Neu oben rechts -->
+      <div class="news-tab-btns-wrap" id="news-tab-btns">
+        <button class="news-tab active" data-news-tab="trending" data-type="movies">Trending</button>
+        <button class="news-tab" data-news-tab="new" data-type="movies">Neu</button>
+        <button class="hidden-toggle-btn" id="news-show-hidden" title="Ausgeblendete">👁</button>
+      </div>
+      <!-- Slideshow -->
+      <div class="full-slideshow" id="news-slideshow">
+        <div class="full-bg" id="news-bg"></div>
+        <div class="full-bg-overlay"></div>
+        <button class="slide-arrow left" id="news-prev">&#8249;</button>
+        <div class="slide-track full-track" id="news-track"></div>
+        <button class="slide-arrow right" id="news-next">&#8250;</button>
+        <div class="slide-dots" id="news-dots"></div>
       </div>
     </div>
   </div>
 
   <!-- UPCOMING -->
   <div class="view" id="view-upcoming">
-    <div class="news-section-wrap">
-      <div class="news-half" id="upcoming-movies-half">
-        <div class="news-bg-image" id="upcoming-movies-bg"></div>
-        <div class="news-half-header">
-          <span class="news-half-title">📅 Kommende Filme</span>
-          <div style="display:flex;gap:6px;align-items:center">
-            <select class="wl-select" id="upcoming-range">
-              <option value="1">Nächster Monat</option>
-              <option value="6">Nächste 6 Monate</option>
-              <option value="12">Nächstes Jahr</option>
-            </select>
-            <button class="hidden-toggle-btn" id="upmovies-show-hidden" title="Ausgeblendete">👁</button>
-          </div>
-        </div>
-        <div class="slideshow-wrap">
-          <button class="slide-arrow left" id="upmovies-prev">&#8249;</button>
-          <div class="slide-track" id="upmovies-track"></div>
-          <button class="slide-arrow right" id="upmovies-next">&#8250;</button>
-          <div class="slide-dots" id="upmovies-dots"></div>
-        </div>
+    <div class="media-view-wrap" id="upcoming-wrap">
+      <div class="media-type-switcher" id="upcoming-switcher">
+        <button class="media-type-btn active" data-media="movies" id="upcoming-btn-movies">
+          🎬 <span>Filme</span>
+        </button>
+        <button class="media-type-btn" data-media="shows" id="upcoming-btn-shows">
+          📺 <span>Serien</span>
+        </button>
       </div>
-      <div class="news-half" id="upcoming-shows-half">
-        <div class="news-bg-image" id="upcoming-shows-bg"></div>
-        <div class="news-half-header">
-          <span class="news-half-title">📅 Neue Staffeln</span>
-          <button class="hidden-toggle-btn" id="upshows-show-hidden" title="Ausgeblendete">👁</button>
-        </div>
-        <div class="slideshow-wrap">
-          <button class="slide-arrow left" id="upshows-prev">&#8249;</button>
-          <div class="slide-track" id="upshows-track"></div>
-          <button class="slide-arrow right" id="upshows-next">&#8250;</button>
-          <div class="slide-dots" id="upshows-dots"></div>
-        </div>
+      <!-- Zeitraum-Buttons -->
+      <div class="upcoming-range-btns" id="upcoming-range-btns">
+        <button class="range-btn active" data-months="1">Nächster Monat</button>
+        <button class="range-btn" data-months="6">6 Monate</button>
+        <button class="range-btn" data-months="12">1 Jahr</button>
+        <button class="hidden-toggle-btn" id="upcoming-show-hidden" title="Ausgeblendete">👁</button>
       </div>
+      <div class="full-slideshow" id="upcoming-slideshow">
+        <div class="full-bg" id="upcoming-bg"></div>
+        <div class="full-bg-overlay"></div>
+        <button class="slide-arrow left" id="upcoming-prev">&#8249;</button>
+        <div class="slide-track full-track" id="upcoming-track"></div>
+        <button class="slide-arrow right" id="upcoming-next">&#8250;</button>
+        <div class="slide-dots" id="upcoming-dots"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATISTIKEN -->
+  <div class="view" id="view-stats">
+    <h2 class="view-title" style="margin-bottom:20px">📊 Stream-Statistiken</h2>
+    <div id="stats-content"></div>
+    <div class="stats-trakt-section" style="margin-top:28px">
+      <h3 style="font-family:var(--font-d);font-size:16px;color:var(--tx);margin-bottom:10px">Trakt.tv Integration</h3>
+      <p class="settings-hint" style="margin-bottom:12px">Trakt.tv trackt automatisch, was du siehst – deine Statistiken, Watchlist und Empfehlungen auf allen Geräten synchronisiert.</p>
+      <button class="detail-action-btn primary" id="btn-trakt-auth">Mit Trakt.tv verbinden</button>
+      <div id="trakt-info" style="margin-top:10px;font-size:12px;color:var(--tx2)"></div>
+    </div>
+    <div class="stats-vpn-section" style="margin-top:28px">
+      <h3 style="font-family:var(--font-d);font-size:16px;color:var(--tx);margin-bottom:10px">VPN-Status</h3>
+      <button class="detail-action-btn secondary" id="btn-check-vpn" style="margin-bottom:10px">VPN prüfen</button>
+      <div id="vpn-info"></div>
+    </div>
+    <div style="margin-top:28px">
+      <h3 style="font-family:var(--font-d);font-size:16px;color:var(--tx);margin-bottom:10px">Multi-Window</h3>
+      <p class="settings-hint" style="margin-bottom:12px">Zwei Streams gleichzeitig in separaten Fenstern. Wähle einen Anbieter für das zweite Fenster:</p>
+      <div id="multiwindow-btns" style="display:flex;flex-wrap:wrap;gap:8px"></div>
     </div>
   </div>
 
   <!-- STREAM -->
   <div class="view" id="view-stream">
+    <!-- Tabs für bs.to / cine.to -->
+    <div class="stream-tabs-bar" id="stream-tabs-bar" style="display:none">
+      <div class="stream-tabs" id="stream-tabs"></div>
+    </div>
     <div class="stream-topbar" id="stream-topbar">
       <button class="back-btn" id="back-btn">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
@@ -258,6 +255,9 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="12" y="13" width="8" height="6" rx="1" fill="currentColor" stroke="none"/></svg>
         Miniplayer
       </button>
+      <button class="topbar-btn" id="btn-second-window" title="Zweites Fenster öffnen">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg>
+      </button>
       <button class="topbar-btn" id="btn-fullscreen">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
         Vollbild
@@ -268,7 +268,6 @@
       </button>
       <button class="topbar-btn" id="btn-retry" style="display:none">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        Neu laden
       </button>
       <button class="topbar-btn danger" id="btn-logout-provider">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -326,8 +325,8 @@
         <h2 class="detail-title" id="detail-title">Titel</h2>
         <p class="detail-overview" id="detail-overview"></p>
         <div class="detail-trailer-wrap" id="detail-trailer-wrap" style="display:none">
-          <div class="detail-trailer-label">Trailer:</div>
-          <webview class="detail-trailer-wv" id="detail-trailer-wv" src="about:blank" partition="persist:trailer"></webview>
+          <div class="detail-trailer-label">Trailer</div>
+          <webview class="detail-trailer-wv" id="detail-trailer-wv" src="about:blank" partition="persist:trailer" useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"></webview>
         </div>
         <div class="detail-actions" id="detail-actions"></div>
       </div>
@@ -340,12 +339,11 @@
 <div class="settings-panel" id="settings-panel">
   <div class="settings-header">
     <span>Einstellungen</span>
-    <span class="settings-version">v1.0.8</span>
+    <span class="settings-version">v1.0.9</span>
     <button class="settings-close" id="settings-close">✕</button>
   </div>
   <div class="settings-tabs">
     <button class="stab active" data-tab="appearance">Design</button>
-    <button class="stab" data-tab="cards">Karten</button>
     <button class="stab" data-tab="account">Account</button>
     <button class="stab" data-tab="clock">Uhr</button>
     <button class="stab" data-tab="plugins">Plugins</button>
@@ -357,7 +355,7 @@
     <div class="settings-section">
       <label class="settings-label">Hintergrundbild</label>
       <div class="img-pick-row">
-        <div class="img-preview" id="prev-app-bg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+        <div class="img-preview" id="prev-app-bg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>
         <button class="pick-btn" data-pick="appBgImage">Bild wählen</button>
         <button class="reset-btn" data-reset="appBgImage">↺</button>
       </div>
@@ -379,29 +377,23 @@
       <label class="toggle-switch"><input type="checkbox" id="particles-toggle"/><span class="toggle-slider"></span></label>
     </div>
     <div class="settings-section">
-      <label class="settings-label">Sprache</label>
-      <select class="wl-select" id="lang-select">
-        <option value="de">Deutsch</option>
-        <option value="en">English</option>
-      </select>
+      <label class="settings-label">Sprache / Language</label>
+      <div class="lang-select-wrap">
+        <button class="lang-btn active" data-lang="de">🇩🇪 Deutsch</button>
+        <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+      </div>
     </div>
-  </div>
-
-  <!-- Karten -->
-  <div class="stab-content" id="stab-cards">
-    <p class="settings-hint">Eigenes Banner-Bild pro Karte. Karten per Drag &amp; Drop sortieren.</p>
-    <div id="card-image-list"></div>
   </div>
 
   <!-- Account -->
   <div class="stab-content" id="stab-account">
-    <p class="settings-hint">Live-Check via Cookie-Prüfung.</p>
+    <p class="settings-hint">Wird jede Minute automatisch aktualisiert.</p>
     <div id="session-list"><div class="loading-sessions">Wird geprüft…</div></div>
     <div class="settings-divider"></div>
-    <button class="settings-danger-btn" id="btn-logout-all">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Von ALLEN Diensten abmelden
-    </button>
+    <button class="settings-danger-btn" id="btn-logout-all">Von ALLEN Diensten abmelden</button>
+    <div class="settings-divider"></div>
+    <p class="settings-hint">YouTube-Login über Google:</p>
+    <button class="pick-btn" id="btn-google-auth" style="text-align:center;margin-top:4px">🔐 Bei Google anmelden (YouTube)</button>
   </div>
 
   <!-- Uhr -->
@@ -416,8 +408,9 @@
     <div class="settings-section">
       <label class="settings-label">Farbe</label>
       <div class="color-row">
-        <input type="color" id="clock-color" value="#ffffff"/>
-        <input type="text" class="color-text" id="clock-color-text" placeholder="#ffffff" maxlength="7"/>
+        <input type="color" id="clock-color" value="#cfcfcf"/>
+        <input type="text" class="color-text" id="clock-color-text" placeholder="#cfcfcf" maxlength="7"/>
+        <button class="reset-btn" data-reset="clockColor">↺</button>
       </div>
     </div>
     <div class="settings-section">
@@ -428,42 +421,54 @@
       <label class="settings-label">Schriftgröße: <span id="clock-size-val">22px</span></label>
       <input type="range" id="clock-size" min="12" max="60" value="22" class="settings-range"/>
     </div>
-    <div class="settings-section">
-      <button class="pick-btn" id="clock-drag-mode-btn" style="text-align:center">✋ Uhr verschieben</button>
+    <div class="settings-hint clock-drag-hint" id="clock-drag-hint" style="display:none">
+      💡 Wenn du die Einstellungen geöffnet hast, kannst du die Uhr direkt mit der Maus verschieben. Fahre mit der Maus über die Uhr – sie wird dann verschiebbar.
     </div>
   </div>
 
   <!-- Plugins -->
   <div class="stab-content" id="stab-plugins">
-    <div class="plugin-search-wrap">
-      <input type="text" class="color-text" id="plugin-search" placeholder="Plugin suchen…"/>
-    </div>
+    <input type="text" class="color-text" id="plugin-search" placeholder="Plugin suchen…" style="margin-bottom:10px;width:100%"/>
     <div id="plugin-presets-list"></div>
     <div class="settings-divider"></div>
     <div class="settings-section">
-      <label class="settings-label">Installierte Ad-Block Domains: <span id="plugin-domain-count">0</span></label>
+      <label class="settings-label">Installierte Listen</label>
+      <div id="plugin-list"></div>
     </div>
-    <div id="plugin-list"></div>
   </div>
 
-  <!-- Mehr / Advanced -->
+  <!-- Mehr -->
   <div class="stab-content" id="stab-advanced">
     <div class="settings-section">
+      <label class="settings-label">Karten Design</label>
+      <button class="pick-btn" id="btn-open-card-settings" style="text-align:center">Karten anpassen →</button>
+    </div>
+    <div class="settings-section">
       <label class="settings-label">Custom CSS</label>
-      <textarea id="custom-css-input" class="custom-css-input" placeholder="/* Eigenes CSS hier eingeben */"></textarea>
+      <textarea id="custom-css-input" class="custom-css-input" placeholder="/* Eigenes CSS */"></textarea>
     </div>
     <div class="settings-section">
       <label class="settings-label">Verlauf</label>
-      <div id="view-history-list" style="max-height:120px;overflow-y:auto"></div>
+      <div id="view-history-list" style="max-height:100px;overflow-y:auto"></div>
       <button class="settings-danger-btn" id="btn-clear-history" style="margin-top:6px">Verlauf löschen</button>
     </div>
     <div class="settings-section">
       <label class="settings-label">Auto-Update</label>
-      <p class="settings-hint">OmniSight prüft beim Start automatisch auf Updates via GitHub Releases.<br>Dazu muss in <code>package.json</code> unter <code>"publish"</code> dein GitHub-Username eingetragen sein.</p>
+      <p class="settings-hint">GitHub-Username in <code>package.json → publish → owner</code> eintragen, dann wird beim Start automatisch geprüft.</p>
     </div>
   </div>
+</div>
 
-  <button class="settings-save-btn" id="settings-save">Speichern &amp; Schließen</button>
+<!-- CARD SETTINGS PANEL -->
+<div class="settings-panel" id="card-settings-panel" style="right:-340px">
+  <div class="settings-header">
+    <button class="settings-close" id="card-settings-back">←</button>
+    <span>Karten Design</span>
+  </div>
+  <div class="stab-content active" style="display:flex;flex-direction:column;gap:14px;overflow-y:auto;flex:1">
+    <p class="settings-hint">Eigenes Banner-Bild pro Karte.</p>
+    <div id="card-image-list"></div>
+  </div>
 </div>
 
 <!-- IMAGE EDITOR -->
@@ -484,15 +489,40 @@
   </div>
 </div>
 
-<!-- CLOCK WIDGET -->
+<!-- PROFILE CREATOR -->
+<div class="modal-overlay" id="profile-modal" style="display:none">
+  <div class="modal profile-modal-content">
+    <h3>Neues Profil erstellen</h3>
+    <p>Wähle einen Namen und ein Bild für dein Profil.</p>
+    <input type="text" class="color-text" id="new-profile-name" placeholder="Profilname z.B. Familie" style="width:100%;margin-bottom:10px"/>
+    <div class="modal-buttons">
+      <button class="modal-btn primary" id="btn-create-profile">Erstellen</button>
+      <button class="modal-btn" id="btn-cancel-profile">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- HIDDEN ITEMS PANEL -->
+<div class="detail-overlay" id="hidden-overlay" style="display:none">
+  <div class="hidden-panel">
+    <div class="hidden-panel-header">
+      <h3>Ausgeblendete Einträge</h3>
+      <button class="detail-close" id="hidden-close">✕</button>
+    </div>
+    <div id="hidden-grid" class="hidden-grid"></div>
+  </div>
+</div>
+
+<!-- CLOCK -->
 <div class="clock-widget" id="clock-widget" style="display:none">
   <span id="clock-time">00:00</span>
 </div>
-
-<!-- CLOCK CONTEXT MENU -->
 <div class="clock-ctx-menu" id="clock-ctx-menu" style="display:none">
   <button id="clock-ctx-disable">Uhr deaktivieren</button>
 </div>
+
+<!-- SAVE TOAST (rechts unten) -->
+<div class="save-toast" id="save-toast" style="display:none">✓ Gespeichert</div>
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loading-overlay">

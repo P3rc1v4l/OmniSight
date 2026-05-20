@@ -7,15 +7,25 @@
     "start": "electron .",
     "build": "electron-builder --win --x64",
     "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux"
+    "build:linux": "electron-builder --linux",
+    "make-icon": "node scripts/generate-icons.js"
   },
   "build": {
     "appId": "com.omnisight.app",
     "productName": "OmniSight",
     "directories": { "output": "dist" },
-    "win":   { "target": "nsis",     "icon": "src/assets/icon.png" },
-    "mac":   { "target": "dmg",      "icon": "src/assets/icon.png" },
-    "linux": { "target": "AppImage", "icon": "src/assets/icon.png" },
+    "win": {
+      "target": "nsis",
+      "icon": "src/assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "src/assets/icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "src/assets/icon.png"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
@@ -24,8 +34,8 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "P3rc1v4l",
-      "repo": "OmniSight"
+      "owner": "DEIN-GITHUB-USERNAME",
+      "repo": "aletheos-stream"
     }
   },
   "keywords": ["streaming","electron","hub"],
@@ -33,8 +43,7 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^29.0.0",
-    "electron-builder": "^24.9.1",
-    "electron-updater": "^6.1.7"
+    "electron-builder": "^24.9.1"
   },
   "dependencies": {
     "electron-store": "^8.2.0",
