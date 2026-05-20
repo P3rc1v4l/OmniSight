@@ -5,7 +5,7 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win --x64",
+    "build": "electron-builder --win --x64 --publish never",
     "build:mac": "electron-builder --mac",
     "build:linux": "electron-builder --linux",
     "make-icon": "node scripts/generate-icons.js"
@@ -32,12 +32,7 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     },
-    "publish": {
-      "provider": "github",
-      "owner": "P3rc1v4l",
-      "repo": "OmniSight",
-      "private": true
-    }
+    "publish": null
   },
   "keywords": ["streaming","electron","hub"],
   "author": "OmniSight",
