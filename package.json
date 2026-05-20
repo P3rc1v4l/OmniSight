@@ -1,13 +1,13 @@
 {
   "name": "omnisight",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win --x64 --publish never",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:linux": "electron-builder --linux --publish never",
     "make-icon": "node scripts/generate-icons.js"
   },
   "build": {
