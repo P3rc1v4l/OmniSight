@@ -34,8 +34,9 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "DEIN-GITHUB-USERNAME",
-      "repo": "aletheos-stream"
+      "owner": "P3rc1v4l",
+      "repo": "OmniSight",
+      "private": true
     }
   },
   "keywords": ["streaming","electron","hub"],
