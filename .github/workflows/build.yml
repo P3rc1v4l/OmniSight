@@ -1,14 +1,15 @@
-name: Build Aletheos Stream (.exe)
+name: Build OmniSight
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:  # Manueller Start-Button auf GitHub
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
   build-windows:
     runs-on: windows-latest
-
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v4
@@ -29,9 +30,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Installer hochladen (Artifact)
+      - name: Artifact hochladen
         uses: actions/upload-artifact@v4
         with:
-          name: OmniSight
+          name: OmniSight-Windows
           path: dist/*.exe
-          retention-days: 30
+          if-no-files-found: warn
