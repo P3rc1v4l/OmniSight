@@ -1,8 +1,9 @@
-# 🎬 Aletheos Stream
+# 🎬 OmniSight
 
-**Dein zentraler Streaming-Hub** – Netflix, Prime Video, Disney+, Crunchyroll, BurningSeries und Cine.to in einer modernen Desktop-App.
+**Dein zentraler Streaming-Hub** – Netflix, Prime Video, Disney+, Crunchyroll, YouTube, Twitch, BurningSeries, Cine.to und 20+ weitere Anbieter in einer modernen Desktop-App.
 
-![Aletheos Stream](https://img.shields.io/badge/Electron-29-47848F?style=flat&logo=electron)
+![Version](https://img.shields.io/badge/Version-1.1.1-30c5bb?style=flat)
+![Electron](https://img.shields.io/badge/Electron-29-47848F?style=flat&logo=electron)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue?style=flat)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
@@ -10,12 +11,22 @@
 
 ## ✨ Features
 
-- **6 Streaming-Anbieter** in einer App
-- **Anmeldung wird gespeichert** – einmal einloggen, immer eingeloggt
-- **Dark & Light Mode** per Schieberegler
-- **Modernes Design** mit Glasmorphismus-Effekten
-- **Frameless Window** mit eigener Titelleiste
-- Läuft auf Windows, macOS und Linux
+- **26+ Streaming-Anbieter** in einer App (Netflix, Prime, Disney+, Crunchyroll, YouTube, Twitch, ARD, ZDF, ARTE, Spotify uvm.)
+- **Multi-Profil** – Jedes Profil hat eigene Anmeldungen, Favoriten, Watchlist und Statistiken
+- **Neuigkeiten & Upcoming** – Aktuelle Filme/Serien/Anime aus Deutschland via TMDB
+- **Crunchyroll Release-Kalender** – Kommende Anime-Episoden auf Crunchyroll DE
+- **Suche** – Filme & Serien suchen, Streaming-Anbieter direkt öffnen
+- **Watchlist / Gemerkt** – Filme, Serien und Anime für später speichern
+- **Statistiken & Achievements** – Streamzeit, Wochenanalyse, freischaltbare Achievements
+- **Miniplayer (PiP)** – Stream in kleinem Fenster weiterlaufen lassen
+- **Multi-Tab** – Mehrere Tabs für Twitch, YouTube, BurningSeries und Cine.to
+- **Anpassbare Karten** – Hintergrundbild, Farbe, Name, Beschreibung pro Anbieter
+- **Dark & Light Mode** – Per Schieberegler
+- **Partikel-Hintergrund** – 10 Formen, farblich und größenmäßig einstellbar
+- **Uhr-Widget** – Analogig oder digital, verschiebbar
+- **Ad-Blocker** – Integriert mit optionalen Filterlisten (AdBlock, EasyPrivacy, etc.)
+- **Widevine CDM** – DRM-Unterstützung für Netflix, Disney+ etc. (CDM manuell installierbar)
+- **Auto-Update** – Automatische Prüfung auf neue GitHub-Releases
 
 ---
 
@@ -23,15 +34,15 @@
 
 ### Voraussetzungen
 
-- [Node.js](https://nodejs.org/) (Version 18 oder neuer)
+- [Node.js](https://nodejs.org/) (Version 20 oder neuer)
 - npm (wird mit Node.js mitgeliefert)
 
 ### Installation
 
 ```bash
 # Repository klonen
-git clone https://github.com/DEIN-USERNAME/aletheos-stream.git
-cd aletheos-stream
+git clone https://github.com/P3rc1v4l/OmniSight.git
+cd OmniSight
 
 # Abhängigkeiten installieren
 npm install
@@ -45,25 +56,23 @@ npm start
 ## 📦 Als .exe bauen (Windows)
 
 ```bash
-# Abhängigkeiten installieren
 npm install
-
-# Windows-Build erstellen (.exe Installer)
 npm run build
 ```
 
 Die fertige `.exe` findest du danach im Ordner `dist/`.
 
-> **Hinweis:** Beim ersten Build wird Electron heruntergeladen (~80 MB). Das kann einen Moment dauern.
+### Icon generieren (optional)
+
+```bash
+npm run make-icon
+```
 
 ### Build für andere Plattformen
 
 ```bash
-# macOS (.dmg)
-npm run build:mac
-
-# Linux (.AppImage)
-npm run build:linux
+npm run build:mac    # macOS (.dmg)
+npm run build:linux  # Linux (.AppImage)
 ```
 
 ---
@@ -71,79 +80,49 @@ npm run build:linux
 ## 📁 Projektstruktur
 
 ```
-aletheos-stream/
+OmniSight/
 ├── src/
 │   ├── main.js          ← Electron Main Process
 │   ├── preload.js       ← Sicherer IPC-Bridge
+│   ├── splash.html      ← Startbildschirm
 │   ├── index.html       ← Haupt-UI
 │   ├── css/
-│   │   └── style.css    ← Styles (Dark/Light Mode)
+│   │   └── style.css    ← Alle Styles (Dark/Light Mode)
 │   ├── js/
-│   │   └── app.js       ← Frontend-Logik
+│   │   └── app.js       ← Frontend-Logik (~2000 Zeilen)
 │   └── assets/
-│       └── icon.png     ← App-Icon (512x512 empfohlen)
+│       ├── icon.png     ← App-Icon
+│       └── icon.ico     ← Windows-Icon (transparent)
+├── scripts/
+│   └── generate-icons.js ← Icon-Generator
+├── .github/
+│   └── workflows/
+│       └── build.yml    ← GitHub Actions CI/CD
 ├── package.json
-├── .gitignore
 └── README.md
 ```
 
 ---
 
-## 🎨 Anbieter hinzufügen
+## 🔒 Widevine CDM (DRM)
 
-In `src/js/app.js` die `PROVIDERS`-Konstante erweitern:
+Für Netflix, Disney+ und andere DRM-geschützte Dienste wird Widevine CDM benötigt.
 
-```javascript
-const PROVIDERS = {
-  // Bestehende Anbieter...
-  meinAnbieter: {
-    name: 'Mein Anbieter',
-    url: 'https://meinanbieter.de',
-    partition: 'persist:meinanbieter'  // wichtig: persist: Prefix!
-  },
-};
-```
-
-Dann in `src/index.html` eine neue Provider-Card im Grid hinzufügen:
-
-```html
-<div class="provider-card" data-id="meinAnbieter" data-url="https://meinanbieter.de">
-  <div class="provider-bg" style="--card-color: #FF6B6B;"></div>
-  <div class="provider-logo"><!-- Logo hier --></div>
-  <div class="provider-info">
-    <span class="provider-name">Mein Anbieter</span>
-    <span class="provider-tag">Kategorie</span>
-  </div>
-  <div class="provider-arrow">→</div>
-</div>
-```
+1. CDM herunterladen: [electron-widevinecdm](https://github.com/nicehash/electron-widevinecdm)
+2. Datei ablegen unter:
+   - **Windows:** `%APPDATA%\omnisight\WidevineCdm\widevinecdm.dll`
+   - **macOS:** `~/Library/Application Support/omnisight/WidevineCdm/libwidevinecdm.dylib`
+   - **Linux:** `~/.config/omnisight/WidevineCdm/libwidevinecdm.so`
 
 ---
 
 ## 🔒 Datenschutz & Sessions
 
-Die App speichert Cookies und Sessions **lokal auf deinem Gerät** mithilfe von Electrons `partition`-System. Jeder Anbieter hat seine eigene isolierte Session. Deine Anmeldedaten verlassen deinen Computer nicht.
+Sessions werden **lokal** gespeichert – deine Anmeldedaten verlassen deinen Computer nicht.
 
-Session-Dateien befinden sich unter:
-- **Windows:** `%APPDATA%\aletheos-stream`
-- **macOS:** `~/Library/Application Support/aletheos-stream`
-- **Linux:** `~/.config/aletheos-stream`
-
----
-
-## 🛠️ Technologien
-
-| Technologie | Verwendung |
-|-------------|-----------|
-| [Electron](https://electronjs.org) | Desktop-App-Framework |
-| [electron-store](https://github.com/sindresorhus/electron-store) | Persistente Einstellungen |
-| [electron-builder](https://www.electron.build) | Packaging & Installer |
-
----
-
-## ⚠️ Hinweis
-
-Diese App ist ein persönlicher Streaming-Hub und lädt die offiziellen Webseiten der Anbieter in einem eingebetteten Browser. Für die Nutzung benötigst du gültige, eigene Accounts bei den jeweiligen Diensten.
+- **Windows:** `%APPDATA%\omnisight`
+- **macOS:** `~/Library/Application Support/omnisight`
+- **Linux:** `~/.config/omnisight`
 
 ---
 

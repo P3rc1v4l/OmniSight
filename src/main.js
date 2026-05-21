@@ -148,6 +148,7 @@ function createMainWindow() {
   try {
     const { autoUpdater } = require('electron-updater');
     autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = false;
     autoUpdater.setFeedURL({
       provider: 'github',
       owner: 'P3rc1v4l',
@@ -155,11 +156,20 @@ function createMainWindow() {
     });
     autoUpdater.on('update-available', info => {
       mainWindow?.webContents.send('update-available', info);
-      if (Notification.isSupported()) new Notification({ title:'OmniSight Update', body:`Version ${info.version} verfügbar!`, icon: path.join(__dirname,'assets','icon.ico') }).show();
+      if (Notification.isSupported()) {
+        new Notification({ title:'OmniSight Update', body:`v${info.version} ist verfügbar!`, icon: path.join(__dirname,'assets','icon.ico') }).show();
+      }
     });
     autoUpdater.on('update-not-available', () => mainWindow?.webContents.send('update-not-available'));
     autoUpdater.on('update-downloaded',    () => mainWindow?.webContents.send('update-downloaded'));
-    autoUpdater.on('error', err => mainWindow?.webContents.send('update-error', err.message));
+    autoUpdater.on('error', err => {
+      // Stille Fehler bei nicht vorhandener Release – kein App-Crash
+      const msg = err.message||'';
+      if (!msg.includes('app-update.yml') && !msg.includes('404') && !msg.includes('ERR_CONNECTION')) {
+        mainWindow?.webContents.send('update-error', msg);
+      }
+    });
+    // Beim Start automatisch prüfen (nach 5s Delay)
     setTimeout(() => { try { autoUpdater.checkForUpdates(); } catch {} }, 5000);
   } catch (e) { console.warn('[AutoUpdater]', e.message); }
 }
@@ -388,15 +398,18 @@ ipcMain.handle('get-upcoming', async (_, months=1) => {
     const future = new Date(today); future.setMonth(today.getMonth()+months);
     const fmt = d => d.toISOString().split('T')[0];
     const gte=fmt(today), lte=fmt(future);
-    const [m,s,a] = await Promise.all([
+    // Anime: mehrere Seiten laden für mehr Ergebnisse
+    const [m,s,a1,a2] = await Promise.all([
       tmdb('/discover/movie', `&region=DE&with_release_type=3|2&release_date.gte=${gte}&release_date.lte=${lte}&sort_by=release_date.asc`),
       tmdb('/discover/tv',    `&watch_region=DE&first_air_date.gte=${gte}&first_air_date.lte=${lte}&sort_by=first_air_date.asc&without_genres=16`),
-      tmdb('/discover/tv',    `&with_genres=16&first_air_date.gte=${gte}&first_air_date.lte=${lte}&sort_by=first_air_date.asc&with_watch_providers=${DE_ANIME_PROVIDERS}&watch_region=DE`),
+      tmdb('/discover/tv',    `&with_genres=16&first_air_date.gte=${gte}&first_air_date.lte=${lte}&sort_by=first_air_date.asc`),
+      tmdb('/discover/tv',    `&with_genres=16&first_air_date.gte=${gte}&first_air_date.lte=${lte}&sort_by=popularity.desc&page=2`),
     ]);
+    const animeAll=[...(a1.results||[]),...(a2.results||[])].filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i);
     return {
       movies: (m.results||[]).filter(i=>i.poster_path).slice(0,30),
       shows:  (s.results||[]).filter(i=>i.poster_path).slice(0,30),
-      anime:  (a.results||[]).filter(i=>i.poster_path).slice(0,30),
+      anime:  animeAll.filter(i=>i.poster_path).slice(0,30),
     };
   } catch(e) { return { error:e.message }; }
 });

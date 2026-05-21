@@ -39,43 +39,152 @@ const TMDB_PROVIDER_MAP = {
   283:'crunchyroll',350:'apple',207:'mubi',36:'mubi',29:'waipu',
 };
 
+// ════════════════════════════════
+// ACHIEVEMENTS
+// ════════════════════════════════
+const ACHIEVEMENT_CATEGORIES = {
+  stream:  {de:'⏱ Streamzeit', en:'⏱ Streaming Time'},
+  provider:{de:'📺 Anbieter',   en:'📺 Providers'},
+  special: {de:'✨ Besonders',  en:'✨ Special'},
+  hidden:  {de:'🔒 Versteckt',  en:'🔒 Hidden'},
+};
+
 const ACHIEVEMENTS = [
-  {id:'first_stream',   name:'Erster Stream',     icon:'🎬', desc:'Ersten Stream gestartet',              check:s=>Object.values(s).some(v=>v.total>0)},
-  {id:'hour_1',         name:'1 Stunde',           icon:'⏰', desc:'1 Stunde insgesamt gestreamt',         check:s=>totalSecs(s)>=3600},
-  {id:'hour_10',        name:'10 Stunden',          icon:'🕐', desc:'10 Stunden insgesamt gestreamt',      check:s=>totalSecs(s)>=36000},
-  {id:'hour_100',       name:'100 Stunden',         icon:'💯', desc:'100 Stunden insgesamt gestreamt',     check:s=>totalSecs(s)>=360000},
-  {id:'netflix_1h',     name:'Netflix Fan',         icon:'🍿', desc:'1h Netflix gestreamt',               check:s=>(s.netflix?.total||0)>=3600},
-  {id:'youtube_5h',     name:'YouTube Addict',      icon:'▶️', desc:'5h YouTube gestreamt',               check:s=>(s.youtube?.total||0)>=18000},
-  {id:'multi_provider', name:'Viel-Streamer',        icon:'🌐', desc:'5 verschiedene Anbieter genutzt',    check:s=>Object.values(s).filter(v=>v.total>0).length>=5},
-  {id:'night_owl',      name:'Nachteule',            icon:'🦉', desc:'Am Wochenende gestreamt',            check:s=>Object.values(s).some(v=>(v.byDay?.[0]||0)+(v.byDay?.[6]||0)>0)},
-  {id:'anime_fan',      name:'Anime-Fan',            icon:'⛩️', desc:'Crunchyroll 1h gestreamt',           check:s=>(s.crunchyroll?.total||0)>=3600},
+  // ── Streamzeit ──
+  {id:'first_stream',   cat:'stream',  name:{de:'Erster Stream',       en:'First Stream'},     icon:'🎬', desc:{de:'Ersten Stream gestartet',          en:'Started your first stream'},       check:s=>Object.values(s).some(v=>v.total>0)},
+  {id:'hour_1',         cat:'stream',  name:{de:'1 Stunde',            en:'1 Hour'},            icon:'⏰', desc:{de:'1h insgesamt gestreamt',            en:'Streamed 1h in total'},             check:s=>totalSecs(s)>=3600},
+  {id:'hour_5',         cat:'stream',  name:{de:'5 Stunden',           en:'5 Hours'},           icon:'🕔', desc:{de:'5h insgesamt gestreamt',            en:'Streamed 5h in total'},             check:s=>totalSecs(s)>=18000},
+  {id:'hour_10',        cat:'stream',  name:{de:'10 Stunden',          en:'10 Hours'},          icon:'🕐', desc:{de:'10h insgesamt gestreamt',           en:'Streamed 10h in total'},            check:s=>totalSecs(s)>=36000},
+  {id:'hour_50',        cat:'stream',  name:{de:'50 Stunden',          en:'50 Hours'},          icon:'🏅', desc:{de:'50h insgesamt gestreamt',           en:'Streamed 50h in total'},            check:s=>totalSecs(s)>=180000},
+  {id:'hour_100',       cat:'stream',  name:{de:'100 Stunden',         en:'100 Hours'},         icon:'💯', desc:{de:'100h insgesamt gestreamt',          en:'Streamed 100h in total'},           check:s=>totalSecs(s)>=360000},
+  {id:'hour_500',       cat:'stream',  name:{de:'500 Stunden',         en:'500 Hours'},         icon:'🏆', desc:{de:'500h insgesamt gestreamt',          en:'Streamed 500h in total'},           check:s=>totalSecs(s)>=1800000},
+  {id:'night_owl',      cat:'stream',  name:{de:'Nachteule',           en:'Night Owl'},         icon:'🦉', desc:{de:'Am Wochenende gestreamt',           en:'Streamed on the weekend'},          check:s=>Object.values(s).some(v=>(v.byDay?.[0]||0)+(v.byDay?.[6]||0)>0)},
+  {id:'monday_start',   cat:'stream',  name:{de:'Wochenstart',         en:'Week Starter'},      icon:'📅', desc:{de:'An einem Montag gestreamt',         en:'Streamed on a Monday'},             check:s=>Object.values(s).some(v=>(v.byDay?.[1]||0)>0)},
+  // ── Anbieter ──
+  {id:'netflix_1h',     cat:'provider',name:{de:'Netflix Fan',         en:'Netflix Fan'},       icon:'🍿', desc:{de:'1h Netflix gestreamt',              en:'Streamed 1h on Netflix'},           check:s=>(s.netflix?.total||0)>=3600},
+  {id:'youtube_5h',     cat:'provider',name:{de:'YouTube Addict',      en:'YouTube Addict'},    icon:'▶️', desc:{de:'5h YouTube gestreamt',              en:'Streamed 5h on YouTube'},           check:s=>(s.youtube?.total||0)>=18000},
+  {id:'anime_fan',      cat:'provider',name:{de:'Anime-Fan',           en:'Anime Fan'},         icon:'⛩️', desc:{de:'Crunchyroll 1h gestreamt',          en:'Streamed 1h on Crunchyroll'},       check:s=>(s.crunchyroll?.total||0)>=3600},
+  {id:'anime_master',   cat:'provider',name:{de:'Anime-Meister',       en:'Anime Master'},      icon:'🐉', desc:{de:'Crunchyroll 10h gestreamt',         en:'Streamed 10h on Crunchyroll'},      check:s=>(s.crunchyroll?.total||0)>=36000},
+  {id:'multi_provider', cat:'provider',name:{de:'Viel-Streamer',       en:'Multi-Streamer'},    icon:'🌐', desc:{de:'5 verschiedene Anbieter genutzt',   en:'Used 5 different providers'},       check:s=>Object.values(s).filter(v=>v.total>0).length>=5},
+  {id:'all_providers',  cat:'provider',name:{de:'Komplett-Streamer',   en:'Full Streamer'},     icon:'🎯', desc:{de:'10 verschiedene Anbieter genutzt',  en:'Used 10 different providers'},      check:s=>Object.values(s).filter(v=>v.total>0).length>=10},
+  {id:'sport_fan',      cat:'provider',name:{de:'Sport-Fan',           en:'Sports Fan'},        icon:'⚽', desc:{de:'DAZN 1h gestreamt',                en:'Streamed 1h on DAZN'},              check:s=>(s.dazn?.total||0)>=3600},
+  {id:'music_fan',      cat:'provider',name:{de:'Musik-Fan',           en:'Music Fan'},         icon:'🎵', desc:{de:'Spotify 1h gestreamt',              en:'Streamed 1h on Spotify'},           check:s=>(s.spotify?.total||0)>=3600},
+  {id:'twitch_fan',     cat:'provider',name:{de:'Twitch-Fan',          en:'Twitch Fan'},        icon:'🎮', desc:{de:'Twitch 2h gestreamt',               en:'Streamed 2h on Twitch'},            check:s=>(s.twitch?.total||0)>=7200},
+  // ── Besonders ──
+  {id:'binge_day',      cat:'special', name:{de:'Binge-Tag',           en:'Binge Day'},         icon:'🛋️', desc:{de:'An einem Tag 4h gestreamt',         en:'Streamed 4h in one day'},           check:s=>Object.values(s).some(v=>v.byDay&&Math.max(...v.byDay)>=14400)},
+  {id:'early_bird',     cat:'special', name:{de:'Frühaufsteher',       en:'Early Bird'},        icon:'🌅', desc:{de:'Mehr als 3h montags gestreamt',     en:'Streamed 3h+ on Mondays'},          check:s=>Object.values(s).reduce((a,v)=>a+(v.byDay?.[1]||0),0)>=10800},
+  // ── Versteckt ──
+  {id:'hid_100app',     cat:'hidden',  name:{de:'Stammgast',           en:'Regular'},           icon:'🏠', desc:{de:'App 100x gestartet',               en:'Started the app 100 times'},        check:(_,meta)=>(meta?.appStarts||0)>=100, hidden:true},
+  {id:'hid_settings50', cat:'hidden',  name:{de:'Einstellungs-Freak',  en:'Settings Freak'},    icon:'⚙️', desc:{de:'Einstellungen 50x geöffnet',        en:'Opened settings 50 times'},         check:(_,meta)=>(meta?.settingsOpens||0)>=50, hidden:true},
+  {id:'hid_1000h',      cat:'hidden',  name:{de:'Lebenswerk',          en:'Life\'s Work'},       icon:'👑', desc:{de:'1000h insgesamt gestreamt',         en:'Streamed 1000h in total'},          check:s=>totalSecs(s)>=3600000, hidden:true},
+  {id:'hid_midnight',   cat:'hidden',  name:{de:'Mitternachts-Freak',  en:'Midnight Freak'},    icon:'🌙', desc:{de:'Nach Mitternacht gestreamt',        en:'Streamed after midnight'},           check:(_,meta)=>(meta?.midnightStreams||0)>=1, hidden:true},
+  {id:'hid_allprovider',cat:'hidden',  name:{de:'Alles-Tester',        en:'All-Tester'},        icon:'🔬', desc:{de:'Alle 20 Standardanbieter genutzt',  en:'Used all 20 default providers'},    check:s=>Object.values(s).filter(v=>v.total>0).length>=20, hidden:true},
 ];
 function totalSecs(s){return Object.values(s).reduce((a,v)=>a+(v.total||0),0);}
 
+// ════════════════════════════════
+// PLUGIN PRESETS
+// ════════════════════════════════
 const PLUGIN_PRESETS = [
-  {id:'adblock',    name:'AdBlock',             desc:'Von ADBLOCK, Inc. – getadblock.com',       url:'https://easylist.to/easylist/easylist.txt'},
-  {id:'easyprivacy',name:'EasyPrivacy',          desc:'Tracking & Analytics blockieren',          url:'https://easylist.to/easylist/easyprivacy.txt'},
-  {id:'fanboy',     name:'Fanboy Annoyance',     desc:'Cookie-Banner & Popups blockieren',        url:'https://easylist.to/easylist/fanboy-annoyance.txt'},
-  {id:'adguard',    name:'AdGuard Base',         desc:'AdGuard Basisliste',                       url:'https://filters.adtidy.org/extension/chromium/filters/2.txt'},
-  {id:'buster',     name:'Buster: Captcha Solver',desc:'CAPTCHA-Löser (Browser-Extension)',      url:'', note:'Buster ist eine Browser-Extension. In OmniSight wird versucht CAPTCHAs per Userscript zu umgehen.'},
-  {id:'betterttv',  name:'BetterTTV',            desc:'Twitch-Emotes & Verbesserungen',           url:'', note:'BetterTTV ist eine Browser-Extension. OmniSight injiziert ein kompatibles Skript für Twitch-Tabs.'},
-  {id:'icloud',     name:'iCloud-Passwörter',    desc:'Passwörter aus Safari (Windows App)',      url:'', note:'Nur über die iCloud für Windows-App verfügbar. Passwort manuell ins Anmeldefeld eingeben.'},
+  {id:'adblock',    name:{de:'AdBlock',              en:'AdBlock'},              desc:{de:'Von ADBLOCK, Inc. – getadblock.com', en:'By ADBLOCK, Inc.'},                              url:'https://easylist.to/easylist/easylist.txt'},
+  {id:'easyprivacy',name:{de:'EasyPrivacy',           en:'EasyPrivacy'},          desc:{de:'Tracking & Analytics blockieren',    en:'Block tracking & analytics'},                    url:'https://easylist.to/easylist/easyprivacy.txt'},
+  {id:'fanboy',     name:{de:'Fanboy Annoyance',      en:'Fanboy Annoyance'},     desc:{de:'Cookie-Banner & Popups blockieren',  en:'Block cookie banners & popups'},                 url:'https://easylist.to/easylist/fanboy-annoyance.txt'},
+  {id:'adguard',    name:{de:'AdGuard Base',          en:'AdGuard Base'},         desc:{de:'AdGuard Basisliste',                 en:'AdGuard base list'},                             url:'https://filters.adtidy.org/extension/chromium/filters/2.txt'},
+  {id:'buster',     name:{de:'Buster: Captcha Solver',en:'Buster: Captcha Solver'},desc:{de:'CAPTCHA-Löser (Browser-Extension)', en:'Captcha solver (browser extension)'},            url:'', note:{de:'Buster ist eine Browser-Extension. OmniSight versucht CAPTCHAs automatisch zu überspringen.',en:'Buster is a browser extension. OmniSight tries to skip CAPTCHAs automatically.'}},
+  {id:'betterttv',  name:{de:'BetterTTV',             en:'BetterTTV'},            desc:{de:'Twitch-Emotes & Verbesserungen',     en:'Twitch emotes & improvements'},                  url:'', note:{de:'BetterTTV ist eine Browser-Extension.',en:'BetterTTV is a browser extension.'}},
+  {id:'icloud',     name:{de:'iCloud-Passwörter',     en:'iCloud Passwords'},     desc:{de:'Passwörter aus Safari (Windows)',    en:'Passwords from Safari (Windows)'},               url:'', note:{de:'Nur über die iCloud für Windows-App verfügbar.',en:'Only available via the iCloud for Windows app.'}},
 ];
 
+// ════════════════════════════════
+// I18N – vollständig
+// ════════════════════════════════
 const I18N = {
   de:{
-    overview:'Übersicht',favorites:'Favoriten',watchlist:'Gemerkt',news:'Neuigkeiten',
-    upcoming:'Upcoming',providers:'Anbieter',settings:'Einstellungen',
-    watchingNow:'Schaut gerade',stats:'Statistiken',back:'Zurück',fullscreen:'Vollbild',
-    miniPlayer:'Miniplayer',stop:'Stop',logout:'Abmelden',
-    search:'Film, Serie, Anbieter suchen…',moviesTab:'Filme',showsTab:'Serien',bgImage:'Hintergrundbild',
+    // Nav
+    overview:'Übersicht', favorites:'Favoriten', watchlist:'Gemerkt', news:'Neuigkeiten',
+    upcoming:'Upcoming', providers:'Anbieter', settings:'Einstellungen',
+    watchingNow:'Schaut gerade', stats:'Statistiken', back:'Zurück', fullscreen:'Vollbild',
+    miniPlayer:'Miniplayer', stop:'Stop', logout:'Abmelden',
+    // Suche
+    search:'Film, Serie, Anbieter suchen…',
+    // Media-Tabs
+    moviesTab:'Filme', showsTab:'Serien', animeTab:'Anime',
+    trending:'Trending', newReleases:'Neu',
+    // Einstellungen
+    bgImage:'Hintergrundbild', accentColor:'Akzentfarbe', fontSize:'Schriftgröße',
+    fontFamily:'Schriftart', language:'Sprache',
+    designOptions:'Design-Optionen', cardRadius:'Kartenrundung', sidebarWidth:'Sidebar-Breite',
+    cardShadow:'Karten-Schatten', glassMode:'Glasmorphismus',
+    particles:'Partikel-Hintergrund', particleCount:'Anzahl', particleSize:'Größe',
+    particleSpeed:'Geschwindigkeit', particleColor:'Farbe', particleShapes:'Formen',
+    // Account
+    accountTab:'Account', loggedIn:'Angemeldet', notLoggedIn:'Nicht angemeldet',
+    logoutAll:'Von ALLEN Diensten abmelden', googleLogin:'Im Browser bei Google anmelden (YouTube)',
+    // Uhr
+    clockTab:'Uhr', clockEnabled:'Uhr anzeigen', clockColor:'Farbe',
+    clockOpacity:'Transparenz', clockSize:'Schriftgröße', clockDragHint:'💡 Verschiebe die Uhr mit der Maus.',
+    clockTypeDigital:'Digital', clockTypeAnalog:'Analog',
+    clockSeconds:'Sekunden anzeigen', clockTransparencyHint:'0% = sichtbar · 100% = unsichtbar (deaktiviert)',
+    // Plugins
+    pluginsTab:'Plugins', pluginSearch:'Plugin suchen…', pluginInstall:'Installieren',
+    pluginRemove:'Entfernen', pluginInfo:'Info', pluginDomains:'Geblockte Domains gesamt',
+    // Mehr
+    moreTab:'Mehr', updates:'Updates', checkUpdates:'Auf Updates prüfen',
+    vpn:'VPN', widevine:'Widevine CDM (DRM)', profileManage:'Profil verwalten',
+    profileRename:'Profil umbenennen', profileDelete:'Profil löschen',
+    providerRestore:'Alle Standardanbieter wiederherstellen',
+    providerRestoreSingle:'Einzelnen Anbieter wiederherstellen',
+    // Statistiken
+    statsTitle:'Statistiken', statsNoData:'Noch keine Stream-Daten.',
+    statsTopProviders:'⏱ Meiste Streamzeit (Top 3)', statsWeekdays:'📅 Wochentage',
+    statsCrunchyroll:'⛩️ Crunchyroll Release-Kalender',
+    statsAchievements:'🏆 Achievements',
+    // Achievements-Kategorien
+    achCatStream:'⏱ Streamzeit', achCatProvider:'📺 Anbieter', achCatSpecial:'✨ Besonders', achCatHidden:'🔒 Versteckt',
+    achHiddenHint:'Versteckte Achievements – durch Spielen freischalten',
+    // Gemerkt
+    watchlistEmpty:'Noch nichts gemerkt.\nKlicke bei Filmen/Serien auf 🔖',
+    // Allgemein
+    defaultProfile:'Standardkonto', save:'Gespeichert', cancel:'Abbrechen', close:'Schließen',
+    // Wochentage
+    days:['So','Mo','Di','Mi','Do','Fr','Sa'],
   },
   en:{
-    overview:'Overview',favorites:'Favorites',watchlist:'Watchlist',news:"What's New",
-    upcoming:'Upcoming',providers:'Providers',settings:'Settings',
-    watchingNow:'Now Watching',stats:'Statistics',back:'Back',fullscreen:'Fullscreen',
-    miniPlayer:'Mini Player',stop:'Stop',logout:'Sign out',
-    search:'Search movies, shows, providers…',moviesTab:'Movies',showsTab:'Shows',bgImage:'Background Image',
+    overview:'Overview', favorites:'Favorites', watchlist:'Watchlist', news:"What's New",
+    upcoming:'Upcoming', providers:'Providers', settings:'Settings',
+    watchingNow:'Now Watching', stats:'Statistics', back:'Back', fullscreen:'Fullscreen',
+    miniPlayer:'Mini Player', stop:'Stop', logout:'Sign out',
+    search:'Search movies, shows, providers…',
+    moviesTab:'Movies', showsTab:'Shows', animeTab:'Anime',
+    trending:'Trending', newReleases:'New',
+    bgImage:'Background Image', accentColor:'Accent Color', fontSize:'Font Size',
+    fontFamily:'Font Family', language:'Language',
+    designOptions:'Design Options', cardRadius:'Card Radius', sidebarWidth:'Sidebar Width',
+    cardShadow:'Card Shadow', glassMode:'Glass Effect',
+    particles:'Particle Background', particleCount:'Count', particleSize:'Size',
+    particleSpeed:'Speed', particleColor:'Color', particleShapes:'Shapes',
+    accountTab:'Account', loggedIn:'Logged In', notLoggedIn:'Not Logged In',
+    logoutAll:'Sign out of ALL services', googleLogin:'Sign in with Google in browser (YouTube)',
+    clockTab:'Clock', clockEnabled:'Show Clock', clockColor:'Color',
+    clockOpacity:'Opacity', clockSize:'Font Size', clockDragHint:'💡 Drag the clock with your mouse.',
+    clockTypeDigital:'Digital', clockTypeAnalog:'Analog',
+    clockSeconds:'Show seconds', clockTransparencyHint:'0% = visible · 100% = invisible (disables)',
+    pluginsTab:'Plugins', pluginSearch:'Search plugins…', pluginInstall:'Install',
+    pluginRemove:'Remove', pluginInfo:'Info', pluginDomains:'Total blocked domains',
+    moreTab:'More', updates:'Updates', checkUpdates:'Check for updates',
+    vpn:'VPN', widevine:'Widevine CDM (DRM)', profileManage:'Manage Profile',
+    profileRename:'Rename Profile', profileDelete:'Delete Profile',
+    providerRestore:'Restore all default providers',
+    providerRestoreSingle:'Restore individual provider',
+    statsTitle:'Statistics', statsNoData:'No stream data yet.',
+    statsTopProviders:'⏱ Most Streamed (Top 3)', statsWeekdays:'📅 Weekdays',
+    statsCrunchyroll:'⛩️ Crunchyroll Release Calendar',
+    statsAchievements:'🏆 Achievements',
+    achCatStream:'⏱ Streaming Time', achCatProvider:'📺 Providers', achCatSpecial:'✨ Special', achCatHidden:'🔒 Hidden',
+    achHiddenHint:'Hidden achievements – unlock by playing',
+    watchlistEmpty:'Nothing saved yet.\nClick 🔖 on movies/shows to save.',
+    defaultProfile:'Default Account', save:'Saved', cancel:'Cancel', close:'Close',
+    days:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
   },
 };
 
@@ -170,6 +279,8 @@ async function init(){
 
   buildProviderGrid();
   buildSidebarSubMenus();
+  // Sort-Button Initialzustand
+  document.getElementById('btn-sort-alpha')?.classList.toggle('active',!!settings.sortAlpha);
   setupClock();
   setupTitlebar();
   setupThemeToggle();
@@ -232,13 +343,25 @@ function hideLoading(){document.getElementById('loading-overlay').classList.remo
 // ════════════════════════════════
 function applyLanguage(l){
   lang=l;
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const k=el.dataset.i18n;
-    if(I18N[l]?.[k]) el.textContent=I18N[l][k];
-  });
-  const si=document.getElementById('search-input');
-  if(si) si.placeholder=I18N[l]?.search||I18N.de.search;
+  const t=I18N[l]||I18N.de;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t[k]!==undefined)el.textContent=t[k];});
+  const si=document.getElementById('search-input');if(si)si.placeholder=t.search;
+  const ps=document.getElementById('plugin-search');if(ps)ps.placeholder=t.pluginSearch||'Plugin suchen…';
+  // Settings-Tabs übersetzen
+  const tabMap={appearance:'Design',account:t.accountTab||'Account',clock:t.clockTab||'Uhr',plugins:t.pluginsTab||'Plugins',advanced:t.moreTab||'Mehr'};
+  document.querySelectorAll('.stab[data-tab]').forEach(tab=>{const k=tabMap[tab.dataset.tab];if(k)tab.textContent=k;});
+  // Settings-Header Titel
+  const sh=document.querySelector('.settings-header>span:first-child');if(sh)sh.textContent=t.settings;
+  // Statistiken-Titel
+  const stEl=document.querySelector('#view-stats .view-title');if(stEl)stEl.textContent=`📊 ${t.statsTitle||'Statistiken'}`;
   document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));
+  window._days=t.days||['So','Mo','Di','Mi','Do','Fr','Sa'];
+  // Standardkonto umbenennen
+  const defaultP=profiles?.find(p=>p.id==='default');
+  if(defaultP&&(defaultP.name==='Standardkonto'||defaultP.name==='Default Account')){
+    defaultP.name=t.defaultProfile||'Standardkonto';
+    buildProfileSelect();
+  }
 }
 
 // ════════════════════════════════
@@ -254,10 +377,10 @@ function applyFontSize(px){document.documentElement.style.setProperty('--fs',px+
 function applyFontFamily(f){
   const map={'DM Sans':"'DM Sans',sans-serif",'Inter':"'Inter',sans-serif",'Rajdhani':"'Rajdhani',sans-serif",'Orbitron':"'Orbitron',sans-serif",'Exo 2':"'Exo 2',sans-serif",'system-ui':'system-ui,sans-serif'};
   const css=map[f]||"'DM Sans',sans-serif";
+  // Punkt 21: Schriftart gilt auch für Titel (--font-d)
   document.documentElement.style.setProperty('--font-b',css);
-  // Uhr auch anpassen
-  const clk=document.getElementById('clock-widget');
-  if(clk) clk.style.fontFamily=css;
+  document.documentElement.style.setProperty('--font-d',css);
+  const clk=document.getElementById('clock-widget');if(clk)clk.style.fontFamily=css;
 }
 function applyAccent(hex){
   document.documentElement.style.setProperty('--acc',hex||'#30c5bb');
@@ -355,20 +478,28 @@ async function checkOnlineStatus(){
 function setupUpdateHandler(){
   window.electronAPI.onUpdateAvailable(info=>{
     const badge=document.getElementById('update-badge');if(badge)badge.style.display='block';
+    const el=document.getElementById('update-check-result');
+    if(el){el.textContent=`🚀 Update v${info.version} verfügbar! Herunterladen…`;el.style.color='var(--acc)';}
     showToast(`🚀 Update v${info.version} verfügbar!`,5000);
   });
   window.electronAPI.onUpdateNotAvailable(()=>{
     const el=document.getElementById('update-check-result');
-    if(el)el.textContent='✓ Du hast die aktuellste Version.';
+    if(el){el.textContent='✓ Du hast bereits die aktuellste Version.';el.style.color='var(--acc)';}
   });
   window.electronAPI.onUpdateDownloaded(()=>{
     const el=document.getElementById('update-check-result');
-    if(el){el.textContent='✓ Update heruntergeladen. Klicke zum Installieren.';el.style.color='var(--acc)';}
-    showToast('Update bereit – starte die App neu zum Installieren.',6000);
+    if(el){el.textContent='✓ Update heruntergeladen – beim nächsten Start wird es installiert.';el.style.color='var(--acc)';}
+    showToast('Update heruntergeladen – wird beim Neustart installiert.',6000);
   });
   window.electronAPI.onUpdateError(msg=>{
     const el=document.getElementById('update-check-result');
-    if(el)el.textContent=msg.includes('app-update.yml')?'Kein Update-Server. Erst eine GitHub-Release veröffentlichen.':('Fehler: '+msg);
+    if(!el)return;
+    if(msg.includes('app-update.yml')||msg.includes('404')){
+      el.textContent='ℹ Noch keine öffentliche GitHub-Release vorhanden. Erstelle einen Tag v'+require?.('../../package.json')?.version+' um Releases zu aktivieren.';
+    }else{
+      el.textContent='Fehler: '+msg;
+    }
+    el.style.color='var(--tx2)';
   });
 }
 
@@ -507,6 +638,36 @@ function setupNavigation(){
   // Home: + Button für Custom Provider
   document.getElementById('btn-add-provider-home')?.addEventListener('click',()=>document.getElementById('custom-provider-modal').style.display='flex');
   document.getElementById('goto-home-btn')?.addEventListener('click',()=>showView('home'));
+
+  // Fix 5: Alphabetisch sortieren Toggle
+  document.getElementById('btn-sort-alpha')?.addEventListener('click',()=>{
+    settings.sortAlpha=!settings.sortAlpha;autoSave();buildProviderGrid();
+    document.getElementById('btn-sort-alpha')?.classList.toggle('active',!!settings.sortAlpha);
+  });
+
+  // Fix 6: Einzelne Anbieter wiederherstellen
+  document.getElementById('btn-restore-single-open')?.addEventListener('click',()=>{
+    const list=document.getElementById('restore-single-list');if(!list)return;
+    const deleted=settings.deletedProviders||[];
+    if(!deleted.length){showToast('Keine gelöschten Anbieter.');return;}
+    list.style.display=list.style.display==='none'?'block':'none';
+    list.innerHTML='';
+    deleted.forEach(id=>{
+      const p=PROVIDERS_BASE[id];if(!p)return;
+      const btn=document.createElement('button');
+      btn.className='pick-btn';btn.style.cssText='width:100%;text-align:left;margin-bottom:4px';
+      btn.textContent=`↺ ${p.name}`;
+      btn.addEventListener('click',()=>{
+        settings.deletedProviders=deleted.filter(d=>d!==id);
+        autoSave();buildProviderGrid();buildSidebarSubMenus();
+        btn.remove();showToast(`${p.name} wiederhergestellt.`);
+      });
+      list.appendChild(btn);
+    });
+  });
+
+  // Punkt 17: Crunchyroll-Kalender in Sidebar
+  setupSidebarCrunchyroll();
 }
 
 function setupToggle(btnId,subId){const btn=document.getElementById(btnId),sub=document.getElementById(subId);btn?.addEventListener('click',()=>{btn.classList.toggle('open');sub?.classList.toggle('open');});}
@@ -579,6 +740,14 @@ function buildFullSlideshow(key){
     card.className='slide-card'+(i===0?' active-slide':'');
     card.dataset.idx=i;
     card.innerHTML=`
+      <div class="slide-bookmark-wrap">
+        <button class="slide-bookmark-btn${isInWl?' bookmarked':''}" title="Merken">🔖</button>
+      </div>
+      <div class="slide-hide-wrap">
+        <button class="slide-hide-btn" title="Ausblenden">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8"/></svg>
+        </button>
+      </div>
       <div class="slide-card-inner">
         ${poster?`<img class="slide-card-poster" src="${poster}" alt="${esc(title)}" loading="lazy" onerror="this.style.display='none'">`:
           `<div class="slide-card-poster-ph"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>`}
@@ -589,12 +758,6 @@ function buildFullSlideshow(key){
             ${fmtDate?`<span style="color:var(--acc)">📅 ${fmtDate}</span>`:''}
           </div>
         </div>
-      </div>
-      <div class="slide-card-actions">
-        <button class="slide-bookmark-btn${isInWl?' bookmarked':''}" title="Merken">🔖</button>
-        <button class="slide-hide-btn" title="Ausblenden">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8"/></svg>
-        </button>
       </div>`;
 
     card.querySelector('.slide-bookmark-btn').addEventListener('click',e=>{
@@ -613,7 +776,7 @@ function buildFullSlideshow(key){
         ss.items=ss.items.filter(it=>it.id!==item.id);buildFullSlideshow(key);
       },{once:true});
     });
-    card.querySelector('.slide-card-inner').addEventListener('click',()=>showDetailPopup(item.id,tmdbType,title));
+    card.querySelector('.slide-card-inner').addEventListener('click',()=>{ goToSlide(key,i); showDetailPopup(item.id,tmdbType,title); });
     track.appendChild(card);
 
     const dot=document.createElement('button');dot.className='slide-dot'+(i===0?' active':'');
@@ -778,6 +941,9 @@ function setupSearch(){
     clearTimeout(searchTimer);
     if(!q){dd.style.display=searchHistory.length?'block':'none';if(searchHistory.length)showHistory(dd);else{dd.innerHTML='';dd.style.display='none';}return;}
     lastQuery=q;searchPage=1;
+    // YouTube-Link sofort erkennen
+    const ytId=extractYtId(q);
+    if(ytId){showYtResult(q,ytId,dd);return;}
     // Sofortige Anbieter-Vorschläge
     showInstantProviders(q,dd);
     // TMDB nach 220ms (kein Verlauf-Eintrag!)
@@ -885,6 +1051,22 @@ async function loadProviderChips(tmdbId,type,containerId){
 
 function addToSearchHistory(q){if(!q||searchHistory.includes(q))return;searchHistory.unshift(q);searchHistory=searchHistory.slice(0,20);settings.searchHistory=searchHistory;autoSave();}
 
+function showYtResult(q,ytId,dd){
+  dd.innerHTML=`<div class="search-dd-section">YouTube</div>
+    <div class="search-dd-item" id="yt-result-item">
+      <img class="search-dd-poster" src="https://img.youtube.com/vi/${ytId}/mqdefault.jpg" style="width:80px;height:46px;border-radius:5px;object-fit:cover" onerror="this.style.display='none'"/>
+      <div class="search-dd-info">
+        <div class="search-dd-title">YouTube Video abspielen</div>
+        <div class="search-dd-meta">Direkt in OmniSight öffnen · <span style="font-size:10px;color:var(--tx3)">${esc(ytId)}</span></div>
+      </div>
+    </div>`;
+  dd.style.display='block';
+  document.getElementById('yt-result-item')?.addEventListener('click',()=>{
+    dd.style.display='none';
+    openProviderAtUrl('youtube',`https://www.youtube.com/watch?v=${ytId}`,'YouTube',`persist:${getProfilePartition('youtube')}`);
+  });
+}
+
 // ════════════════════════════════
 // CRUNCHYROLL KALENDER
 // ════════════════════════════════
@@ -955,14 +1137,29 @@ function buildProviderGrid(){
   grid.className='providers-grid'+(layout!=='normal'?' '+layout:'');
   ['normal','compact','mini'].forEach(l=>document.getElementById(`layout-${l}`)?.classList.toggle('active',l===layout));
 
+  // Sort toggle button state
+  const sortBtn=document.getElementById('btn-sort-alpha');
+  if(sortBtn)sortBtn.classList.toggle('active',!!settings.sortAlpha);
+
   const favs=settings.favorites||[];
-  let sorted=Object.entries(PROVIDERS()).sort((a,b)=>a[1].name.localeCompare(b[1].name));
-  if(providerOrder.length)sorted=sorted.sort((a,b)=>{const ai=providerOrder.indexOf(a[0]),bi=providerOrder.indexOf(b[0]);if(ai===-1&&bi===-1)return a[1].name.localeCompare(b[1].name);if(ai===-1)return 1;if(bi===-1)return-1;return ai-bi;});
+  const deleted=settings.deletedProviders||[];
+  // Gelöschte rausfiltern
+  let all=Object.entries(PROVIDERS()).filter(([id])=>!deleted.includes(id));
+
+  let sorted;
+  if(settings.sortAlpha){
+    // Alphabetisch – keine manuelle Sortierung beachten
+    sorted=all.sort((a,b)=>a[1].name.localeCompare(b[1].name));
+  }else{
+    sorted=all.sort((a,b)=>a[1].name.localeCompare(b[1].name));
+    if(providerOrder.length)sorted=sorted.sort((a,b)=>{const ai=providerOrder.indexOf(a[0]),bi=providerOrder.indexOf(b[0]);if(ai===-1&&bi===-1)return a[1].name.localeCompare(b[1].name);if(ai===-1)return 1;if(bi===-1)return-1;return ai-bi;});
+  }
+
   const favL=sorted.filter(([id])=>favs.includes(id));
   const rest=sorted.filter(([id])=>!favs.includes(id));
   if(favL.length){addGridLabel(grid,'⭐ Favoriten');favL.forEach(([id,p])=>grid.appendChild(createCard(id,p,true)));}
   if(rest.length){if(favL.length)addGridLabel(grid,'Alle Anbieter');rest.forEach(([id,p])=>grid.appendChild(createCard(id,p,false)));}
-  setupCardDragDrop(grid);
+  if(!settings.sortAlpha)setupCardDragDrop(grid);
 }
 
 function addGridLabel(grid,text){const el=document.createElement('div');el.className='grid-section-label';el.textContent=text;grid.appendChild(el);}
@@ -970,12 +1167,14 @@ function addGridLabel(grid,text){const el=document.createElement('div');el.class
 function createCard(id,p,isFav){
   const card=document.createElement('div');card.className='provider-card';card.dataset.id=id;card.setAttribute('draggable','true');
   const imgUrl=(settings.cardImages||{})[id]||'';
+  const logoUrl=(settings.cardLogos||{})[id]||'';
   const off=(settings.cardImageOffsets||{})[id]||{x:0,y:0};
   const opacity=(settings.cardBgOpacity||{})[id]??100;
   const bgColor=(settings.cardBgColors||{})[id]||p.color+'33';
   const customName=(settings.cardCustomNames||{})[id];
   const customTag=(settings.cardCustomTags||{})[id];
   const isMini=(settings.cardLayout||'normal')==='mini';
+  const faviconSrc=logoUrl||getFavicon(id,p);
 
   card.innerHTML=`
     ${p.quality&&!isMini?`<div class="card-quality-badge">${p.quality}</div>`:''}
@@ -983,7 +1182,7 @@ function createCard(id,p,isFav){
     <div class="card-banner" style="background:${bgColor}">
       <div class="card-banner-gradient" style="background:radial-gradient(ellipse at center,${p.color}55 0%,${p.color}22 50%,transparent 80%)"></div>
       <div class="card-banner-img" style="${imgUrl?`background-image:url('${imgUrl}');background-position:calc(50% + ${off.x}px) calc(50% + ${off.y}px);background-size:cover;position:absolute;inset:0;opacity:${opacity/100}`:opacity===0?'opacity:0;position:absolute;inset:0':'opacity:0;position:absolute;inset:0'}"></div>
-      <img class="card-favicon" src="${getFavicon(id,p)}" alt="${esc(customName||p.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="position:relative;z-index:2;width:52px;height:52px;object-fit:contain;border-radius:10px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4));transition:transform .2s"/>
+      <img class="card-favicon" src="${faviconSrc}" alt="${esc(customName||p.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="position:relative;z-index:2;width:52px;height:52px;object-fit:contain;border-radius:10px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4));transition:transform .2s"/>
       <div class="card-favicon-placeholder" style="display:none;background:${p.color}33">${(customName||p.name).charAt(0)}</div>
     </div>
     <div class="card-body"><div class="card-info"><span class="card-name">${esc(customName||p.name)}</span>${!isMini?`<span class="card-tag">${esc(customTag||p.tag)}</span>`:''}</div>${!isMini?'<span class="card-arrow">→</span>':''}</div>
@@ -991,9 +1190,17 @@ function createCard(id,p,isFav){
       <svg width="12" height="18" viewBox="0 0 12 18" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path class="bm-fill" d="M1 1h10v15l-5-3.5L1 16z"/></svg>
     </button>`;
 
-  card.querySelector('.card-bookmark').addEventListener('click',e=>{e.stopPropagation();toggleFavorite(id);});
-  card.querySelector('.card-edit-btn').addEventListener('click',e=>{e.stopPropagation();openCardEditor(id,p);});
-  card.addEventListener('click',e=>{if(!e.target.closest('.card-bookmark')&&!e.target.closest('.card-edit-btn'))openProvider(id);});
+  card.querySelector('.card-bookmark').addEventListener('click',e=>{e.stopPropagation();e.preventDefault();toggleFavorite(id);});
+  card.querySelector('.card-edit-btn').addEventListener('click',e=>{e.stopPropagation();e.preventDefault();openCardEditor(id,p);});
+  // Fix: draggable unterdrückt manchmal click → mouseup nutzen
+  let _dm=false;
+  card.addEventListener('mousedown',()=>{_dm=false;});
+  card.addEventListener('mousemove',()=>{_dm=true;});
+  card.addEventListener('mouseup',e=>{
+    if(_dm)return;
+    if(e.target.closest('.card-bookmark')||e.target.closest('.card-edit-btn'))return;
+    openProvider(id);
+  });
   return card;
 }
 
@@ -1047,6 +1254,12 @@ function setupCardEditor(){
     if(url){settings.cardImages[cardEditorState.id]=url;updateCardEditorPreview();autoSave();}
   });
   document.getElementById('card-ed-remove-img')?.addEventListener('click',()=>{delete settings.cardImages[cardEditorState.id];delete(settings.cardImageOffsets||{})[cardEditorState.id];delete(settings.cardBgOpacity||{})[cardEditorState.id];updateCardEditorPreview();autoSave();});
+  // Fix 7: Logo-Picker
+  document.getElementById('card-ed-logo-pick')?.addEventListener('click',async()=>{
+    const url=await window.electronAPI.pickImage(`logo_${cardEditorState.id}`);
+    if(url){settings.cardLogos=settings.cardLogos||{};settings.cardLogos[cardEditorState.id]=url;updateCardEditorPreview();autoSave();}
+  });
+  document.getElementById('card-ed-logo-remove')?.addEventListener('click',()=>{delete(settings.cardLogos||{})[cardEditorState.id];updateCardEditorPreview();autoSave();});
   ['card-ed-x','card-ed-y'].forEach(id=>{document.getElementById(id)?.addEventListener('input',e=>{const v=parseInt(e.target.value);document.getElementById(id+'-val').textContent=v+'px';settings.cardImageOffsets=settings.cardImageOffsets||{};settings.cardImageOffsets[cardEditorState.id]={...(settings.cardImageOffsets[cardEditorState.id]||{}),[(id==='card-ed-x'?'x':'y')]:v};updateCardEditorPreview();});});
   document.getElementById('card-ed-opacity')?.addEventListener('input',e=>{const v=parseInt(e.target.value);document.getElementById('card-ed-opacity-val').textContent=v+'%';settings.cardBgOpacity=settings.cardBgOpacity||{};settings.cardBgOpacity[cardEditorState.id]=v;updateCardEditorPreview();});
   document.getElementById('card-ed-color')?.addEventListener('input',e=>{settings.cardBgColors=settings.cardBgColors||{};settings.cardBgColors[cardEditorState.id]=e.target.value+'55';document.getElementById('card-ed-color-text').value=e.target.value;updateCardEditorPreview();});
@@ -1056,9 +1269,21 @@ function setupCardEditor(){
     const tag=document.getElementById('card-ed-tag').value.trim();
     if(name){settings.cardCustomNames=settings.cardCustomNames||{};settings.cardCustomNames[cardEditorState.id]=name;}
     if(tag){settings.cardCustomTags=settings.cardCustomTags||{};settings.cardCustomTags[cardEditorState.id]=tag;}
-    // Benutzerdefinierter Anbieter: URL anpassen
     if(customProviders[cardEditorState.id]){if(name)customProviders[cardEditorState.id].name=name;if(tag)customProviders[cardEditorState.id].tag=tag;settings.customProviders=customProviders;}
     autoSaveAndToast();buildProviderGrid();buildSidebarSubMenus();document.getElementById('card-editor-overlay').style.display='none';
+  });
+  // Fix 4: Reset-Button
+  document.getElementById('card-ed-reset')?.addEventListener('click',()=>{
+    const id=cardEditorState.id;
+    delete(settings.cardImages||{})[id];delete(settings.cardImageOffsets||{})[id];delete(settings.cardBgOpacity||{})[id];
+    delete(settings.cardBgColors||{})[id];delete(settings.cardCustomNames||{})[id];delete(settings.cardCustomTags||{})[id];
+    delete(settings.cardLogos||{})[id];
+    // Reset input-Felder
+    const p=cardEditorState.p;
+    document.getElementById('card-ed-name').value=p?.name||'';
+    document.getElementById('card-ed-tag').value=p?.tag||'';
+    updateCardEditorPreview();autoSave();showToast('Karte zurückgesetzt.');
+  });
   });
   document.getElementById('card-ed-delete')?.addEventListener('click',()=>{
     if(!confirm(`„${cardEditorState.p?.name||cardEditorState.id}" löschen?`))return;
@@ -1076,7 +1301,6 @@ function openCardEditor(id,p){
   document.getElementById('card-editor-title').textContent=`Karte: ${(settings.cardCustomNames||{})[id]||p.name}`;
   const off=(settings.cardImageOffsets||{})[id]||{x:0,y:0};
   const opacity=(settings.cardBgOpacity||{})[id]??100;
-  const imgUrl=(settings.cardImages||{})[id]||'';
   document.getElementById('card-ed-name').value=(settings.cardCustomNames||{})[id]||p.name;
   document.getElementById('card-ed-tag').value=(settings.cardCustomTags||{})[id]||p.tag;
   document.getElementById('card-ed-x').value=off.x;document.getElementById('card-ed-x-val').textContent=off.x+'px';
@@ -1084,6 +1308,10 @@ function openCardEditor(id,p){
   document.getElementById('card-ed-opacity').value=opacity;document.getElementById('card-ed-opacity-val').textContent=opacity+'%';
   const col=(settings.cardBgColors||{})[id]?.substring(0,7)||p.color;
   document.getElementById('card-ed-color').value=col;document.getElementById('card-ed-color-text').value=col;
+  // Logo preview
+  const logoUrl=(settings.cardLogos||{})[id]||'';
+  const logoPreview=document.getElementById('card-ed-logo-preview');
+  if(logoPreview)logoPreview.innerHTML=logoUrl?`<img src="${logoUrl}" style="width:100%;height:100%;object-fit:contain"/>`:getFavicon(id,p)?`<img src="${getFavicon(id,p)}" style="width:100%;height:100%;object-fit:contain"/>`:'';
   updateCardEditorPreview();
   document.getElementById('card-editor-overlay').style.display='flex';
 }
@@ -1104,9 +1332,52 @@ function updateCardEditorPreview(){
 // (überschreibt gelöschte Standardanbieter)
 
 // ════════════════════════════════
+// CRUNCHYROLL SIDEBAR KALENDER
+// ════════════════════════════════
+function setupSidebarCrunchyroll(){
+  const toggle=document.getElementById('sidebar-cr-toggle');
+  const content=document.getElementById('sidebar-cr-content');
+  if(!toggle||!content)return;
+  toggle.addEventListener('click',()=>{
+    const open=content.style.display!=='none';
+    content.style.display=open?'none':'block';
+    toggle.classList.toggle('open',!open);
+    if(!open&&!content.dataset.loaded){content.dataset.loaded='1';loadSidebarCrunchyroll(content);}
+  });
+}
+
+async function loadSidebarCrunchyroll(container){
+  container.innerHTML=`<div class="sidebar-cr-loading">Lädt…</div>`;
+  try{
+    const resp=await window.electronAPI.getUpcoming(1);
+    const anime=(resp.anime||[]).slice(0,10);
+    if(!anime.length){container.innerHTML=`<div class="sidebar-cr-loading">Keine Daten</div>`;return;}
+    container.innerHTML='';
+    anime.forEach(item=>{
+      const title=item.title||item.name||'Unbekannt';
+      const poster=item.poster_path?`${TMDB_IMG}${item.poster_path}`:'';
+      const rd=item.first_air_date||item.release_date||'';
+      const dateStr=rd?new Date(rd).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):'-';
+      const el=document.createElement('div');el.className='sidebar-cr-item';
+      el.innerHTML=`${poster?`<img src="${poster}" loading="lazy" onerror="this.style.display='none'"/>`:''}
+        <div class="sidebar-cr-item-info">
+          <div class="sidebar-cr-item-title">${esc(title)}</div>
+          <div class="sidebar-cr-item-date">📅 ${dateStr}</div>
+        </div>`;
+      el.addEventListener('click',()=>showDetailPopup(item.id,item.title?'movie':'tv',title));
+      container.appendChild(el);
+    });
+    const cta=document.createElement('div');cta.className='sidebar-cr-item';
+    cta.style.justifyContent='center';cta.style.color='var(--acc)';cta.style.fontWeight='600';
+    cta.textContent='▶ Crunchyroll öffnen';cta.addEventListener('click',()=>openProvider('crunchyroll'));
+    container.appendChild(cta);
+  }catch{container.innerHTML=`<div class="sidebar-cr-loading">Fehler</div>`;}
+}
+
+// ════════════════════════════════
 // SIDEBAR
 // ════════════════════════════════
-function buildSidebarSubMenus(){buildFavSub();buildProvSub();}
+function buildSidebarSubMenus(){buildFavSub();}
 function buildFavSub(){
   const list=document.getElementById('nav-sub-favorites-list');if(!list)return;list.innerHTML='';
   const favs=(settings.favorites||[]).slice().sort((a,b)=>(PROVIDERS()[a]?.name||a).localeCompare(PROVIDERS()[b]?.name||b));
@@ -1292,11 +1563,32 @@ function setupClock(){
   const pos=clk.position||{x:16,y:52};
   widget.style.display='block';widget.style.left=pos.x+'px';widget.style.top=pos.y+'px';widget.style.right='auto';widget.style.bottom='auto';
   widget.style.color=clk.color||'#ff3b30';
-  // Transparenz: 0%=sichtbar, 100%=unsichtbar
   widget.style.opacity=String(1-(clk.opacity??0.5));
   widget.style.fontSize=(clk.size||22)+'px';widget.style.background='none';widget.style.border='none';widget.style.padding='0';
-  const tick=()=>{const n=new Date();timeEl.textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}`;};
-  tick();clockInterval=setInterval(tick,1000);
+  const showSeconds=!!clk.showSeconds;
+  const isAnalog=clk.type==='analog';
+  if(isAnalog){
+    // Analog-Uhr via SVG-Canvas (einfach)
+    const tick=()=>{
+      const n=new Date(),h=n.getHours()%12,m=n.getMinutes(),s=n.getSeconds();
+      const sz=clk.size||22,r=sz*1.8;
+      const ha=((h+m/60)/12)*Math.PI*2-Math.PI/2;
+      const ma=(m/60)*Math.PI*2-Math.PI/2;
+      const sa=(s/60)*Math.PI*2-Math.PI/2;
+      const c=clk.color||'#ff3b30';
+      timeEl.innerHTML=`<svg width="${r*2}" height="${r*2}" viewBox="0 0 ${r*2} ${r*2}" style="display:block">
+        <circle cx="${r}" cy="${r}" r="${r-2}" fill="none" stroke="${c}" stroke-width="1.5" opacity=".4"/>
+        <line x1="${r}" y1="${r}" x2="${r+Math.cos(ha)*r*.55}" y2="${r+Math.sin(ha)*r*.55}" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="${r}" y1="${r}" x2="${r+Math.cos(ma)*r*.8}" y2="${r+Math.sin(ma)*r*.8}" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>
+        ${showSeconds?`<line x1="${r}" y1="${r}" x2="${r+Math.cos(sa)*r*.85}" y2="${r+Math.sin(sa)*r*.85}" stroke="${c}" stroke-width=".8" stroke-linecap="round" opacity=".7"/>`:''}
+        <circle cx="${r}" cy="${r}" r="2" fill="${c}"/>
+      </svg>`;
+    };
+    tick();clockInterval=setInterval(tick,showSeconds?1000:10000);
+  }else{
+    const tick=()=>{const n=new Date();timeEl.textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}${showSeconds?':'+pad(n.getSeconds()):''}`;};
+    tick();clockInterval=setInterval(tick,1000);
+  }
 }
 function previewClock(){
   const widget=document.getElementById('clock-widget');if(!widget)return;
@@ -1305,6 +1597,12 @@ function previewClock(){
   const opacityPct=parseInt(document.getElementById('clock-opacity')?.value)||50;
   const size=parseInt(document.getElementById('clock-size')?.value)||22;
   const lbl=document.getElementById('clock-status-label');if(lbl)lbl.textContent=enabled?'Aktiviert':'Deaktiviert';
+  // 100% Transparenz → auto-deaktivieren
+  if(opacityPct>=100&&enabled){
+    document.getElementById('clock-enabled').checked=false;
+    if(lbl)lbl.textContent='Deaktiviert';
+    widget.style.display='none';return;
+  }
   if(!enabled){widget.style.display='none';return;}
   widget.style.display='block';widget.style.color=color;
   widget.style.opacity=String(1-opacityPct/100);
@@ -1312,7 +1610,19 @@ function previewClock(){
 }
 function saveClock(){
   const pPos=settings.clock._pendingPos;
-  settings.clock={enabled:!!document.getElementById('clock-enabled')?.checked,position:pPos||settings.clock.position||{x:16,y:52},color:document.getElementById('clock-color-text')?.value||'#ff3b30',opacity:(parseInt(document.getElementById('clock-opacity')?.value)||50)/100,size:parseInt(document.getElementById('clock-size')?.value)||22};
+  const opPct=(parseInt(document.getElementById('clock-opacity')?.value)||50);
+  const enabledEl=document.getElementById('clock-enabled');
+  const enabled=opPct>=100?false:!!enabledEl?.checked;
+  if(opPct>=100&&enabledEl)enabledEl.checked=false;
+  settings.clock={
+    enabled,
+    position:pPos||settings.clock.position||{x:16,y:52},
+    color:document.getElementById('clock-color-text')?.value||'#ff3b30',
+    opacity:opPct/100,
+    size:parseInt(document.getElementById('clock-size')?.value)||22,
+    type:document.querySelector('.clock-type-btn.active')?.dataset.clockType||'digital',
+    showSeconds:!!document.getElementById('clock-show-seconds')?.checked,
+  };
   delete settings.clock._pendingPos;setupClock();autoSave();
 }
 function enableClockDragMode(on){
@@ -1346,6 +1656,9 @@ function setupSettingsPanel(){
       tab.classList.add('active');document.getElementById(`stab-${tab.dataset.tab}`)?.classList.add('active');
       if(tab.dataset.tab==='account')buildSettingsAccountTab();
       if(tab.dataset.tab==='advanced')buildAdvancedTab();
+      // Punkt 22: Uhr-Drag nur wenn clock-Tab
+      if(tab.dataset.tab==='clock'){setTimeout(()=>enableClockDragMode(true),200);}
+      else{enableClockDragMode(false);}
     });
   });
 
@@ -1394,6 +1707,12 @@ function setupSettingsPanel(){
   document.getElementById('clock-color-text')?.addEventListener('input',previewClock);
   document.getElementById('clock-opacity')?.addEventListener('input',e=>document.getElementById('clock-opacity-val').textContent=e.target.value+'%');
   document.getElementById('clock-size')?.addEventListener('input',e=>document.getElementById('clock-size-val').textContent=e.target.value+'px');
+  document.getElementById('clock-show-seconds')?.addEventListener('change',saveClock);
+  // Clock-Type Toggle
+  document.querySelectorAll('.clock-type-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.clock-type-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');saveClock();
+  }));
   // Account
   document.getElementById('btn-logout-all')?.addEventListener('click',()=>{if(!confirm('Von ALLEN Diensten abmelden?'))return;window.electronAPI.clearAllSessions(activeProfileId);buildSettingsAccountTab();});
   document.getElementById('btn-google-auth')?.addEventListener('click',async()=>{
@@ -1402,12 +1721,7 @@ function setupSettingsPanel(){
     document.getElementById('btn-google-auth').textContent='⏳ Warte auf Login (30s)…';
     setTimeout(()=>{document.getElementById('btn-google-auth').textContent='🔐 Im Browser bei Google anmelden (YouTube)';if(hint)hint.style.display='none';},32000);
   });
-  // Advanced
-  document.getElementById('btn-check-updates')?.addEventListener('click',async()=>{const el=document.getElementById('update-check-result');if(el)el.textContent='Prüfe…';await window.electronAPI.checkForUpdates();});
-  document.getElementById('btn-vpn-settings')?.addEventListener('click',()=>document.getElementById('vpn-panel').style.right='0');
-  document.getElementById('btn-rename-profile')?.addEventListener('click',()=>{const name=prompt('Neuer Name:',profiles.find(p=>p.id===activeProfileId)?.name||'');if(name){const p=profiles.find(p=>p.id===activeProfileId);if(p){p.name=name;window.electronAPI.setProfiles(profiles);buildProfileSelect();}}});
-  document.getElementById('btn-restore-providers')?.addEventListener('click',()=>{settings.deletedProviders=[];settings.customProviders={};customProviders={};providerOrder=[];settings.providerOrder=[];autoSave();buildProviderGrid();buildSidebarSubMenus();showToast('Standardanbieter wiederhergestellt.');});
-  document.getElementById('btn-clear-history')?.addEventListener('click',()=>{viewHistory=[];settings.viewHistory=[];autoSave();buildAdvancedTab();});
+  // Advanced – Events werden in buildAdvancedTab gesetzt
   document.getElementById('widevine-info-link')?.addEventListener('click',e=>{e.preventDefault();window.electronAPI.openExternal('https://github.com/nicehash/electron-widevinecdm');});
   document.getElementById('btn-add-provider-home')?.addEventListener('click',()=>document.getElementById('custom-provider-modal').style.display='flex');
 
@@ -1417,7 +1731,10 @@ function setupSettingsPanel(){
 function openSettings(){
   document.getElementById('settings-panel')?.classList.add('open');document.getElementById('settings-overlay')?.classList.add('open');
   buildSettingsAccountTab();syncSettingsUI();buildAdvancedTab();
-  setTimeout(()=>enableClockDragMode(true),200);
+  trackMeta('settingsOpens');
+  // Punkt 22: Uhr-Drag NUR wenn clock-Tab aktiv
+  const activeTab=document.querySelector('.stab.active')?.dataset.tab;
+  if(activeTab==='clock') setTimeout(()=>enableClockDragMode(true),200);
 }
 function closeSettings(){
   enableClockDragMode(false);saveClock();
@@ -1458,6 +1775,10 @@ function syncSettingsUI(){
   const col=clk.color||'#ff3b30';const cc=document.getElementById('clock-color'),ct=document.getElementById('clock-color-text');if(cc)cc.value=col;if(ct)ct.value=col;
   const opPct=Math.round((clk.opacity??0.5)*100);const co=document.getElementById('clock-opacity'),cv=document.getElementById('clock-opacity-val');if(co)co.value=opPct;if(cv)cv.textContent=opPct+'%';
   const sz=clk.size||22;const cs=document.getElementById('clock-size'),csv=document.getElementById('clock-size-val');if(cs)cs.value=sz;if(csv)csv.textContent=sz+'px';
+  // Clock-Typ
+  const clkType=clk.type||'digital';
+  document.querySelectorAll('.clock-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.clockType===clkType));
+  const secs=document.getElementById('clock-show-seconds');if(secs)secs.checked=!!clk.showSeconds;
 }
 
 // ACCOUNT TAB
@@ -1483,17 +1804,25 @@ function makeSessionItem(id,p,on){
 
 // ADVANCED TAB
 function buildAdvancedTab(){
-  const histList=document.getElementById('view-history-list');
-  if(histList)histList.innerHTML=viewHistory.slice(0,12).map(h=>`<div style="font-size:12px;padding:3px 0;color:var(--tx2);display:flex;align-items:center;gap:7px"><img src="${getFavicon(h.id)}" width="13" height="13" style="border-radius:2px;object-fit:contain"/>${esc(h.name)}</div>`).join('')||'<div style="font-size:12px;color:var(--tx3)">Kein Verlauf</div>';
   buildCustomProviderList();
   checkWidevineStatus();
+  // Fix 6: Einzelne Anbieter wiederherstellen Event (wird bei jedem Tab-Öffnen frisch gesetzt)
+  document.getElementById('btn-restore-providers')?.addEventListener('click',()=>{settings.deletedProviders=[];settings.customProviders={};customProviders={};providerOrder=[];settings.providerOrder=[];autoSave();buildProviderGrid();buildSidebarSubMenus();showToast('Alle Standardanbieter wiederhergestellt.');});
+  document.getElementById('btn-check-updates')?.addEventListener('click',async()=>{const el=document.getElementById('update-check-result');if(el)el.textContent='Prüfe…';await window.electronAPI.checkForUpdates();});
+  document.getElementById('btn-vpn-settings')?.addEventListener('click',()=>document.getElementById('vpn-panel').style.right='0');
+  document.getElementById('btn-rename-profile')?.addEventListener('click',()=>{const name=prompt('Neuer Name:',profiles.find(p=>p.id===activeProfileId)?.name||'');if(name){const p=profiles.find(p=>p.id===activeProfileId);if(p){p.name=name;window.electronAPI.setProfiles(profiles);buildProfileSelect();}}});
 }
 
 async function checkWidevineStatus(){
   const el=document.getElementById('widevine-status');if(!el)return;
   const s=await window.electronAPI.getWidevineStatus().catch(()=>null);
-  if(s?.installed)el.innerHTML=`<span style="color:var(--acc)">✓ CDM installiert</span>`;
-  else el.innerHTML=`<span style="color:var(--tx3)">✗ Nicht gefunden. Ablegen unter:<br><code style="font-size:10px">${s?.cdmDir||'userData/WidevineCdm'}</code></span><br><a href="#" id="widevine-dl-link" style="font-size:11px;color:var(--acc)">Download-Anleitung →</a>`;
+  if(s?.installed){
+    el.innerHTML=`<span style="color:var(--acc)">✓ CDM installiert: <code style="font-size:10px">${s.path}</code></span>`;
+  }else{
+    el.innerHTML=`<span style="color:var(--tx3)">✗ CDM nicht gefunden.</span><br><span style="font-size:11px;color:var(--tx3)">Ablegen unter:<br><code style="font-size:9px;word-break:break-all">${s?.cdmDir||'userData/WidevineCdm'}</code></span>`;
+  }
+  const dl=document.getElementById('widevine-dl-link');
+  if(!dl)el.insertAdjacentHTML('afterend',`<a href="#" id="widevine-dl-link" style="font-size:11px;color:var(--acc);display:block;margin-top:4px">📥 Download-Anleitung (GitHub) →</a>`);
   document.getElementById('widevine-dl-link')?.addEventListener('click',e=>{e.preventDefault();window.electronAPI.openExternal('https://github.com/nicehash/electron-widevinecdm');});
 }
 
@@ -1518,19 +1847,54 @@ function setupPluginsTab(){
   document.getElementById('plugin-search')?.addEventListener('input',e=>buildPluginPresets(e.target.value));
   updatePluginDomainCount();
 }
+
+const pluginDomainStore={};
+
 function buildPluginPresets(filter){
   const container=document.getElementById('plugin-presets-list');if(!container)return;
-  const filtered=PLUGIN_PRESETS.filter(p=>!filter||p.name.toLowerCase().includes(filter.toLowerCase())||p.desc.toLowerCase().includes(filter.toLowerCase()));
+  const t=I18N[lang]||I18N.de;
+  const filtered=PLUGIN_PRESETS.filter(p=>{
+    const name=typeof p.name==='object'?p.name[lang]||p.name.de:p.name;
+    const desc=typeof p.desc==='object'?p.desc[lang]||p.desc.de:p.desc;
+    return!filter||name.toLowerCase().includes(filter.toLowerCase())||desc.toLowerCase().includes(filter.toLowerCase());
+  });
   container.innerHTML='';
   filtered.forEach(preset=>{
     const isInst=installedPlugins.has(preset.id);
+    const name=typeof preset.name==='object'?preset.name[lang]||preset.name.de:preset.name;
+    const desc=typeof preset.desc==='object'?preset.desc[lang]||preset.desc.de:preset.desc;
+    const noteText=preset.note?(typeof preset.note==='object'?preset.note[lang]||preset.note.de:preset.note):null;
     const div=document.createElement('div');div.className='plugin-preset';
-    div.innerHTML=`<div class="plugin-preset-info"><div class="plugin-preset-name">${esc(preset.name)}</div><div class="plugin-preset-desc">${esc(preset.desc)}</div></div>`;
+    div.innerHTML=`<div class="plugin-preset-info"><div class="plugin-preset-name">${esc(name)}</div><div class="plugin-preset-desc">${esc(desc)}</div></div>`;
     let btn;
-    if(preset.note){btn=document.createElement('button');btn.className='plugin-preset-btn info';btn.textContent='Info';btn.addEventListener('click',()=>showToast(preset.note,6000));}
-    else if(isInst){btn=document.createElement('button');btn.className='plugin-preset-btn remove';btn.textContent='Entfernen';btn.addEventListener('click',()=>{installedPlugins.delete(preset.id);localStorage.setItem('installedPlugins',JSON.stringify([...installedPlugins]));// Nur Domains dieses Plugins entfernen, Rest behalten
-      extraAdDomains=[];for(const pid of installedPlugins){/* Reload remaining - simplified: set to 0 */}window.electronAPI.applyExtraAdDomains(extraAdDomains);updatePluginDomainCount();buildPluginPresets(filter);});}
-    else{btn=document.createElement('button');btn.className='plugin-preset-btn install';btn.textContent='Installieren';btn.addEventListener('click',async()=>{btn.textContent='Lädt…';btn.disabled=true;const r=await window.electronAPI.fetchAdblockList(preset.url);if(r.ok){extraAdDomains=[...new Set([...extraAdDomains,...r.domains])];window.electronAPI.applyExtraAdDomains(extraAdDomains);installedPlugins.add(preset.id);localStorage.setItem('installedPlugins',JSON.stringify([...installedPlugins]));updatePluginDomainCount();buildPluginPresets(filter);}else{btn.textContent='Fehler';btn.disabled=false;}});}
+    if(noteText){
+      btn=document.createElement('button');btn.className='plugin-preset-btn info';btn.textContent=t.pluginInfo||'Info';
+      btn.addEventListener('click',()=>showToast(noteText,6000));
+    }else if(isInst){
+      btn=document.createElement('button');btn.className='plugin-preset-btn remove';btn.textContent=t.pluginRemove||'Entfernen';
+      btn.addEventListener('click',()=>{
+        installedPlugins.delete(preset.id);
+        localStorage.setItem('installedPlugins',JSON.stringify([...installedPlugins]));
+        delete pluginDomainStore[preset.id];
+        extraAdDomains=[...new Set(Object.values(pluginDomainStore).flat())];
+        window.electronAPI.applyExtraAdDomains(extraAdDomains);
+        updatePluginDomainCount();buildPluginPresets(filter);
+      });
+    }else{
+      btn=document.createElement('button');btn.className='plugin-preset-btn install';btn.textContent=t.pluginInstall||'Installieren';
+      btn.addEventListener('click',async()=>{
+        btn.textContent='Lädt…';btn.disabled=true;
+        const r=await window.electronAPI.fetchAdblockList(preset.url);
+        if(r.ok){
+          pluginDomainStore[preset.id]=r.domains;
+          extraAdDomains=[...new Set(Object.values(pluginDomainStore).flat())];
+          window.electronAPI.applyExtraAdDomains(extraAdDomains);
+          installedPlugins.add(preset.id);
+          localStorage.setItem('installedPlugins',JSON.stringify([...installedPlugins]));
+          updatePluginDomainCount();buildPluginPresets(filter);
+        }else{btn.textContent='Fehler';btn.disabled=false;}
+      });
+    }
     div.appendChild(btn);container.appendChild(div);
   });
 }
@@ -1578,7 +1942,39 @@ function buildWatchlist(cat='all'){
     const dateStr=item.releaseDate?new Date(item.releaseDate).toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'}):'';
     card.innerHTML=`${poster}<div class="wl-card-body"><div class="wl-card-title">${esc(item.title)}</div>${dateStr?`<div class="wl-card-date">📅 ${dateStr}</div>`:''}</div><button class="wl-card-remove">✕</button>`;
     card.querySelector('.wl-card-remove').addEventListener('click',e=>{e.stopPropagation();watchlist=watchlist.filter(w=>w.id!==item.id);settings.watchlist=watchlist;autoSave();buildWatchlist(cat);});
-    card.addEventListener('click',()=>showDetailPopup(item.tmdbId,item.tmdbType||'movie',item.title));
+    // Klick → Detail-Popup, danach prüfen ob noch in Watchlist
+    card.addEventListener('click',async()=>{
+      await showDetailPopup(item.tmdbId,item.tmdbType||'movie',item.title);
+      // Nach Popup-Schließen: prüfen ob item noch in Watchlist
+      const checkInterval=setInterval(()=>{
+        if(document.getElementById('detail-overlay').style.display==='none'){
+          clearInterval(checkInterval);
+          if(!watchlist.find(w=>w.id===item.id)){card.style.opacity='0';card.style.transform='scale(.9)';setTimeout(()=>buildWatchlist(cat),300);}
+        }
+      },300);
+    });
+    // Fix 9: Rechtsklick → Kategorie wechseln
+    card.addEventListener('contextmenu',e=>{
+      e.preventDefault();
+      const menu=document.createElement('div');
+      menu.style.cssText=`position:fixed;left:${e.clientX}px;top:${e.clientY}px;background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r-sm);z-index:3000;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.4);padding:4px 0`;
+      const cats=[{v:'movie',l:'🎬 Film'},{v:'tv',l:'📺 Serie'},{v:'anime',l:'⛩️ Anime'}];
+      cats.forEach(c=>{
+        const btn=document.createElement('button');
+        btn.style.cssText='display:block;width:100%;padding:8px 14px;border:none;background:transparent;color:var(--tx);font-size:13px;cursor:pointer;text-align:left;transition:background .14s';
+        btn.textContent=(c.v===item.mediaType?'✓ ':'')+c.l;
+        btn.onmouseenter=()=>btn.style.background='var(--bgch)';
+        btn.onmouseleave=()=>btn.style.background='transparent';
+        btn.addEventListener('click',()=>{
+          const idx=watchlist.findIndex(w=>w.id===item.id);
+          if(idx>-1){watchlist[idx].mediaType=c.v;settings.watchlist=watchlist;autoSave();}
+          menu.remove();buildWatchlist(cat);
+        });
+        menu.appendChild(btn);
+      });
+      document.body.appendChild(menu);
+      setTimeout(()=>document.addEventListener('click',()=>menu.remove(),{once:true}),10);
+    });
     grid.appendChild(card);
   });
   content.appendChild(grid);
@@ -1601,7 +1997,7 @@ async function buildStatsView(){
       w.innerHTML=`<div class="stats-bar-label"><span>${esc(customName(id)||p.name)}</span><span>${hours}h</span></div><div class="stats-bar"><div class="stats-bar-fill" style="width:${pct}%;background:${p.color}"></div></div>`;
       content.appendChild(w);
     });
-    const days=['So','Mo','Di','Mi','Do','Fr','Sa'];
+    const days=window._days||['So','Mo','Di','Mi','Do','Fr','Sa'];
     const dayTotals=Array(7).fill(0);
     entries.forEach(([,data])=>{if(data.byDay)data.byDay.forEach((s,i)=>dayTotals[i]+=s);});
     const maxDay=Math.max(...dayTotals,1);
@@ -1621,20 +2017,81 @@ async function buildStatsView(){
 
 async function checkAchievements(){
   const stats=await window.electronAPI.getStreamStats(activeProfileId).catch(()=>({}));
-  buildAchievements(stats);
+  const meta=JSON.parse(localStorage.getItem(`achMeta_${activeProfileId}`)||'{}');
+  buildAchievements(stats,meta);
 }
 
-function buildAchievements(stats){
+function buildAchievements(stats,meta={}){
   const content=document.getElementById('achievements-content');if(!content)return;
-  content.innerHTML='<h3 style="font-family:var(--font-d);font-size:15px;color:var(--tx);margin-bottom:12px">🏆 Achievements</h3>';
+  const t=I18N[lang]||I18N.de;
   const earnedIds=new Set(JSON.parse(localStorage.getItem(`achievements_${activeProfileId}`)||'[]'));
+  // Prüfe neue Achievements
   ACHIEVEMENTS.forEach(ach=>{
-    const earned=ach.check(stats);
-    if(earned&&!earnedIds.has(ach.id)){earnedIds.add(ach.id);localStorage.setItem(`achievements_${activeProfileId}`,JSON.stringify([...earnedIds]));setTimeout(()=>{window.electronAPI.showNotification('🏆 Achievement freigeschaltet!',`${ach.icon} ${ach.name}: ${ach.desc}`);},500);}
-    const card=document.createElement('div');card.className=`achievement-card${earned?' earned':''}`;
-    card.innerHTML=`${ach.icon} <div><div style="font-weight:600;font-size:13px">${esc(ach.name)}</div><div style="font-size:11px;opacity:.7">${esc(ach.desc)}</div></div>`;
-    content.appendChild(card);
+    let earned=false;
+    try{earned=ach.check(stats,meta);}catch{}
+    if(earned&&!earnedIds.has(ach.id)){
+      earnedIds.add(ach.id);
+      localStorage.setItem(`achievements_${activeProfileId}`,JSON.stringify([...earnedIds]));
+      setTimeout(()=>{
+        const name=typeof ach.name==='object'?ach.name[lang]||ach.name.de:ach.name;
+        const desc=typeof ach.desc==='object'?ach.desc[lang]||ach.desc.de:ach.desc;
+        window.electronAPI.showNotification('🏆 Achievement freigeschaltet!',`${ach.icon} ${name}: ${desc}`);
+      },500);
+    }
   });
+
+  content.innerHTML=`<h3 style="font-family:var(--font-d);font-size:15px;color:var(--tx);margin-bottom:16px">${t.statsAchievements||'🏆 Achievements'}</h3>`;
+
+  // Kategorien aufbauen
+  const cats=['stream','provider','special','hidden'];
+  cats.forEach(cat=>{
+    const catAchs=ACHIEVEMENTS.filter(a=>a.cat===cat);
+    if(!catAchs.length)return;
+    const catLabel=ACHIEVEMENT_CATEGORIES[cat]?.[lang]||ACHIEVEMENT_CATEGORIES[cat]?.de||cat;
+    const section=document.createElement('div');section.style.cssText='margin-bottom:20px';
+    section.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">${catLabel}</div>`;
+    const grid=document.createElement('div');grid.style.cssText='display:flex;flex-wrap:wrap;gap:6px';
+
+    if(cat==='hidden'){
+      // Versteckte: nur freigeschaltete zeigen, Rest als ??? anzeigen
+      const earned=catAchs.filter(a=>earnedIds.has(a.id));
+      const locked=catAchs.filter(a=>!earnedIds.has(a.id));
+      earned.forEach(ach=>{
+        const name=typeof ach.name==='object'?ach.name[lang]||ach.name.de:ach.name;
+        const desc=typeof ach.desc==='object'?ach.desc[lang]||ach.desc.de:ach.desc;
+        const card=document.createElement('div');card.className='achievement-card earned';
+        card.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--accg);border:1px solid var(--acc);border-radius:var(--r-sm);font-size:13px;color:var(--acc);margin:2px;cursor:default';
+        card.innerHTML=`${ach.icon} <div><div style="font-weight:600;font-size:13px">${esc(name)}</div><div style="font-size:11px;opacity:.7">${esc(desc)}</div></div>`;
+        grid.appendChild(card);
+      });
+      if(locked.length){
+        const hint=document.createElement('div');
+        hint.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r-sm);font-size:12px;color:var(--tx3);margin:2px';
+        hint.innerHTML=`🔒 ${locked.length}× ${t.achHiddenHint||'Versteckte Achievements – durch Spielen freischalten'}`;
+        grid.appendChild(hint);
+      }
+    }else{
+      catAchs.forEach(ach=>{
+        const earned=earnedIds.has(ach.id);
+        const name=typeof ach.name==='object'?ach.name[lang]||ach.name.de:ach.name;
+        const desc=typeof ach.desc==='object'?ach.desc[lang]||ach.desc.de:ach.desc;
+        const card=document.createElement('div');
+        card.style.cssText=`display:flex;align-items:center;gap:8px;padding:8px 12px;background:${earned?'var(--accg)':'var(--bgc)'};border:1px solid ${earned?'var(--acc)':'var(--bor)'};border-radius:var(--r-sm);font-size:12px;color:${earned?'var(--acc)':'var(--tx2)'};margin:2px;opacity:${earned?1:.55};cursor:default;transition:opacity .2s`;
+        card.title=desc;
+        card.innerHTML=`<span style="font-size:18px">${ach.icon}</span><div><div style="font-weight:600;font-size:12px">${esc(name)}</div><div style="font-size:10px;opacity:.7;max-width:160px;line-height:1.3">${esc(desc)}</div></div>`;
+        grid.appendChild(card);
+      });
+    }
+    section.appendChild(grid);
+    content.appendChild(section);
+  });
+}
+
+// ─── Meta-Tracking für versteckte Achievements ───
+function trackMeta(key){
+  const meta=JSON.parse(localStorage.getItem(`achMeta_${activeProfileId}`)||'{}');
+  meta[key]=(meta[key]||0)+1;
+  localStorage.setItem(`achMeta_${activeProfileId}`,JSON.stringify(meta));
 }
 
 // TITLEBAR
@@ -1644,4 +2101,7 @@ function setupTitlebar(){
   document.getElementById('btn-close')?.addEventListener('click',()=>window.electronAPI.close());
 }
 
-document.addEventListener('DOMContentLoaded',init);
+document.addEventListener('DOMContentLoaded',()=>{
+  trackMeta('appStarts');
+  init();
+});
