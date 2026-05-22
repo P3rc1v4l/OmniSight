@@ -1,63 +1,42 @@
 # OmniSight Changelog
 
----
+## v2.0.0 — Major Release (2025)
 
-## v1.3.0 — 2026-05-22
+### 🆕 Neue Features
+- **Benachrichtigungs-Center** (Glocken-Button in Sidebar) mit Verlauf
+- **Stream-Pause Erinnerung** alle 2h mit Push-Notification
+- **Watchlist Export/Import** als JSON in Einstellungen → Mehr
+- **Profil-System komplett überarbeitet**: Button statt Dropdown, eigenes Modal, Profilbild, PIN-Schutz, Admin-Reset (Strg+Shift+Alt+R)
+- **"Bereits angeschaut" Verwaltung** in Statistiken mit Filter + Suche
+- **CR Kalender als eigener Sidebar-Button** (keine Dropdown-Sektion mehr)
+- **Anime-Kategorie** in Neuigkeiten & Upcoming
+- **Custom CSS Editor** in Design-Einstellungen
+- **Schriftart-Auswahl** in Design-Einstellungen
+- **10 neue Achievements** (Weekend Warrior, Explorer, Disney/Prime/HBO-Fan, Binge Master, Decade, u.v.m.)
 
-### 🎨 **UI/UX Verbesserungen**
-- **Übersicht**: Stift-Icon links oben, nur bei Hover; Favoriten-Stern gelb & nur bei Hover
-- **Übersicht**: Karten-Click funktioniert wieder; Drag-Animation smooth
-- **Suchleiste**: Verlauf-X-Button rechts außen, modernes Design
-- **Light Mode**: Schrift viel dunkler (#1a1a1a wie Titlebar)
-- **News/Upcoming**: Titel mittig oben; Anime-Tab; Text-Buttons ohne Hintergrund
-- **News/Upcoming**: Erste Karte startet NACH Sidebar (nicht dahinter)
-- **Ausgeblendete Items**: Click außerhalb schließt Panel; Hover-Button in Karte
-- **Statistiken**: Wochentage-Ansicht verbessert
-- **Gemerkt**: Toggle A↓Z/Datum eleganter
+### 🔧 Verbesserungen
+- Stift-Button in Karte: erscheint links oben beim Hover, unter Quality-Badge
+- Favoriten-Stern: gelb wenn aktiv, nur beim Hover sichtbar; Banner mit mehr Abstand
+- Sortierung hebt sich auf wenn Karten manuell verschoben werden
+- Slideshow-Timer pausiert während Kartendetails offen sind
+- „Ausgeblendete Karten": kein X-Button, schließt beim Außen-Klick, Einblenden-Button nur beim Hover
+- Sort-Button neu gestaltet (Icon + Label A–Z / Z–A)
+- Profil-Dropdown ist jetzt ein moderner Button mit eigenem Wechsel-Modal
+- Statistiken: Wochentags-Ansicht verbessert, Trakt.tv / VPN / Multi-Window entfernt
+- Light-Mode: Schriftfarbe deutlich dunkler
+- Einstellungen „Mehr" komplett neu strukturiert (Updates, VPN, WideVine, Watchlist)
+- Plugin-Tab: Suchleiste entfernt, „Installierte Listen" entfernt, moderne Buttons
+- Uhr-Kontextmenü: Digital/Analog-Toggle, Farb-Reset auf #cfcfcf / 50% / 36px
+- Versionsanzeige klickbar → öffnet „Mehr"-Tab direkt
+- Partikel-Einstellungen im Design-Tab vollständig zugänglich
+- Anbieter-Karten öffnen wieder korrekt beim Klick
+- Suchverlauf: X-Löschen-Button moderner gestaltet, rechts positioniert
+- Übersetzung greift jetzt auf alle Views, Kategorien und Einstellungen
+- Favoriten und Anbieter aus dem linken Balken entfernt (Punkt 13)
 
-### ⭐ **Neue Features**
-- **Profil-System 2.0**: Button statt Dropdown → Modal mit Profilbild, Name, PIN-Schutz
-- **Profil-PIN**: Schutz vor unbefugtem Zugriff; Master-Reset: `Strg+Shift+Alt+R`
-- **Standardkonto** → jetzt **"User"**
-- **Benachrichtigungs-Center**: Icon in Titlebar → Verlauf aller Notifications
-- **Mini-Modus**: Kompaktes schwebendes Fenster mit Favoriten-Icons
-- **2h-Stream-Warnung**: Push alle 2h "Pause machen!"
-- **Push-Einstellungen**: Tab in Einstellungen → jede Notification einzeln an/aus
-- **Watchlist Export/Import**: JSON-Download/-Upload in Einstellungen
-- **Bereits angeschaut**: Button in Statistiken → Modal mit Filter/Suche
-- **10 neue Achievements**: Insgesamt jetzt 35 Achievements
+### 🐛 Bugfixes
+- Hintergrundbild-Picker öffnet Datei-Explorer wieder korrekt
+- Karten-Klick-Handling (mousedown/mouseup) verhindert versehentliches Öffnen beim Ziehen
 
-### 🔧 **Einstellungen**
-- **Mehr-Tab**: Update-Suche ganz oben; VPN darunter; Widevine darunter
-- **Mehr-Tab**: "Verlauf löschen", "Karten Design", "Custom CSS" entfernt
-- **Plugins**: Suchleiste entfernt; moderne Install/Deinstall-Buttons
-- **Plugins**: "Installierte Listen" entfernt
-- **Uhr**: Moderne analoge Variante; Kontextmenü mit Digital/Analog-Toggle
-- **Uhr**: Reset → `#cfcfcf`, 50%, 36px
-- **Design**: Custom Design Options vollständig; Partikel-Einstellungen vollständig
-- **Design**: Hintergrundbild-Picker funktioniert; Schriftart-Auswahl funktioniert
-- **Versions-Chip**: Click öffnet "Mehr"-Tab
-
-### 🗂️ **Sidebar**
-- Favoriten/Anbieter-Dropdown entfernt
-- CR Kalender = direkter Button
-- Statistiken zwischen Einstellungen und Profil
-
-### 🌍 **Übersetzungen**
-- Sprache wechselt jetzt ALLE Labels (inkl. Karten-Tags, Detail-Texte)
-
-### 🐛 **Bugfixes**
-- Übersicht: Karten-Click öffnet Anbieter wieder
-- News/Upcoming: Timer pausiert während Detail-Popup offen
-- Statistiken: Trakt.tv, VPN, Multi-Window-Text entfernt
-- Blockmap-Datei wird nicht mehr generiert (NSIS-Config)
-
----
-
-## v1.2.0 — 2026-05-22
-*(siehe vorherige Version)*
-
----
-
-## v1.1.1 — 2026-05-22
-*(siehe vorherige Version)*
+## v1.2.0
+- Initiale veröffentlichte Version

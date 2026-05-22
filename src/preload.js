@@ -38,6 +38,8 @@ contextBridge.exposeInMainWorld('electronAPI',{
   checkVpn:             ()=>ipcRenderer.invoke('check-vpn'),
   recordWatchTime:      (id,s,p)=>ipcRenderer.send('record-watch-time',{providerId:id,seconds:s,profileId:p}),
   getStreamStats:       (p)=>ipcRenderer.invoke('get-stream-stats',p),
+  getWatchedContent:    (p)=>ipcRenderer.invoke('get-watched-content',p),
+  setWatchedContent:    (p,l)=>ipcRenderer.send('set-watched-content',{profileId:p,list:l}),
   openSecondWindow:     (p)=>ipcRenderer.invoke('open-second-window',p),
   getTrending:          ()=>ipcRenderer.invoke('get-trending'),
   getNewReleases:       ()=>ipcRenderer.invoke('get-new-releases'),

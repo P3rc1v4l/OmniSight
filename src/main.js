@@ -82,12 +82,12 @@ ipcMain.on('install-update',()=>{try{require('electron-updater').autoUpdater.qui
 ipcMain.handle('check-for-updates',async()=>{try{await require('electron-updater').autoUpdater.checkForUpdates();}catch{}});
 
 // ── IPC: SETTINGS ─────────────────────────────────────────────────
-const DEFS={appBgImage:'',accentColor:'#30c5bb',cardImages:{},cardImageOffsets:{},cardBgColors:{},cardBgOpacity:{},cardCustomNames:{},cardCustomTags:{},cardLogos:{},favorites:[],fontSize:14,cardLayout:'normal',sortAlpha:false,sortDir:'asc',language:'de',particlesEnabled:false,particlesConfig:{count:80,size:1.5,speed:1,color:'#30c5bb',shapes:['circle'],appWide:true},clock:{enabled:false,position:{x:16,y:52},color:'#ff3b30',opacity:0.5,size:22,type:'digital',showSeconds:false},hiddenItems:{news:{},upcoming:{}},watchedItems:{news:{},upcoming:{}},watchlist:[],searchHistory:[],viewHistory:[],providerOrder:[],newsLastTab:'movies',upcomingLastTab:'movies',cardLayout:'normal',designOptions:{cardRadius:14,sidebarWidth:200,cardShadow:true,glass:false,fontFamily:'DM Sans'},customProviders:{},deletedProviders:[],autoUpdateCheck:true,updateInterval:'startup'};
+const DEFS={appBgImage:'',accentColor:'#30c5bb',cardImages:{},cardImageOffsets:{},cardBgColors:{},cardBgOpacity:{},cardCustomNames:{},cardCustomTags:{},cardLogos:{},favorites:[],fontSize:14,cardLayout:'normal',sortAlpha:false,sortDir:'asc',language:'de',particlesEnabled:false,particlesConfig:{count:80,size:1.5,speed:1,color:'#30c5bb',shapes:['circle'],appWide:true},clock:{enabled:false,position:{x:16,y:52},color:'#cfcfcf',opacity:0.5,size:36,type:'digital',showSeconds:false},hiddenItems:{news:{},upcoming:{}},watchedItems:{news:{},upcoming:{}},watchlist:[],searchHistory:[],viewHistory:[],providerOrder:[],newsLastTab:'movies',upcomingLastTab:'movies',designOptions:{cardRadius:14,sidebarWidth:200,cardShadow:true,glass:false,fontFamily:'DM Sans'},customProviders:{},deletedProviders:[],notificationsConfig:{streamBreak:true},watchedContentList:[]};
 ipcMain.handle('get-theme',()=>store.get('theme','dark'));
 ipcMain.on('set-theme',(_,v)=>store.set('theme',v));
 ipcMain.handle('get-settings',()=>({...DEFS,...store.get('settings',{})}));
 ipcMain.on('set-settings',(_,v)=>store.set('settings',v));
-ipcMain.handle('get-profiles',()=>store.get('profiles',[{id:'default',name:'Standardkonto',favorites:[],watchlist:[],searchHistory:[],viewHistory:[]}]));
+ipcMain.handle('get-profiles',()=>store.get('profiles',[{id:'default',name:'User',favorites:[],watchlist:[],searchHistory:[],viewHistory:[]}]));
 ipcMain.on('set-profiles',(_,v)=>store.set('profiles',v));
 ipcMain.handle('get-active-profile',()=>store.get('activeProfile','default'));
 ipcMain.on('set-active-profile',(_,id)=>store.set('activeProfile',id));
@@ -167,8 +167,12 @@ ipcMain.on('open-google-auth-browser',(_,profileId)=>{
 ipcMain.handle('check-vpn',async()=>{try{const r=await session.defaultSession.fetch('https://ipapi.co/json/',{headers:{'User-Agent':UA}});const d=await r.json();return{ip:d.ip,country:d.country_name,city:d.city,org:d.org,isVpn:!!(d.org?.toLowerCase().includes('vpn')||d.org?.toLowerCase().includes('proxy'))};}catch(e){return{error:e.message};}});
 
 // ── IPC: STREAM STATS ─────────────────────────────────────────────
-ipcMain.on('record-watch-time',(_,{providerId,seconds,profileId='default'})=>{const k=`streamStats_${profileId}`;const s=store.get(k,{});if(!s[providerId])s[providerId]={total:0,byDay:[0,0,0,0,0,0,0]};s[providerId].total+=seconds;s[providerId].byDay[new Date().getDay()]=( s[providerId].byDay[new Date().getDay()]||0)+seconds;store.set(k,s);});
+ipcMain.on('record-watch-time',(_,{providerId,seconds,profileId='default'})=>{const k=`streamStats_${profileId}`;const s=store.get(k,{});if(!s[providerId])s[providerId]={total:0,byDay:[0,0,0,0,0,0,0]};s[providerId].total+=seconds;s[providerId].byDay[new Date().getDay()]=(s[providerId].byDay[new Date().getDay()]||0)+seconds;store.set(k,s);});
 ipcMain.handle('get-stream-stats',(_,p='default')=>store.get(`streamStats_${p}`,{}));
+
+// ── IPC: WATCHED CONTENT ──────────────────────────────────────────
+ipcMain.handle('get-watched-content',(_,p='default')=>store.get(`watchedContent_${p}`,[]));
+ipcMain.on('set-watched-content',(_,{profileId,list})=>store.set(`watchedContent_${profileId}`,list));
 
 // ── IPC: MULTI-WINDOW ─────────────────────────────────────────────
 const secondWindows={};
