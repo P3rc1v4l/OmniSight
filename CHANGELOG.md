@@ -2,73 +2,62 @@
 
 ---
 
+## v1.3.0 — 2026-05-22
+
+### 🎨 **UI/UX Verbesserungen**
+- **Übersicht**: Stift-Icon links oben, nur bei Hover; Favoriten-Stern gelb & nur bei Hover
+- **Übersicht**: Karten-Click funktioniert wieder; Drag-Animation smooth
+- **Suchleiste**: Verlauf-X-Button rechts außen, modernes Design
+- **Light Mode**: Schrift viel dunkler (#1a1a1a wie Titlebar)
+- **News/Upcoming**: Titel mittig oben; Anime-Tab; Text-Buttons ohne Hintergrund
+- **News/Upcoming**: Erste Karte startet NACH Sidebar (nicht dahinter)
+- **Ausgeblendete Items**: Click außerhalb schließt Panel; Hover-Button in Karte
+- **Statistiken**: Wochentage-Ansicht verbessert
+- **Gemerkt**: Toggle A↓Z/Datum eleganter
+
+### ⭐ **Neue Features**
+- **Profil-System 2.0**: Button statt Dropdown → Modal mit Profilbild, Name, PIN-Schutz
+- **Profil-PIN**: Schutz vor unbefugtem Zugriff; Master-Reset: `Strg+Shift+Alt+R`
+- **Standardkonto** → jetzt **"User"**
+- **Benachrichtigungs-Center**: Icon in Titlebar → Verlauf aller Notifications
+- **Mini-Modus**: Kompaktes schwebendes Fenster mit Favoriten-Icons
+- **2h-Stream-Warnung**: Push alle 2h "Pause machen!"
+- **Push-Einstellungen**: Tab in Einstellungen → jede Notification einzeln an/aus
+- **Watchlist Export/Import**: JSON-Download/-Upload in Einstellungen
+- **Bereits angeschaut**: Button in Statistiken → Modal mit Filter/Suche
+- **10 neue Achievements**: Insgesamt jetzt 35 Achievements
+
+### 🔧 **Einstellungen**
+- **Mehr-Tab**: Update-Suche ganz oben; VPN darunter; Widevine darunter
+- **Mehr-Tab**: "Verlauf löschen", "Karten Design", "Custom CSS" entfernt
+- **Plugins**: Suchleiste entfernt; moderne Install/Deinstall-Buttons
+- **Plugins**: "Installierte Listen" entfernt
+- **Uhr**: Moderne analoge Variante; Kontextmenü mit Digital/Analog-Toggle
+- **Uhr**: Reset → `#cfcfcf`, 50%, 36px
+- **Design**: Custom Design Options vollständig; Partikel-Einstellungen vollständig
+- **Design**: Hintergrundbild-Picker funktioniert; Schriftart-Auswahl funktioniert
+- **Versions-Chip**: Click öffnet "Mehr"-Tab
+
+### 🗂️ **Sidebar**
+- Favoriten/Anbieter-Dropdown entfernt
+- CR Kalender = direkter Button
+- Statistiken zwischen Einstellungen und Profil
+
+### 🌍 **Übersetzungen**
+- Sprache wechselt jetzt ALLE Labels (inkl. Karten-Tags, Detail-Texte)
+
+### 🐛 **Bugfixes**
+- Übersicht: Karten-Click öffnet Anbieter wieder
+- News/Upcoming: Timer pausiert während Detail-Popup offen
+- Statistiken: Trakt.tv, VPN, Multi-Window-Text entfernt
+- Blockmap-Datei wird nicht mehr generiert (NSIS-Config)
+
+---
+
 ## v1.2.0 — 2026-05-22
-
-### Neue Features
-- Neues Profil wird direkt nach Erstellen ausgewählt (Sidebar + Dropdown)
-- Statistiken-Link jetzt in der Sidebar zwischen Einstellungen und Profil-Dropdown
-- CR Kalender als eigene Sidebar-Kategorie (eigener View, kein Dropdown)
-- Anbieter-Dropdown aus der Sidebar entfernt
-- "Gespeichert"-Toast erscheint nur beim Schließen der Einstellungen, Dark-Mode-Wechsel oder Profil-Wechsel
-- Uhr: Drag nur im Clock-Tab der Einstellungen möglich; Kontext-Menü erscheint jetzt VOR der Uhr (Z-Index fix)
-- Uhr: Sekunden dauerhaft anzeigbar; analoger Modus dauerhaft; 100% Transparenz deaktiviert die Uhr automatisch; Transparenz & Größe rücksetzbar
-- Übersicht: Sortierung A↓Z / Z↓A / Nutzung mit Animation; Karten-Editor mit Logo-Picker, Hintergrundfarbe/-bild, Titel, Untertitel
-- Übersicht: Rechtsklick öffnet Anbieter in eigenem Fenster (Punkt 21)
-- Suche: TMDB statt OMDB; Verlauf erst bei Enter; komplett/einzeln löschbar; Suchleiste wird beim Öffnen eines Streams geleert
-- Achievements: Live-Push-Benachrichtigungen beim Erreichen; werden in Statistiken sofort angezeigt
-- Statistiken: Animierte Balken für Streamzeit und Wochentage; Gesamt-Stunden-Anzeige
-- Gemerkt: Kategorien links (Alle/Filme/Serien/Anime) als Text-Buttons; Karten-Detail öffnet Poster korrekt (nicht abgeschnitten)
-- Detail-Popup: Kein "undefined"-Chip; Anbieter-Chip öffnet den richtigen Anbieter; "Anschauen"-Button mit Anbieter-Auswahl; "Wo streamen" entfernt
-- Neuigkeiten/Upcoming: Text-Switcher ohne Button-Hintergrund; Anime-Tab hinzugefügt; Ausblenden-Button links oben auf Karte; Gesehen-Button + eigener Bereich
-- Light Mode: Schrift dunkler; Sidebar hat Titlebar-Farbe
-- Einstellungen Design: Schriftart-Auswahl (DM Sans, Inter, Rajdhani, Orbitron, Exo 2); Design-Untermenü; Partikel-Untermenü mit Form/Farbe/Größe/Geschwindigkeit
-- Sprache übersetzt jetzt alle Labels in der gesamten App
-- Account: Angemeldete Anbieter werden korrekt erkannt (verbesserte Cookie-Checks); Mehrfachauswahl zum Abmelden; schönes Bestätigungs-Modal
-- Multi-Tab für YouTube/Twitch: Mittlere Maustaste öffnet neuen Tab statt Fenster; Tab stummschaltbar; Hintergrund-Qualität reduziert
-- Stream-Ladefehler: Push nach 5s, Auto-Retry, Abbrechen möglich
-- YouTube-Anmeldung: öffnet Standard-Browser, kehrt automatisch zurück
-- Plugins: Suchfeld kleiner; "Deinstallieren" statt Haken; BetterTTV für Twitch; Buster für bs.to/cine.to/movie2k; "Installierte Listen" entfernt
-- Einstellungen Mehr: Karten-Design und Custom CSS entfernt; Update-Suche mit Startup/Intervall-Option; Push bei neuem Update; Install-Button
-- VPN von Statistiken nach Einstellungen Mehr verschoben
-- Statistiken: Trakt.tv-Integration entfernt; gesehene Inhalte stattdessen; Multi-Window aus Statistiken entfernt; 25 Achievements
-- Verlauf: in Einstellungen Mehr löschbar; Suchverlauf komplett/einzeln löschbar
-- Widevine: Status in Einstellungen Mehr; CDM-Einbindung für alle Streams
-- Changelog-Datei angelegt
-
-### Bugfixes
-- Splash-Screen bleibt nicht mehr hängen (show:false + did-finish-load statt ready-to-show)
-- GitHub Actions: --publish never verhindert GH_TOKEN-Fehler
-- Suche: TMDB-API statt veralteter OMDB-Calls
-- Uhr: Transparenz war falsch herum (jetzt: 0%=sichtbar, 100%=unsichtbar)
+*(siehe vorherige Version)*
 
 ---
 
 ## v1.1.1 — 2026-05-22
-
-### Bugfixes
-- Splash-Screen Fix: show:false + Fallback-Timer
-- GitHub Actions: --publish never gesetzt; GH_TOKEN nur bei Tag-Push genutzt
-- Blockmap-Datei: nur bei Auto-Updater nötig, jetzt dokumentiert
-
----
-
-## v1.1.0 — 2026-05-22
-
-### Neue Features
-- 9 neue Anbieter: ADN, ARTE, Funk, KiKA, MagentaTV, Movie2k, Spotify, Waipu.tv, WOW
-- Custom-Provider System
-- Sort A↓Z Button
-- CR-Sidebar Kalender
-- YouTube-Link-Erkennung in Suche
-- Profil-isolierte Partitionen
-- 25 Achievements (4 Kategorien)
-- Analoge Uhr mit Sekunden-Option
-- Watchlist V2: Rechtsklick-Kategorie, Text-Switcher
-- Karten-Editor: Reset, Logo-Picker
-- Einzelne Anbieter wiederherstellen
-- Plugin-Domains pro Plugin separat
-
----
-
-## v1.0.9 — Backup-Stand
-- Basis-Version mit allen Grundfunktionen
+*(siehe vorherige Version)*
