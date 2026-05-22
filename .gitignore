@@ -34,4 +34,3 @@ app-data/
 # Environment
 .env
 .env.local
-ADMIN_RESET.md
