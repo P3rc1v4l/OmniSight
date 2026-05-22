@@ -510,3 +510,10 @@ input,select,textarea{font-family:var(--font-b);font-size:var(--fs)}
 /* ═══ STATISTIKEN IN SIDEBAR-BOTTOM ═══ */
 #nav-stats-bottom{font-size:calc(var(--fs) - 1px)}
 #nav-stats-bottom.active{background:var(--accg);color:var(--acc)}
+
+/* ═══ PROFIL-INDIKATOR TITELLEISTE ═══ */
+.titlebar-profile-indicator{transition:transform .15s,box-shadow .15s}
+.titlebar-profile-indicator:hover{transform:scale(1.1);box-shadow:0 0 8px var(--acc)}
+
+/* ═══ TMDB CACHE BADGE ═══ */
+.search-dd-cached{font-size:9px;color:var(--tx3);padding:2px 8px;font-style:italic}

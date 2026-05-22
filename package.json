@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -15,9 +15,15 @@
     "appId": "com.omnisight.app",
     "productName": "OmniSight",
     "artifactName": "${productName}-Setup-${version}.${ext}",
+    "generateUpdatesFilesForAllChannels": false,
+    "buildDependenciesFromSource": false,
     "directories": {
       "output": "dist"
     },
+    "files": [
+      "src/**/*",
+      "!src/**/*.map"
+    ],
     "win": {
       "target": "nsis",
       "icon": "src/assets/icon.ico"
@@ -35,28 +41,20 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "OmniSight",
-      "differentialPackage": false
+      "shortcutName": "OmniSight"
     },
     "publish": {
       "provider": "github",
       "owner": "P3rc1v4l",
       "repo": "OmniSight",
       "private": true
-    },
-    "generateUpdatesFilesForAllChannels": false,
-    "buildDependenciesFromSource": false,
-    "differentialPackage": false
+    }
   },
-  "keywords": [
-    "streaming",
-    "electron",
-    "hub"
-  ],
+  "keywords": ["streaming", "electron", "hub"],
   "author": "OmniSight",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^29.0.0",
+    "electron": "^33.0.0",
     "electron-builder": "^24.9.1",
     "sharp": "^0.33.4",
     "png-to-ico": "^2.1.8"

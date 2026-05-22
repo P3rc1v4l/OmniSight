@@ -91,9 +91,19 @@ const DEFS={appBgImage:'',accentColor:'#30c5bb',cardImages:{},cardImageOffsets:{
 ipcMain.handle('get-theme',()=>store.get('theme','dark'));
 ipcMain.on('set-theme',(_,v)=>store.set('theme',v));
 ipcMain.handle('get-settings',()=>({...DEFS,...store.get('settings',{})}));
-ipcMain.on('set-settings',(_,v)=>store.set('settings',v));
+let _settingsWritePending=false;
+ipcMain.on('set-settings',(_,v)=>{
+  if(_settingsWritePending)return;
+  _settingsWritePending=true;
+  setImmediate(()=>{store.set('settings',v);_settingsWritePending=false;});
+});
 ipcMain.handle('get-profiles',()=>store.get('profiles',[{id:'default',name:'User',favorites:[],watchlist:[],searchHistory:[],viewHistory:[]}]));
-ipcMain.on('set-profiles',(_,v)=>store.set('profiles',v));
+let _profilesWritePending=false;
+ipcMain.on('set-profiles',(_,v)=>{
+  if(_profilesWritePending)return;
+  _profilesWritePending=true;
+  setImmediate(()=>{store.set('profiles',v);_profilesWritePending=false;});
+});
 ipcMain.handle('get-active-profile',()=>store.get('activeProfile','default'));
 ipcMain.on('set-active-profile',(_,id)=>store.set('activeProfile',id));
 
@@ -188,7 +198,7 @@ ipcMain.handle('open-second-window',async(_,{url,partition,title})=>{
   const key=partition||url;
   if(secondWindows[key]&&!secondWindows[key].isDestroyed()){secondWindows[key].focus();return'focused';}
   const win=new BrowserWindow({width:800,height:600,title:title||'OmniSight',icon:path.join(__dirname,'assets','icon.png'),webPreferences:{webviewTag:true,webSecurity:false,allowRunningInsecureContent:true}});
-  const html=`<!DOCTYPE html><html><head><style>*{margin:0}body{background:#000;height:100vh;display:flex}webview{flex:1}</style></head><body><webview src="${url}" partition="${partition||''}" useragent="${UA}" allowpopups style="width:100%;flex:1"></webview></body></html>`;
+  const html=`<!DOCTYPE html><html><head><meta http-equiv="Content-Security-Policy" content="default-src * data: blob: filesystem: about: ws: wss: 'unsafe-inline' 'unsafe-eval'"><style>*{margin:0}body{background:#000;height:100vh;display:flex}webview{flex:1}</style></head><body><webview src="${url}" partition="${partition||''}" useragent="${UA}" allowpopups style="width:100%;flex:1"></webview></body></html>`;
   const tmp=path.join(app.getPath('temp'),`omnisight_${Date.now()}.html`);fs.writeFileSync(tmp,html);
   win.loadFile(tmp);if(partition)setupSession(session.fromPartition(partition));
   win.on('closed',()=>delete secondWindows[key]);secondWindows[key]=win;return'opened';
