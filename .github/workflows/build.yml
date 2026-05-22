@@ -1,0 +1,86 @@
+name: Build OmniHub
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    name: Build – Windows
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Rust einrichten
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Rust-Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+          cache-all-crates: true
+
+      - name: Node-Abhängigkeiten installieren
+        run: npm install
+
+      - name: Tauri-API Bundle generieren
+        run: npm run bundle
+
+      - name: Icons generieren
+        run: node scripts/generate-icons.js
+        continue-on-error: true
+
+      - name: Version auslesen
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Baue Version: $VERSION"
+
+      - name: Tauri App bauen
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v${{ steps.version.outputs.version }}
+          releaseName: 'OmniHub v${{ steps.version.outputs.version }}'
+          releaseBody: |
+            ## OmniHub v${{ steps.version.outputs.version }}
+            Änderungen: https://github.com/P3rc1v4l/OmniHub/blob/main/CHANGELOG.md
+          releaseDraft: false
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          args: --target x86_64-pc-windows-msvc
+
+      - name: Setup-Datei flach kopieren
+        shell: bash
+        run: |
+          mkdir -p artifact-out
+          find src-tauri/target -name "*.exe" -path "*/nsis/*" | while read f; do
+            cp "$f" artifact-out/
+          done
+          ls artifact-out/ || echo "Keine EXE gefunden"
+
+      - name: Artifact hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmniHub-v${{ steps.version.outputs.version }}-Windows-Setup
+          path: artifact-out/*.exe
+          if-no-files-found: warn
