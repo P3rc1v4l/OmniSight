@@ -310,9 +310,9 @@ function openCardEditor(id,p){_editId=id;const overlay=document.getElementById('
 function setupCardEditor(){
   document.getElementById('card-editor-overlay')?.addEventListener('click',e=>{if(e.target.id==='card-editor-overlay')e.target.style.display='none';});
   document.getElementById('card-editor-close')?.addEventListener('click',()=>document.getElementById('card-editor-overlay').style.display='none');
-  document.getElementById('card-ed-logo-pick')?.addEventListener('click',async()=>{const url=await window.electronAPI.pickImage('logo_'+_editId);if(url){settings.cardLogos=settings.cardLogos||{};settings.cardLogos[_editId]=url;const lp=document.getElementById('card-ed-logo-preview');if(lp)lp.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:contain"/>`;autoSave();}});
+  document.getElementById('card-ed-logo-pick')?.addEventListener('click',async()=>{const r=await window.electronAPI.pickImage('logo_'+_editId);if(r){const url=r.base64||r.filePath||r;settings.cardLogos=settings.cardLogos||{};settings.cardLogos[_editId]=url;const lp=document.getElementById('card-ed-logo-preview');if(lp)lp.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:contain"/>`;autoSave();}});
   document.getElementById('card-ed-logo-remove')?.addEventListener('click',()=>{delete(settings.cardLogos||{})[_editId];const lp=document.getElementById('card-ed-logo-preview');if(lp)lp.innerHTML='';autoSave();});
-  document.getElementById('card-ed-pick')?.addEventListener('click',async()=>{const url=await window.electronAPI.pickImage('card_'+_editId);if(url){settings.cardImages[_editId]=url;autoSave();}});
+  document.getElementById('card-ed-pick')?.addEventListener('click',async()=>{const r=await window.electronAPI.pickImage('card_'+_editId);if(r){settings.cardImages[_editId]=r.base64||r.filePath||r;autoSave();}});
   document.getElementById('card-ed-remove-img')?.addEventListener('click',()=>{delete settings.cardImages[_editId];autoSave();});
   ['card-ed-x','card-ed-y'].forEach(eid=>{document.getElementById(eid)?.addEventListener('input',e=>{const v=parseInt(e.target.value);const elv=document.getElementById(eid+'-val');if(elv)elv.textContent=v+'px';settings.cardImageOffsets=settings.cardImageOffsets||{};settings.cardImageOffsets[_editId]={...(settings.cardImageOffsets[_editId]||{}),[eid.endsWith('-x')?'x':'y']:v};autoSave();});});
   document.getElementById('card-ed-opacity')?.addEventListener('input',e=>{const v=parseInt(e.target.value);document.getElementById('card-ed-opacity-val').textContent=v+'%';settings.cardBgOpacity[_editId]=v;autoSave();});
@@ -695,7 +695,7 @@ function setupSettingsPanel(){
   document.getElementById('card-radius')?.addEventListener('input',e=>{const v=parseInt(e.target.value);document.getElementById('card-radius-val').textContent=v+'px';settings.designOptions.cardRadius=v;applyDesignOptions(settings.designOptions);autoSave();});
   document.getElementById('sidebar-width')?.addEventListener('input',e=>{const v=parseInt(e.target.value);document.getElementById('sidebar-width-val').textContent=v+'px';settings.designOptions.sidebarWidth=v;applyDesignOptions(settings.designOptions);autoSave();});
   document.getElementById('glass-toggle')?.addEventListener('change',e=>{settings.designOptions.glass=e.target.checked;applyDesignOptions(settings.designOptions);autoSave();});
-  document.getElementById('pick-bg-image')?.addEventListener('click',async()=>{const url=await window.electronAPI.pickImage('appBg');if(url){settings.appBgImage=url;applyBgImage(url);autoSave();}});
+  document.getElementById('pick-bg-image')?.addEventListener('click',async()=>{const r=await window.electronAPI.pickImage('appBg');if(r){const url=r.base64||r.filePath||r;settings.appBgImage=url;applyBgImage(url);autoSave();}});
   document.getElementById('reset-bg-image')?.addEventListener('click',()=>{settings.appBgImage='';applyBgImage('');autoSave();});
   // Partikel
   document.getElementById('particles-toggle')?.addEventListener('change',e=>{settings.particlesEnabled=e.target.checked;document.getElementById('particles-options-section').style.display=e.target.checked?'flex':'none';setupParticles();autoSave();});
@@ -937,3 +937,148 @@ function setupTitlebar(){document.getElementById('btn-minimize')?.addEventListen
 
 // ════════ START ═══════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>init());
+
+// ════════ PERSISTENTE NOTIFICATIONS LADEN ═════════════════════════
+async function loadPersistedNotifications(){
+  try{
+    const saved=await window.electronAPI.getNotifications(activeProfileId);
+    if(Array.isArray(saved)&&saved.length){notifications=saved;renderNotifications();updateNotifBadge();}
+  }catch{}
+}
+
+// ════════ WATCHLIST SORTIERUNG (erweitert) ════════════════════════
+// buildWatchlist ist bereits vorhanden, wir überschreiben die Sort-Logik
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('wl-sort')?.addEventListener('change',()=>{
+    const cat=document.querySelector('.wl-cat-btn.active')?.dataset.cat||'all';
+    buildWatchlist(cat);
+  });
+});
+
+// Überschreibt buildWatchlist mit vollständiger Sortierung
+const _origBuildWatchlist=window.buildWatchlist||null;
+function buildWatchlistSorted(cat){
+  const catArg=cat||document.querySelector('.wl-cat-btn.active')?.dataset.cat||'all';
+  const sortVal=document.getElementById('wl-sort')?.value||'alpha';
+  const content=document.getElementById('watchlist-content');if(!content)return;
+  let items=watchlist.filter(i=>catArg==='all'||i.mediaType===catArg||(!i.mediaType&&catArg==='movie'));
+  switch(sortVal){
+    case 'alpha':   items=[...items].sort((a,b)=>a.title.localeCompare(b.title));break;
+    case 'date-asc':items=[...items].sort((a,b)=>(a.releaseDate||'').localeCompare(b.releaseDate||''));break;
+    case 'date-desc':items=[...items].sort((a,b)=>(b.releaseDate||'').localeCompare(a.releaseDate||''));break;
+    case 'added':   /* bereits in Reihenfolge der watchlist-Array (neuste zuerst) */ break;
+  }
+  content.innerHTML='';
+  if(!items.length){content.innerHTML='<div style="text-align:center;padding:40px;color:var(--tx2)">Noch nichts gemerkt.<br>Klicke auf 🔖 bei Filmen oder Serien.</div>';return;}
+  const grid=document.createElement('div');grid.className='watchlist-grid';
+  items.forEach(item=>{
+    const card=document.createElement('div');card.className='wl-card';
+    const poster=item.poster?`<img class="wl-card-poster" src="${item.poster}" loading="lazy" onerror="this.style.display='none'"/>`:' <div class="wl-card-poster-ph">🎬</div>';
+    const dateStr=item.releaseDate?new Date(item.releaseDate).toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'}):'';
+    card.innerHTML=`${poster}<div class="wl-card-body"><div class="wl-card-title">${item.title||''}</div>${dateStr?`<div class="wl-card-date">📅 ${dateStr}</div>`:''}</div><button class="wl-card-remove">✕</button>`;
+    card.querySelector('.wl-card-remove').addEventListener('click',e=>{e.stopPropagation();watchlist=watchlist.filter(w=>w.id!==item.id);settings.watchlist=watchlist;autoSave();card.style.transition='all .25s';card.style.opacity='0';card.style.transform='scale(.9)';setTimeout(()=>buildWatchlistSorted(catArg),260);});
+    card.addEventListener('click',async()=>{await showDetailPopup(item.tmdbId,item.tmdbType||'movie',item.title);const check=setInterval(()=>{if(document.getElementById('detail-overlay').style.display==='none'){clearInterval(check);if(!watchlist.find(w=>w.id===item.id))buildWatchlistSorted(catArg);}},300);});
+    grid.appendChild(card);
+  });
+  content.appendChild(grid);
+}
+// Globale buildWatchlist überschreiben
+window.buildWatchlist=buildWatchlistSorted;
+
+// ════════ ZULETZT GEÖFFNET (Home-Bereich) ════════════════════════
+function buildRecentlyOpened(){
+  const grid=document.getElementById('providers-grid');if(!grid)return;
+  const recent=viewHistory.slice(0,4).filter(h=>PROVIDERS()[h.id]);
+  if(!recent.length)return;
+  const existing=document.getElementById('recently-opened-section');if(existing)existing.remove();
+  const section=document.createElement('div');section.id='recently-opened-section';section.style.cssText='grid-column:1/-1;margin-bottom:4px';
+  section.innerHTML=`<div class="grid-section-label" style="margin-bottom:10px">🕐 Zuletzt geöffnet</div><div style="display:flex;gap:10px;flex-wrap:wrap">
+    ${recent.map(h=>{const p=PROVIDERS()[h.id];const name=(settings.cardCustomNames||{})[h.id]||p?.name||h.id;return`<button class="recent-chip" data-id="${h.id}" style="display:flex;align-items:center;gap:7px;padding:6px 12px 6px 8px;background:var(--bgc);border:1px solid var(--bor);border-radius:999px;cursor:pointer;color:var(--tx2);font-size:calc(var(--fs) - 2px);font-weight:500;transition:all .15s"><img src="${getFavicon(h.id,p)}" style="width:16px;height:16px;border-radius:50%;object-fit:contain;background:${p?.color||'#333'}22" onerror="this.style.display='none'"/>${name}</button>`;}).join('')}
+  </div>`;
+  section.querySelectorAll('.recent-chip').forEach(btn=>btn.addEventListener('click',()=>openProvider(btn.dataset.id)));
+  section.querySelectorAll('.recent-chip').forEach(btn=>{btn.onmouseenter=()=>{btn.style.borderColor='var(--acc)';btn.style.color='var(--tx)';};btn.onmouseleave=()=>{btn.style.borderColor='var(--bor)';btn.style.color='var(--tx2)';};});
+  grid.prepend(section);
+}
+
+// ════════ ONBOARDING ═════════════════════════════════════════════
+let obStep=1;const OB_TOTAL=5;
+
+function showOnboarding(force=false){
+  if(!force&&settings.onboardingDone)return;
+  obStep=1;
+  const overlay=document.getElementById('onboarding-overlay');if(!overlay)return;
+  overlay.style.display='flex';
+  buildObDots();updateObStep();
+}
+
+function buildObDots(){
+  const dots=document.getElementById('ob-dots');if(!dots)return;
+  dots.innerHTML='';
+  for(let i=1;i<=OB_TOTAL;i++){const d=document.createElement('button');d.className='ob-dot'+(i===obStep?' active':'');d.style.cssText=`width:${i===obStep?'18px':'7px'};height:7px;border-radius:999px;border:none;background:${i===obStep?'var(--acc)':'rgba(255,255,255,.3)'};cursor:pointer;transition:all .3s;padding:0`;d.addEventListener('click',()=>{obStep=i;updateObStep();});dots.appendChild(d);}
+}
+
+function updateObStep(){
+  document.querySelectorAll('.onboarding-step').forEach((s,i)=>s.classList.toggle('active',i+1===obStep));
+  const bar=document.getElementById('onboarding-progress-bar');if(bar)bar.style.width=`${(obStep/OB_TOTAL)*100}%`;
+  const nextBtn=document.getElementById('ob-next');if(nextBtn)nextBtn.textContent=obStep===OB_TOTAL?'Los geht\'s! 🚀':'Weiter →';
+  buildObDots();
+}
+
+function setupOnboarding(){
+  document.getElementById('ob-next')?.addEventListener('click',()=>{
+    if(obStep<OB_TOTAL){obStep++;updateObStep();}
+    else{closeOnboarding();}
+  });
+  document.getElementById('ob-skip')?.addEventListener('click',closeOnboarding);
+  document.getElementById('btn-show-onboarding')?.addEventListener('click',()=>{closeSettings();setTimeout(()=>showOnboarding(true),200);});
+}
+
+function closeOnboarding(){
+  document.getElementById('onboarding-overlay').style.display='none';
+  settings.onboardingDone=true;autoSave();
+}
+
+// Onboarding-Aufruf in init() nach Settings-Load einbinden:
+const _origInit=init;
+async function initWithOnboarding(){
+  // init() ist bereits definiert, wir rufen es direkt auf und ergänzen danach
+}
+
+// ════════ TMDB-SUCHE AB 2 ZEICHEN ════════════════════════════════
+// Die setupSearch-Funktion wird um früheren Trigger ergänzt
+const _origSetupSearch=setupSearch;
+function patchSearchEarlyTrigger(){
+  const input=document.getElementById('search-input');if(!input)return;
+  // Zusätzlicher Listener: ab 2 Zeichen sofort TMDb starten (200ms debounce)
+  input.addEventListener('input',()=>{
+    const q=input.value.trim();
+    if(q.length>=2&&q.length<3){// bei genau 2 Zeichen mit kürzerem Delay
+      clearTimeout(window._earlySearchTimer);
+      window._earlySearchTimer=setTimeout(()=>runTmdbSearch(q,1),200);
+    }
+  });
+}
+
+// ════════ INIT PATCH ═══════════════════════════════════════════════
+// Wir patchen DOMContentLoaded um Onboarding + Recent + Notifications einzuhängen
+const _origDCL=document.addEventListener.bind(document);
+document.addEventListener('DOMContentLoaded',async()=>{
+  // Wird nach dem normalen init() aus app.js Teil 1 ausgeführt
+  setTimeout(async()=>{
+    // Persistente Notifications laden
+    await loadPersistedNotifications();
+    // Onboarding prüfen
+    setupOnboarding();
+    showOnboarding(false);
+    // Zuletzt geöffnet
+    buildRecentlyOpened();
+    // TMDB-Frühtrigger patchen
+    patchSearchEarlyTrigger();
+    // Watchlist-Sort Listener
+    document.getElementById('wl-sort')?.addEventListener('change',()=>{
+      const cat=document.querySelector('.wl-cat-btn.active')?.dataset.cat||'all';
+      buildWatchlistSorted(cat);
+    });
+    // init()-Watcher auf settings für onboardingDone
+  },600);
+});

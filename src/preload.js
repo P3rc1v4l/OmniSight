@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld('electronAPI',{
   getActiveProfile:     ()=>ipcRenderer.invoke('get-active-profile'),
   setActiveProfile:     (id)=>ipcRenderer.send('set-active-profile',id),
   showNotification:     (t,b)=>ipcRenderer.send('show-notification',{title:t,body:b}),
+  getNotifications:     (p)=>ipcRenderer.invoke('get-notifications',p),
+  setNotifications:     (p,l)=>ipcRenderer.send('set-notifications',{profileId:p,list:l}),
   pickImage:            (d)=>ipcRenderer.invoke('pick-image',d),
   getAllSessions:        (p)=>ipcRenderer.invoke('get-all-sessions',p),
   refreshSessionsNow:   (p)=>ipcRenderer.send('refresh-sessions-now',p),
@@ -51,5 +53,6 @@ contextBridge.exposeInMainWorld('electronAPI',{
   applyExtraAdDomains:  (d)=>ipcRenderer.send('apply-extra-ad-domains',d),
   getExtraAdDomains:    ()=>ipcRenderer.invoke('get-extra-ad-domains'),
   getWidevineStatus:    ()=>ipcRenderer.invoke('get-widevine-status'),
+  getAdminHash:         ()=>ipcRenderer.invoke('get-admin-hash'),
   openExternal:         (u)=>ipcRenderer.send('open-external',u),
 });

@@ -163,7 +163,7 @@
           <button class="wl-cat-btn" data-cat="tv" style="background:transparent;border:none;color:var(--tx2);font-family:var(--font-d);font-size:14px;font-weight:700;cursor:pointer;padding:0;transition:all .2s">📺 <span data-i18n="showsTab">Serien</span></button>
           <button class="wl-cat-btn" data-cat="anime" style="background:transparent;border:none;color:var(--tx2);font-family:var(--font-d);font-size:14px;font-weight:700;cursor:pointer;padding:0;transition:all .2s">⛩️ <span data-i18n="animeTab">Anime</span></button>
         </div>
-        <select id="wl-sort" class="wl-select"><option value="alpha">A–Z</option><option value="date">Erscheinungsdatum</option></select>
+        <select id="wl-sort" class="wl-select"><option value="alpha">A–Z</option><option value="date-asc">Datum ↑</option><option value="date-desc">Datum ↓ (Neu)</option><option value="added">Zuletzt gemerkt</option></select>
       </div>
     </div>
     <div id="watchlist-content"></div>
@@ -339,7 +339,7 @@
 <div class="settings-panel" id="settings-panel">
   <div class="settings-header">
     <span>Einstellungen</span>
-    <span class="settings-version" id="settings-version-chip" style="cursor:pointer" title="Nach Updates suchen">v2.0.0</span>
+    <span class="settings-version" id="settings-version-chip" style="cursor:pointer" title="Nach Updates suchen">v2.1.0</span>
     <button class="settings-close" id="settings-close">✕</button>
   </div>
   <div class="settings-tabs">
@@ -543,6 +543,11 @@
       <div id="restore-single-list" style="display:none;margin-top:8px"></div>
     </div>
     <div class="settings-section">
+      <label class="settings-label">Onboarding</label>
+      <button class="pick-btn" id="btn-show-onboarding" style="text-align:center">🎬 Onboarding erneut anzeigen</button>
+    </div>
+    <div class="settings-divider"></div>
+    <div class="settings-section">
       <label class="settings-label">Eigene Anbieter</label>
       <div id="custom-providers-list"></div>
     </div>
@@ -738,5 +743,73 @@
 
 <style id="custom-css-style"></style>
 <script src="js/app.js"></script>
+
+<!-- ONBOARDING OVERLAY -->
+<div class="onboarding-overlay" id="onboarding-overlay" style="display:none">
+  <div class="onboarding-modal">
+    <div class="onboarding-progress" id="onboarding-progress">
+      <div class="onboarding-progress-bar" id="onboarding-progress-bar" style="width:20%"></div>
+    </div>
+    <!-- Schritt 1: Willkommen -->
+    <div class="onboarding-step active" id="ob-step-1">
+      <div class="ob-emoji">🎬</div>
+      <h2 class="ob-title">Willkommen bei OmniSight</h2>
+      <p class="ob-desc">Dein zentrales Hub für alle Streaming-Dienste. Schaue Netflix, Prime, YouTube, Twitch und viele mehr – alles an einem Ort.</p>
+      <div class="ob-feature-grid">
+        <div class="ob-feature"><span>📺</span><span>25+ Anbieter</span></div>
+        <div class="ob-feature"><span>🔔</span><span>Benachrichtigungen</span></div>
+        <div class="ob-feature"><span>📌</span><span>Watchlist</span></div>
+        <div class="ob-feature"><span>📊</span><span>Statistiken</span></div>
+      </div>
+    </div>
+    <!-- Schritt 2: Übersicht -->
+    <div class="onboarding-step" id="ob-step-2">
+      <div class="ob-emoji">🏠</div>
+      <h2 class="ob-title">Die Übersicht</h2>
+      <p class="ob-desc">Auf der Startseite findest du alle Anbieter als Karten. Du kannst sie per Drag & Drop sortieren, umbenennen, mit eigenem Hintergrundbild versehen und als Favorit markieren.</p>
+      <ul class="ob-tips">
+        <li>✏️ <b>Stift-Icon</b> beim Hover erscheint zum Anpassen einer Karte</li>
+        <li>⭐ <b>Lesezeichen</b> beim Hover zum Hinzufügen zu Favoriten</li>
+        <li>🔍 <b>Suchleiste</b> oben findet Anbieter und Filme direkt</li>
+      </ul>
+    </div>
+    <!-- Schritt 3: Neuigkeiten -->
+    <div class="onboarding-step" id="ob-step-3">
+      <div class="ob-emoji">🎞️</div>
+      <h2 class="ob-title">Neuigkeiten & Upcoming</h2>
+      <p class="ob-desc">Entdecke neue Filme, Serien und Anime direkt in OmniSight – mit Trailern, Streaming-Verfügbarkeit und Release-Daten.</p>
+      <ul class="ob-tips">
+        <li>🎬 Wechsle zwischen <b>Filme</b>, <b>Serien</b> und <b>Anime</b></li>
+        <li>🔖 Merke Inhalte direkt für deine Watchlist</li>
+        <li>▶️ Klick auf eine Karte für Trailer und Details</li>
+      </ul>
+    </div>
+    <!-- Schritt 4: Profile & Einstellungen -->
+    <div class="onboarding-step" id="ob-step-4">
+      <div class="ob-emoji">👤</div>
+      <h2 class="ob-title">Profile & Einstellungen</h2>
+      <p class="ob-desc">Lege mehrere Profile an – z.B. für verschiedene Familienmitglieder. Jedes Profil hat eigene Watchlist, Favoriten und Sessions. Du kannst Profile mit einem PIN schützen.</p>
+      <ul class="ob-tips">
+        <li>👤 Profil-Button unten links zum Wechseln</li>
+        <li>🎨 Design, Schriftart, Partikel & mehr in Einstellungen</li>
+        <li>🔔 Push-Pause-Erinnerung alle 2h beim Streamen</li>
+      </ul>
+    </div>
+    <!-- Schritt 5: Los geht's -->
+    <div class="onboarding-step" id="ob-step-5">
+      <div class="ob-emoji">🚀</div>
+      <h2 class="ob-title">Bereit zum Streamen!</h2>
+      <p class="ob-desc">OmniSight ist eingerichtet und bereit. Klicke auf einen Anbieter, um direkt loszulegen. Viel Spaß!</p>
+      <div class="ob-tip-final">💡 Tipp: Du kannst dieses Onboarding jederzeit in <b>Einstellungen → Mehr</b> erneut aufrufen.</div>
+    </div>
+    <!-- Navigation -->
+    <div class="ob-nav">
+      <button class="ob-btn-skip" id="ob-skip">Überspringen</button>
+      <div class="ob-dots" id="ob-dots"></div>
+      <button class="ob-btn-next" id="ob-next">Weiter →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

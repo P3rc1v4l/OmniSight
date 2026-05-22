@@ -1,5 +1,24 @@
 # OmniSight Changelog
 
+## v2.1.0 — 2025
+
+### 🐛 Bugfix
+- **Build-Fehler behoben**: `installerName` ist kein gültiges NSIS-Property in electron-builder 24.x → entfernt, `shortcutName` verwendet
+
+### 🆕 Neue Features
+- **Onboarding-Screen** beim ersten Start (5 Schritte: Willkommen, Übersicht, Neuigkeiten, Profile, Los geht's)
+- Onboarding jederzeit wieder abrufbar über Einstellungen → Mehr
+- **Watchlist-Sortierung**: A–Z, Datum aufsteigend, Datum absteigend, Zuletzt gemerkt
+- **„Zuletzt geöffnet"**-Bereich oben in der Übersicht (letzte 4 Anbieter als Chips)
+- **TMDB-Suche ab 2 Zeichen** (statt erst ab Enter/350ms)
+
+### 🔧 Verbesserungen
+- **Benachrichtigungen persistent**: werden pro Profil gespeichert, bleiben nach Neustart erhalten (max. 50)
+- **Stream-Pause-Timer kumulativ**: läuft weiter wenn Anbieter gewechselt wird, 2h-Gesamt-Session
+- **Profilbilder als Base64** gespeichert: funktionieren nach PC-Wechsel oder Pfad-Änderung
+- **Admin-Reset sicherer**: Klartext-Datei entfernt, Verifikation über SHA-256-Hash im Main-Prozess
+
+
 ## v2.0.0 — Major Release (2025)
 
 ### 🆕 Neue Features

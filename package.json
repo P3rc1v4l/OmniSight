@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -14,7 +14,7 @@
   "build": {
     "appId": "com.omnisight.app",
     "productName": "OmniSight",
-    "artifactName": "${productName}-${version}.${ext}",
+    "artifactName": "${productName}-Setup-${version}.${ext}",
     "directories": {
       "output": "dist"
     },
@@ -35,7 +35,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "installerName": "OmniSight-Setup"
+      "shortcutName": "OmniSight"
     },
     "publish": {
       "provider": "github",

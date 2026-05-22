@@ -1,9 +1,14 @@
 'use strict';
 const {app,BrowserWindow,ipcMain,session,shell,dialog,Notification}=require('electron');
-const path=require('path'),fs=require('fs');
+const path=require('path'),fs=require('fs'),crypto=require('crypto');
 const Store=require('electron-store');
 const store=new Store();
 let mainWindow;
+
+// Admin-Reset: Hash statt Klartext (sicherer als Datei)
+// Kombination: Strg+Shift+Alt+R  → hash wird im Renderer verglichen
+const ADMIN_HASH=crypto.createHash('sha256').update('OmniSight_AdminReset_2025_Ctrl+Shift+Alt+R').digest('hex');
+ipcMain.handle('get-admin-hash',()=>ADMIN_HASH);
 
 // ── WIDEVINE ──────────────────────────────────────────────────────
 function setupWidevine(){
@@ -82,7 +87,7 @@ ipcMain.on('install-update',()=>{try{require('electron-updater').autoUpdater.qui
 ipcMain.handle('check-for-updates',async()=>{try{await require('electron-updater').autoUpdater.checkForUpdates();}catch{}});
 
 // ── IPC: SETTINGS ─────────────────────────────────────────────────
-const DEFS={appBgImage:'',accentColor:'#30c5bb',cardImages:{},cardImageOffsets:{},cardBgColors:{},cardBgOpacity:{},cardCustomNames:{},cardCustomTags:{},cardLogos:{},favorites:[],fontSize:14,cardLayout:'normal',sortAlpha:false,sortDir:'asc',language:'de',particlesEnabled:false,particlesConfig:{count:80,size:1.5,speed:1,color:'#30c5bb',shapes:['circle'],appWide:true},clock:{enabled:false,position:{x:16,y:52},color:'#cfcfcf',opacity:0.5,size:36,type:'digital',showSeconds:false},hiddenItems:{news:{},upcoming:{}},watchedItems:{news:{},upcoming:{}},watchlist:[],searchHistory:[],viewHistory:[],providerOrder:[],newsLastTab:'movies',upcomingLastTab:'movies',designOptions:{cardRadius:14,sidebarWidth:200,cardShadow:true,glass:false,fontFamily:'DM Sans'},customProviders:{},deletedProviders:[],notificationsConfig:{streamBreak:true},watchedContentList:[]};
+const DEFS={appBgImage:'',accentColor:'#30c5bb',cardImages:{},cardImageOffsets:{},cardBgColors:{},cardBgOpacity:{},cardCustomNames:{},cardCustomTags:{},cardLogos:{},favorites:[],fontSize:14,cardLayout:'normal',sortAlpha:false,sortDir:'asc',language:'de',particlesEnabled:false,particlesConfig:{count:80,size:1.5,speed:1,color:'#30c5bb',shapes:['circle'],appWide:true},clock:{enabled:false,position:{x:16,y:52},color:'#cfcfcf',opacity:0.5,size:36,type:'digital',showSeconds:false},hiddenItems:{news:{},upcoming:{}},watchedItems:{news:{},upcoming:{}},watchlist:[],searchHistory:[],viewHistory:[],providerOrder:[],newsLastTab:'movies',upcomingLastTab:'movies',designOptions:{cardRadius:14,sidebarWidth:200,cardShadow:true,glass:false,fontFamily:'DM Sans'},customProviders:{},deletedProviders:[],notificationsConfig:{streamBreak:true},watchedContentList:[],onboardingDone:false};
 ipcMain.handle('get-theme',()=>store.get('theme','dark'));
 ipcMain.on('set-theme',(_,v)=>store.set('theme',v));
 ipcMain.handle('get-settings',()=>({...DEFS,...store.get('settings',{})}));
@@ -92,7 +97,11 @@ ipcMain.on('set-profiles',(_,v)=>store.set('profiles',v));
 ipcMain.handle('get-active-profile',()=>store.get('activeProfile','default'));
 ipcMain.on('set-active-profile',(_,id)=>store.set('activeProfile',id));
 
-// ── IPC: NOTIFICATION ─────────────────────────────────────────────
+// ── IPC: NOTIFICATIONS (persistent) ──────────────────────────────
+ipcMain.handle('get-notifications',(_,profileId)=>store.get(`notifications_${profileId}`||'notifications_default',[]));
+ipcMain.on('set-notifications',(_,{profileId,list})=>store.set(`notifications_${profileId}`,list));
+
+// ── IPC: NOTIFICATION (system) ────────────────────────────────────
 ipcMain.on('show-notification',(_,{title,body})=>{if(Notification.isSupported())new Notification({title,body,icon:path.join(__dirname,'assets','icon.png')}).show();});
 
 // ── IPC: IMAGE PICKER ─────────────────────────────────────────────
@@ -101,8 +110,12 @@ ipcMain.handle('pick-image',async(_,dest)=>{
   if(r.canceled||!r.filePaths.length)return null;
   const src=r.filePaths[0];const dir=path.join(app.getPath('userData'),'userImages');
   if(!fs.existsSync(dir))fs.mkdirSync(dir,{recursive:true});
-  const fn=`${dest}_${Date.now()}${path.extname(src)}`;const dp=path.join(dir,fn);fs.copyFileSync(src,dp);
-  return `file://${dp.replace(/\\/g,'/')}`;
+  const fn=`${dest}_${Date.now()}${path.extname(src)}`;const dp=path.join(dir,fn);
+  fs.copyFileSync(src,dp);
+  // Bild auch als Base64 zurückgeben für robuste Speicherung
+  const b64=fs.readFileSync(dp).toString('base64');
+  const mime={'jpg':'image/jpeg','jpeg':'image/jpeg','png':'image/png','gif':'image/gif','webp':'image/webp'}[path.extname(src).slice(1).toLowerCase()]||'image/png';
+  return{filePath:`file://${dp.replace(/\\/g,'/')}`,base64:`data:${mime};base64,${b64}`};
 });
 
 // ── IPC: SESSIONS ─────────────────────────────────────────────────
@@ -137,12 +150,7 @@ const LOGIN_CHECKS={
 async function checkAllSessions(profileId='default'){
   const result={};
   for(const[id,check]of Object.entries(LOGIN_CHECKS)){
-    try{
-      const ses=session.fromPartition(`persist:${profileId}_${id}`);
-      let found=false;
-      for(const name of check.names){const c=await ses.cookies.get({url:check.url,name});if(c.length>0){found=true;break;}}
-      result[id]=found;
-    }catch{result[id]=false;}
+    try{const ses=session.fromPartition(`persist:${profileId}_${id}`);let found=false;for(const name of check.names){const c=await ses.cookies.get({url:check.url,name});if(c.length>0){found=true;break;}}result[id]=found;}catch{result[id]=false;}
   }
   return result;
 }
