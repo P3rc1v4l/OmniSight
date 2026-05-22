@@ -151,6 +151,18 @@ async function init(){
   isFullscreen=await window.electronAPI.isFullscreen();updateFullscreenUI();
   setInterval(checkOnlineStatus,30000);
   trackMeta('appStarts');
+  // Neue Features initialisieren
+  setupShortcutsModal();
+  setupOnboarding();
+  await loadPersistedNotifications();
+  showOnboarding(false);
+  setTimeout(buildRecentlyOpened, 200);
+  patchSearchEarlyTrigger();
+  // Watchlist-Sort Listener
+  document.getElementById('wl-sort')?.addEventListener('change',()=>{
+    const cat=document.querySelector('.wl-cat-btn.active')?.dataset.cat||'all';
+    buildWatchlistSorted(cat);
+  });
 }
 
 // ════════ LANGUAGE / THEME / FONT / DESIGN ═════════════════════════
@@ -261,6 +273,7 @@ async function buildProviderGrid(){
   if(rest.length){if(favL.length)addGridLabel(grid,'Alle Anbieter');rest.forEach(([id,p])=>grid.appendChild(createCard(id,p,false)));}
   if(!settings.sortAlpha&&!settings.sortByUsage)setupDragDrop(grid);
   buildSidebarSubMenus();
+  setTimeout(buildRecentlyOpened,50);
 }
 function addGridLabel(grid,text){const el=document.createElement('div');el.className='grid-section-label';el.textContent=text;grid.appendChild(el);}
 
@@ -276,7 +289,9 @@ function createCard(id,p,isFav){
   const cTag=(settings.cardCustomTags||{})[id]||p.tag;
   const isMini=(settings.cardLayout||'normal')==='mini';
   const faviconSrc=logo||getFavicon(id,p);
-  card.innerHTML=`${p.quality&&!isMini?`<div class="card-quality-badge">${p.quality}</div>`:''}
+  const isLoggedIn=!!(sessionCache&&sessionCache[id]);
+    card.innerHTML=`${p.quality&&!isMini?`<div class="card-quality-badge">${p.quality}</div>`:''}
+    ${isLoggedIn?'<div class="card-session-dot" title="Eingeloggt"></div>':''}
     <div class="card-banner" style="background:${bgCol}">
       <div class="card-banner-gradient" style="background:radial-gradient(ellipse at center,${p.color}55 0%,transparent 80%)"></div>
       ${img?`<div class="card-banner-img" style="background-image:url('${img}');background-position:calc(50% + ${off.x}px) calc(50% + ${off.y}px);background-size:cover;position:absolute;inset:0;opacity:${opa/100}"></div>`:''}
@@ -494,7 +509,7 @@ async function showDetailPopup(tmdbId,tmdbType,title){
     document.querySelector('.detail-modal').appendChild(sel);
   });
   document.getElementById('d-ggl').addEventListener('click',()=>window.electronAPI.openExternal('https://www.google.com/search?q='+encodeURIComponent(t+' stream deutsch')));
-  document.getElementById('d-wl').addEventListener('click',e=>{const wlId=tmdbType+'_'+tmdbId;if(watchlist.find(w=>w.id===wlId)){watchlist=watchlist.filter(w=>w.id!==wlId);e.target.textContent='🔖 Merken';}else{watchlist.unshift({id:wlId,tmdbId,tmdbType,title:t,poster,releaseDate:detail.release_date||detail.first_air_date||'',mediaType:tmdbType==='tv'?'tv':'movie'});e.target.textContent='🔖 Gemerkt';}settings.watchlist=watchlist;autoSave();});
+  document.getElementById('d-wl').addEventListener('click',e=>{const wlId=tmdbType+'_'+tmdbId;if(watchlist.find(w=>w.id===wlId)){watchlist=watchlist.filter(w=>w.id!==wlId);e.target.textContent='🔖 Merken';}else{if(watchlist.find(w=>w.id===wlId)){showToastMsg('✓ Bereits in deiner Watchlist');return;}watchlist.unshift({id:wlId,tmdbId,tmdbType,title:t,poster,releaseDate:detail.release_date||detail.first_air_date||'',mediaType:tmdbType==='tv'?'tv':'movie'});e.target.textContent='🔖 Gemerkt';}settings.watchlist=watchlist;autoSave();});
   document.getElementById('detail-close').onclick=closeDetailPopup;
   overlay.onclick=e=>{if(e.target===overlay)closeDetailPopup();};
 }
@@ -581,9 +596,6 @@ function setupSidebarCrunchyroll(){const toggle=document.getElementById('sidebar
 async function loadSidebarCR(container){container.innerHTML='<div style="font-size:11px;color:var(--tx3);padding:8px;text-align:center">Lädt…</div>';try{const resp=await window.electronAPI.getUpcoming(1);const anime=(resp.anime||[]).slice(0,10);if(!anime.length){container.innerHTML='<div style="font-size:11px;color:var(--tx3);padding:8px;text-align:center">Keine Daten</div>';return;}container.innerHTML='';anime.forEach(item=>{const title=item.title||item.name||'?';const poster=item.poster_path?`${TMDB_IMG}${item.poster_path}`:'';const rd=item.first_air_date||item.release_date||'';const dateStr=rd?new Date(rd).toLocaleDateString('de-DE',{day:'2-digit',month:'short'}):'-';const el=document.createElement('div');el.style.cssText='display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background .14s';el.innerHTML=(poster?`<img src="${poster}" style="width:28px;height:40px;object-fit:cover;border-radius:3px;flex-shrink:0" loading="lazy"/>`:'')+`<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:11px;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</div><div style="font-size:9px;color:var(--acc);font-weight:600;margin-top:1px">📅 ${dateStr}</div></div>`;el.onmouseenter=()=>el.style.background='var(--bgc)';el.onmouseleave=()=>el.style.background='';el.addEventListener('click',()=>showDetailPopup(item.id,'tv',title));container.appendChild(el);});const cta=document.createElement('div');cta.style.cssText='text-align:center;padding:6px;font-size:11px;color:var(--acc);font-weight:600;cursor:pointer;border-top:1px solid var(--bor);margin-top:4px';cta.textContent='▶ Crunchyroll öffnen';cta.addEventListener('click',()=>openProvider('crunchyroll'));container.appendChild(cta);}catch{container.innerHTML='<div style="font-size:11px;color:var(--danger);padding:8px">Fehler</div>';}}
 
 // ════════ WATCHLIST ════════════════════════════════════════════════
-function buildWatchlist(cat){const catArg=cat||document.querySelector('.wl-cat-btn.active')?.dataset.cat||'all';const content=document.getElementById('watchlist-content');if(!content)return;let items=watchlist.filter(i=>catArg==='all'||i.mediaType===catArg||(!i.mediaType&&catArg==='movie'));items=[...items].sort((a,b)=>a.title.localeCompare(b.title));content.innerHTML='';if(!items.length){content.innerHTML='<div style="text-align:center;padding:40px;color:var(--tx2)">Noch nichts gemerkt.<br>Klicke auf 🔖 bei Filmen oder Serien.</div>';return;}const grid=document.createElement('div');grid.className='watchlist-grid';items.forEach(item=>{const card=document.createElement('div');card.className='wl-card';const poster=item.poster?`<img class="wl-card-poster" src="${item.poster}" loading="lazy" onerror="this.style.display='none'"/>`:' <div class="wl-card-poster-ph">🎬</div>';const dateStr=item.releaseDate?new Date(item.releaseDate).toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'}):'';card.innerHTML=`${poster}<div class="wl-card-body"><div class="wl-card-title">${esc(item.title)}</div>${dateStr?`<div class="wl-card-date">📅 ${dateStr}</div>`:''}</div><button class="wl-card-remove">✕</button>`;card.querySelector('.wl-card-remove').addEventListener('click',e=>{e.stopPropagation();watchlist=watchlist.filter(w=>w.id!==item.id);settings.watchlist=watchlist;autoSave();card.style.transition='all .25s';card.style.opacity='0';card.style.transform='scale(.9)';setTimeout(()=>buildWatchlist(catArg),260);});card.addEventListener('click',async()=>{await showDetailPopup(item.tmdbId,item.tmdbType||'movie',item.title);const check=setInterval(()=>{if(document.getElementById('detail-overlay').style.display==='none'){clearInterval(check);if(!watchlist.find(w=>w.id===item.id))buildWatchlist(catArg);}},300);});card.addEventListener('contextmenu',e=>{e.preventDefault();document.querySelectorAll('.wl-ctx-menu').forEach(m=>m.remove());const menu=document.createElement('div');menu.className='wl-ctx-menu';menu.style.cssText=`position:fixed;left:${e.clientX}px;top:${e.clientY}px;background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r-sm);z-index:3000;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.5);padding:4px 0`;[{v:'movie',l:'🎬 Film'},{v:'tv',l:'📺 Serie'},{v:'anime',l:'⛩️ Anime'}].forEach(c=>{const btn=document.createElement('button');btn.style.cssText='display:block;width:100%;padding:8px 14px;border:none;background:transparent;color:var(--tx);font-size:13px;cursor:pointer;text-align:left';btn.innerHTML=(c.v===item.mediaType?'✓ ':'')+c.l;btn.onmouseenter=()=>btn.style.background='var(--bgch)';btn.onmouseleave=()=>btn.style.background='transparent';btn.addEventListener('click',()=>{const idx=watchlist.findIndex(w=>w.id===item.id);if(idx>-1){watchlist[idx].mediaType=c.v;settings.watchlist=watchlist;autoSave();}menu.remove();buildWatchlist(catArg);});menu.appendChild(btn);});document.body.appendChild(menu);setTimeout(()=>document.addEventListener('click',()=>menu.remove(),{once:true}),10);});grid.appendChild(card);});content.appendChild(grid);}
-
-
 // ════════ STATISTIKEN ═════════════════════════════════════════════
 async function buildStatsView(){
   const stats=await window.electronAPI.getStreamStats(activeProfileId).catch(()=>({}));
@@ -797,147 +809,9 @@ function buildPluginPresets(filter){const container=document.getElementById('plu
 function rebuildPluginDomains(){const all=[...new Set(Object.values(pluginDomainStore).flat())];window.electronAPI.applyExtraAdDomains(all);const el=document.getElementById('plugin-domain-count');if(el)el.textContent=all.length;}
 
 // ════════ TITLEBAR ═════════════════════════════════════════════════
-function setupTitlebar(){document.getElementById('btn-minimize')?.addEventListener('click',()=>window.electronAPI.minimize());document.getElementById('btn-maximize')?.addEventListener('click',()=>window.electronAPI.maximize());document.getElementById('btn-close')?.addEventListener('click',()=>window.electronAPI.close());}
+function setupTitlebar(){document.getElementById('btn-minimize')?.addEventListener('click',()=>window.electronAPI.minimize());document.getElementById('btn-maximize')?.addEventListener('click',()=>window.electronAPI.maximize());document.getElementById('btn-close')?.addEventListener('click',()=>window.electronAPI.close());document.getElementById('btn-shortcuts-hint')?.addEventListener('click',()=>{document.dispatchEvent(new KeyboardEvent('keydown',{key:'?',bubbles:true}));});}
 
 // ════════ START ════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>init());
-  document.getElementById('clock-size')?.addEventListener('input',e=>{const v=parseInt(e.target.value);document.getElementById('clock-size-val').textContent=v+'px';settings.clock.size=v;autoSave();setupClock();});
-  lnkColor('clock-color','clock-color-text');
-  document.getElementById('clock-color')?.addEventListener('input',e=>{settings.clock.color=e.target.value;document.getElementById('clock-color-text').value=e.target.value;autoSave();setupClock();});
-  document.getElementById('clock-color-text')?.addEventListener('input',e=>{if(/^#[0-9a-fA-F]{6}$/.test(e.target.value)){settings.clock.color=e.target.value;autoSave();setupClock();}});
-  document.getElementById('clock-show-seconds')?.addEventListener('change',e=>{settings.clock.showSeconds=e.target.checked;autoSave();setupClock();});
-  document.querySelectorAll('.clock-type-btn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.clock-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');settings.clock.type=btn.dataset.clockType;settings.clock.enabled=true;const ce=document.getElementById('clock-enabled');if(ce)ce.checked=true;const lbl=document.getElementById('clock-status-label');if(lbl)lbl.textContent='Aktiviert';autoSave();setupClock();}));
-  // Uhr Farbe zurücksetzen → #cfcfcf, Transparenz 50%, Größe 36px (Punkt 27)
-  document.querySelector('[data-reset="clockColor"]')?.addEventListener('click',()=>{settings.clock.color='#cfcfcf';settings.clock.opacity=0.5;settings.clock.size=36;['clock-color','clock-color-text'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='#cfcfcf';});const co=document.getElementById('clock-opacity');if(co)co.value=50;const cv=document.getElementById('clock-opacity-val');if(cv)cv.textContent='50%';const cs=document.getElementById('clock-size');if(cs)cs.value=36;const csv=document.getElementById('clock-size-val');if(csv)csv.textContent='36px';autoSave();setupClock();});
-  // Account
-  document.getElementById('btn-logout-all')?.addEventListener('click',()=>{if(!confirm('Von allen Diensten abmelden?'))return;window.electronAPI.clearAllSessions(activeProfileId);showSaveToast();});
-  document.getElementById('btn-google-auth')?.addEventListener('click',()=>{window.electronAPI.openGoogleAuthBrowser(activeProfileId);});
-  // Advanced
-  document.getElementById('btn-check-updates')?.addEventListener('click',async()=>{const el=document.getElementById('update-check-result');if(el){el.textContent='Prüfe…';el.style.color='var(--tx2)';}await window.electronAPI.checkForUpdates();});
-  document.getElementById('btn-restore-providers')?.addEventListener('click',()=>{settings.deletedProviders=[];settings.customProviders={};customProviders={};providerOrder=[];settings.providerOrder=[];autoSave();buildProviderGrid();showToastMsg('Standardanbieter wiederhergestellt.');});
-  document.getElementById('btn-restore-single-open')?.addEventListener('click',()=>{const list=document.getElementById('restore-single-list');if(!list)return;const deleted=settings.deletedProviders||[];if(!deleted.length){showToastMsg('Keine gelöschten Anbieter.');return;}list.style.display=list.style.display==='none'?'block':'none';list.innerHTML='';deleted.forEach(id=>{const p=PROVIDERS_BASE[id];if(!p)return;const btn=document.createElement('button');btn.className='pick-btn';btn.style.cssText='width:100%;text-align:left;margin-bottom:4px;cursor:pointer';btn.textContent='↺ '+p.name;btn.addEventListener('click',()=>{settings.deletedProviders=(settings.deletedProviders||[]).filter(d=>d!==id);autoSave();buildProviderGrid();btn.remove();showToastMsg(p.name+' wiederhergestellt.');});list.appendChild(btn);});});
-  // VPN
-  document.getElementById('btn-check-vpn')?.addEventListener('click',async()=>{const el=document.getElementById('vpn-status');if(el)el.textContent='Prüfe…';const r=await window.electronAPI.checkVpn();if(el)el.innerHTML=r.error?'Fehler: '+r.error:`IP: <b>${r.ip}</b><br>${r.city||''}, ${r.country||''}<br><small>${r.org||''}</small><br>${r.isVpn?'<span style="color:var(--acc)">✓ VPN aktiv</span>':'Kein VPN erkannt'}`;});
-  document.getElementById('btn-nordvpn')?.addEventListener('click',()=>window.electronAPI.openExternal('https://nordvpn.com/'));
-  // Widevine
-  document.getElementById('widevine-dl-link')?.addEventListener('click',e=>{e.preventDefault();window.electronAPI.openExternal('https://github.com/nicehash/electron-widevinecdm');});
-  // Watchlist Export/Import (Punkt 3)
-  document.getElementById('btn-export-watchlist')?.addEventListener('click',()=>{const data=JSON.stringify(watchlist,null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`omnisight-watchlist-${Date.now()}.json`;a.click();URL.revokeObjectURL(url);showToastMsg('Watchlist exportiert.');});
-  document.getElementById('btn-import-watchlist')?.addEventListener('click',()=>{const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.addEventListener('change',async()=>{const file=input.files[0];if(!file)return;try{const text=await file.text();const data=JSON.parse(text);if(!Array.isArray(data))throw new Error('Ungültiges Format');const merged=[...watchlist];data.forEach(item=>{if(!merged.find(w=>w.id===item.id))merged.push(item);});watchlist=merged;settings.watchlist=watchlist;autoSave();showToastMsg(`${data.length} Einträge importiert.`);buildWatchlist();}catch(e){showToastMsg('Fehler: '+e.message);}});input.click();});
-  // Push-Nachrichten Toggle (Punkt 7)
-  document.getElementById('notif-stream-break')?.addEventListener('change',e=>{settings.notificationsConfig=settings.notificationsConfig||{};settings.notificationsConfig.streamBreak=e.target.checked;autoSave();});
-  syncSettingsUI();
-}
-
-function openSettings(){document.getElementById('settings-panel')?.classList.add('open');document.getElementById('settings-overlay')?.classList.add('open');buildSettingsAccountTab();buildAdvancedTab();syncSettingsUI();trackMeta('settingsOpens');}
-function closeSettings(){enableClockDrag(false);document.getElementById('settings-panel')?.classList.remove('open');document.getElementById('settings-overlay')?.classList.remove('open');window.electronAPI.setSettings(settings);showSaveToast();}
-
-function lnkColor(cId,tId){const c=document.getElementById(cId),t=document.getElementById(tId);if(!c||!t)return;c.addEventListener('input',()=>t.value=c.value);t.addEventListener('input',()=>{if(/^#[0-9a-fA-F]{6}$/.test(t.value))c.value=t.value;});}
-
-function syncSettingsUI(){
-  const acc=settings.accentColor||'#30c5bb';['set-accent-color','set-accent-text'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=acc;});
-  const fsr=document.getElementById('font-size-range');if(fsr)fsr.value=settings.fontSize||14;const fsv=document.getElementById('font-size-val');if(fsv)fsv.textContent=(settings.fontSize||14)+'px';
-  const ffs=document.getElementById('font-family-select');if(ffs)ffs.value=settings.designOptions?.fontFamily||'DM Sans';
-  const pt=document.getElementById('particles-toggle');if(pt){pt.checked=!!settings.particlesEnabled;const sec=document.getElementById('particles-options-section');if(sec)sec.style.display=settings.particlesEnabled?'flex':'none';}
-  const cfg=settings.particlesConfig||{};[['particle-count',cfg.count||80],['particle-size',cfg.size||1.5],['particle-speed',cfg.speed||1]].forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v;const elv=document.getElementById(id+'-val');if(elv)elv.textContent=v;});
-  const pcol=document.getElementById('particle-color'),pcolT=document.getElementById('particle-color-text');if(pcol)pcol.value=cfg.color||'#30c5bb';if(pcolT)pcolT.value=cfg.color||'#30c5bb';
-  document.querySelectorAll('.particle-shape-btn').forEach(b=>b.classList.toggle('active',(cfg.shapes||['circle']).includes(b.dataset.shape)));
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===(settings.language||'de')));
-  const clk=settings.clock||{};
-  const ce=document.getElementById('clock-enabled');if(ce)ce.checked=!!clk.enabled;
-  const lbl=document.getElementById('clock-status-label');if(lbl)lbl.textContent=clk.enabled?'Aktiviert':'Deaktiviert';
-  const col=clk.color||'#cfcfcf';['clock-color','clock-color-text'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=col;});
-  const opPct=Math.round((clk.opacity??0.5)*100);const co=document.getElementById('clock-opacity');if(co)co.value=opPct;const cv=document.getElementById('clock-opacity-val');if(cv)cv.textContent=opPct+'%';
-  const sz=clk.size||36;const cs=document.getElementById('clock-size');if(cs)cs.value=sz;const csv=document.getElementById('clock-size-val');if(csv)csv.textContent=sz+'px';
-  document.querySelectorAll('.clock-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.clockType===(clk.type||'digital')));
-  const sec=document.getElementById('clock-show-seconds');if(sec)sec.checked=!!clk.showSeconds;
-  const opts=settings.designOptions||{};const cr=document.getElementById('card-radius');if(cr)cr.value=opts.cardRadius||14;const crv=document.getElementById('card-radius-val');if(crv)crv.textContent=(opts.cardRadius||14)+'px';const sw=document.getElementById('sidebar-width');if(sw)sw.value=opts.sidebarWidth||200;const swv=document.getElementById('sidebar-width-val');if(swv)swv.textContent=(opts.sidebarWidth||200)+'px';const gt=document.getElementById('glass-toggle');if(gt)gt.checked=!!opts.glass;
-  const nBreak=document.getElementById('notif-stream-break');if(nBreak)nBreak.checked=settings.notificationsConfig?.streamBreak!==false;
-  const css=document.getElementById('custom-css-input');if(css)css.value=settings.customCSS||'';
-  updateSortBtn();
-}
-
-// ════════ ACCOUNT TAB ══════════════════════════════════════════════════════════
-async function buildSettingsAccountTab(){const list=document.getElementById('session-list');if(!list)return;list.innerHTML='<div style="font-size:13px;color:var(--tx2);padding:8px 0">Wird geprüft…</div>';const result=await window.electronAPI.getAllSessions(activeProfileId).catch(()=>({}));sessionCache=result;renderSessionList(result);}
-function renderSessionList(res){
-  const list=document.getElementById('session-list');if(!list)return;list.innerHTML='';
-  if(!window._logoutPending)window._logoutPending=new Set();const pending=window._logoutPending;
-  const sorted=Object.entries(PROVIDERS_BASE).sort((a,b)=>a[1].name.localeCompare(b[1].name));
-  const on=sorted.filter(([id])=>!!res[id]),off=sorted.filter(([id])=>!res[id]);
-  function makeItem(id,p,isOn){const item=document.createElement('div');item.style.cssText='display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--bor)';const dot=`<span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${isOn?'#66bb6a':'var(--tx3)'}"></span>`;const cb=`<input type="checkbox" class="session-cb" data-id="${id}" ${pending.has(id)?'checked':''} style="cursor:pointer;accent-color:var(--acc)"/>`;item.innerHTML=dot+cb+`<span style="flex:1;font-size:13px;color:var(--tx)">${esc((settings.cardCustomNames||{})[id]||p.name)}</span>${isOn?'<span style="font-size:11px;color:var(--acc)">✓</span>':''}`;item.querySelector('.session-cb')?.addEventListener('change',e=>{if(e.target.checked)pending.add(id);else pending.delete(id);const btn=document.getElementById('btn-logout-selected');if(btn)btn.style.display=pending.size?'flex':'none';});return item;}
-  if(on.length){const lbl=document.createElement('div');lbl.style.cssText='font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.1em;padding:8px 0 4px';lbl.textContent='Angemeldet';list.appendChild(lbl);on.forEach(([id,p])=>list.appendChild(makeItem(id,p,true)));}
-  if(off.length){const lbl=document.createElement('div');lbl.style.cssText='font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.1em;padding:8px 0 4px;margin-top:8px';lbl.textContent='Nicht angemeldet';list.appendChild(lbl);off.forEach(([id,p])=>list.appendChild(makeItem(id,p,false)));}
-  let btn=document.getElementById('btn-logout-selected');if(!btn){btn=document.createElement('button');btn.id='btn-logout-selected';btn.className='settings-danger-btn';btn.style.cssText='display:none;margin-top:10px';btn.textContent='Von Auswahl abmelden';btn.addEventListener('click',()=>{if(!pending.size)return;showLogoutConfirmModal([...pending]);});list.after(btn);}btn.style.display=pending.size?'flex':'none';
-}
-function showLogoutConfirmModal(ids){
-  const names=ids.map(id=>(settings.cardCustomNames||{})[id]||PROVIDERS_BASE[id]?.name||id).join(', ');
-  let modal=document.getElementById('logout-confirm-modal');
-  if(!modal){modal=document.createElement('div');modal.id='logout-confirm-modal';modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;display:flex;align-items:center;justify-content:center';modal.innerHTML='<div style="background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r);padding:24px;max-width:380px;width:90%;text-align:center"><div style="font-size:32px;margin-bottom:12px">🔒</div><h3 style="font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--tx);margin-bottom:8px">Abmelden</h3><p id="logout-confirm-text" style="font-size:13px;color:var(--tx2);margin-bottom:16px;line-height:1.5"></p><div style="display:flex;gap:8px;justify-content:center"><button id="logout-confirm-ok" style="padding:10px 24px;background:var(--danger);color:#fff;border:none;border-radius:var(--r-sm);cursor:pointer;font-size:13px;font-weight:600">Abmelden</button><button id="logout-confirm-cancel" style="padding:10px 20px;background:var(--bgc);color:var(--tx);border:1px solid var(--bor);border-radius:var(--r-sm);cursor:pointer;font-size:13px">Abbrechen</button></div></div>';document.body.appendChild(modal);}
-  document.getElementById('logout-confirm-text').textContent='Von folgenden Diensten abmelden?\n'+names;modal.style.display='flex';
-  document.getElementById('logout-confirm-ok').onclick=()=>{window.electronAPI.clearProvidersSessions(activeProfileId,ids);window._logoutPending=new Set();modal.style.display='none';setTimeout(()=>buildSettingsAccountTab(),500);};
-  document.getElementById('logout-confirm-cancel').onclick=()=>modal.style.display='none';
-}
-
-// ════════ ADVANCED TAB ════════════════════════════════════════════════════════
-async function buildAdvancedTab(){buildCustomProvidersList();checkWidevineStatus();}
-function buildCustomProvidersList(){const list=document.getElementById('custom-providers-list');if(!list)return;list.innerHTML='';const custom=customProviders||{};if(!Object.keys(custom).length){list.innerHTML='<div style="font-size:12px;color:var(--tx3)">Keine eigenen Anbieter</div>';return;}Object.entries(custom).forEach(([id,p])=>{const item=document.createElement('div');item.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor);font-size:13px;color:var(--tx)';item.innerHTML=`<span style="flex:1">${esc(p.name)}</span><button class="settings-danger-btn" style="width:auto;padding:4px 10px;font-size:11px">✕</button>`;item.querySelector('button').addEventListener('click',()=>{delete customProviders[id];settings.customProviders=customProviders;autoSave();buildProviderGrid();buildCustomProvidersList();});list.appendChild(item);});}
-async function checkWidevineStatus(){const el=document.getElementById('widevine-status');if(!el)return;const s=await window.electronAPI.getWidevineStatus().catch(()=>null);if(s?.installed)el.innerHTML=`<span style="color:var(--acc)">✓ CDM installiert: <code style="font-size:10px">${s.path}</code></span>`;else el.innerHTML=`<span style="color:var(--tx3)">✗ Nicht gefunden. Pfad: <code style="font-size:10px">${s?.cdmDir||'AppData/Roaming/OmniSight/WidevineCdm'}</code></span>`;}
-
-// ════════ PLUGINS (Punkt 26) ══════════════════════════════════════════════════
-function setupPluginsTab(){buildPluginPresets();}
-function buildPluginPresets(){
-  const container=document.getElementById('plugin-presets-list');if(!container)return;
-  container.innerHTML='';
-  PLUGIN_PRESETS.forEach(preset=>{
-    const isInst=installedPlugins.has(preset.id);
-    const div=document.createElement('div');div.className='plugin-preset';
-    div.innerHTML=`<div class="plugin-preset-info"><div class="plugin-preset-name">${esc(preset.name)}</div><div class="plugin-preset-desc">${esc(preset.desc)}</div></div>`;
-    let btn;
-    if(preset.note){
-      btn=document.createElement('button');btn.className='plugin-preset-btn plugin-preset-btn--info';btn.textContent='Info';
-      btn.addEventListener('click',()=>showToastMsg(preset.note));
-    }else if(isInst){
-      btn=document.createElement('button');btn.className='plugin-preset-btn plugin-preset-btn--remove';btn.textContent='Deinstallieren';
-      btn.addEventListener('click',()=>{installedPlugins.delete(preset.id);localStorage.setItem('installedPlugins',JSON.stringify([...installedPlugins]));delete pluginDomainStore[preset.id];rebuildPluginDomains();buildPluginPresets();});
-    }else{
-      btn=document.createElement('button');btn.className='plugin-preset-btn plugin-preset-btn--install';btn.textContent='Installieren';
-      btn.addEventListener('click',async()=>{btn.textContent='Lädt…';btn.disabled=true;const r=await window.electronAPI.fetchAdblockList(preset.url);if(r.ok){pluginDomainStore[preset.id]=r.domains;rebuildPluginDomains();installedPlugins.add(preset.id);localStorage.setItem('installedPlugins',JSON.stringify([...installedPlugins]));buildPluginPresets();}else{btn.textContent='Fehler';btn.disabled=false;}});
-    }
-    div.appendChild(btn);container.appendChild(div);
-  });
-}
-function rebuildPluginDomains(){const all=[...new Set(Object.values(pluginDomainStore).flat())];window.electronAPI.applyExtraAdDomains(all);}
-
-// ════════ WATCHED CONTENT (Punkt 24) ══════════════════════════════════════════
-function setupWatchedContent(){
-  document.getElementById('watched-content-close')?.addEventListener('click',()=>document.getElementById('watched-content-overlay').style.display='none');
-  document.getElementById('watched-content-overlay')?.addEventListener('click',e=>{if(e.target.id==='watched-content-overlay')e.target.style.display='none';});
-  document.getElementById('watched-search')?.addEventListener('input',()=>renderWatchedContentGrid());
-  document.getElementById('watched-filter')?.addEventListener('change',()=>renderWatchedContentGrid());
-  document.getElementById('btn-add-watched')?.addEventListener('click',()=>{const title=prompt('Titel eingeben:');if(!title)return;const type=prompt('Typ (movie/tv/anime):','movie')||'movie';const id='manual_'+Date.now();watchedContentList.push({id,title,mediaType:type,addedAt:new Date().toISOString()});settings.watchedContentList=watchedContentList;autoSave();renderWatchedContentGrid();});
-}
-function openWatchedContentModal(){renderWatchedContentGrid();document.getElementById('watched-content-overlay').style.display='flex';}
-function renderWatchedContentGrid(){
-  const grid=document.getElementById('watched-content-grid');if(!grid)return;
-  const search=(document.getElementById('watched-search')?.value||'').toLowerCase();
-  const filter=document.getElementById('watched-filter')?.value||'all';
-  let items=watchedContentList.filter(i=>(filter==='all'||i.mediaType===filter)&&(!search||i.title.toLowerCase().includes(search)));
-  if(!items.length){grid.innerHTML='<div style="color:var(--tx2);font-size:13px;padding:20px;grid-column:1/-1;text-align:center">Keine Einträge. Füge Inhalte über "+ Hinzufügen" ein.</div>';return;}
-  grid.innerHTML='';
-  items.forEach(item=>{
-    const card=document.createElement('div');card.className='wl-card';
-    card.innerHTML=`${item.poster?`<img class="wl-card-poster" src="${item.poster}" loading="lazy" onerror="this.style.display='none'"/>`:'<div class="wl-card-poster-ph">🎬</div>'}<div class="wl-card-body"><div class="wl-card-title">${esc(item.title)}</div><div class="wl-card-date">${item.mediaType==='movie'?'🎬':'item.mediaType==="anime"'?'⛩️':'📺'} ${item.mediaType||'?'}</div></div><button class="wl-card-remove" title="Entfernen">✕</button>`;
-    card.querySelector('.wl-card-remove').addEventListener('click',e=>{e.stopPropagation();watchedContentList=watchedContentList.filter(w=>w.id!==item.id);settings.watchedContentList=watchedContentList;autoSave();renderWatchedContentGrid();});
-    grid.appendChild(card);
-  });
-}
-
-// ════════ TITLEBAR ════════════════════════════════════════════════════════════
-function setupTitlebar(){document.getElementById('btn-minimize')?.addEventListener('click',()=>window.electronAPI.minimize());document.getElementById('btn-maximize')?.addEventListener('click',()=>window.electronAPI.maximize());document.getElementById('btn-close')?.addEventListener('click',()=>window.electronAPI.close());}
-
-// ════════ START ═══════════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>init());
-
 // ════════ PERSISTENTE NOTIFICATIONS LADEN ═════════════════════════
 async function loadPersistedNotifications(){
   try{
@@ -947,16 +821,6 @@ async function loadPersistedNotifications(){
 }
 
 // ════════ WATCHLIST SORTIERUNG (erweitert) ════════════════════════
-// buildWatchlist ist bereits vorhanden, wir überschreiben die Sort-Logik
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('wl-sort')?.addEventListener('change',()=>{
-    const cat=document.querySelector('.wl-cat-btn.active')?.dataset.cat||'all';
-    buildWatchlist(cat);
-  });
-});
-
-// Überschreibt buildWatchlist mit vollständiger Sortierung
-const _origBuildWatchlist=window.buildWatchlist||null;
 function buildWatchlistSorted(cat){
   const catArg=cat||document.querySelector('.wl-cat-btn.active')?.dataset.cat||'all';
   const sortVal=document.getElementById('wl-sort')?.value||'alpha';
@@ -1038,12 +902,6 @@ function closeOnboarding(){
   settings.onboardingDone=true;autoSave();
 }
 
-// Onboarding-Aufruf in init() nach Settings-Load einbinden:
-const _origInit=init;
-async function initWithOnboarding(){
-  // init() ist bereits definiert, wir rufen es direkt auf und ergänzen danach
-}
-
 // ════════ TMDB-SUCHE AB 2 ZEICHEN ════════════════════════════════
 // Die setupSearch-Funktion wird um früheren Trigger ergänzt
 const _origSetupSearch=setupSearch;
@@ -1058,27 +916,38 @@ function patchSearchEarlyTrigger(){
     }
   });
 }
+// ════════ SHORTCUTS MODAL ═════════════════════════════════════════
+function setupShortcutsModal(){
+  // Shortcut-Liste anzeigen mit "?"
+  document.addEventListener('keydown',e=>{
+    if(e.key==='?'&&!e.ctrlKey&&!e.altKey&&!['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){
+      const existing=document.getElementById('shortcuts-modal-overlay');
+      if(existing){existing.remove();return;}
+      const overlay=document.createElement('div');overlay.id='shortcuts-modal-overlay';
+      overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:flex;align-items:center;justify-content:center';
+      overlay.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r);padding:28px 32px;min-width:340px;box-shadow:0 24px 60px rgba(0,0,0,.6)">
+        <div style="font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--tx);margin-bottom:18px">⌨️ Tastenkürzel</div>
+        ${[['F11','Vollbild umschalten'],['Strg + F','Suche fokussieren'],['Esc','Vollbild beenden / Popup schließen'],['?','Diese Übersicht öffnen/schließen'],['Strg+Shift+Alt+R','Admin: PIN zurücksetzen']].map(([k,v])=>`<div style="display:flex;justify-content:space-between;gap:24px;padding:6px 0;border-bottom:1px solid var(--bor);font-size:13px"><span style="color:var(--tx2)">${v}</span><kbd style="background:var(--bgc);border:1px solid var(--borh);border-radius:5px;padding:2px 8px;font-size:11px;color:var(--tx);font-family:monospace">${k}</kbd></div>`).join('')}
+        <div style="margin-top:14px;text-align:right"><button onclick="document.getElementById('shortcuts-modal-overlay').remove()" style="border:1px solid var(--bor);background:transparent;color:var(--tx2);padding:6px 16px;border-radius:var(--r-sm);cursor:pointer;font-size:12px">Schließen</button></div>
+      </div>`;
+      overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+      document.body.appendChild(overlay);
+    }
+  });
+}
 
-// ════════ INIT PATCH ═══════════════════════════════════════════════
-// Wir patchen DOMContentLoaded um Onboarding + Recent + Notifications einzuhängen
-const _origDCL=document.addEventListener.bind(document);
-document.addEventListener('DOMContentLoaded',async()=>{
-  // Wird nach dem normalen init() aus app.js Teil 1 ausgeführt
-  setTimeout(async()=>{
-    // Persistente Notifications laden
-    await loadPersistedNotifications();
-    // Onboarding prüfen
-    setupOnboarding();
-    showOnboarding(false);
-    // Zuletzt geöffnet
-    buildRecentlyOpened();
-    // TMDB-Frühtrigger patchen
-    patchSearchEarlyTrigger();
-    // Watchlist-Sort Listener
-    document.getElementById('wl-sort')?.addEventListener('change',()=>{
-      const cat=document.querySelector('.wl-cat-btn.active')?.dataset.cat||'all';
-      buildWatchlistSorted(cat);
-    });
-    // init()-Watcher auf settings für onboardingDone
-  },600);
-});
+// ════════ OFFLINE CACHE ════════════════════════════════════════════
+const _tmdbCache={};
+const _origRunTmdbSearch=typeof runTmdbSearch==='function'?runTmdbSearch:null;
+function cachedTmdbSearch(q,page){
+  const key=q+'_'+page;
+  if(_tmdbCache[key]&&Date.now()-_tmdbCache[key].ts<5*60*1000){
+    // Cache gültig (5 min), direkt rendern
+    return _tmdbCache[key].data;
+  }
+  return null;
+}
+
+
+// ════════ START ════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>init());

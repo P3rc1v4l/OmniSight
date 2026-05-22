@@ -35,7 +35,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "OmniSight"
+      "shortcutName": "OmniSight",
+      "differentialPackage": false
     },
     "publish": {
       "provider": "github",
@@ -44,9 +45,14 @@
       "private": true
     },
     "generateUpdatesFilesForAllChannels": false,
-    "buildDependenciesFromSource": false
+    "buildDependenciesFromSource": false,
+    "differentialPackage": false
   },
-  "keywords": ["streaming","electron","hub"],
+  "keywords": [
+    "streaming",
+    "electron",
+    "hub"
+  ],
   "author": "OmniSight",
   "license": "MIT",
   "devDependencies": {

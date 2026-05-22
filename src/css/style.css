@@ -498,3 +498,15 @@ input,select,textarea{font-family:var(--font-b);font-size:var(--fs)}
 
 /* ═══ ZULETZT GEÖFFNET CHIPS ═══ */
 .recent-chip:hover{border-color:var(--acc)!important;color:var(--tx)!important}
+
+/* ═══ SESSION-INDIKATOR AUF KARTEN ═══ */
+.card-session-dot{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:#66bb6a;box-shadow:0 0 6px rgba(102,187,106,.7);z-index:10;animation:sessionPulse 2.5s ease-in-out infinite}
+@keyframes sessionPulse{0%,100%{box-shadow:0 0 4px rgba(102,187,106,.5)}50%{box-shadow:0 0 10px rgba(102,187,106,.9)}}
+
+/* ═══ SHORTCUTS HINT BUTTON ═══ */
+#btn-shortcuts-hint{width:30px;font-size:13px;font-weight:700;font-family:monospace;color:var(--tx3)}
+#btn-shortcuts-hint:hover{color:var(--acc);background:var(--accg)}
+
+/* ═══ STATISTIKEN IN SIDEBAR-BOTTOM ═══ */
+#nav-stats-bottom{font-size:calc(var(--fs) - 1px)}
+#nav-stats-bottom.active{background:var(--accg);color:var(--acc)}

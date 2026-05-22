@@ -1,23 +1,27 @@
-# OmniSight Changelog
-
 ## v2.1.0 — 2025
 
-### 🐛 Bugfix
-- **Build-Fehler behoben**: `installerName` ist kein gültiges NSIS-Property in electron-builder 24.x → entfernt, `shortcutName` verwendet
+### 🐛 Bugfixes
+- **Kritischer Fix**: `app.js` hatte 3× `DOMContentLoaded` + 2× `init()` + doppelte Funktionsdefinitionen → App zeigte komplett leere Übersicht
+- **Build-Fix**: `installerName` ist kein gültiges NSIS-Property → entfernt
+- **blockmap** wird nicht mehr erzeugt (`differentialPackage: false` in nsis + build)
 
 ### 🆕 Neue Features
-- **Onboarding-Screen** beim ersten Start (5 Schritte: Willkommen, Übersicht, Neuigkeiten, Profile, Los geht's)
-- Onboarding jederzeit wieder abrufbar über Einstellungen → Mehr
-- **Watchlist-Sortierung**: A–Z, Datum aufsteigend, Datum absteigend, Zuletzt gemerkt
-- **„Zuletzt geöffnet"**-Bereich oben in der Übersicht (letzte 4 Anbieter als Chips)
-- **TMDB-Suche ab 2 Zeichen** (statt erst ab Enter/350ms)
+- **Onboarding-Screen** (5 Schritte) beim ersten Start; jederzeit in Einstellungen → Mehr abrufbar
+- **Watchlist-Sortierung**: A–Z, Datum aufsteigend/absteigend, Zuletzt gemerkt
+- **„Zuletzt geöffnet"-Chips** oben in der Übersicht (letzte 4 Anbieter)
+- **TMDB-Suche ab 2 Zeichen** mit kurzem Debounce
+- **Session-Indikator**: grüner pulsierender Punkt auf Karten wenn eingeloggt
+- **Shortcuts-Modal** (Taste `?` oder Button in Titelleiste) zeigt alle Tastenkürzel
+- **Watchlist-Duplikat-Toast**: Toast wenn Inhalt bereits in der Liste
 
 ### 🔧 Verbesserungen
-- **Benachrichtigungen persistent**: werden pro Profil gespeichert, bleiben nach Neustart erhalten (max. 50)
-- **Stream-Pause-Timer kumulativ**: läuft weiter wenn Anbieter gewechselt wird, 2h-Gesamt-Session
-- **Profilbilder als Base64** gespeichert: funktionieren nach PC-Wechsel oder Pfad-Änderung
-- **Admin-Reset sicherer**: Klartext-Datei entfernt, Verifikation über SHA-256-Hash im Main-Prozess
+- **Statistiken-Button** direkt über Einstellungen in der Sidebar (unten)
+- **Benachrichtigungen persistent**: pro Profil gespeichert, bleiben nach Neustart
+- **Stream-Pause-Timer kumulativ**: 2h Gesamtzeit über Anbieterwechsel
+- **Profilbilder als Base64** für Cross-Platform-Kompatibilität
+- **Admin-Reset sicherer**: SHA-256-Hash statt Klartext-Datei
 
+# OmniSight Changelog
 
 ## v2.0.0 — Major Release (2025)
 
