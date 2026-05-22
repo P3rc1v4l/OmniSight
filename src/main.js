@@ -105,6 +105,7 @@ function createMainWindow() {
     height: savedBounds?.height || 900,
     minWidth: 820, minHeight: 520,
     frame: false, backgroundColor: '#0a0a0f',
+    show: false,  // Verhindert kurzes Aufblitzen vor Splash
     icon: path.join(__dirname, 'assets', 'icon.ico'),
     webPreferences: {
       nodeIntegration: false, contextIsolation: true,
@@ -119,7 +120,9 @@ function createMainWindow() {
 
   // Position beim Schließen speichern
   mainWindow.on('close', () => {
-    if (!mainWindow.isMaximized()) store.set('windowBounds', mainWindow.getBounds());
+    const isMax = mainWindow.isMaximized();
+    if (!isMax) store.set('windowBounds', mainWindow.getBounds());
+    else store.set('windowBounds', { ...store.get('windowBounds', {}), maximized: true });
   });
 
   setupSession(session.defaultSession);
@@ -133,11 +136,32 @@ function createMainWindow() {
   });
   splash.loadFile(path.join(__dirname, 'splash.html'));
 
+  // Hauptfenster laden
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
-  mainWindow.once('ready-to-show', () => {
-    setTimeout(() => { splash.destroy(); mainWindow.show(); }, 2500);
+
+  // Splash nach 2.5s schließen, Hauptfenster zeigen
+  // did-finish-load ist zuverlässiger als ready-to-show bei show:false
+  let splashDone = false;
+  function showMain() {
+    if (splashDone) return;
+    splashDone = true;
+    try { splash.destroy(); } catch {}
+    mainWindow.show();
+    mainWindow.focus();
+    if (savedBounds?.maximized) mainWindow.maximize();
+  }
+
+  // Mindestens 2.5s Splash, dann zeigen sobald geladen
+  const splashTimer = setTimeout(showMain, 2500);
+  mainWindow.webContents.once('did-finish-load', () => {
+    // Warte mind. 2.5s, aber nicht ewig
+    if (!splashDone) {
+      // Timer läuft noch → nichts tun, showMain() wird nach 2.5s aufgerufen
+      // Falls did-finish-load nach dem Timer kommt → showMain() ist schon fertig
+    }
   });
-  mainWindow.hide();
+  // Fallback: nach 5s auf jeden Fall zeigen
+  setTimeout(showMain, 5000);
 
   mainWindow.on('closed', () => { mainWindow = null; app.quit(); });
   mainWindow.on('enter-full-screen', () => mainWindow?.webContents.send('fullscreen-change', true));
