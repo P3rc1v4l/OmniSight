@@ -5,27 +5,47 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win --x64 --publish never",
-    "build:mac": "electron-builder --mac --publish never",
-    "build:linux": "electron-builder --linux --publish never",
+    "build": "electron-builder --win --x64",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
     "make-icon": "node scripts/generate-icons.js"
   },
   "build": {
     "appId": "com.omnisight.app",
     "productName": "OmniSight",
-    "directories": { "output": "dist" },
-    "win": { "target": "nsis", "icon": "src/assets/icon.ico" },
-    "mac": { "target": "dmg",  "icon": "src/assets/icon.png" },
-    "linux": { "target": "AppImage", "icon": "src/assets/icon.png" },
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "src/assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "src/assets/icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "src/assets/icon.png"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     },
-    "publish": null
+    "publish": {
+      "provider": "github",
+      "owner": "P3rc1v4l",
+      "repo": "OmniSight",
+      "private": true
+    }
   },
-  "keywords": ["streaming","electron","hub"],
+  "keywords": [
+    "streaming",
+    "electron",
+    "hub"
+  ],
   "author": "OmniSight",
   "license": "MIT",
   "devDependencies": {
