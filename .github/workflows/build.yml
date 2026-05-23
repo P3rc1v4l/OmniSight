@@ -9,7 +9,7 @@ on:
 
 permissions:
   contents: write
-  actions: write   # nötig für artifact-delete
+  actions: write
 
 jobs:
   build-windows:
@@ -22,10 +22,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          # KEIN cache: 'npm' → braucht package-lock.json die wir nicht einchecken
 
       - name: Abhängigkeiten installieren
-        run: npm ci
+        run: npm install
+        # npm ci würde package-lock.json voraussetzen
 
       - name: Icons generieren
         run: node scripts/generate-icons.js
@@ -34,11 +35,10 @@ jobs:
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $env:GITHUB_OUTPUT
 
-      - name: App bauen (.exe) – kein Auto-Publish
+      - name: App bauen
         run: npm run build
 
-      # Alte Artifacts löschen um Storage zu sparen (kostet sonst nach 0,5 GB)
-      - name: Alte Artifacts aufräumen
+      - name: Alte Artifacts aufräumen (Storage sparen)
         uses: actions/github-script@v7
         with:
           script: |
@@ -47,7 +47,7 @@ jobs:
               repo: context.repo.repo,
               per_page: 100
             });
-            const cutoff = Date.now() - 24 * 60 * 60 * 1000; // 24h alt
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000;
             for (const a of artifacts.data.artifacts) {
               if (new Date(a.created_at).getTime() < cutoff) {
                 await github.rest.actions.deleteArtifact({
@@ -55,26 +55,27 @@ jobs:
                   repo: context.repo.repo,
                   artifact_id: a.id
                 });
-                console.log(`Gelöscht: ${a.name} (${a.id})`);
+                console.log(`Gelöscht: ${a.name}`);
               }
             }
 
-      - name: Artifact hochladen (nur .exe, KEINE blockmap)
+      - name: Artifact hochladen (nur .exe)
         uses: actions/upload-artifact@v4
         with:
           name: OmniSight-v${{ steps.version.outputs.version }}-Windows
           path: dist/*.exe
           if-no-files-found: warn
-          retention-days: 1      # nach 1 Tag automatisch gelöscht → spart Storage
-          compression-level: 6
-          overwrite: true        # alten gleichen Namen überschreiben
+          retention-days: 3
+          overwrite: true
 
-      # Nur bei echtem Tag-Push: GitHub Release erstellen
+      # Nur bei Tag-Push: GitHub Release + Auto-Update
       - name: GitHub Release erstellen (nur bei Tag v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.exe      # keine blockmap im Release
+          files: |
+            dist/*.exe
+            dist/latest.yml
           generate_release_notes: true
           draft: false
           prerelease: false
