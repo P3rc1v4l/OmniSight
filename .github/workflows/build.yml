@@ -6,6 +6,13 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Plattform'
+        required: false
+        default: 'windows'
+        type: choice
+        options: [windows, mac, linux, all]
 
 permissions:
   contents: write
@@ -15,18 +22,15 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - name: Repository auschecken
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Node.js einrichten
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-          # KEIN cache: 'npm' → braucht package-lock.json die wir nicht einchecken
+          # Kein npm cache – kein package-lock.json eingecheckt
 
       - name: Abhängigkeiten installieren
         run: npm install
-        # npm ci würde package-lock.json voraussetzen
 
       - name: Icons generieren
         run: node scripts/generate-icons.js
@@ -35,27 +39,30 @@ jobs:
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $env:GITHUB_OUTPUT
 
-      - name: App bauen
+      - name: Windows Build (.exe)
         run: npm run build
+        env:
+          # GH_TOKEN: In Repo-Settings → Secrets → GH_TOKEN hinterlegen (Personal Access Token)
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          # Code-Signing (optional): scripts/create-cert.ps1 ausführen und Secrets setzen
+          # Dann verschwindet die Windows SmartScreen-Warnung beim ersten Start
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
 
-      - name: Alte Artifacts aufräumen (Storage sparen)
+      - name: Alte Artifacts aufräumen
         uses: actions/github-script@v7
+        continue-on-error: true
         with:
           script: |
             const artifacts = await github.rest.actions.listArtifactsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              per_page: 100
+              owner: context.repo.owner, repo: context.repo.repo, per_page: 100
             });
             const cutoff = Date.now() - 24 * 60 * 60 * 1000;
             for (const a of artifacts.data.artifacts) {
               if (new Date(a.created_at).getTime() < cutoff) {
                 await github.rest.actions.deleteArtifact({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  artifact_id: a.id
+                  owner: context.repo.owner, repo: context.repo.repo, artifact_id: a.id
                 });
-                console.log(`Gelöscht: ${a.name}`);
               }
             }
 
@@ -68,8 +75,8 @@ jobs:
           retention-days: 3
           overwrite: true
 
-      # Nur bei Tag-Push: GitHub Release + Auto-Update
-      - name: GitHub Release erstellen (nur bei Tag v*)
+      # GitHub Release nur bei Tag → Auto-Update funktioniert dadurch
+      - name: GitHub Release erstellen
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
@@ -77,7 +84,73 @@ jobs:
             dist/*.exe
             dist/latest.yml
           generate_release_notes: true
-          draft: false
-          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Mac Build (nur wenn explizit gewählt oder bei Tag)
+  build-mac:
+    if: |
+      startsWith(github.ref, 'refs/tags/v') ||
+      github.event.inputs.platform == 'mac' ||
+      github.event.inputs.platform == 'all'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: node scripts/generate-icons.js
+      - id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      - name: Mac Build (.dmg)
+        run: npm run build:mac
+      - name: Artifact hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmniSight-v${{ steps.version.outputs.version }}-Mac
+          path: dist/*.dmg
+          if-no-files-found: warn
+          retention-days: 3
+          overwrite: true
+      - name: GitHub Release (Mac)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Linux Build (nur wenn explizit gewählt oder bei Tag)
+  build-linux:
+    if: |
+      startsWith(github.ref, 'refs/tags/v') ||
+      github.event.inputs.platform == 'linux' ||
+      github.event.inputs.platform == 'all'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: node scripts/generate-icons.js
+      - id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      - name: Linux Build (.AppImage)
+        run: npm run build:linux
+      - name: Artifact hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmniSight-v${{ steps.version.outputs.version }}-Linux
+          path: dist/*.AppImage
+          if-no-files-found: warn
+          retention-days: 3
+          overwrite: true
+      - name: GitHub Release (Linux)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.AppImage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
