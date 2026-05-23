@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -9,7 +9,8 @@
     "build:mac": "electron-builder --mac --publish never",
     "build:linux": "electron-builder --linux --publish never",
     "build:release": "electron-builder --win --x64 --publish always",
-    "make-icon": "node scripts/generate-icons.js"
+    "make-icon": "node scripts/generate-icons.js",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
     "appId": "com.omnisight.app",
@@ -17,14 +18,32 @@
     "artifactName": "${productName}-Setup-${version}.${ext}",
     "generateUpdatesFilesForAllChannels": false,
     "buildDependenciesFromSource": false,
-    "directories": { "output": "dist" },
-    "files": ["src/**/*", "!src/**/*.map"],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "!src/**/*.map"
+    ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "src/assets/icon.ico"
     },
-    "mac": { "target": "dmg", "icon": "src/assets/icon.png" },
-    "linux": { "target": "AppImage", "icon": "src/assets/icon.png" },
+    "mac": {
+      "target": "dmg",
+      "icon": "src/assets/icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "src/assets/icon.png"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
@@ -41,16 +60,22 @@
       "owner": "P3rc1v4l",
       "repo": "OmniSight",
       "private": true
-    }
+    },
+    "afterPack": "./scripts/fuses.js"
   },
-  "keywords": ["streaming","electron","hub"],
+  "keywords": [
+    "streaming",
+    "electron",
+    "hub"
+  ],
   "author": "OmniSight",
   "license": "MIT",
   "devDependencies": {
     "electron": "^33.0.0",
     "electron-builder": "^24.9.1",
     "sharp": "^0.33.4",
-    "png-to-ico": "^2.1.8"
+    "png-to-ico": "^2.1.8",
+    "@electron/fuses": "^1.8.0"
   },
   "dependencies": {
     "electron-store": "^8.2.0",

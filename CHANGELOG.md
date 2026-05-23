@@ -1,3 +1,20 @@
+## v3.0.1 — 2025
+
+### 🐛 Bugfix
+- **GitHub Actions Storage-Fehler behoben**: Artifacts haben jetzt `retention-days: 1` (automatisch nach 24h gelöscht) und es wird nur noch die `.exe` hochgeladen (keine `.blockmap`)
+- Workflow bereinigt: alte Artifacts werden vor jedem neuen Build automatisch gelöscht
+
+### 🔒 Sicherheit
+- **Electron Fuses** eingebaut: `RunAsNode`, `EnableNodeOptionsEnvironmentVariable`, `EnableNodeCliInspectArguments` deaktiviert – schützt vor Code-Injection auch wenn Angreifer Packager-Optionen manipulieren
+- **IPC Input-Validation** in `main.js`: alle kritischen Handler validieren Typ, Länge und Format der Eingaben (profileId, providerId, seconds, list)
+- **Electron-Versionswarnung** im Start-Log wenn Version < 28
+- `npm ci` statt `npm install` im Workflow (deterministisch, keine Lock-Abweichungen)
+
+### 🆕 Neue Features
+- **Provider-Karte: „Zuletzt geöffnet"** – unter dem Tag-Text wird angezeigt wann der Anbieter zuletzt genutzt wurde (z.B. „⏱ vor 2h", „⏱ vor 3d")
+- **Einstellungs-Suche** – Suchfeld oben in der Einstellungs-Sidebar filtert alle Einstellungskarten live nach Text
+- **Drag & Drop zu Favoriten** – Karte über die „⭐ Favoriten"-Überschrift ziehen fügt sie sofort zu Favoriten hinzu
+
 # OmniSight Changelog
 
 ## v3.0.0 — Major Release 2025

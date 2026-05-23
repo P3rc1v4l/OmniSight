@@ -412,6 +412,12 @@
   <div class="settings-modal" id="settings-modal">
     <div class="settings-modal-sidebar">
       <div class="sms-title">⚙️ Einstellungen</div>
+      <div style="padding:0 4px 10px">
+        <div style="display:flex;align-items:center;gap:7px;background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r-sm);padding:6px 10px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="settings-search-input" type="text" placeholder="Suchen…" style="border:none;background:transparent;color:var(--tx);font-size:11px;outline:none;width:100%" autocomplete="off"/>
+        </div>
+      </div>
       <nav class="sms-nav">
         <button class="sms-btn active" data-stab="appearance">🎨 Design</button>
         <button class="sms-btn" data-stab="account">🔑 Account</button>
@@ -421,7 +427,7 @@
         <button class="sms-btn" data-stab="advanced">⚙ Mehr</button>
       </nav>
       <div style="flex:1"></div>
-      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.0.0</div>
+      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.0.1</div>
     </div>
     <div class="settings-modal-content">
       <button class="settings-modal-close" id="settings-close">✕</button>

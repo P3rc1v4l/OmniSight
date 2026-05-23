@@ -1,4 +1,16 @@
 'use strict';
+
+// ── INPUT VALIDATION ──────────────────────────────────────────────
+function validateString(val, maxLen=256){return typeof val==='string'&&val.length<=maxLen;}
+function validateProfileId(id){return validateString(id,64)&&/^[a-zA-Z0-9_-]+$/.test(id);}
+function validateNumber(val,min=0,max=Number.MAX_SAFE_INTEGER){return typeof val==='number'&&isFinite(val)&&val>=min&&val<=max;}
+
+// ── ELECTRON VERSION CHECK ─────────────────────────────────────────
+const electronVer=process.versions.electron?.split('.')[0];
+if(electronVer&&parseInt(electronVer)<28){
+  console.error('[Security] Electron <28 detected! Please update to >=33 for security patches.');
+}
+
 const {app,BrowserWindow,ipcMain,session,shell,dialog,Notification}=require('electron');
 const path=require('path'),fs=require('fs'),crypto=require('crypto');
 const Store=require('electron-store');
@@ -105,17 +117,21 @@ ipcMain.on('set-profiles',(_,v)=>{
   setImmediate(()=>{store.set('profiles',v);_profilesWritePending=false;});
 });
 ipcMain.handle('get-active-profile',()=>store.get('activeProfile','default'));
-ipcMain.on('set-active-profile',(_,id)=>store.set('activeProfile',id));
+ipcMain.on('set-active-profile',(_,id)=>{if(!validateString(id,64))return;store.set('activeProfile',id);});
 
 // ── IPC: NOTIFICATIONS (persistent) ──────────────────────────────
 ipcMain.handle('get-notifications',(_,profileId)=>store.get(`notifications_${profileId}`||'notifications_default',[]));
-ipcMain.on('set-notifications',(_,{profileId,list})=>store.set(`notifications_${profileId}`,list));
+ipcMain.on('set-notifications',(_,{profileId,list})=>{
+  if(!validateString(profileId,64)||!Array.isArray(list))return;
+  store.set(`notifications_${profileId}`,list.slice(0,100));
+});
 
 // ── IPC: NOTIFICATION (system) ────────────────────────────────────
 ipcMain.on('show-notification',(_,{title,body})=>{if(Notification.isSupported())new Notification({title,body,icon:path.join(__dirname,'assets','icon.png')}).show();});
 
 // ── IPC: IMAGE PICKER ─────────────────────────────────────────────
 ipcMain.handle('pick-image',async(_,dest)=>{
+  if(!validateString(dest,128))return null;
   const r=await dialog.showOpenDialog(mainWindow,{title:'Bild',filters:[{name:'Bilder',extensions:['jpg','jpeg','png','gif','webp']}],properties:['openFile']});
   if(r.canceled||!r.filePaths.length)return null;
   const src=r.filePaths[0];const dir=path.join(app.getPath('userData'),'userImages');
@@ -185,7 +201,8 @@ ipcMain.on('open-google-auth-browser',(_,profileId)=>{
 ipcMain.handle('check-vpn',async()=>{try{const r=await session.defaultSession.fetch('https://ipapi.co/json/',{headers:{'User-Agent':UA}});const d=await r.json();return{ip:d.ip,country:d.country_name,city:d.city,org:d.org,isVpn:!!(d.org?.toLowerCase().includes('vpn')||d.org?.toLowerCase().includes('proxy'))};}catch(e){return{error:e.message};}});
 
 // ── IPC: STREAM STATS ─────────────────────────────────────────────
-ipcMain.on('record-watch-time',(_,{providerId,seconds,profileId='default'})=>{const k=`streamStats_${profileId}`;const s=store.get(k,{});if(!s[providerId])s[providerId]={total:0,byDay:[0,0,0,0,0,0,0]};s[providerId].total+=seconds;s[providerId].byDay[new Date().getDay()]=(s[providerId].byDay[new Date().getDay()]||0)+seconds;store.set(k,s);});
+ipcMain.on('record-watch-time',(_,{providerId,seconds,profileId='default'})=>{
+  if(!validateString(providerId,64)||!validateNumber(seconds,0,7200)||!validateString(profileId,64))return;const k=`streamStats_${profileId}`;const s=store.get(k,{});if(!s[providerId])s[providerId]={total:0,byDay:[0,0,0,0,0,0,0]};s[providerId].total+=seconds;s[providerId].byDay[new Date().getDay()]=(s[providerId].byDay[new Date().getDay()]||0)+seconds;store.set(k,s);});
 ipcMain.handle('get-stream-stats',(_,p='default')=>store.get(`streamStats_${p}`,{}));
 
 // ── IPC: WATCHED CONTENT ──────────────────────────────────────────

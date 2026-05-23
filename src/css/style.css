@@ -482,3 +482,10 @@ body:not(.no-hover-zoom) .provider-card:hover{transform:translateY(-3px)}
 .glass-mode .sidebar,.glass-mode .stream-topbar{backdrop-filter:blur(16px);background:rgba(10,10,15,.6)!important}
 .glass-mode .provider-card,.glass-mode .settings-modal{backdrop-filter:blur(10px)}
 .no-animations *{transition:none!important;animation:none!important}
+
+/* ══ PROVIDER KARTE: Zuletzt geöffnet ════════════════════════════ */
+.card-last{font-size:9px;color:var(--acc);font-weight:600;opacity:.8;margin-top:1px;display:block}
+
+/* ══ EINSTELLUNGS-SUCHE ══════════════════════════════════════════ */
+#settings-search-input::placeholder{color:var(--tx3)}
+#settings-search-input:focus{outline:none}

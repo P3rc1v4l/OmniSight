@@ -318,14 +318,28 @@ function createCard(id,p,isFav){
 }
 function setupLayoutButtons(){['normal','compact','mini'].forEach(l=>document.getElementById('layout-'+l)?.addEventListener('click',()=>{settings.cardLayout=l;autoSave();buildProviderGrid();}));}
 function toggleFavorite(id){const favs=settings.favorites||[];const idx=favs.indexOf(id);if(idx<0)favs.push(id);else favs.splice(idx,1);settings.favorites=favs;autoSave();buildProviderGrid();}
-function setupDragDrop(grid){let drag=null;grid.querySelectorAll('.provider-card[draggable]').forEach(card=>{card.addEventListener('dragstart',e=>{
+function setupDragDrop(grid){
+  // Favoriten-Label als Drop-Zone: Karte droppen = zu Favoriten hinzufügen
+  grid.querySelectorAll('.grid-section-label').forEach(label=>{
+    if(!label.textContent.includes('Favoriten'))return;
+    label.addEventListener('dragover',e=>{e.preventDefault();label.style.color='var(--acc)';});
+    label.addEventListener('dragleave',()=>label.style.color='');
+    label.addEventListener('drop',e=>{e.preventDefault();label.style.color='';
+      const id=e.dataTransfer.getData('text/plain');
+      if(id&&!(settings.favorites||[]).includes(id)){
+        settings.favorites=settings.favorites||[];settings.favorites.push(id);autoSave();buildProviderGrid();
+        showToastMsg('⭐ Zu Favoriten hinzugefügt');
+      }
+    });
+  });
+let drag=null;grid.querySelectorAll('.provider-card[draggable]').forEach(card=>{card.addEventListener('dragstart',e=>{
       if(settings.sortAlpha){
         const sortBtn=document.getElementById('btn-sort-alpha');
         if(sortBtn){sortBtn.style.outline='2px solid var(--acc)';setTimeout(()=>sortBtn.style.outline='',1200);}
         showToastMsg('A–Z deaktivieren um Karten zu verschieben');
         e.preventDefault();return;
       }
-      drag=card;card.classList.add('dragging');e.dataTransfer.effectAllowed='move';});card.addEventListener('dragend',()=>{card.classList.remove('dragging');grid.querySelectorAll('.drag-indicator-left,.drag-indicator-right').forEach(el=>el.classList.remove('drag-indicator-left','drag-indicator-right'));});card.addEventListener('dragover',e=>{e.preventDefault();if(card===drag)return;grid.querySelectorAll('.drag-indicator-left,.drag-indicator-right').forEach(el=>el.classList.remove('drag-indicator-left','drag-indicator-right'));const r=card.getBoundingClientRect();card.classList.add(e.clientX<r.left+r.width/2?'drag-indicator-left':'drag-indicator-right');});card.addEventListener('dragleave',()=>card.classList.remove('drag-indicator-left','drag-indicator-right'));card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-indicator-left','drag-indicator-right');if(!drag||drag===card)return;const cards=[...grid.querySelectorAll('.provider-card')];const ids=cards.map(c=>c.dataset.id);const si=ids.indexOf(drag.dataset.id),di=ids.indexOf(card.dataset.id);if(si>-1&&di>-1){ids.splice(si,1);const r=card.getBoundingClientRect();ids.splice(e.clientX>=r.left+r.width/2?Math.min(di+1,ids.length):di,0,drag.dataset.id);}providerOrder=ids;settings.providerOrder=ids;autoSave();buildProviderGrid();});});}
+      drag=card;card.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',card.dataset.id||'');});card.addEventListener('dragend',()=>{card.classList.remove('dragging');grid.querySelectorAll('.drag-indicator-left,.drag-indicator-right').forEach(el=>el.classList.remove('drag-indicator-left','drag-indicator-right'));});card.addEventListener('dragover',e=>{e.preventDefault();if(card===drag)return;grid.querySelectorAll('.drag-indicator-left,.drag-indicator-right').forEach(el=>el.classList.remove('drag-indicator-left','drag-indicator-right'));const r=card.getBoundingClientRect();card.classList.add(e.clientX<r.left+r.width/2?'drag-indicator-left':'drag-indicator-right');});card.addEventListener('dragleave',()=>card.classList.remove('drag-indicator-left','drag-indicator-right'));card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-indicator-left','drag-indicator-right');if(!drag||drag===card)return;const cards=[...grid.querySelectorAll('.provider-card')];const ids=cards.map(c=>c.dataset.id);const si=ids.indexOf(drag.dataset.id),di=ids.indexOf(card.dataset.id);if(si>-1&&di>-1){ids.splice(si,1);const r=card.getBoundingClientRect();ids.splice(e.clientX>=r.left+r.width/2?Math.min(di+1,ids.length):di,0,drag.dataset.id);}providerOrder=ids;settings.providerOrder=ids;autoSave();buildProviderGrid();});});}
 
 // ════════ CARD EDITOR ══════════════════════════════════════════════
 function openCardEditor(id,p){_editId=id;const overlay=document.getElementById('card-editor-overlay');if(!overlay)return;document.getElementById('card-editor-title').textContent='Karte: '+((settings.cardCustomNames||{})[id]||p.name);const off=(settings.cardImageOffsets||{})[id]||{x:0,y:0};const opa=(settings.cardBgOpacity||{})[id]??100;['card-ed-name','card-ed-tag'].forEach(eid=>{const fld=document.getElementById(eid);if(fld)fld.value=eid==='card-ed-name'?(settings.cardCustomNames||{})[id]||p.name:(settings.cardCustomTags||{})[id]||p.tag;});const col=((settings.cardBgColors||{})[id]||p.color).substring(0,7);['card-ed-color','card-ed-color-text'].forEach(eid=>{const el=document.getElementById(eid);if(el)el.value=col;});[['card-ed-x',off.x,'px'],['card-ed-y',off.y,'px'],['card-ed-opacity',opa,'%']].forEach(([eid,v,suf])=>{const el=document.getElementById(eid);if(el)el.value=v;const elv=document.getElementById(eid+'-val');if(elv)elv.textContent=v+suf;});const lp=document.getElementById('card-ed-logo-preview');if(lp){const logo=(settings.cardLogos||{})[id]||'';lp.innerHTML=logo?`<img src="${logo}" style="width:100%;height:100%;object-fit:contain"/>`:'';}overlay.style.display='flex';}
@@ -1142,6 +1156,29 @@ function setupShortcutsModal(){
   document.addEventListener('keydown',e=>{if(e.key==='?'&&!e.ctrlKey&&!e.altKey&&!['INPUT','TEXTAREA'].includes(document.activeElement?.tagName))openModal();});
 }
 
+
+// ══ EINSTELLUNGS-SUCHE ═════════════════════════════════════════════
+function setupSettingsSearch(){
+  const input=document.getElementById('settings-search-input');if(!input)return;
+  const allCards=()=>document.querySelectorAll('.smt-card,.smt-content h2');
+  input.addEventListener('input',()=>{
+    const q=input.value.trim().toLowerCase();
+    if(!q){
+      // Reset: alles zeigen
+      document.querySelectorAll('.smt-card').forEach(c=>c.style.display='');
+      document.querySelectorAll('.smt-content').forEach(c=>c.style.display='');
+      document.querySelectorAll('.smt-content.active').forEach(c=>c.style.display='flex');
+      return;
+    }
+    // Alle Tabs sichtbar machen
+    document.querySelectorAll('.smt-content').forEach(c=>c.style.display='flex');
+    document.querySelectorAll('.smt-card').forEach(card=>{
+      const text=(card.textContent||'').toLowerCase();
+      card.style.display=text.includes(q)?'':'none';
+    });
+  });
+}
+
 // ══ TITLEBAR ═══════════════════════════════════════════════════════
 function setupTitlebar(){
   document.getElementById('btn-minimize')?.addEventListener('click',()=>window.electronAPI.minimize());
@@ -1155,7 +1192,8 @@ document.addEventListener('DOMContentLoaded',()=>init());
 // ══ FEHLENDE HANDLER ══════════════════════════════════════════════
 (function setupMissingHandlers(){
   // Profil-Switcher Button
-  document.addEventListener('DOMContentLoaded',()=>{
+  // Handler direkt ausführen (DOM bereits ready wenn IIFE läuft)
+  setTimeout(()=>{
     document.getElementById('btn-profile-switcher')?.addEventListener('click',()=>{
       const overlay=document.getElementById('profile-manager-overlay');
       if(overlay){
@@ -1193,5 +1231,5 @@ document.addEventListener('DOMContentLoaded',()=>init());
     document.getElementById('btn-settings')?.addEventListener('click',()=>{document.getElementById('settings-overlay').style.display='flex';buildAdvancedTab();syncSettingsUI();trackMeta('settingsOpens');});
     document.getElementById('settings-close')?.addEventListener('click',()=>{enableClockDrag(false);document.getElementById('settings-overlay').style.display='none';window.electronAPI.setSettings(settings);showSaveToast();});
     document.getElementById('settings-overlay')?.addEventListener('click',e=>{if(e.target.id==='settings-overlay'){enableClockDrag(false);document.getElementById('settings-overlay').style.display='none';window.electronAPI.setSettings(settings);showSaveToast();}});
-  },{once:true});
+  },200);
 })();
