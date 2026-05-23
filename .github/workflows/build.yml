@@ -31,12 +31,20 @@ jobs:
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $env:GITHUB_OUTPUT
 
-      - name: Windows Build (.exe)
+      # Build OHNE Code-Signing (kein CSC_LINK gesetzt)
+      - name: Windows Build – ohne Signierung
+        if: ${{ !secrets.CSC_LINK }}
         run: npm run build
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          # Code-Signing nur aktiv wenn Secrets gesetzt (scripts/create-cert.ps1)
-          # Leer lassen = kein Signing, SmartScreen-Warnung beim ersten Start
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      # Build MIT Code-Signing (nur wenn CSC_LINK in Secrets hinterlegt)
+      - name: Windows Build – mit Code-Signing
+        if: ${{ secrets.CSC_LINK != '' }}
+        run: npm run build
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
 
@@ -55,7 +63,7 @@ jobs:
                   await github.rest.actions.deleteArtifact({
                     owner: context.repo.owner, repo: context.repo.repo, artifact_id: a.id
                   });
-                } catch(e) { console.log('Skip:', e.message); }
+                } catch(e) {}
               }
             }
 
@@ -68,7 +76,7 @@ jobs:
           retention-days: 3
           overwrite: true
 
-      # Nur bei Tag v* → GitHub Release + latest.yml für Auto-Update
+      # Nur bei Tag v* → Release + latest.yml für Auto-Update
       - name: GitHub Release erstellen
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
