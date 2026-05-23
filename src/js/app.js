@@ -157,6 +157,7 @@ async function init(){
   await loadPersistedNotifications();
   showOnboarding(false);
   setTimeout(buildRecentlyOpened, 200);
+  setTimeout(checkWatchlistReleases, 4000);
   patchSearchEarlyTrigger();
   // Watchlist-Sort Listener
   document.getElementById('wl-sort')?.addEventListener('change',()=>{
@@ -1177,6 +1178,76 @@ function setupSettingsSearch(){
       card.style.display=text.includes(q)?'':'none';
     });
   });
+}
+
+
+
+// ══ WATCHLIST RELEASE CHECK ════════════════════════════════════════
+async function checkWatchlistReleases(){
+  if(!watchlist.length)return;
+  const ids=watchlist.map(i=>({tmdbId:i.tmdbId,tmdbType:i.tmdbType||'movie',title:i.title})).filter(i=>i.tmdbId);
+  try{
+    const releases=await window.electronAPI.getWatchlistReleases(ids).catch(()=>[]);
+    releases.forEach(r=>{
+      if(settings.notificationsConfig?.watchlist!==false){
+        window.electronAPI.showNotification('🎬 Heute verfügbar!',r.title+' ist heute erschienen!');
+        addNotification('🎬','Heute verfügbar!',r.title+' ist jetzt erschienen!');
+      }
+    });
+  }catch{}
+}
+
+// ══ QUICK-LAUNCHER (Taste N) ═══════════════════════════════════════
+function setupQuickLauncher(){
+  let qlMode=false;let qlTimer=null;
+  const ql=document.createElement('div');ql.id='quick-launcher';
+  ql.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r);padding:20px 28px;z-index:8500;display:none;min-width:340px;box-shadow:0 24px 60px rgba(0,0,0,.7)';
+  ql.innerHTML=`<div style="font-family:var(--font-d);font-size:13px;font-weight:700;color:var(--tx2);margin-bottom:12px;text-align:center">⚡ Quick-Start – Buchstabe tippen</div><div id="ql-results" style="display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto"></div>`;
+  document.body.appendChild(ql);
+
+  document.addEventListener('keydown',e=>{
+    // N öffnet Quick-Launcher (außer in Input-Feldern)
+    if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
+    const settings_open=document.getElementById('settings-overlay')?.style.display==='flex';
+    const onboarding_open=document.getElementById('onboarding-overlay')?.style.display==='flex';
+    if(settings_open||onboarding_open)return;
+
+    if(e.key.toLowerCase()==='n'&&!e.ctrlKey&&!e.altKey&&!e.metaKey&&!qlMode){
+      qlMode=true;ql.style.display='block';renderQuickLauncher('');
+      clearTimeout(qlTimer);qlTimer=setTimeout(()=>closeQL(),5000);
+      e.preventDefault();return;
+    }
+    if(!qlMode)return;
+    if(e.key==='Escape'){closeQL();return;}
+    if(e.key==='Backspace'){closeQL();return;}
+    if(e.key.length===1){
+      renderQuickLauncher(e.key.toLowerCase());
+      clearTimeout(qlTimer);qlTimer=setTimeout(()=>closeQL(),3000);
+    }
+  });
+  document.addEventListener('click',e=>{if(qlMode&&!ql.contains(e.target))closeQL();});
+
+  function closeQL(){qlMode=false;ql.style.display='none';clearTimeout(qlTimer);}
+  function renderQuickLauncher(char){
+    const results=document.getElementById('ql-results');if(!results)return;
+    const entries=Object.entries(PROVIDERS()).filter(([id])=>!(settings.deletedProviders||[]).includes(id));
+    const filtered=char?entries.filter(([id,p])=>p.name.toLowerCase().startsWith(char)||id.startsWith(char)):entries.slice(0,8);
+    results.innerHTML='';
+    if(!filtered.length){results.innerHTML='<div style="color:var(--tx3);font-size:12px;text-align:center;padding:12px">Kein Anbieter gefunden</div>';return;}
+    filtered.slice(0,6).forEach(([id,p],i)=>{
+      const item=document.createElement('button');
+      item.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r-sm);cursor:pointer;color:var(--tx);width:100%;transition:all .14s;text-align:left';
+      item.innerHTML=`<img src="${getFavicon(id,p)}" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:${p.color}22;padding:2px" onerror="this.style.display='none'"/><span style="flex:1;font-weight:600;font-size:13px">${esc((settings.cardCustomNames||{})[id]||p.name)}</span><kbd style="font-size:9px;background:var(--bgch);border:1px solid var(--bor);border-radius:3px;padding:1px 5px;color:var(--tx2)">${i+1}</kbd>`;
+      item.onmouseenter=()=>item.style.borderColor='var(--acc)';
+      item.onmouseleave=()=>item.style.borderColor='var(--bor)';
+      item.addEventListener('click',()=>{closeQL();openProvider(id);});
+      // Zahl-Taste drücken
+      const keyHandler=e2=>{if(e2.key===String(i+1)){document.removeEventListener('keydown',keyHandler);closeQL();openProvider(id);}};
+      document.addEventListener('keydown',keyHandler);
+      setTimeout(()=>document.removeEventListener('keydown',keyHandler),3000);
+      results.appendChild(item);
+    });
+  }
 }
 
 // ══ TITLEBAR ═══════════════════════════════════════════════════════

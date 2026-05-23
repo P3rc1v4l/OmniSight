@@ -1,5 +1,18 @@
 'use strict';
 
+// ── CRASH REPORTER ────────────────────────────────────────────────
+const fs_=require('fs'),path_=require('path');
+function setupCrashReporter(){
+  const logDir=path_.join(app.getPath('userData'),'logs');
+  if(!fs_.existsSync(logDir))fs_.mkdirSync(logDir,{recursive:true});
+  const logFile=path_.join(logDir,'crash.log');
+  process.on('uncaughtException',err=>{const entry=`[${new Date().toISOString()}] CRASH: ${err.message}\n${err.stack}\n\n`;fs_.appendFileSync(logFile,entry);});
+  process.on('unhandledRejection',(r)=>{const entry=`[${new Date().toISOString()}] UNHANDLED: ${r}\n\n`;fs_.appendFileSync(logFile,entry);});
+  // Beim Start: letzten Crash anzeigen wenn vorhanden
+  if(fs_.existsSync(logFile)){const stat=fs_.statSync(logFile);if(Date.now()-stat.mtimeMs<60000)console.warn('[CrashReporter] Letzter Absturz:',fs_.readFileSync(logFile,'utf8').slice(-500));}
+}
+
+
 // ── INPUT VALIDATION ──────────────────────────────────────────────
 function validateString(val, maxLen=256){return typeof val==='string'&&val.length<=maxLen;}
 function validateProfileId(id){return validateString(id,64)&&/^[a-zA-Z0-9_-]+$/.test(id);}
@@ -79,11 +92,16 @@ function createMainWindow(){
 
   try{
     const {autoUpdater}=require('electron-updater');
-    autoUpdater.autoDownload=false;autoUpdater.autoInstallOnAppQuit=false;
+    autoUpdater.autoDownload=false; // Download nur auf Nutzer-Wunsch
+    autoUpdater.autoInstallOnAppQuit=true; // bei Quit automatisch installieren
     autoUpdater.setFeedURL({provider:'github',owner:'P3rc1v4l',repo:'OmniSight'});
     autoUpdater.on('update-available',info=>mainWindow?.webContents.send('update-available',info));
     autoUpdater.on('update-not-available',()=>mainWindow?.webContents.send('update-not-available'));
-    autoUpdater.on('update-downloaded',()=>mainWindow?.webContents.send('update-downloaded'));
+    autoUpdater.on('update-downloaded',info=>{
+      mainWindow?.webContents.send('update-downloaded',info);
+      // Zeige "Jetzt installieren"-Button
+    });
+    autoUpdater.on('download-progress',p=>mainWindow?.webContents.send('update-download-progress',Math.round(p.percent)));
     autoUpdater.on('error',err=>{const m=err.message||'';if(!m.includes('app-update.yml')&&!m.includes('404'))mainWindow?.webContents.send('update-error',m);});
     setTimeout(()=>{try{autoUpdater.checkForUpdates();}catch{}},5000);
   }catch(e){console.warn('[AutoUpdater]',e.message);}
@@ -95,7 +113,8 @@ ipcMain.on('window-maximize',()=>mainWindow?.isMaximized()?mainWindow.unmaximize
 ipcMain.on('window-close',()=>mainWindow?.close());
 ipcMain.on('window-fullscreen',(_,f)=>mainWindow?.setFullScreen(f));
 ipcMain.handle('window-is-fullscreen',()=>mainWindow?.isFullScreen()??false);
-ipcMain.on('install-update',()=>{try{require('electron-updater').autoUpdater.quitAndInstall();}catch{}});
+ipcMain.on('download-update',()=>{try{require('electron-updater').autoUpdater.downloadUpdate();}catch{}});
+ipcMain.on('install-update',()=>{try{const{autoUpdater}=require('electron-updater');autoUpdater.quitAndInstall(false,true);}catch{}});
 ipcMain.handle('check-for-updates',async()=>{try{await require('electron-updater').autoUpdater.checkForUpdates();}catch{}});
 
 // ── IPC: SETTINGS ─────────────────────────────────────────────────
@@ -249,6 +268,8 @@ ipcMain.handle('get-tmdb-detail',async(_,{id,type})=>{try{const[detail,videos,pr
 ipcMain.handle('search-tmdb',async(_,query)=>{try{const r=await tmdb('/search/multi',`&query=${encodeURIComponent(query)}&include_adult=false`);return{results:r.results||[],total:r.total_results||0};}catch{return{results:[],total:0};}});
 ipcMain.handle('get-streaming-providers',async(_,{tmdbId,type})=>{try{const r=await tmdb(`/${type}/${tmdbId}/watch/providers`);return r.results?.DE||null;}catch{return null;}});
 
+ipcMain.handle('get-providers-list',()=>null); // handled in renderer
+ipcMain.handle('get-watchlist-releases',async(_,watchlistIds)=>{try{const today=new Date().toISOString().split('T')[0];const results=[];for(const{tmdbId,tmdbType,title}of watchlistIds.slice(0,10)){const r=await tmdb(`/${tmdbType}/${tmdbId}`,'');const rd=r.release_date||r.first_air_date||'';if(rd===today)results.push({title,tmdbId,tmdbType});}return results;}catch{return[];}});
 ipcMain.handle('check-online',async()=>{try{await session.defaultSession.fetch('https://www.google.com',{method:'HEAD'});return true;}catch{return false;}});
 ipcMain.handle('check-url',async(_,url)=>{try{const r=await session.defaultSession.fetch(url,{method:'HEAD',headers:{'User-Agent':UA}});return{ok:true,status:r.status};}catch(e){return{ok:false,error:e.message};}});
 ipcMain.on('open-external',(_,url)=>shell.openExternal(url));

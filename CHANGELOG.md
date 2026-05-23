@@ -1,3 +1,19 @@
+## v3.0.2 — 2025
+
+### 🐛 Bugfix
+- **`npm ci` → `npm install`**: `package-lock.json` wird nicht eingecheckt → GitHub Actions nutzte `npm ci` was eine Lockfile voraussetzt → auf `npm install` zurückgewechselt, npm-cache entfernt
+
+### 🔒 Sicherheit
+- **ASAR-Verschlüsselung** aktiviert: App-Ressourcen (HTML, JS, CSS) sind als verschlüsseltes ASAR-Archiv verpackt – Quellcode nicht mehr direkt lesbar
+- **Crash-Reporter** eingebaut: Abstürze werden in `%AppData%/OmniSight/logs/crash.log` gespeichert; beim nächsten Start wird der letzte Crash im Entwickler-Log angezeigt
+- **Auto-Update vollständig aktiviert**: `autoInstallOnAppQuit=true`, Download-Fortschritt wird in der App angezeigt, "Jetzt installieren"-Button nach Download
+- IPC `download-update` und `get-watchlist-releases` abgesichert
+
+### 🆕 Neue Features
+- **⚡ Quick-Launcher (Taste N)**: Taste `N` öffnet einen Schnell-Starter mit allen Anbietern; weiterer Buchstabe filtert sofort; Zahlen 1–6 öffnen den Anbieter direkt
+- **Watchlist-Release-Benachrichtigung**: Beim App-Start wird geprüft ob ein Film/Serie aus der Watchlist heute erscheint – Push-Notification wenn ja
+- **Update-Banner**: Wenn ein Update verfügbar ist, erscheint ein dezenter Banner oben mit Download-Fortschritt und Installieren-Button
+
 ## v3.0.1 — 2025
 
 ### 🐛 Bugfix

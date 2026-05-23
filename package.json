@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -34,7 +34,11 @@
           ]
         }
       ],
-      "icon": "src/assets/icon.ico"
+      "icon": "src/assets/icon.ico",
+      "signingHashAlgorithms": [
+        "sha256"
+      ],
+      "verifyUpdateCodeSignature": false
     },
     "mac": {
       "target": "dmg",
@@ -61,7 +65,14 @@
       "repo": "OmniSight",
       "private": true
     },
-    "afterPack": "./scripts/fuses.js"
+    "afterPack": "./scripts/fuses.js",
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/@electron/fuses/**"
+    ],
+    "extraMetadata": {
+      "crashReporterEnabled": true
+    }
   },
   "keywords": [
     "streaming",

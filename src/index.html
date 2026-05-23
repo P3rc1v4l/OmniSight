@@ -27,6 +27,14 @@
   </div>
 </div>
 
+<!-- UPDATE BANNER -->
+<div id="update-banner" style="display:none;position:fixed;top:var(--tbh);left:var(--sw);right:0;background:rgba(48,197,187,.12);border-bottom:1px solid var(--acc);padding:7px 16px;align-items:center;gap:10px;z-index:990;font-size:12px;color:var(--tx)">
+  <span id="update-text">🚀 Update verfügbar</span>
+  <button id="btn-download-update" style="padding:4px 12px;background:var(--acc);color:#fff;border:none;border-radius:var(--r-sm);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px">⬇ Herunterladen</button>
+  <button id="btn-install-update" style="display:none;padding:4px 12px;background:#66bb6a;color:#fff;border:none;border-radius:var(--r-sm);font-size:11px;cursor:pointer">✓ Jetzt installieren</button>
+  <button onclick="document.getElementById('update-banner').style.display='none'" style="margin-left:auto;background:transparent;border:none;color:var(--tx2);font-size:14px;cursor:pointer">✕</button>
+</div>
+
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <nav class="sidebar-nav" id="sidebar-nav">
@@ -427,7 +435,7 @@
         <button class="sms-btn" data-stab="advanced">⚙ Mehr</button>
       </nav>
       <div style="flex:1"></div>
-      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.0.1</div>
+      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.0.2</div>
     </div>
     <div class="settings-modal-content">
       <button class="settings-modal-close" id="settings-close">✕</button>

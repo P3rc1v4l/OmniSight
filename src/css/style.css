@@ -489,3 +489,12 @@ body:not(.no-hover-zoom) .provider-card:hover{transform:translateY(-3px)}
 /* ══ EINSTELLUNGS-SUCHE ══════════════════════════════════════════ */
 #settings-search-input::placeholder{color:var(--tx3)}
 #settings-search-input:focus{outline:none}
+
+/* ══ QUICK-LAUNCHER ══════════════════════════════════════════════ */
+#quick-launcher{animation:fadeIn .18s ease}
+#ql-results::-webkit-scrollbar{width:4px}
+#ql-results::-webkit-scrollbar-thumb{background:var(--scr);border-radius:999px}
+
+/* ══ UPDATE-BANNER ════════════════════════════════════════════════ */
+#update-banner{animation:slideDown .3s ease}
+@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
