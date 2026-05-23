@@ -1,3 +1,37 @@
+## v3.1.0 — 2025
+
+### 🆕 Neue Features
+- **⚡ Anbieter-Kategorien**: Filtere Anbieter nach Kategorie – Streaming, Anime, Live & Sport, Musik, Kostenlos, Eigene. Filter-Leiste erscheint über dem Grid. Per Rechtsklick auf eine Karte kann die Kategorie individuell geändert werden.
+- **📤 Vollständiges Backup/Restore**: Alle Einstellungen, Profile und Watchlist als eine JSON-Datei exportieren und importieren (Einstellungen → Mehr → Vollständiges Backup)
+- **⚠️ Crash-Log Benachrichtigung**: Wenn OmniSight beim letzten Start abgestürzt ist, erscheint beim nächsten Start ein dezenter Toast mit Crash-Details-Link
+- **🎬 Animierter Splashscreen**: Neues Splash-Fenster mit Logo-Animation, Puls-Ringen, Ladebalken und Fade-In-Effekten
+- **🏷 Kategorie im Kontextmenü**: Rechtsklick auf Anbieter-Karte → Kategorie ändern
+
+### 🔒 Sicherheit
+- **Electron ^34** (Upgrade von ^33) – mehrere V8 und Chromium Security-Patches
+- **Self-Signed Code-Signing**: `scripts/create-cert.ps1` führt durch die Zertifikat-Erstellung. Danach verschwindet die Windows-SmartScreen-Warnung. Secrets `CSC_LINK` + `CSC_KEY_PASSWORD` in GitHub eintragen.
+- Workflow: CSC_LINK und CSC_KEY_PASSWORD als optionale Signing-Secrets eingebunden
+
+### ⚖️ Lizenz
+- Kontakt-E-Mail in LICENSE aktualisiert: zzickyzzacky@gmail.com
+
+## v3.0.3 — 2025
+
+### 🐛 Bugfixes
+- **Einstellungen-Buttons funktionieren wieder**: `openSettings()` nutzte alten Seitenleisten-Stil statt Modal – korrigiert
+- **Settings-Tabs funktionieren wieder**: doppelte Event-Handler und falsche Selektoren entfernt
+- **Overlay-Klick**: Einstellungen schließen nur noch bei Klick außerhalb des Modals
+
+### ⚖️ Lizenz
+- **MIT-Lizenz entfernt** → **Proprietäre Nutzungslizenz**: Weitergabe, Veröffentlichung und kommerzielle Nutzung ohne Genehmigung verboten. Testpersonen dürfen die EXE nutzen aber nicht weiterverbreiten.
+
+### 🔧 Verbesserungen
+- **Einstellungs-Modal deutlich größer**: 1100×720px (statt 820×560px), breitere Sidebar, flexibles Grid mit mehr Spalten
+- **Build-Matrix**: Workflow unterstützt jetzt Windows, Mac und Linux (Mac/Linux nur bei Tags oder manueller Auswahl)
+- **Werbeblocker-Statistik** in Statistiken: zeigt geblockte Werbeanfragen, gestreamte Anbieter und Watchlist-Größe als Kacheln
+- **Stream-Erinnerung**: Toast wenn ein Anbieter mehr als 3 Tage nicht genutzt wurde
+- **Favoriten eigene Reihenfolge**: Favoriten können unabhängig von der allgemeinen Sortierung per Drag umgeordnet werden
+
 ## v3.0.2 — 2025
 
 ### 🐛 Bugfix

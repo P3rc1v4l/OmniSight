@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('electronAPI',{
   onSessionsUpdated:    (cb)=>ipcRenderer.on('sessions-updated',(_,v)=>cb(v)),
   onUpdateAvailable:    (cb)=>ipcRenderer.on('update-available',(_,v)=>cb(v)),
   onUpdateNotAvailable: (cb)=>ipcRenderer.on('update-not-available',cb),
+  onCrashLogFound:      (cb)=>ipcRenderer.on('crash-log-found',(_,v)=>cb(v)),
   onUpdateDownloadProgress:(cb)=>ipcRenderer.on('update-download-progress',(_,v)=>cb(v)),
   onUpdateDownloaded:   (cb)=>ipcRenderer.on('update-downloaded',cb),
   onUpdateError:        (cb)=>ipcRenderer.on('update-error',(_,v)=>cb(v)),
@@ -57,5 +58,8 @@ contextBridge.exposeInMainWorld('electronAPI',{
   getWidevineStatus:    ()=>ipcRenderer.invoke('get-widevine-status'),
   getAdminHash:         ()=>ipcRenderer.invoke('get-admin-hash'),
   getWatchlistReleases:(ids)=>ipcRenderer.invoke('get-watchlist-releases',ids),
+  clearCrashLog:        ()=>ipcRenderer.send('clear-crash-log'),
+  exportSettings:       ()=>ipcRenderer.invoke('export-settings'),
+  importSettings:       ()=>ipcRenderer.invoke('import-settings'),
   openExternal:         (u)=>ipcRenderer.send('open-external',u),
 });

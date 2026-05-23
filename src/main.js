@@ -81,6 +81,20 @@ function createMainWindow(){
   const splash=new BrowserWindow({width:420,height:280,frame:false,alwaysOnTop:true,transparent:true,backgroundColor:'#00000000',webPreferences:{nodeIntegration:false}});
   splash.loadFile(path.join(__dirname,'splash.html'));
   mainWindow.loadFile(path.join(__dirname,'index.html'));
+  // Crash-Log prüfen und bei nächstem Start melden
+  const logFile=path_.join(app.getPath('userData'),'logs','crash.log');
+  if(fs_.existsSync(logFile)){
+    const stat=fs_.statSync(logFile);const age=Date.now()-stat.mtimeMs;
+    // Nur wenn Crash in letzten 24h und Datei nicht leer
+    if(age<86400000&&stat.size>10){
+      setTimeout(()=>{
+        mainWindow?.webContents.send('crash-log-found',{
+          size:stat.size,
+          preview:fs_.readFileSync(logFile,'utf8').slice(-300)
+        });
+      },3000);
+    }
+  }
 
   let shown=false;
   function showMain(){if(shown)return;shown=true;try{splash.destroy();}catch{}if(store.get('windowBounds')?.maximized)mainWindow.maximize();else mainWindow.show();mainWindow.focus();}
@@ -114,6 +128,10 @@ ipcMain.on('window-close',()=>mainWindow?.close());
 ipcMain.on('window-fullscreen',(_,f)=>mainWindow?.setFullScreen(f));
 ipcMain.handle('window-is-fullscreen',()=>mainWindow?.isFullScreen()??false);
 ipcMain.on('download-update',()=>{try{require('electron-updater').autoUpdater.downloadUpdate();}catch{}});
+ipcMain.on('clear-crash-log',()=>{
+  const logFile=path_.join(app.getPath('userData'),'logs','crash.log');
+  try{if(fs_.existsSync(logFile))fs_.unlinkSync(logFile);}catch{}
+});
 ipcMain.on('install-update',()=>{try{const{autoUpdater}=require('electron-updater');autoUpdater.quitAndInstall(false,true);}catch{}});
 ipcMain.handle('check-for-updates',async()=>{try{await require('electron-updater').autoUpdater.checkForUpdates();}catch{}});
 
@@ -270,6 +288,22 @@ ipcMain.handle('get-streaming-providers',async(_,{tmdbId,type})=>{try{const r=aw
 
 ipcMain.handle('get-providers-list',()=>null); // handled in renderer
 ipcMain.handle('get-watchlist-releases',async(_,watchlistIds)=>{try{const today=new Date().toISOString().split('T')[0];const results=[];for(const{tmdbId,tmdbType,title}of watchlistIds.slice(0,10)){const r=await tmdb(`/${tmdbType}/${tmdbId}`,'');const rd=r.release_date||r.first_air_date||'';if(rd===today)results.push({title,tmdbId,tmdbType});}return results;}catch{return[];}});
+ipcMain.handle('export-settings',async()=>{
+  const data={settings:store.get('settings',{}),profiles:store.get('profiles',[]),activeProfile:store.get('activeProfile','default'),theme:store.get('theme','dark')};
+  const r=await dialog.showSaveDialog(mainWindow,{title:'Einstellungen exportieren',defaultPath:'omnisight-backup.json',filters:[{name:'JSON',extensions:['json']}]});
+  if(r.canceled||!r.filePath)return{ok:false};
+  fs_.writeFileSync(r.filePath,JSON.stringify(data,null,2));return{ok:true,path:r.filePath};
+});
+ipcMain.handle('import-settings',async()=>{
+  const r=await dialog.showOpenDialog(mainWindow,{title:'Einstellungen importieren',filters:[{name:'JSON',extensions:['json']}],properties:['openFile']});
+  if(r.canceled||!r.filePaths.length)return{ok:false};
+  try{const data=JSON.parse(fs_.readFileSync(r.filePaths[0],'utf8'));
+    if(data.settings)store.set('settings',data.settings);
+    if(data.profiles)store.set('profiles',data.profiles);
+    if(data.activeProfile)store.set('activeProfile',data.activeProfile);
+    if(data.theme)store.set('theme',data.theme);
+    return{ok:true};}catch(e){return{ok:false,error:e.message};}
+});
 ipcMain.handle('check-online',async()=>{try{await session.defaultSession.fetch('https://www.google.com',{method:'HEAD'});return true;}catch{return false;}});
 ipcMain.handle('check-url',async(_,url)=>{try{const r=await session.defaultSession.fetch(url,{method:'HEAD',headers:{'User-Agent':UA}});return{ok:true,status:r.status};}catch(e){return{ok:false,error:e.message};}});
 ipcMain.on('open-external',(_,url)=>shell.openExternal(url));

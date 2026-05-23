@@ -142,7 +142,7 @@ async function init(){
   setupLayoutButtons();checkOnlineStatus();startSessionAutoRefresh();startAchievementWatcher();
 
   window.electronAPI.onFullscreenChange(v=>{isFullscreen=v;updateFullscreenUI();});
-  window.electronAPI.onSessionsUpdated(r=>{sessionCache=r;if(document.querySelector('.stab[data-tab="account"]')?.classList.contains('active'))renderSessionList(r);});
+  window.electronAPI.onSessionsUpdated(r=>{sessionCache=r;if(document.querySelector('.sms-btn[data-stab="account"]')?.classList.contains('active'))renderSessionList(r);});
   window.electronAPI.onUpdateAvailable(info=>{showNotif('🚀 Update!',`v${info.version} verfügbar.`);const el=document.getElementById('update-check-result');if(el){el.textContent=`🚀 v${info.version} verfügbar`;el.style.color='var(--acc)';}});
   window.electronAPI.onUpdateNotAvailable(()=>{const el=document.getElementById('update-check-result');if(el){el.textContent='✓ Neueste Version';el.style.color='var(--acc)';}});
   window.electronAPI.onUpdateDownloaded(()=>showNotif('✓ Update bereit','App wird beim Neustart aktualisiert.'));
@@ -259,17 +259,30 @@ function updateSortBtn(){const btn=document.getElementById('btn-sort-alpha');if(
 // ════════ PROVIDER GRID ════════════════════════════════════════════
 async function buildProviderGrid(){
   const grid=document.getElementById('providers-grid');if(!grid)return;
+  // Kategorie-Filter
+  const activeCat=settings.activeCategory||'all';
+  updateCategoryFilter(activeCat);
   grid.innerHTML='';
   const layout=settings.cardLayout||'normal';grid.className='providers-grid'+(layout!=='normal'?' '+layout:'');
   ['normal','compact','mini'].forEach(l=>document.getElementById('layout-'+l)?.classList.toggle('active',l===layout));
   updateSortBtn();
   const deleted=settings.deletedProviders||[];
   let entries=Object.entries(PROVIDERS()).filter(([id])=>!deleted.includes(id));
+  // Kategorie-Filter anwenden
+  if(activeCat!=='all'){
+    if(activeCat==='custom')entries=entries.filter(([id])=>!!customProviders[id]);
+    else entries=entries.filter(([id])=>getProviderCategory(id)===activeCat);
+  }
   if(settings.sortByUsage){const stats=await window.electronAPI.getStreamStats(activeProfileId).catch(()=>({}));entries=entries.sort((a,b)=>(stats[b[0]]?.total||0)-(stats[a[0]]?.total||0));}
   else if(settings.sortAlpha){entries=entries.sort((a,b)=>settings.sortDir==='desc'?b[1].name.localeCompare(a[1].name):a[1].name.localeCompare(b[1].name));}
   else{entries=entries.sort((a,b)=>a[1].name.localeCompare(b[1].name));if(providerOrder.length)entries=entries.sort((a,b)=>{const ai=providerOrder.indexOf(a[0]),bi=providerOrder.indexOf(b[0]);if(ai<0&&bi<0)return 0;if(ai<0)return 1;if(bi<0)return -1;return ai-bi;});}
   const favs=settings.favorites||[];
-  const favL=entries.filter(([id])=>favs.includes(id));
+  const favOrder=settings.favoritesOrder||[];
+  const favL=entries.filter(([id])=>favs.includes(id)).sort((a,b)=>{
+    const ai=favOrder.indexOf(a[0]),bi=favOrder.indexOf(b[0]);
+    if(ai<0&&bi<0)return favs.indexOf(a[0])-favs.indexOf(b[0]);
+    if(ai<0)return 1;if(bi<0)return-1;return ai-bi;
+  });
   const rest=entries.filter(([id])=>!favs.includes(id));
   if(favL.length){addGridLabel(grid,'⭐ Favoriten');favL.forEach(([id,p])=>grid.appendChild(createCard(id,p,true)));}
   if(rest.length){if(favL.length)addGridLabel(grid,'Alle Anbieter');rest.forEach(([id,p])=>grid.appendChild(createCard(id,p,false)));}
@@ -312,7 +325,7 @@ function createCard(id,p,isFav){
     document.querySelectorAll('.card-ctx').forEach(m=>m.remove());
     const menu=document.createElement('div');menu.className='card-ctx';
     menu.style.cssText=`position:fixed;left:${e.clientX}px;top:${e.clientY}px;background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r-sm);z-index:3000;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.5);padding:4px 0`;
-    [{l:`▶ ${esc(cName)} öffnen`,fn:()=>openProvider(id)},{l:'↗ In eigenem Fenster',fn:()=>openProviderNewWindow(id)}].forEach(({l,fn})=>{const btn=document.createElement('button');btn.style.cssText='display:block;width:100%;padding:8px 14px;border:none;background:transparent;color:var(--tx);font-size:13px;cursor:pointer;text-align:left';btn.innerHTML=l;btn.onmouseenter=()=>btn.style.background='var(--bgch)';btn.onmouseleave=()=>btn.style.background='transparent';btn.addEventListener('click',()=>{menu.remove();fn();});menu.appendChild(btn);});
+    [{l:`▶ ${esc(cName)} öffnen`,fn:()=>openProvider(id)},{l:'↗ In eigenem Fenster',fn:()=>openProviderNewWindow(id)},{l:'🏷 Kategorie ändern',fn:()=>{const cats=Object.entries(PROVIDER_CATEGORIES).filter(([k])=>k!=='all');const choice=prompt('Kategorie wählen:\n'+cats.map(([k,c],i)=>`${i+1}. ${c.icon} ${c.de}`).join('\n'));if(!choice)return;const idx=parseInt(choice)-1;if(idx>=0&&idx<cats.length){settings.providerCategories=settings.providerCategories||{};settings.providerCategories[cats[idx][0]]===cats[idx][0]?null:settings.providerCategories[id]=cats[idx][0];autoSave();buildProviderGrid();showToastMsg(`Kategorie: ${cats[idx][1].de}`);}}}].forEach(({l,fn})=>{const btn=document.createElement('button');btn.style.cssText='display:block;width:100%;padding:8px 14px;border:none;background:transparent;color:var(--tx);font-size:13px;cursor:pointer;text-align:left';btn.innerHTML=l;btn.onmouseenter=()=>btn.style.background='var(--bgch)';btn.onmouseleave=()=>btn.style.background='transparent';btn.addEventListener('click',()=>{menu.remove();fn();});menu.appendChild(btn);});
     document.body.appendChild(menu);setTimeout(()=>document.addEventListener('click',()=>menu.remove(),{once:true}),10);
   });
   return card;
@@ -377,6 +390,12 @@ function openProviderAtUrl(id,url,name,partition){
   if(currentWebview&&currentProvider&&currentProvider!==id)maybeMoveToPip();
   currentProvider=id;currentProvUrl=url;
   document.getElementById('stream-title').textContent=name||p.name;
+  // Stream-Erinnerung: gleicher Anbieter wie zuletzt?
+  const vh=settings.viewHistory||[];const lastSame=vh.find(h=>h.id===id);
+  if(lastSame&&Date.now()-lastSame.time>3*24*3600000){ // > 3 Tage
+    const daysSince=Math.floor((Date.now()-lastSame.time)/86400000);
+    showToastMsg(`▶ Zuletzt vor ${daysSince} Tagen gestreamt – weitermachen?`,4000);
+  }
   document.getElementById('btn-watching').style.display='flex';
   document.getElementById('btn-bg-play').style.display=p.bgAudio?'flex':'none';
   window.electronAPI.setupWebviewSession(partition||getProfilePartition(id));
@@ -650,6 +669,12 @@ async function buildStatsView(){
   const content=document.getElementById('stats-content');if(!content)return;
   content.innerHTML='';
   const entries=Object.entries(stats).map(([id,v])=>({id,secs:v?.total||0})).filter(e=>e.secs>0).sort((a,b)=>b.secs-a.secs);
+  // Top-Kacheln
+  const adCount=parseInt(localStorage.getItem('adBlock_'+activeProfileId)||'0');
+  const kachelDiv=document.createElement('div');
+  kachelDiv.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px';
+  kachelDiv.innerHTML=`<div style="background:var(--accg);border:1px solid var(--acc);border-radius:var(--r);padding:14px;text-align:center"><div style="font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--acc)">${adCount.toLocaleString()}</div><div style="font-size:11px;color:var(--tx2);margin-top:3px">🛡 Werbungen geblockt</div></div><div style="background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);padding:14px;text-align:center"><div style="font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--tx)">${(settings.viewHistory||[]).length}</div><div style="font-size:11px;color:var(--tx2);margin-top:3px">▶ Anbieter gestreamt</div></div><div style="background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);padding:14px;text-align:center"><div style="font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--tx)">${watchlist.length}</div><div style="font-size:11px;color:var(--tx2);margin-top:3px">📌 Watchlist</div></div>`;
+  content.appendChild(kachelDiv);
   const days=window._days||['So','Mo','Di','Mi','Do','Fr','Sa'];
   if(!entries.length){content.innerHTML='<div style="color:var(--tx2);font-size:13px;padding:10px 0;text-align:center">Noch keine Stream-Daten.<br>Starte einen Stream um Statistiken zu sammeln.</div>';}
   else{
@@ -751,13 +776,13 @@ function deleteProfileEditor(){if(!window._pedId||profiles.length<=1){showToastM
 function setupSettingsPanel(){
   document.getElementById('btn-settings')?.addEventListener('click',openSettings);
   document.getElementById('settings-close')?.addEventListener('click',closeSettings);
-  document.getElementById('settings-overlay')?.addEventListener('click',closeSettings);
+  document.getElementById('settings-overlay')?.addEventListener('click',e=>{if(e.target.id==='settings-overlay')closeSettings();});
   document.getElementById('btn-add-profile')?.addEventListener('click',()=>{document.getElementById('profile-modal').style.display='flex';document.getElementById('new-profile-name').focus();});
   // Profile Modal
   document.getElementById('btn-create-profile')?.addEventListener('click',()=>{const name=document.getElementById('new-profile-name').value.trim();if(!name)return;const id='profile_'+Date.now();profiles.push({id,name,favorites:[],watchlist:[],searchHistory:[],viewHistory:[]});window.electronAPI.setProfiles(profiles);document.getElementById('profile-modal').style.display='none';buildSidebarProfile();switchProfile(id,true);/* Punkt 1: sofort auswählen */});
   document.getElementById('btn-cancel-profile')?.addEventListener('click',()=>document.getElementById('profile-modal').style.display='none');
   // Tabs
-  document.querySelectorAll('.sms-btn[data-stab]').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.sms-btn').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.smt-content').forEach(c=>c.classList.remove('active'));tab.classList.add('active');document.getElementById('smt-'+tab.dataset.stab)?.classList.add('active');if(tab.dataset.stab==='account')buildSettingsAccountTab();if(tab.dataset.stab==='advanced')buildAdvancedTab();// Uhr-Drag nur im clock-Tab
+  document.querySelectorAll('.sms-btn[data-stab]').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.sms-btn').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.smt-content').forEach(c=>c.classList.remove('active'));tab.classList.add('active');document.getElementById('smt-'+tab.dataset.stab)?.classList.add('active');if(tab.dataset.stab==='account')buildSessionList(sessionCache||{});if(tab.dataset.stab==='advanced')buildAdvancedTab();// Uhr-Drag nur im clock-Tab
   enableClockDrag(tab.dataset.stab==='clock');});});
   // Design
   lnkColor('set-accent-color','set-accent-text');
@@ -812,8 +837,8 @@ function setupSettingsPanel(){
   syncSettingsUI();
 }
 
-function openSettings(){document.getElementById('settings-panel')?.classList.add('open');document.getElementById('settings-overlay')?.classList.add('open');buildSettingsAccountTab();buildAdvancedTab();syncSettingsUI();trackMeta('settingsOpens');}
-function closeSettings(){enableClockDrag(false);document.getElementById('settings-panel')?.classList.remove('open');document.getElementById('settings-overlay')?.classList.remove('open');window.electronAPI.setSettings(settings);showSaveToast();/* Punkt 5: Toast nur beim Schließen */}
+function openSettings(){document.getElementById('settings-overlay').style.display='flex';buildAdvancedTab();syncSettingsUI();trackMeta('settingsOpens');}
+function closeSettings(){enableClockDrag(false);document.getElementById('settings-overlay').style.display='none';window.electronAPI.setSettings(settings);showSaveToast();}
 
 function lnkColor(cId,tId){const c=document.getElementById(cId),t=document.getElementById(tId);if(!c||!t)return;c.addEventListener('input',()=>t.value=c.value);t.addEventListener('input',()=>{if(/^#[0-9a-fA-F]{6}$/.test(t.value))c.value=t.value;});}
 
@@ -1033,6 +1058,9 @@ document.getElementById('btn-check-updates')?.addEventListener('click',async()=>
 
 // ══ WATCHLIST EXPORT/IMPORT ════════════════════════════════════════
 document.getElementById('btn-view-watchlist-adv')?.addEventListener('click',()=>{showView('watchlist');buildWatchlistSorted();closeSettings();});
+// Export/Import Einstellungen
+document.getElementById('btn-export-settings')?.addEventListener('click',async()=>{const r=await window.electronAPI.exportSettings().catch(()=>({ok:false}));if(r.ok)showToastMsg('✓ Einstellungen exportiert');else if(r!==false)showToastMsg('Abgebrochen');});
+document.getElementById('btn-import-settings')?.addEventListener('click',async()=>{if(!confirm('Alle aktuellen Einstellungen werden überschrieben. Fortfahren?'))return;const r=await window.electronAPI.importSettings().catch(()=>({ok:false}));if(r.ok){showToastMsg('✓ Einstellungen importiert – App wird neu geladen');setTimeout(()=>location.reload(),1500);}else if(r.error)showToastMsg('Fehler: '+r.error);});
 document.getElementById('btn-export-watchlist')?.addEventListener('click',()=>{
   if(!watchlist.length){showToastMsg('Watchlist ist leer');return;}
   const data=JSON.stringify(watchlist,null,2);
@@ -1250,6 +1278,25 @@ function setupQuickLauncher(){
   }
 }
 
+
+// ══ CRASH-LOG MELDUNG ══════════════════════════════════════════════
+function setupCrashLogNotification(){
+  window.electronAPI.onCrashLogFound?.(data=>{
+    // Toast mit Option zum Melden
+    const toast=document.createElement('div');
+    toast.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--danger);border-radius:var(--r);padding:14px 20px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5);display:flex;align-items:center;gap:12px;max-width:420px;animation:slideInRight .3s ease';
+    toast.innerHTML=`<div style="font-size:20px">⚠️</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--tx)">Letzter Absturz erkannt</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">OmniSight ist beim letzten Start abgestürzt.</div></div><div style="display:flex;gap:6px;flex-shrink:0"><button id="crash-view-btn" style="padding:5px 10px;border:1px solid var(--bor);background:var(--bgc);color:var(--tx2);border-radius:var(--r-sm);cursor:pointer;font-size:11px">Details</button><button id="crash-clear-btn" style="padding:5px 10px;background:transparent;border:none;color:var(--tx3);cursor:pointer;font-size:11px">✕</button></div>`;
+    document.body.appendChild(toast);
+    toast.querySelector('#crash-view-btn').addEventListener('click',()=>{
+      alert('Crash-Details:\n\n'+data.preview+'\n\nLog-Datei: %AppData%/OmniSight/logs/crash.log');
+    });
+    toast.querySelector('#crash-clear-btn').addEventListener('click',()=>{
+      window.electronAPI.clearCrashLog?.();toast.remove();
+    });
+    setTimeout(()=>{if(document.body.contains(toast)){toast.style.animation='slideInRight .3s ease reverse';setTimeout(()=>toast.remove(),300);}},12000);
+  });
+}
+
 // ══ TITLEBAR ═══════════════════════════════════════════════════════
 function setupTitlebar(){
   document.getElementById('btn-minimize')?.addEventListener('click',()=>window.electronAPI.minimize());
@@ -1299,8 +1346,6 @@ document.addEventListener('DOMContentLoaded',()=>init());
     // Settings Modal Tabs
     document.querySelectorAll('.sms-btn[data-stab]').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.sms-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.smt-content').forEach(c=>c.classList.remove('active'));btn.classList.add('active');document.getElementById('smt-'+btn.dataset.stab)?.classList.add('active');if(btn.dataset.stab==='account')buildSessionList(sessionCache||{});if(btn.dataset.stab==='clock')enableClockDrag(true);else enableClockDrag(false);if(btn.dataset.stab==='advanced')buildAdvancedTab();});});
     // Settings Open/Close
-    document.getElementById('btn-settings')?.addEventListener('click',()=>{document.getElementById('settings-overlay').style.display='flex';buildAdvancedTab();syncSettingsUI();trackMeta('settingsOpens');});
-    document.getElementById('settings-close')?.addEventListener('click',()=>{enableClockDrag(false);document.getElementById('settings-overlay').style.display='none';window.electronAPI.setSettings(settings);showSaveToast();});
-    document.getElementById('settings-overlay')?.addEventListener('click',e=>{if(e.target.id==='settings-overlay'){enableClockDrag(false);document.getElementById('settings-overlay').style.display='none';window.electronAPI.setSettings(settings);showSaveToast();}});
+    // Settings-Handler: in setupSettingsPanel() definiert
   },200);
 })();
