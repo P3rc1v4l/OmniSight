@@ -31,22 +31,14 @@ jobs:
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $env:GITHUB_OUTPUT
 
-      # Build OHNE Code-Signing (kein CSC_LINK gesetzt)
-      - name: Windows Build – ohne Signierung
-        if: ${{ !secrets.CSC_LINK }}
+      # Code-Signing deaktivieren wenn kein Zertifikat gesetzt
+      # Trick: CSC_IDENTITY_AUTO_DISCOVERY verhindert WIN_CSC_LINK-Fehler
+      - name: Windows Build (.exe)
         run: npm run build
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          # Verhindert den WIN_CSC_LINK-Fehler bei leerem CSC_LINK:
           CSC_IDENTITY_AUTO_DISCOVERY: false
-
-      # Build MIT Code-Signing (nur wenn CSC_LINK in Secrets hinterlegt)
-      - name: Windows Build – mit Code-Signing
-        if: ${{ secrets.CSC_LINK != '' }}
-        run: npm run build
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
 
       - name: Alte Artifacts aufräumen
         uses: actions/github-script@v7
