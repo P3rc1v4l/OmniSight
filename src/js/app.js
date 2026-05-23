@@ -957,7 +957,7 @@ function buildRecentlyOpened(){
 }
 
 // ════════ ONBOARDING ═════════════════════════════════════════════
-let obStep=1;const OB_TOTAL=5;
+let obStep=1;const OB_TOTAL=7;
 
 function showOnboarding(force=false){
   if(!force&&settings.onboardingDone)return;
@@ -1151,11 +1151,37 @@ function applyOnboardingSettings(){
   const nameInput=document.getElementById('ob-profile-name');const name=(nameInput?.value||'').trim()||'User';
   const p=profiles.find(pr=>pr.id===activeProfileId);
   if(p){p.name=name;if(window._obAvatar!==undefined&&window._obAvatar!==null)p.avatar=window._obAvatar;window.electronAPI.setProfiles(profiles);}
-  autoSave();buildSidebarProfile();
+  // Anbieter-Selektion aus Onboarding anwenden
+  const checkedProviders=document.querySelectorAll('.ob-prov-check:checked');
+  if(checkedProviders.length>0){
+    const selected=new Set([...checkedProviders].map(c=>c.dataset.id));
+    // Nicht ausgewählte Anbieter ausblenden (deletedProviders)
+    const allIds=Object.keys(PROVIDERS_BASE);
+    const toDelete=allIds.filter(id=>!selected.has(id)&&!customProviders[id]);
+    if(toDelete.length<allIds.length-1){ // mindestens 1 behalten
+      settings.deletedProviders=toDelete;
+    }
+  }
+  autoSave();buildSidebarProfile();buildCategoryFilterBar();buildProviderGrid();
 }
 function showOnboarding(force=false){
   if(!force&&settings.onboardingDone)return;
   obStep=1;updateObStep();
+  // Anbieter-Grid für Schritt 4 befüllen
+  const provGrid=document.getElementById('ob-provider-grid');
+  if(provGrid){
+    provGrid.innerHTML='';
+    const deleted=settings.deletedProviders||[];
+    Object.entries(PROVIDERS_BASE).sort((a,b)=>a[1].name.localeCompare(b[1].name)).forEach(([id,p])=>{
+      const isActive=!deleted.includes(id);
+      const item=document.createElement('label');
+      item.style.cssText='display:flex;align-items:center;gap:6px;padding:7px 9px;background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r-sm);cursor:pointer;transition:all .14s;font-size:12px;color:var(--tx2)';
+      item.innerHTML=`<input type="checkbox" class="ob-prov-check" data-id="${id}" ${isActive?'checked':''} style="accent-color:var(--acc);cursor:pointer"/><img src="${getFavicon(id,p)}" style="width:16px;height:16px;border-radius:3px;object-fit:contain;background:${p.color}22;padding:1px" onerror="this.style.display='none'"/><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</span>`;
+      item.querySelector('input').addEventListener('change',e=>{item.style.borderColor=e.target.checked?'var(--acc)':'var(--bor)';item.style.background=e.target.checked?'var(--accg)':'var(--bgc)';item.style.color=e.target.checked?'var(--acc)':'var(--tx2)';});
+      if(isActive){item.style.borderColor='var(--acc)';item.style.background='var(--accg)';item.style.color='var(--acc)';}
+      provGrid.appendChild(item);
+    });
+  }
   document.getElementById('onboarding-overlay').style.display='flex';
   // Aktuellen Profilnamen vorbelegen
   const p=profiles.find(pr=>pr.id===activeProfileId);const nameInput=document.getElementById('ob-profile-name');if(nameInput&&p)nameInput.value=p.name||'User';
@@ -1166,17 +1192,8 @@ function showOnboarding(force=false){
   document.getElementById('ob-font-size').value=settings.fontSize||14;document.getElementById('ob-font-size-val').textContent=(settings.fontSize||14)+'px';
 }
 function closeOnboarding(){document.getElementById('onboarding-overlay').style.display='none';settings.onboardingDone=true;autoSave();}
-function updateObStep(){
-  document.querySelectorAll('.onboarding-step').forEach((s,i)=>s.classList.toggle('active',i+1===obStep));
-  const bar=document.getElementById('onboarding-progress-bar');if(bar)bar.style.width=`${(obStep/OB_TOTAL)*100}%`;
-  const nextBtn=document.getElementById('ob-next');if(nextBtn)nextBtn.textContent=obStep===OB_TOTAL?'Los geht\'s! 🚀':'Weiter →';
-  buildObDots();
-}
-function buildObDots(){
-  const dots=document.getElementById('ob-dots');if(!dots)return;
-  dots.innerHTML='';
-  for(let i=1;i<=OB_TOTAL;i++){const d=document.createElement('button');d.style.cssText=`width:${i===obStep?'18px':'7px'};height:7px;border-radius:999px;border:none;background:${i===obStep?'var(--acc)':'rgba(255,255,255,.3)'};cursor:pointer;transition:all .3s;padding:0`;d.addEventListener('click',()=>{obStep=i;updateObStep();});dots.appendChild(d);}
-}
+
+
 
 // ══ SHORTCUTS MODAL ════════════════════════════════════════════════
 function setupShortcutsModal(){
@@ -1259,7 +1276,9 @@ function setupQuickLauncher(){
   function renderQuickLauncher(char){
     const results=document.getElementById('ql-results');if(!results)return;
     const entries=Object.entries(PROVIDERS()).filter(([id])=>!(settings.deletedProviders||[]).includes(id));
-    const filtered=char?entries.filter(([id,p])=>p.name.toLowerCase().startsWith(char)||id.startsWith(char)):entries.slice(0,8);
+    // Fuzzy-Suche: matched wenn Eingabe irgendwo im Namen vorkommt
+    function fuzzyMatch(str,q){if(!q)return true;const s=str.toLowerCase();const pattern=q.split('').join('.*');try{return new RegExp(pattern).test(s);}catch{return s.includes(q);}}
+    const filtered=char?entries.filter(([id,p])=>{const name=((settings.cardCustomNames||{})[id]||p.name).toLowerCase();return name.startsWith(char)||name.includes(char)||fuzzyMatch(name,char)||id.startsWith(char);}).sort((a,b)=>{const na=((settings.cardCustomNames||{})[a[0]]||a[1].name).toLowerCase();const nb=((settings.cardCustomNames||{})[b[0]]||b[1].name).toLowerCase();return(na.startsWith(char)?-1:0)-(nb.startsWith(char)?-1:0);}):entries.slice(0,8);
     results.innerHTML='';
     if(!filtered.length){results.innerHTML='<div style="color:var(--tx3);font-size:12px;text-align:center;padding:12px">Kein Anbieter gefunden</div>';return;}
     filtered.slice(0,6).forEach(([id,p],i)=>{
@@ -1278,6 +1297,28 @@ function setupQuickLauncher(){
   }
 }
 
+
+
+// ══ STATISTIKEN TEILEN ═════════════════════════════════════════════
+async function shareStats(){
+  // Electron: Screenshot des Stat-Bereichs
+  try{
+    const {nativeImage}=require('electron');
+    // Wir nutzen window.electronAPI für einen IPC-Screenshot
+    showToastMsg('📸 Screenshot wird erstellt…');
+    // Fallback: HTML-Canvas Screenshot über html2canvas wenn verfügbar
+    const statsEl=document.getElementById('stats-content');
+    if(!statsEl)return;
+    // Einfacher Fallback: JSON-Export der Statistik-Daten
+    const stats=await window.electronAPI.getStreamStats(activeProfileId).catch(()=>({}));
+    const entries=Object.entries(stats).map(([id,v])=>({provider:(settings.cardCustomNames||{})[id]||PROVIDERS()[id]?.name||id,hours:((v?.total||0)/3600).toFixed(1)})).filter(e=>parseFloat(e.hours)>0).sort((a,b)=>b.hours-a.hours);
+    const totalH=(Object.values(stats).reduce((a,v)=>a+(v?.total||0),0)/3600).toFixed(1);
+    const text=`📊 Meine OmniSight-Statistiken:\n\nGesamt: ${totalH}h\n\n${entries.slice(0,5).map(e=>`${e.provider}: ${e.hours}h`).join('\n')}\n\nErstellt mit OmniSight`;
+    // In Zwischenablage kopieren
+    await navigator.clipboard.writeText(text);
+    showToastMsg('✓ Statistiken in Zwischenablage kopiert');
+  }catch(e){showToastMsg('Fehler: '+e.message);}
+}
 
 // ══ CRASH-LOG MELDUNG ══════════════════════════════════════════════
 function setupCrashLogNotification(){

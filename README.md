@@ -1,152 +1,78 @@
-# 🎬 Aletheos Stream
+# OmniSight 🎬
 
-**Dein zentraler Streaming-Hub** – Netflix, Prime Video, Disney+, Crunchyroll, BurningSeries und Cine.to in einer modernen Desktop-App.
-
-![Aletheos Stream](https://img.shields.io/badge/Electron-29-47848F?style=flat&logo=electron)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue?style=flat)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat)
+**Dein zentrales Streaming-Hub** – Netflix, Prime, Disney+, YouTube, Twitch, Crunchyroll und 20+ weitere Anbieter in einer App.
 
 ---
 
 ## ✨ Features
 
-- **6 Streaming-Anbieter** in einer App
-- **Anmeldung wird gespeichert** – einmal einloggen, immer eingeloggt
-- **Dark & Light Mode** per Schieberegler
-- **Modernes Design** mit Glasmorphismus-Effekten
-- **Frameless Window** mit eigener Titelleiste
-- Läuft auf Windows, macOS und Linux
+- **25+ Streaming-Anbieter** in einer Oberfläche
+- **Anbieter-Kategorien** (Streaming, Anime, Live & Sport, Musik, Kostenlos)
+- **Watchlist** für Filme, Serien und Anime – mit TMDB-Integration
+- **Neuigkeiten & Upcoming** mit Trailer-Vorschau und Streaming-Verfügbarkeit
+- **Statistiken & Achievements** – verfolge deine Streaming-Gewohnheiten
+- **CR Kalender** – Crunchyroll-Release-Übersicht
+- **Profile** mit PIN-Schutz und eigenem Profilbild
+- **Benachrichtigungs-Center** mit Pause-Erinnerung nach 2h
+- **Quick-Launcher** (Taste `N`) für schnellen Anbieter-Start
+- **Anbieter-Editor** mit Live-Vorschau
+- **Partikel-Hintergrund**, animierter Splashscreen und Dark/Light-Mode
+- **AdBlocker** integriert
+- **Auto-Update** – neue Versionen werden automatisch erkannt und installiert
 
 ---
 
-## 🚀 Schnellstart (Entwicklung)
+## 🚀 Installation
 
-### Voraussetzungen
+1. Neueste `.exe` von [Releases](https://github.com/P3rc1v4l/OmniSight/releases) herunterladen
+2. Installer ausführen → OmniSight startet automatisch
+3. Beim ersten Start: Onboarding führt durch Grundeinstellungen
 
-- [Node.js](https://nodejs.org/) (Version 18 oder neuer)
-- npm (wird mit Node.js mitgeliefert)
-
-### Installation
-
-```bash
-# Repository klonen
-git clone https://github.com/DEIN-USERNAME/aletheos-stream.git
-cd aletheos-stream
-
-# Abhängigkeiten installieren
-npm install
-
-# App starten
-npm start
-```
+> **Hinweis:** Windows SmartScreen kann beim ersten Start warnen – das liegt daran, dass die App noch kein kommerzielles Zertifikat hat. „Trotzdem ausführen" auswählen.
 
 ---
 
-## 📦 Als .exe bauen (Windows)
+## ⌨️ Tastenkürzel
 
-```bash
-# Abhängigkeiten installieren
-npm install
+| Taste | Funktion |
+|-------|----------|
+| `N` | Quick-Launcher öffnen |
+| `F11` | Vollbild umschalten |
+| `Strg + F` | Suche fokussieren |
+| `?` | Tastenkürzel-Übersicht |
+| `Esc` | Vollbild beenden |
+| `Strg + Shift + Alt + R` | Admin: PIN zurücksetzen |
 
-# Windows-Build erstellen (.exe Installer)
-npm run build
-```
+---
 
-Die fertige `.exe` findest du danach im Ordner `dist/`.
+## 🔄 Auto-Update
 
-> **Hinweis:** Beim ersten Build wird Electron heruntergeladen (~80 MB). Das kann einen Moment dauern.
-
-### Build für andere Plattformen
-
-```bash
-# macOS (.dmg)
-npm run build:mac
-
-# Linux (.AppImage)
-npm run build:linux
-```
+OmniSight prüft beim Start automatisch ob eine neue Version verfügbar ist. Wenn ja, erscheint ein Banner mit Download- und Installieren-Button. Die neue Version wird nach dem nächsten Neustart aktiv.
 
 ---
 
 ## 📁 Projektstruktur
 
 ```
-aletheos-stream/
+OmniSight/
 ├── src/
-│   ├── main.js          ← Electron Main Process
-│   ├── preload.js       ← Sicherer IPC-Bridge
-│   ├── index.html       ← Haupt-UI
-│   ├── css/
-│   │   └── style.css    ← Styles (Dark/Light Mode)
-│   ├── js/
-│   │   └── app.js       ← Frontend-Logik
-│   └── assets/
-│       └── icon.png     ← App-Icon (512x512 empfohlen)
-├── package.json
-├── .gitignore
-└── README.md
+│   ├── main.js          # Electron Hauptprozess
+│   ├── preload.js       # IPC Bridge
+│   ├── index.html       # App-UI
+│   ├── splash.html      # Animierter Ladebildschirm
+│   ├── js/app.js        # Frontend-Logik
+│   └── css/style.css    # Styling
+├── scripts/
+│   ├── generate-icons.js # Icon-Generierung
+│   ├── fuses.js          # Electron Sicherheits-Fuses
+│   └── create-cert.ps1   # Self-Signed Zertifikat (optional)
+└── .github/workflows/
+    └── build.yml         # GitHub Actions Build
 ```
 
 ---
 
-## 🎨 Anbieter hinzufügen
+## ⚖️ Lizenz
 
-In `src/js/app.js` die `PROVIDERS`-Konstante erweitern:
-
-```javascript
-const PROVIDERS = {
-  // Bestehende Anbieter...
-  meinAnbieter: {
-    name: 'Mein Anbieter',
-    url: 'https://meinanbieter.de',
-    partition: 'persist:meinanbieter'  // wichtig: persist: Prefix!
-  },
-};
-```
-
-Dann in `src/index.html` eine neue Provider-Card im Grid hinzufügen:
-
-```html
-<div class="provider-card" data-id="meinAnbieter" data-url="https://meinanbieter.de">
-  <div class="provider-bg" style="--card-color: #FF6B6B;"></div>
-  <div class="provider-logo"><!-- Logo hier --></div>
-  <div class="provider-info">
-    <span class="provider-name">Mein Anbieter</span>
-    <span class="provider-tag">Kategorie</span>
-  </div>
-  <div class="provider-arrow">→</div>
-</div>
-```
-
----
-
-## 🔒 Datenschutz & Sessions
-
-Die App speichert Cookies und Sessions **lokal auf deinem Gerät** mithilfe von Electrons `partition`-System. Jeder Anbieter hat seine eigene isolierte Session. Deine Anmeldedaten verlassen deinen Computer nicht.
-
-Session-Dateien befinden sich unter:
-- **Windows:** `%APPDATA%\aletheos-stream`
-- **macOS:** `~/Library/Application Support/aletheos-stream`
-- **Linux:** `~/.config/aletheos-stream`
-
----
-
-## 🛠️ Technologien
-
-| Technologie | Verwendung |
-|-------------|-----------|
-| [Electron](https://electronjs.org) | Desktop-App-Framework |
-| [electron-store](https://github.com/sindresorhus/electron-store) | Persistente Einstellungen |
-| [electron-builder](https://www.electron.build) | Packaging & Installer |
-
----
-
-## ⚠️ Hinweis
-
-Diese App ist ein persönlicher Streaming-Hub und lädt die offiziellen Webseiten der Anbieter in einem eingebetteten Browser. Für die Nutzung benötigst du gültige, eigene Accounts bei den jeweiligen Diensten.
-
----
-
-## 📄 Lizenz
-
-MIT License – siehe [LICENSE](LICENSE)
+Proprietäre Software – siehe [LICENSE](LICENSE).
+Kontakt: zzickyzzacky@gmail.com

@@ -505,3 +505,7 @@ body:not(.no-hover-zoom) .provider-card:hover{transform:translateY(-3px)}
 .cat-filter-btn:hover{border-color:var(--borh);color:var(--tx)}
 .cat-filter-btn.active{background:var(--accg);color:var(--acc);border-color:var(--acc)}
 .cat-filter-btn span{font-size:calc(var(--fs) - 3px)}
+
+/* ══ ONBOARDING ANBIETER-GRID ════════════════════════════════════ */
+#ob-provider-grid::-webkit-scrollbar{width:4px}
+#ob-provider-grid::-webkit-scrollbar-thumb{background:var(--scr);border-radius:999px}

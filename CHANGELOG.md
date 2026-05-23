@@ -1,3 +1,15 @@
+## v3.1.1 — 2025
+
+### 🐛 Bugfixes
+- **Build-Fehler behoben**: Leere `CSC_LINK`-Umgebungsvariable hat den Build abgebrochen – jetzt wird Code-Signing übersprungen wenn kein Zertifikat gesetzt ist (`forceCodeSigning: false`)
+- **README.md**: "Aletheos Stream" durch "OmniSight" ersetzt, vollständig neu geschrieben
+- **Mac/Linux Build entfernt**: Nur Windows-Build aktiv bis diese Plattformen getestet werden können
+
+### 🆕 Neue Features
+- **⚡ Quick-Launcher: Fuzzy-Suche**: „nfl" findet „Netflix", „prim" findet „Prime Video" – nicht mehr nur Anfangsbuchstabe
+- **📊 Statistiken teilen**: „Teilen (Kopieren)"-Button kopiert Statistik-Zusammenfassung in die Zwischenablage
+- **📺 Onboarding Schritt 4: Anbieter-Auswahl**: Beim ersten Start können Anbieter angehakt werden – nicht gewählte werden ausgeblendet
+
 ## v3.1.0 — 2025
 
 ### 🆕 Neue Features

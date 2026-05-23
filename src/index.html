@@ -437,7 +437,7 @@
         <button class="sms-btn" data-stab="advanced">⚙ Mehr</button>
       </nav>
       <div style="flex:1"></div>
-      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.1.0</div>
+      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.1.1</div>
     </div>
     <div class="settings-modal-content">
       <button class="settings-modal-close" id="settings-close">✕</button>
@@ -641,15 +641,24 @@
         <div class="ob-setting-row"><label class="ob-setting-label">Profilname</label><input type="text" class="ced-input" id="ob-profile-name" placeholder="Dein Name" value="User"/></div>
       </div>
     </div>
-    <!-- Schritt 4: Features -->
+    <!-- Schritt 4: Anbieter-Auswahl -->
     <div class="onboarding-step" id="ob-step-4">
+      <div class="ob-emoji">📺</div>
+      <h2 class="ob-title">Welche Anbieter nutzt du?</h2>
+      <p class="ob-desc" style="margin-bottom:12px">Wähle deine Streaming-Dienste. Nicht ausgewählte werden ausgeblendet – du kannst sie später jederzeit wieder einblenden.</p>
+      <div id="ob-provider-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-height:240px;overflow-y:auto;padding:2px"></div>
+      <button onclick="document.querySelectorAll('.ob-prov-check').forEach(c=>c.checked=true)" style="margin-top:8px;background:transparent;border:none;color:var(--acc);font-size:12px;cursor:pointer;font-weight:600">Alle auswählen</button>
+    </div>
+
+    <!-- Schritt 5: Features (vorher 4) -->
+    <div class="onboarding-step" id="ob-step-7">
       <div class="ob-emoji">🎞️</div>
       <h2 class="ob-title">Neuigkeiten &amp; Upcoming</h2>
       <p class="ob-desc">Entdecke neue Filme, Serien und Anime direkt in OmniSight.</p>
       <ul class="ob-tips"><li>🎬 Wechsle zwischen <b>Filme</b>, <b>Serien</b> und <b>Anime</b></li><li>🔖 Merke Inhalte für deine Watchlist</li><li>▶️ Klick auf eine Karte für Trailer und Details</li></ul>
     </div>
     <!-- Schritt 5: Statistiken -->
-    <div class="onboarding-step" id="ob-step-5">
+    <div class="onboarding-step" id="ob-step-6">
       <div class="ob-emoji">📊</div>
       <h2 class="ob-title">Statistiken &amp; Achievements</h2>
       <p class="ob-desc">Verfolge deine Streaming-Gewohnheiten und schalte Achievements frei!</p>

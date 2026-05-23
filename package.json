@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
