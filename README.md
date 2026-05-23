@@ -45,6 +45,20 @@
 
 ---
 
+
+## 🔖 Neue Version veröffentlichen
+
+**Option A – Automatisch (empfohlen):**
+```
+node scripts/bump-version.js patch   # Bugfix: x.y.Z+1
+node scripts/bump-version.js minor   # Feature: x.Y+1.0
+node scripts/bump-version.js major   # Major:   X+1.0.0
+```
+Das Script erhöht die Version, erstellt einen Git-Tag und pusht alles – GitHub Actions startet dann automatisch.
+
+**Option B – Manuell via GitHub:**
+GitHub Repo → **Releases** → **Draft a new release** → **Choose a tag** → `v3.1.2` eingeben → **Create new tag** → **Publish release**
+
 ## 🔄 Auto-Update
 
 OmniSight prüft beim Start automatisch ob eine neue Version verfügbar ist. Wenn ja, erscheint ein Banner mit Download- und Installieren-Button. Die neue Version wird nach dem nächsten Neustart aktiv.

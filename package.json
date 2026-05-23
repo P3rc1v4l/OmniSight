@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -53,7 +53,7 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "OmniSight",
-      "differentialPackage": false,
+      "differentialPackage": true,
       "installerSidebar": null,
       "license": "LICENSE",
       "warningsAsErrors": false
@@ -70,7 +70,8 @@
       "node_modules/@electron/fuses/**"
     ],
     "extraMetadata": {
-      "crashReporterEnabled": true
+      "certExpiry": "2029-05-23",
+      "certExpiryNote": "Self-Signed Zertifikat läuft ab – create-cert.ps1 erneut ausführen"
     },
     "forceCodeSigning": false
   },

@@ -158,6 +158,7 @@ async function init(){
   showOnboarding(false);
   setTimeout(buildRecentlyOpened, 200);
   setTimeout(checkWatchlistReleases, 4000);
+  setTimeout(checkCertExpiry, 5000);
   patchSearchEarlyTrigger();
   // Watchlist-Sort Listener
   document.getElementById('wl-sort')?.addEventListener('change',()=>{
@@ -305,8 +306,10 @@ function createCard(id,p,isFav){
   const isMini=(settings.cardLayout||'normal')==='mini';
   const faviconSrc=logo||getFavicon(id,p);
   const isLoggedIn=!!(sessionCache&&sessionCache[id]);
+  // "Neu!"-Badge wenn Anbieter heute Inhalt aus der Watchlist veröffentlicht
+  const hasNewContent=!!(window._watchlistReleasesToday||[]).includes(id);
     card.innerHTML=`${p.quality&&!isMini?`<div class="card-quality-badge">${p.quality}</div>`:''}
-    ${isLoggedIn?'<div class="card-session-dot" title="Eingeloggt"></div>':''}
+    ${isLoggedIn?'<div class="card-session-dot" title="Eingeloggt"></div>':''}${hasNewContent?'<div class="card-new-badge">NEU</div>':''}
     <div class="card-banner" style="background:${bgCol}">
       <div class="card-banner-gradient" style="background:radial-gradient(ellipse at center,${p.color}55 0%,transparent 80%)"></div>
       ${img?`<div class="card-banner-img" style="background-image:url('${img}');background-position:calc(50% + ${off.x}px) calc(50% + ${off.y}px);background-size:cover;position:absolute;inset:0;opacity:${opa/100}"></div>`:''}
@@ -1132,6 +1135,17 @@ function setupOnboarding(){
   document.getElementById('ob-next')?.addEventListener('click',()=>{if(obStep<OB_TOTAL){obStep++;updateObStep();}else{applyOnboardingSettings();closeOnboarding();}});
   document.getElementById('ob-skip')?.addEventListener('click',()=>{applyOnboardingSettings();closeOnboarding();});
   // Sprache
+  // Dark/Light-Toggle im Onboarding
+  document.getElementById('ob-theme-dark')?.addEventListener('click',()=>{
+    setTheme('dark',true);
+    document.getElementById('ob-theme-dark').classList.add('active');
+    document.getElementById('ob-theme-light').classList.remove('active');
+  });
+  document.getElementById('ob-theme-light')?.addEventListener('click',()=>{
+    setTheme('light',true);
+    document.getElementById('ob-theme-light').classList.add('active');
+    document.getElementById('ob-theme-dark').classList.remove('active');
+  });
   document.getElementById('ob-lang-de')?.addEventListener('click',()=>{settings.language='de';applyLanguage('de');document.getElementById('ob-lang-de').classList.add('active');document.getElementById('ob-lang-en').classList.remove('active');});
   document.getElementById('ob-lang-en')?.addEventListener('click',()=>{settings.language='en';applyLanguage('en');document.getElementById('ob-lang-en').classList.add('active');document.getElementById('ob-lang-de').classList.remove('active');});
   // Akzentfarbe
@@ -1186,7 +1200,11 @@ function showOnboarding(force=false){
   // Aktuellen Profilnamen vorbelegen
   const p=profiles.find(pr=>pr.id===activeProfileId);const nameInput=document.getElementById('ob-profile-name');if(nameInput&&p)nameInput.value=p.name||'User';
   // Aktuelle Sprache vorbelegen
-  document.getElementById('ob-lang-de')?.classList.toggle('active',lang==='de');document.getElementById('ob-lang-en')?.classList.toggle('active',lang==='en');
+  document.getElementById('ob-lang-de')?.classList.toggle('active',lang==='de');
+  // Theme-Buttons initial setzen
+  const curTheme=document.documentElement.getAttribute('data-theme')||'dark';
+  document.getElementById('ob-theme-dark')?.classList.toggle('active',curTheme==='dark');
+  document.getElementById('ob-theme-light')?.classList.toggle('active',curTheme==='light');document.getElementById('ob-lang-en')?.classList.toggle('active',lang==='en');
   document.getElementById('ob-accent-color').value=settings.accentColor||'#30c5bb';
   document.getElementById('ob-font-family').value=settings.designOptions?.fontFamily||'DM Sans';
   document.getElementById('ob-font-size').value=settings.fontSize||14;document.getElementById('ob-font-size-val').textContent=(settings.fontSize||14)+'px';
@@ -1320,6 +1338,23 @@ async function shareStats(){
   }catch(e){showToastMsg('Fehler: '+e.message);}
 }
 
+
+// ══ ZERTIFIKAT-ABLAUF-CHECK ════════════════════════════════════════
+function checkCertExpiry(){
+  try{
+    // certExpiry wird von electron-builder als extraMetadata in package.json eingebettet
+    const expiry=window.__omnisightMeta?.certExpiry;
+    if(!expiry)return;
+    const expDate=new Date(expiry);const now=new Date();
+    const daysLeft=Math.ceil((expDate-now)/(1000*60*60*24));
+    if(daysLeft<=0){
+      addNotification('🔒','Zertifikat abgelaufen!','Das Code-Signing-Zertifikat ist abgelaufen. scripts/create-cert.ps1 erneut ausführen und neue Secrets in GitHub hinterlegen.');
+    }else if(daysLeft<=30){
+      addNotification('⚠️','Zertifikat läuft bald ab',`Noch ${daysLeft} Tage bis das Code-Signing-Zertifikat abläuft. Rechtzeitig erneuern!`);
+    }
+  }catch{}
+}
+
 // ══ CRASH-LOG MELDUNG ══════════════════════════════════════════════
 function setupCrashLogNotification(){
   window.electronAPI.onCrashLogFound?.(data=>{
@@ -1335,6 +1370,36 @@ function setupCrashLogNotification(){
       window.electronAPI.clearCrashLog?.();toast.remove();
     });
     setTimeout(()=>{if(document.body.contains(toast)){toast.style.animation='slideInRight .3s ease reverse';setTimeout(()=>toast.remove(),300);}},12000);
+  });
+}
+
+
+// ══ KEYBOARD-NAVIGATION PROVIDER-GRID ════════════════════════════
+function setupGridKeyboardNav(){
+  let focusIdx=-1;
+  function getCards(){return [...document.querySelectorAll('.provider-card')];}
+  document.addEventListener('keydown',e=>{
+    // Nur im Home-View und wenn kein Input fokussiert
+    if(!document.getElementById('view-home')?.classList.contains('active'))return;
+    if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
+    if(document.getElementById('settings-overlay')?.style.display==='flex')return;
+    if(document.getElementById('quick-launcher')?.style.display==='block')return;
+    const cards=getCards();if(!cards.length)return;
+    const cols=Math.round(document.getElementById('providers-grid')?.offsetWidth/(260+14))||4;
+    if(e.key==='ArrowRight'){e.preventDefault();focusIdx=Math.min(focusIdx+1,cards.length-1);}
+    else if(e.key==='ArrowLeft'){e.preventDefault();focusIdx=Math.max(focusIdx-1,0);}
+    else if(e.key==='ArrowDown'){e.preventDefault();focusIdx=Math.min(focusIdx+cols,cards.length-1);}
+    else if(e.key==='ArrowUp'){e.preventDefault();focusIdx=Math.max(focusIdx-cols,0);}
+    else if(e.key==='Enter'&&focusIdx>=0){e.preventDefault();const id=cards[focusIdx]?.dataset.id;if(id)openProvider(id);return;}
+    else return;
+    if(focusIdx<0)focusIdx=0;
+    cards.forEach((c,i)=>{c.classList.toggle('keyboard-focus',i===focusIdx);});
+    cards[focusIdx]?.scrollIntoView({block:'nearest',behavior:'smooth'});
+  });
+  // Fokus bei Hover mitführen
+  document.getElementById('providers-grid')?.addEventListener('mouseover',e=>{
+    const card=e.target.closest('.provider-card');if(!card)return;
+    const cards=getCards();focusIdx=cards.indexOf(card);
   });
 }
 

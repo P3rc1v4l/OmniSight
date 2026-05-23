@@ -1,3 +1,23 @@
+## v3.1.2 — 2026-05-23
+
+### 🐛 Bugfixes
+- **Build-Fehler behoben**: `WIN_CSC_LINK` wurde auch bei leerem `CSC_LINK`-Secret gesetzt und hat den Build abgebrochen. Lösung: zwei separate Build-Steps (mit/ohne Signing), `CSC_IDENTITY_AUTO_DISCOVERY: false` wenn kein Zertifikat vorhanden
+
+### 🔒 Sicherheit
+- **Delta-Updates aktiviert**: `differentialPackage: true` in NSIS – Nutzer laden bei Updates nur geänderte Blöcke herunter (typisch 10–30 MB statt 120 MB)
+- **Zertifikat-Ablauf-Erinnerung**: App prüft beim Start ob das Code-Signing-Zertifikat in den nächsten 30 Tagen abläuft und zeigt rechtzeitig eine Benachrichtigung
+- Ablaufdatum im `package.json` als `certExpiry` hinterlegt
+
+### 🆕 Neue Features
+- **↑↓←→ Keyboard-Navigation im Provider-Grid**: Pfeiltasten navigieren zwischen Anbieter-Karten, Enter öffnet den Anbieter
+- **🎬 Onboarding: Hell/Dunkel-Modus wählen**: Dark/Light-Toggle direkt im Onboarding Schritt 2
+- **✨ Karten-Badge „NEU"**: Wenn ein Anbieter heute Watchlist-Inhalte veröffentlicht, erscheint ein NEU-Badge auf der Karte
+- **🔖 Automatisches Versions-Bump Script**: `node scripts/bump-version.js [patch|minor|major]` erhöht Version, erstellt Tag und pusht alles automatisch
+
+### 🔧 Verbesserungen
+- README.md: Anleitung für Versions-Bump ergänzt
+- Shortcuts-Modal: Pfeiltasten-Navigation dokumentiert
+
 ## v3.1.1 — 2025
 
 ### 🐛 Bugfixes
