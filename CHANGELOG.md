@@ -1,51 +1,59 @@
 # OmniSight Changelog
 
-## v2.2.0 — 2025
+## v3.0.0 — Major Release 2025
 
-### 🐛 Bugfixes
-- **Build-Fix**: `differentialPackage` ist kein gültiges Root-Property in electron-builder 24.x → entfernt
-- **Build-Fix**: `differentialPackage` auch aus `nsis`-Block entfernt (nur in `nsis`-Block erlaubt ab bestimmten Versionen, aber nicht in 24.13.x)
-- Electron auf `^33.0.0` aktualisiert (Sicherheits-Update, mehrere CVEs in v29 behoben)
-
-### 🆕 Neue Features
-- **Profil-Avatar in Titelleiste**: Zeigt aktives Profil-Bild/Initial-Buchstaben – klickbar zum Profilwechsel
-- **Keyboard-Navigation im Onboarding**: Pfeiltasten links/rechts navigieren zwischen Schritten, Escape schließt
-- **TMDB-Offline-Cache**: Suchergebnisse werden 5 Minuten gecacht – bei kurzzeitig schlechter Verbindung funktioniert die Suche trotzdem
-- **Strg+F**: Suche wird fokussiert und Text selektiert (nicht nur fokussiert)
-
-### 🔧 Verbesserungen
-- **AbortController für TMDB-Suche**: Vorherige API-Anfragen werden abgebrochen wenn neue Eingabe kommt – kein unnötiger Traffic mehr
-- **allowpopups nur für multiTab-Provider**: Twitch, YouTube, BurningSeries etc. – alle anderen Webviews erlauben keine Popups mehr (Sicherheit)
-- **URL-Protokoll-Whitelist**: Öffnen von `file://`, `javascript:` etc. via Provider-Click wird blockiert
-- **Race-Condition-Schutz**: Settings und Profile schreiben nicht mehr parallel in den Store
-- **CSP für Multi-Window**: Eigene Content-Security-Policy im zweiten Fenster
-
-## v2.1.0 — 2025
-
-### 🐛 Bugfixes
-- **Kritischer Fix**: `app.js` hatte 3× DOMContentLoaded, 2× init(), doppelte Funktionen → App zeigte leere Übersicht
-- **Build-Fix**: `installerName` ist kein gültiges NSIS-Property → entfernt
+### 🐛 Kritische Bugfixes
+- **Anbieter-Karten: Klick öffnet jetzt wieder den Anbieter** (mousedown/mouseup Fix)
+- **Neuigkeiten & Upcoming: Typ-Wechsel (Filme/Serien/Anime) funktioniert jetzt** (falsche IDs news-switcher→news-type-switcher korrigiert)
+- **Einstellungen-Button öffnet jetzt das Einstellungs-Fenster**
+- **Profil-Button öffnet jetzt den Profil-Manager**
+- **Benachrichtigungs-Glocke öffnet jetzt das Notification-Center**
+- **Build-Fix**: `differentialPackage` komplett aus allen Ebenen entfernt
 
 ### 🆕 Neue Features
-- Onboarding-Screen (5 Schritte) beim ersten Start
-- Watchlist-Sortierung (A–Z, Datum ↑↓, Zuletzt gemerkt)
-- „Zuletzt geöffnet"-Chips in der Übersicht
-- TMDB-Suche ab 2 Zeichen
-- Session-Indikator auf Karten (grüner Punkt wenn eingeloggt)
-- Shortcuts-Modal (Taste ?)
-- Watchlist-Duplikat-Toast
+- **Profil-Manager komplett neu**: Eigenes Fenster, Profilbild, PIN (4 Ziffern), Profilwechsel mit PIN-Abfrage, Profil erstellen/löschen
+- **Einstellungen als Modal-Fenster** statt Seitenleiste (6 Tabs: Design, Account, Uhr, Benachrichtigungen, Plugins, Mehr)
+- **Onboarding Schritt 2: Grundeinstellungen** – Sprache, Akzentfarbe, Schriftart, Schriftgröße, Profilname und -bild direkt beim ersten Start
+- **Karten-Editor: Live-Vorschau** – Änderungen werden sofort an der Vorschau-Karte angezeigt; beim Schließen ohne Speichern wird gefragt
+- **Karten-Editor: modernes Design** mit Seitenleiste für Vorschau und Felder-Bereich
+- **Eigenen Anbieter hinzufügen** als Button in der Übersicht-Topbar
+- **Watchlist Rechtsklick-Menü** zum Ändern der Kategorie (Film/Serie/Anime)
+- **Slideshow-Titel mittig oben** auf Neuigkeiten- und Upcoming-Seite
+- **Upcoming: Nur zukünftige Titel** (keine vergangenen Erscheinungen)
+- **Ausgeblendet-Fenster: Filter** nach Filme/Serien/Anime, Klick außerhalb schließt
+- **Hinweis beim Drag & Drop** wenn A–Z aktiv: Sort-Button wird hervorgehoben
+- **Benachrichtigungston** (Web Audio API) bei neuen Notifications, abschaltbar
+- **VPN-Verwaltung**: Eigene VPNs eintragen, benennen, aktivieren/deaktivieren
 
 ### 🔧 Verbesserungen
-- Statistiken-Button direkt über Einstellungen
-- Benachrichtigungen persistent (pro Profil)
-- Stream-Pause-Timer kumulativ
-- Profilbilder als Base64
-- Admin-Reset über SHA-256-Hash (Strg+Shift+Alt+R)
+- Karten: kein Hover-Zoom mehr (standardmäßig); optional aktivierbar in Einstellungen
+- Favoriten-Button: rechts oben auf der Karte (nicht links unten)
+- Karten-Editor: Stift-Button links oben unter Quality-Badge
+- Karten-Editor: Kein Schließen-X (schließt per Speichern/Löschen/Zurücksetzen/Außen-Klick)
+- Karten-Editor: Lösch-Button nur Mülltonne (kein Text), Zurücksetzen rechts oben
+- Erste Karte in der Slideshow wird nicht mehr vom Sidebar-Balken verdeckt
+- Slideshow-Poster füllen die Karte vollständig (kein Leerraum)
+- Backdrop im Detail-Popup wird nicht mehr abgeschnitten
+- Statistiken: Wochentags-Ansicht optisch überarbeitet (animierte Balken, Farbgebung)
+- Statistiken: 5 neue Achievements (h250, h1000h, daily30, newprov, prov20)
+- CR-Kalender: mehr Quellen (Trending + Upcoming kombiniert), modernes Raster-Layout
+- Einstellungen schließen → Toast "Gespeichert"
+- Sortierung mit Hinweis-Toast wenn Karte gezogen wird
+- Sprache ändern: alle Texte sofort übersetzt (inkl. Einstellungs-Navigation)
+- Partikel-Formen einzeln an/abwählbar
+- Karten-Hover-Zoom, Schatten und Animationen einzeln in Einstellungen steuerbar
 
-## v2.0.0 — 2025
-- Kompletter Umbau: Benachrichtigungs-Center, Profil-System, CR Kalender, Anime-Kategorie,
-  Custom CSS, Schriftart-Auswahl, 10 neue Achievements, WideVine-Integration,
-  Watchlist Export/Import, Push-Pause-Erinnerung, Session-Indikator u.v.m.
+## v2.2.0
+- AbortController für TMDB-Suche, allowpopups nur für multiTab-Provider
+- TMDB-Cache (5min), Profil-Avatar in Titelleiste, Keyboard-Navigation Onboarding
+- Race-Condition-Schutz für Settings/Profiles
+
+## v2.1.0
+- Onboarding-Screen, Watchlist-Sortierung, Zuletzt geöffnet, TMDB ab 2 Zeichen
+- Session-Indikator, Shortcuts-Modal, Watchlist-Duplikat-Toast
+
+## v2.0.0
+- Kompletter Umbau: Benachrichtigungs-Center, neues Profil-System, CR Kalender u.v.m.
 
 ## v1.2.0
-- Initiale veröffentlichte Version
+- Initiale Version

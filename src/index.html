@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>OmniSight</title>
   <link rel="stylesheet" href="css/style.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=Inter:wght@300;400;500&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 </head>
 <body>
@@ -14,113 +13,61 @@
 <!-- TITLEBAR -->
 <div class="titlebar" id="titlebar">
   <div class="titlebar-left">
-    <div class="titlebar-profile-indicator" id="titlebar-profile-indicator" title="Aktives Profil" style="-webkit-app-region:no-drag;width:22px;height:22px;border-radius:50%;background:var(--accg);border:1px solid var(--acc);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer" onclick="document.getElementById('btn-profile-switcher')?.click()"></div>
-    <img class="app-logo" src="assets/icon.png" id="logo-img" alt="OmniSight" style="mix-blend-mode:screen"/>
-    <span class="app-name" id="version-chip" style="cursor:pointer" title="Update-Einstellungen öffnen">OMNI<span class="accent">SIGHT</span></span>
+    <img class="app-logo" src="assets/icon.png" alt="OmniSight"/>
+    <span class="app-name" id="version-chip" title="Updates">OMNI<span class="accent">SIGHT</span></span>
   </div>
   <div class="titlebar-center">
     <div class="offline-badge" id="offline-banner" style="display:none">⚠ Keine Verbindung</div>
-    <div class="vpn-badge" id="vpn-badge" style="display:none"></div>
   </div>
   <div class="titlebar-controls">
-    <button class="win-btn" id="btn-shortcuts-hint" title="Tastenkürzel anzeigen (?)">?</button>
+    <button class="win-btn" id="btn-shortcuts-hint" title="Tastenkürzel (?)">?</button>
     <button class="win-btn" id="btn-minimize">&#9472;</button>
     <button class="win-btn" id="btn-maximize">&#9723;</button>
     <button class="win-btn close" id="btn-close">&#10005;</button>
   </div>
 </div>
 
-<!-- UPDATE BANNER -->
-<div class="update-banner" id="update-banner" style="display:none">
-  <span id="update-text">🚀 Update verfügbar!</span>
-  <button id="btn-download-update">Herunterladen</button>
-  <button id="btn-install-update" style="display:none">Jetzt installieren</button>
-  <button class="update-dismiss" id="btn-dismiss-update">✕</button>
-</div>
-
-<!-- NOTIFICATION CENTER -->
-<div class="notif-center" id="notif-center" style="display:none">
-  <div class="notif-center-header">
-    <span>🔔 Benachrichtigungen</span>
-    <button id="notif-clear-all" class="notif-clear-btn">Alle löschen</button>
-    <button id="notif-center-close" class="notif-close-btn">✕</button>
-  </div>
-  <div id="notif-list" class="notif-list"></div>
-</div>
-
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
-  <nav class="sidebar-nav">
-
-    <button class="nav-btn active" data-view="home">
-      <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span data-i18n="overview">Übersicht</span>
-    </button>
-
-    <!-- Gemerkt -->
-    <button class="nav-btn" data-view="watchlist">
-      <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-      <span data-i18n="watchlist">Gemerkt</span>
-    </button>
-
-    <!-- Neuigkeiten -->
-    <button class="nav-btn" data-view="news">
-      <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
-      <span data-i18n="news">Neuigkeiten</span>
-    </button>
-
-    <!-- Upcoming -->
-    <button class="nav-btn" data-view="upcoming">
-      <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span data-i18n="upcoming">Upcoming</span>
-    </button>
-
-    
-    <!-- Stream -->
-    <button class="nav-btn" data-view="stream" id="btn-watching" style="display:none">
-      <svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-      <span data-i18n="watchingNow">Schaut gerade</span>
-    </button>
-
+  <nav class="sidebar-nav" id="sidebar-nav">
+    <button class="nav-btn active" data-view="home"><svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span data-i18n="overview">Übersicht</span></button>
+    <button class="nav-btn" data-view="watchlist"><svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span data-i18n="watchlist">Gemerkt</span></button>
+    <button class="nav-btn" data-view="news"><svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg><span data-i18n="news">Neuigkeiten</span></button>
+    <button class="nav-btn" data-view="upcoming"><svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-i18n="upcoming">Upcoming</span></button>
+    <button class="nav-btn" data-view="stream" id="btn-watching" style="display:none"><svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg><span data-i18n="watchingNow">Schaut gerade</span></button>
   </nav>
-
   <div style="flex:1"></div>
-
-  <!-- CR Kalender Button (Punkt 14) -->
-  <div style="margin-bottom:6px;flex-shrink:0">
-    <button class="nav-btn" data-view="cr-calendar" id="nav-cr-calendar-btn" style="width:100%;background:var(--accg);color:var(--acc);border:1px solid var(--acc);border-radius:var(--r-sm)">
-      <span style="font-size:13px">⛩️</span>
-      <span data-i18n="crCalendar" style="font-weight:700">CR Kalender</span>
+  <!-- CR Kalender -->
+  <div style="padding:0 4px 4px">
+    <button class="nav-btn" data-view="cr-calendar" id="nav-cr-calendar-btn">
+      <span style="font-size:13px">⛩️</span><span data-i18n="crCalendar">CR Kalender</span>
     </button>
   </div>
-
-  <!-- Bottom -->
   <div class="sidebar-bottom">
     <div class="theme-row">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <label class="toggle-switch"><input type="checkbox" id="theme-toggle"/><span class="toggle-slider"></span></label>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      <!-- Notification Bell -->
-      <button class="notif-bell-btn" id="notif-bell-btn" title="Benachrichtigungen" style="margin-left:auto;background:transparent;border:none;color:var(--tx2);cursor:pointer;padding:2px;border-radius:4px;transition:color .15s;position:relative">
+      <button class="notif-bell-btn" id="notif-bell-btn" title="Benachrichtigungen" style="margin-left:auto;background:transparent;border:none;color:var(--tx2);cursor:pointer;padding:2px;border-radius:4px;position:relative">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="notif-badge" id="notif-badge" style="display:none">0</span>
       </button>
     </div>
-    <!-- Profile Button (Punkt 22) -->
-    <div class="profile-row">
-      <button class="profile-switcher-btn" id="btn-profile-switcher" title="Profil wechseln">
-        <span class="profile-switcher-avatar" id="profile-switcher-avatar">👤</span>
-        <span class="profile-switcher-name" id="profile-switcher-name">User</span>
+    <!-- Profil-Button -->
+    <div style="padding:2px 4px">
+      <button class="profile-switcher-btn" id="btn-profile-switcher">
+        <div class="profile-avatar-sm" id="sidebar-profile-avatar">👤</div>
+        <span class="profile-switcher-name" id="sidebar-profile-name">User</span>
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
     </div>
-    <!-- Statistiken – direkt über Einstellungen -->
-    <button class="sidebar-icon-btn" data-view="stats" id="nav-stats-bottom">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <!-- Statistiken direkt über Einstellungen -->
+    <button class="sidebar-icon-btn" data-view="stats">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       <span>Statistiken</span>
     </button>
     <button class="sidebar-icon-btn" id="btn-settings">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       <span data-i18n="settings">Einstellungen</span>
     </button>
   </div>
@@ -134,16 +81,20 @@
     <div class="home-topbar">
       <div class="search-bar-wrap">
         <div class="search-bar" id="search-bar">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="search-input" placeholder="Film, Serie, YouTube oder Anbieter suchen…" autocomplete="off"/>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="search-input" placeholder="Anbieter, Film, Serie, YouTube-URL…" autocomplete="off"/>
           <button class="search-clear" id="search-clear" style="display:none">✕</button>
         </div>
         <div class="search-dropdown" id="search-dropdown" style="display:none"></div>
       </div>
-      <!-- Sort Button (Punkt 23 – schöner gestaltet) -->
       <button class="home-action-btn sort-alpha-btn" id="btn-sort-alpha" title="Alphabetisch sortieren">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/></svg>
         <span id="sort-btn-label">A–Z</span>
+      </button>
+      <!-- Eigenen Anbieter hinzufügen -->
+      <button class="home-action-btn" id="btn-add-custom-provider" title="Eigenen Anbieter hinzufügen" style="gap:5px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>Anbieter</span>
       </button>
       <div class="layout-toggle">
         <button class="layout-btn active" id="layout-normal" title="Normal">▦</button>
@@ -158,14 +109,19 @@
   <div class="view" id="view-watchlist">
     <div class="watchlist-header">
       <h2 class="view-title">📌 <span data-i18n="watchlist">Gemerkt</span></h2>
-      <div class="watchlist-sort">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div id="wl-switcher" style="display:flex;gap:10px;align-items:center">
-          <button class="wl-cat-btn active" data-cat="all" style="background:transparent;border:none;color:var(--tx2);font-family:var(--font-d);font-size:14px;font-weight:700;cursor:pointer;padding:0;transition:all .2s" data-i18n-cat="all">Alle</button>
-          <button class="wl-cat-btn" data-cat="movie" style="background:transparent;border:none;color:var(--tx2);font-family:var(--font-d);font-size:14px;font-weight:700;cursor:pointer;padding:0;transition:all .2s">🎬 <span data-i18n="moviesTab">Filme</span></button>
-          <button class="wl-cat-btn" data-cat="tv" style="background:transparent;border:none;color:var(--tx2);font-family:var(--font-d);font-size:14px;font-weight:700;cursor:pointer;padding:0;transition:all .2s">📺 <span data-i18n="showsTab">Serien</span></button>
-          <button class="wl-cat-btn" data-cat="anime" style="background:transparent;border:none;color:var(--tx2);font-family:var(--font-d);font-size:14px;font-weight:700;cursor:pointer;padding:0;transition:all .2s">⛩️ <span data-i18n="animeTab">Anime</span></button>
+          <button class="wl-cat-btn active" data-cat="all">Alle</button>
+          <button class="wl-cat-btn" data-cat="movie">🎬 <span data-i18n="moviesTab">Filme</span></button>
+          <button class="wl-cat-btn" data-cat="tv">📺 <span data-i18n="showsTab">Serien</span></button>
+          <button class="wl-cat-btn" data-cat="anime">⛩️ <span data-i18n="animeTab">Anime</span></button>
         </div>
-        <select id="wl-sort" class="wl-select"><option value="alpha">A–Z</option><option value="date-asc">Datum ↑</option><option value="date-desc">Datum ↓ (Neu)</option><option value="added">Zuletzt gemerkt</option></select>
+        <select id="wl-sort" class="wl-select" style="margin-left:auto">
+          <option value="added">Zuletzt gemerkt</option>
+          <option value="alpha">A–Z</option>
+          <option value="date-desc">Datum ↓ (Neu)</option>
+          <option value="date-asc">Datum ↑ (Alt)</option>
+        </select>
       </div>
     </div>
     <div id="watchlist-content"></div>
@@ -173,27 +129,24 @@
 
   <!-- NEWS -->
   <div class="view" id="view-news">
-    <div class="media-view-wrap" id="news-wrap">
-      <!-- Aktueller Titel oben mittig (Punkt 18) -->
-      <div class="slideshow-current-title" id="news-current-title-display"></div>
-      <!-- Tab-Switcher oben links (Punkt 18 – größer, kein Hintergrund) -->
-      <div class="media-type-switcher" id="news-switcher">
-        <button class="media-type-text-btn active" data-media="movies" id="news-btn-movies"><span data-i18n="moviesTab">Filme</span></button>
-        <button class="media-type-text-btn" data-media="shows" id="news-btn-shows"><span data-i18n="showsTab">Serien</span></button>
-        <button class="media-type-text-btn" data-media="anime" id="news-btn-anime"><span data-i18n="animeTab">Anime</span></button>
+    <div class="media-view-wrap">
+      <div class="slideshow-current-title" id="news-current-title"></div>
+      <!-- Typ-Switcher (IDs korrekt für JS) -->
+      <div class="media-type-switcher" id="news-type-switcher">
+        <button class="media-type-text-btn active" data-media="movies"><span data-i18n="moviesTab">Filme</span></button>
+        <button class="media-type-text-btn" data-media="shows"><span data-i18n="showsTab">Serien</span></button>
+        <button class="media-type-text-btn" data-media="anime"><span data-i18n="animeTab">Anime</span></button>
       </div>
-      <!-- Tab-Buttons Trending/Neu oben rechts -->
-      <div class="news-tab-btns-wrap" id="news-tab-btns">
-        <button class="news-tab active" data-news-tab="trending" data-type="movies">Trending</button>
-        <button class="news-tab" data-news-tab="new" data-type="movies">Neu</button>
-        <button class="hidden-toggle-btn" id="news-show-hidden" title="Ausgeblendete">👁</button>
+      <div class="news-tab-btns-wrap">
+        <button class="news-tab active" data-news-tab="trending">Trending</button>
+        <button class="news-tab" data-news-tab="new">Neu</button>
+        <button class="hidden-toggle-btn" id="news-show-hidden" title="Ausgeblendete anzeigen">👁</button>
       </div>
-      <!-- Slideshow -->
       <div class="full-slideshow" id="news-slideshow">
         <div class="full-bg" id="news-bg"></div>
         <div class="full-bg-overlay"></div>
         <button class="slide-arrow left" id="news-prev">&#8249;</button>
-        <div class="slide-track full-track" id="news-track"></div>
+        <div class="slide-track" id="news-track"></div>
         <button class="slide-arrow right" id="news-next">&#8250;</button>
         <div class="slide-dots" id="news-dots"></div>
       </div>
@@ -202,40 +155,35 @@
 
   <!-- UPCOMING -->
   <div class="view" id="view-upcoming">
-    <div class="media-view-wrap" id="upcoming-wrap">
-      <!-- Aktueller Titel oben mittig (Punkt 18) -->
-      <div class="slideshow-current-title" id="upcoming-current-title-display"></div>
-      <div class="media-type-switcher" id="upcoming-switcher">
-        <button class="media-type-text-btn active" data-media="movies" id="upcoming-btn-movies"><span data-i18n="moviesTab">Filme</span></button>
-        <button class="media-type-text-btn" data-media="shows" id="upcoming-btn-shows"><span data-i18n="showsTab">Serien</span></button>
-        <button class="media-type-text-btn" data-media="anime" id="upcoming-btn-anime"><span data-i18n="animeTab">Anime</span></button>
+    <div class="media-view-wrap">
+      <div class="slideshow-current-title" id="upcoming-current-title"></div>
+      <div class="media-type-switcher" id="upcoming-type-switcher">
+        <button class="media-type-text-btn active" data-media="movies"><span data-i18n="moviesTab">Filme</span></button>
+        <button class="media-type-text-btn" data-media="shows"><span data-i18n="showsTab">Serien</span></button>
+        <button class="media-type-text-btn" data-media="anime"><span data-i18n="animeTab">Anime</span></button>
       </div>
-      <!-- Zeitraum-Buttons -->
-      <div class="upcoming-range-btns" id="upcoming-range-btns">
-        <button class="range-btn active" data-months="1">Nächster Monat</button>
-        <button class="range-btn" data-months="6">6 Monate</button>
-        <button class="range-btn" data-months="12">1 Jahr</button>
-        <button class="hidden-toggle-btn" id="upcoming-show-hidden" title="Ausgeblendete">👁</button>
+      <div class="news-tab-btns-wrap">
+        <button class="hidden-toggle-btn" id="upcoming-show-hidden" title="Ausgeblendete anzeigen">👁</button>
       </div>
       <div class="full-slideshow" id="upcoming-slideshow">
         <div class="full-bg" id="upcoming-bg"></div>
         <div class="full-bg-overlay"></div>
         <button class="slide-arrow left" id="upcoming-prev">&#8249;</button>
-        <div class="slide-track full-track" id="upcoming-track"></div>
+        <div class="slide-track" id="upcoming-track"></div>
         <button class="slide-arrow right" id="upcoming-next">&#8250;</button>
         <div class="slide-dots" id="upcoming-dots"></div>
       </div>
     </div>
   </div>
 
-  <!-- STATISTIKEN (Punkt 21 bereinigt) -->
+  <!-- STATISTIKEN -->
   <div class="view" id="view-stats">
-    <h2 class="view-title" style="margin-bottom:20px">📊 Stream-Statistiken</h2>
+    <h2 class="view-title" style="margin-bottom:20px">📊 Statistiken</h2>
     <div id="stats-content"></div>
     <div id="achievements-content" style="margin-top:24px"></div>
   </div>
 
-  <!-- CR KALENDER (Punkt 14) -->
+  <!-- CR KALENDER -->
   <div class="view" id="view-cr-calendar">
     <h2 class="view-title" style="margin-bottom:20px">⛩️ <span data-i18n="crCalendar">CR Kalender</span></h2>
     <div id="cr-calendar-content"></div>
@@ -243,66 +191,47 @@
 
   <!-- STREAM -->
   <div class="view" id="view-stream">
-    <div class="stream-tabs-bar" id="stream-tabs-bar" style="display:none">
-      <div class="stream-tabs" id="stream-tabs"></div>
-    </div>
+    <div class="stream-tabs-bar" id="stream-tabs-bar" style="display:none"><div class="stream-tabs" id="stream-tabs"></div></div>
     <div class="stream-topbar" id="stream-topbar">
-      <button class="back-btn" id="back-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        Zurück
-      </button>
+      <button class="back-btn" id="back-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg> Zurück</button>
       <span class="stream-title-label" id="stream-title">–</span>
       <div class="topbar-spacer"></div>
-      <button class="topbar-btn" id="btn-pip">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="12" y="13" width="8" height="6" rx="1" fill="currentColor" stroke="none"/></svg>
-        Miniplayer
-      </button>
-      <button class="topbar-btn" id="btn-second-window" title="Zweites Fenster öffnen">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg>
-      </button>
-      <button class="topbar-btn" id="btn-fullscreen">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-        Vollbild
-      </button>
-      <button class="topbar-btn stop-btn" id="btn-stop">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
-        Stop
-      </button>
-      <button class="topbar-btn" id="btn-retry" style="display:none">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-      </button>
-      <button class="topbar-btn danger" id="btn-logout-provider">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Abmelden
-      </button>
+      <button class="topbar-btn" id="btn-pip">Miniplayer</button>
+      <button class="topbar-btn" id="btn-second-window" title="Zweites Fenster">⧉</button>
+      <button class="topbar-btn" id="btn-fullscreen">Vollbild</button>
+      <button class="topbar-btn stop-btn" id="btn-stop">■ Stop</button>
+      <button class="topbar-btn danger" id="btn-logout-provider">Abmelden</button>
     </div>
     <div class="webview-wrap" id="webview-wrap"></div>
-    <div class="fs-exit-zone">
-      <div class="fs-exit-btn" id="fs-exit-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="8 3 3 3 3 8"/><polyline points="21 8 21 3 16 3"/><polyline points="3 16 3 21 8 21"/><polyline points="16 21 21 21 21 16"/></svg>
-      </div>
-    </div>
   </div>
 
   <!-- NOTHING -->
   <div class="view" id="view-nothing">
     <div class="nothing-running">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.3"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
       <h2>Kein Stream aktiv</h2>
       <p>Wähle einen Anbieter aus der Übersicht.</p>
       <button class="goto-home-btn" id="goto-home-btn">Zur Übersicht</button>
     </div>
   </div>
-
 </main>
+
+<!-- NOTIFICATION CENTER -->
+<div class="notif-center" id="notif-center" style="display:none">
+  <div class="notif-center-header">
+    <span>🔔 Benachrichtigungen</span>
+    <button id="notif-clear-all" class="notif-clear-btn">Alle löschen</button>
+    <button id="notif-center-close" class="notif-close-btn">✕</button>
+  </div>
+  <div id="notif-list" class="notif-list"><div style="text-align:center;padding:30px;color:var(--tx2);font-size:13px">Keine Benachrichtigungen</div></div>
+</div>
 
 <!-- PIP -->
 <div class="pip-window" id="pip-window" style="display:none">
   <div class="pip-topbar" id="pip-topbar">
     <span class="pip-title" id="pip-title">Stream</span>
     <div class="pip-controls">
-      <button class="pip-btn" id="pip-expand"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>
-      <button class="pip-btn close" id="pip-close"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <button class="pip-btn" id="pip-expand">⤢</button>
+      <button class="pip-btn close" id="pip-close">✕</button>
     </div>
   </div>
   <div class="pip-content" id="pip-content"></div>
@@ -317,10 +246,7 @@
       <div class="detail-left">
         <img class="detail-poster" id="detail-poster" src="" alt=""/>
         <div class="detail-meta-list" id="detail-meta"></div>
-        <div class="detail-providers-wrap">
-          <div class="detail-providers-title">Verfügbar bei:</div>
-          <div class="detail-providers" id="detail-providers"></div>
-        </div>
+        <div class="detail-providers-wrap"><div class="detail-providers-title">Verfügbar bei:</div><div class="detail-providers" id="detail-providers"></div></div>
       </div>
       <div class="detail-right">
         <div class="detail-badges" id="detail-badges"></div>
@@ -328,7 +254,7 @@
         <p class="detail-overview" id="detail-overview"></p>
         <div class="detail-trailer-wrap" id="detail-trailer-wrap" style="display:none">
           <div class="detail-trailer-label">Trailer</div>
-          <webview class="detail-trailer-wv" id="detail-trailer-wv" src="about:blank" partition="persist:trailer" useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"></webview>
+          <webview class="detail-trailer-wv" id="detail-trailer-wv" src="about:blank" partition="persist:trailer" useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"></webview>
         </div>
         <div class="detail-actions" id="detail-actions"></div>
       </div>
@@ -336,281 +262,36 @@
   </div>
 </div>
 
-<!-- SETTINGS -->
-<div class="settings-overlay" id="settings-overlay"></div>
-<div class="settings-panel" id="settings-panel">
-  <div class="settings-header">
-    <span>Einstellungen</span>
-    <span class="settings-version" id="settings-version-chip" style="cursor:pointer" title="Nach Updates suchen">v2.2.0</span>
-    <button class="settings-close" id="settings-close">✕</button>
-  </div>
-  <div class="settings-tabs">
-    <button class="stab active" data-tab="appearance">Design</button>
-    <button class="stab" data-tab="account">Account</button>
-    <button class="stab" data-tab="clock">Uhr</button>
-    <button class="stab" data-tab="plugins">Plugins</button>
-    <button class="stab" data-tab="advanced">Mehr</button>
-  </div>
-
-  <!-- Design (Punkt 29 – Custom Design + Partikel + Schriftart) -->
-  <div class="stab-content active" id="stab-appearance">
-    <div class="settings-section">
-      <label class="settings-label">Hintergrundbild</label>
-      <div class="img-pick-row">
-        <div class="img-preview" id="prev-app-bg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>
-        <button class="pick-btn" id="pick-bg-image">Bild wählen</button>
-        <button class="reset-btn" id="reset-bg-image">↺</button>
-      </div>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Akzentfarbe</label>
-      <div class="color-row">
-        <input type="color" id="set-accent-color" value="#30c5bb"/>
-        <input type="text" class="color-text" id="set-accent-text" placeholder="#30c5bb" maxlength="7"/>
-        <button class="reset-btn" data-reset="accentColor">↺</button>
-      </div>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Schriftart</label>
-      <select id="font-family-select" class="wl-select" style="width:100%">
-        <option value="DM Sans">DM Sans</option>
-        <option value="Inter">Inter</option>
-        <option value="Rajdhani">Rajdhani</option>
-        <option value="Orbitron">Orbitron</option>
-        <option value="Exo 2">Exo 2</option>
-        <option value="system-ui">System-Schrift</option>
-      </select>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Schriftgröße: <span id="font-size-val">14px</span></label>
-      <input type="range" id="font-size-range" min="10" max="22" value="14" class="settings-range"/>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Eckenradius: <span id="card-radius-val">14px</span></label>
-      <input type="range" id="card-radius" min="0" max="30" value="14" class="settings-range"/>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Sidebar-Breite: <span id="sidebar-width-val">200px</span></label>
-      <input type="range" id="sidebar-width" min="160" max="280" value="200" class="settings-range"/>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Glassmorphismus</label>
-      <label class="toggle-switch"><input type="checkbox" id="glass-toggle"/><span class="toggle-slider"></span></label>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Partikel-Hintergrund</label>
-      <label class="toggle-switch"><input type="checkbox" id="particles-toggle"/><span class="toggle-slider"></span></label>
-    </div>
-    <div class="settings-section" id="particles-options-section" style="display:none;flex-direction:column;gap:10px">
-      <label class="settings-label">Partikel-Anzahl: <span id="particle-count-val">80</span></label>
-      <input type="range" id="particle-count" min="10" max="200" value="80" class="settings-range"/>
-      <label class="settings-label">Partikel-Größe: <span id="particle-size-val">1.5</span></label>
-      <input type="range" id="particle-size" min="0.5" max="5" step="0.5" value="1.5" class="settings-range"/>
-      <label class="settings-label">Partikel-Geschwindigkeit: <span id="particle-speed-val">1</span></label>
-      <input type="range" id="particle-speed" min="0.1" max="5" step="0.1" value="1" class="settings-range"/>
-      <label class="settings-label">Partikel-Farbe</label>
-      <div class="color-row">
-        <input type="color" id="particle-color" value="#30c5bb"/>
-        <input type="text" class="color-text" id="particle-color-text" placeholder="#30c5bb" maxlength="7"/>
-      </div>
-      <label class="settings-label">Partikel-Form</label>
-      <div style="display:flex;flex-wrap:wrap;gap:5px">
-        <button class="particle-shape-btn lang-btn active" data-shape="circle">●</button>
-        <button class="particle-shape-btn lang-btn" data-shape="triangle">▲</button>
-        <button class="particle-shape-btn lang-btn" data-shape="star">★</button>
-        <button class="particle-shape-btn lang-btn" data-shape="line">—</button>
-        <button class="particle-shape-btn lang-btn" data-shape="ring">○</button>
-      </div>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Custom CSS</label>
-      <textarea id="custom-css-input" class="custom-css-input" placeholder="/* Eigenes CSS */"></textarea>
-      <button class="pick-btn" id="btn-apply-custom-css" style="margin-top:6px">CSS anwenden</button>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Sprache / Language</label>
-      <div class="lang-select-wrap">
-        <button class="lang-btn active" data-lang="de">🇩🇪 Deutsch</button>
-        <button class="lang-btn" data-lang="en">🇬🇧 English</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Account -->
-  <div class="stab-content" id="stab-account">
-    <p class="settings-hint">Wird jede Minute automatisch aktualisiert.</p>
-    <div id="session-list"><div class="loading-sessions">Wird geprüft…</div></div>
-    <div class="settings-divider"></div>
-    <button class="settings-danger-btn" id="btn-logout-all">Von ALLEN Diensten abmelden</button>
-    <div class="settings-divider"></div>
-    <p class="settings-hint">YouTube-Login über Google:</p>
-    <button class="pick-btn" id="btn-google-auth" style="text-align:center;margin-top:4px">🔐 Bei Google anmelden (YouTube)</button>
-  </div>
-
-  <!-- Uhr -->
-  <div class="stab-content" id="stab-clock">
-    <div class="settings-section">
-      <label class="settings-label">Uhr anzeigen</label>
-      <div class="clock-toggle-row">
-        <label class="toggle-switch"><input type="checkbox" id="clock-enabled"/><span class="toggle-slider"></span></label>
-        <span class="clock-status-label" id="clock-status-label">Deaktiviert</span>
-      </div>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Typ</label>
-      <div style="display:flex;gap:6px">
-        <button class="clock-type-btn lang-btn active" data-clock-type="digital" id="clock-type-digital">Digital</button>
-        <button class="clock-type-btn lang-btn" data-clock-type="analog" id="clock-type-analog">Analog</button>
-      </div>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Sekunden anzeigen</label>
-      <label class="toggle-switch"><input type="checkbox" id="clock-show-seconds"/><span class="toggle-slider"></span></label>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Farbe</label>
-      <div class="color-row">
-        <input type="color" id="clock-color" value="#cfcfcf"/>
-        <input type="text" class="color-text" id="clock-color-text" placeholder="#cfcfcf" maxlength="7"/>
-        <button class="reset-btn" data-reset="clockColor">↺</button>
-      </div>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Transparenz: <span id="clock-opacity-val">50%</span></label>
-      <input type="range" id="clock-opacity" min="0" max="100" value="50" class="settings-range"/>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Schriftgröße: <span id="clock-size-val">36px</span></label>
-      <input type="range" id="clock-size" min="12" max="60" value="36" class="settings-range"/>
-    </div>
-    <div class="settings-hint clock-drag-hint" id="clock-drag-hint" style="display:none">
-      💡 Du kannst die Uhr direkt mit der Maus verschieben, solange diese Einstellung offen ist.
-    </div>
-  </div>
-
-  <!-- Plugins (Punkt 26 – Suchleiste weg, moderne Buttons, "Installierte Listen" weg) -->
-  <div class="stab-content" id="stab-plugins">
-    <div id="plugin-presets-list"></div>
-  </div>
-
-  <!-- Mehr (Punkt 25 – neu strukturiert) -->
-  <div class="stab-content" id="stab-advanced">
-    <!-- Nach Updates suchen -->
-    <div class="settings-section">
-      <label class="settings-label">Updates</label>
-      <button class="pick-btn" id="btn-check-updates" style="text-align:center">🔍 Nach Updates suchen</button>
-      <div id="update-check-result" style="margin-top:6px;font-size:12px;color:var(--tx2)"></div>
-    </div>
-    <div class="settings-divider"></div>
-    <!-- VPN Einstellungen -->
-    <div class="settings-section">
-      <label class="settings-label">VPN-Status</label>
-      <button class="pick-btn" id="btn-check-vpn" style="text-align:center">🛡 VPN prüfen</button>
-      <div id="vpn-status" style="margin-top:8px;font-size:12px;color:var(--tx2)"></div>
-      <button class="pick-btn" id="btn-nordvpn" style="margin-top:6px;text-align:center">↗ NordVPN</button>
-    </div>
-    <div class="settings-divider"></div>
-    <!-- WideVine -->
-    <div class="settings-section">
-      <label class="settings-label">WideVine CDM</label>
-      <p class="settings-hint">DRM-Inhalte benötigen WideVine. CDM-Datei unter AppData/Roaming/OmniSight/WidevineCdm ablegen.</p>
-      <div id="widevine-status" style="font-size:12px;color:var(--tx2);margin-top:4px"></div>
-      <a id="widevine-dl-link" href="#" style="font-size:11px;color:var(--acc);margin-top:4px;display:block">📥 CDM herunterladen</a>
-    </div>
-    <div class="settings-divider"></div>
-    <!-- Watchlist Export/Import (Punkt 3) -->
-    <div class="settings-section">
-      <label class="settings-label">Watchlist</label>
-      <div style="display:flex;gap:6px">
-        <button class="pick-btn" id="btn-export-watchlist">📤 Exportieren (JSON)</button>
-        <button class="pick-btn" id="btn-import-watchlist">📥 Importieren (JSON)</button>
-      </div>
-    </div>
-    <div class="settings-divider"></div>
-    <!-- Push-Nachrichten (Punkt 7) -->
-    <div class="settings-section">
-      <label class="settings-label">Push-Nachrichten</label>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0">
-        <span style="font-size:13px;color:var(--tx)">⏸ Pause-Erinnerung (alle 2h)</span>
-        <label class="toggle-switch"><input type="checkbox" id="notif-stream-break" checked/><span class="toggle-slider"></span></label>
-      </div>
-      <p class="settings-hint">Erinnert dich nach 2 Stunden Streaming an eine kurze Pause.</p>
-    </div>
-    <div class="settings-divider"></div>
-    <!-- Provider verwalten -->
-    <div class="settings-section">
-      <label class="settings-label">Anbieter</label>
-      <button class="pick-btn" id="btn-restore-providers" style="text-align:center">↺ Standard-Anbieter wiederherstellen</button>
-      <button class="pick-btn" id="btn-restore-single-open" style="margin-top:6px;text-align:center">↺ Einzelnen Anbieter wiederherstellen</button>
-      <div id="restore-single-list" style="display:none;margin-top:8px"></div>
-    </div>
-    <div class="settings-section">
-      <label class="settings-label">Onboarding</label>
-      <button class="pick-btn" id="btn-show-onboarding" style="text-align:center">🎬 Onboarding erneut anzeigen</button>
-    </div>
-    <div class="settings-divider"></div>
-    <div class="settings-section">
-      <label class="settings-label">Eigene Anbieter</label>
-      <div id="custom-providers-list"></div>
-    </div>
-  </div>
-</div>
-
-<!-- CARD EDITOR OVERLAY -->
+<!-- CARD EDITOR (modernes Design) -->
 <div class="modal-overlay" id="card-editor-overlay" style="display:none">
-  <div class="modal card-editor-modal">
-    <div class="settings-header" style="margin-bottom:12px">
-      <span id="card-editor-title">Karte anpassen</span>
-      <button class="settings-close" id="card-editor-close">✕</button>
+  <div class="card-editor-new">
+    <div class="card-editor-header">
+      <span class="card-editor-title-text" id="card-editor-title">Karte anpassen</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="card-ed-reset-btn" id="card-ed-reset" title="Zurücksetzen">↺</button>
+        <button class="card-ed-delete-btn" id="card-ed-delete" title="Löschen"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:12px;overflow-y:auto;max-height:70vh">
-      <div class="settings-section">
-        <label class="settings-label">Name</label>
-        <input type="text" class="color-text" id="card-ed-name" style="width:100%"/>
+    <div class="card-editor-body">
+      <!-- Live-Vorschau -->
+      <div class="card-ed-preview-wrap">
+        <div class="card-ed-preview" id="card-ed-preview-card"></div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;margin-top:6px">Live-Vorschau</div>
       </div>
-      <div class="settings-section">
-        <label class="settings-label">Beschreibung</label>
-        <input type="text" class="color-text" id="card-ed-tag" style="width:100%"/>
+      <!-- Felder -->
+      <div class="card-editor-fields">
+        <div class="ced-field"><label class="ced-label">Name</label><input type="text" class="ced-input" id="card-ed-name"/></div>
+        <div class="ced-field"><label class="ced-label">Beschreibung</label><input type="text" class="ced-input" id="card-ed-tag"/></div>
+        <div class="ced-field"><label class="ced-label">Hintergrundfarbe</label><div style="display:flex;gap:6px"><input type="color" id="card-ed-color" style="width:36px;height:32px;border:1px solid var(--bor);border-radius:var(--r-sm);cursor:pointer;background:none;padding:2px"/><input type="text" class="ced-input" id="card-ed-color-text" maxlength="7" style="flex:1"/></div></div>
+        <div class="ced-field"><label class="ced-label">Banner-Bild</label><div style="display:flex;gap:6px"><button class="ced-btn" id="card-ed-pick">📁 Bild wählen</button><button class="ced-btn danger" id="card-ed-remove-img">✕</button></div></div>
+        <div class="ced-field"><label class="ced-label">Bild X: <span id="card-ed-x-val">0px</span></label><input type="range" id="card-ed-x" min="-300" max="300" value="0" class="settings-range"/></div>
+        <div class="ced-field"><label class="ced-label">Bild Y: <span id="card-ed-y-val">0px</span></label><input type="range" id="card-ed-y" min="-300" max="300" value="0" class="settings-range"/></div>
+        <div class="ced-field"><label class="ced-label">Deckkraft: <span id="card-ed-opacity-val">100%</span></label><input type="range" id="card-ed-opacity" min="0" max="100" value="100" class="settings-range"/></div>
+        <div class="ced-field"><label class="ced-label">Logo</label><div style="display:flex;gap:6px;align-items:center"><div class="img-preview" id="card-ed-logo-preview"></div><button class="ced-btn" id="card-ed-logo-pick">Logo</button><button class="ced-btn danger" id="card-ed-logo-remove">✕</button></div></div>
       </div>
-      <div class="settings-section">
-        <label class="settings-label">Hintergrundfarbe</label>
-        <div class="color-row">
-          <input type="color" id="card-ed-color"/>
-          <input type="text" class="color-text" id="card-ed-color-text" maxlength="7"/>
-        </div>
-      </div>
-      <div class="settings-section">
-        <label class="settings-label">Banner-Bild</label>
-        <div class="img-pick-row">
-          <button class="pick-btn" id="card-ed-pick">Bild wählen</button>
-          <button class="reset-btn" id="card-ed-remove-img">✕</button>
-        </div>
-      </div>
-      <div class="settings-section">
-        <label class="settings-label">Bild X: <span id="card-ed-x-val">0px</span></label>
-        <input type="range" id="card-ed-x" min="-300" max="300" value="0" class="settings-range"/>
-      </div>
-      <div class="settings-section">
-        <label class="settings-label">Bild Y: <span id="card-ed-y-val">0px</span></label>
-        <input type="range" id="card-ed-y" min="-300" max="300" value="0" class="settings-range"/>
-      </div>
-      <div class="settings-section">
-        <label class="settings-label">Deckkraft: <span id="card-ed-opacity-val">100%</span></label>
-        <input type="range" id="card-ed-opacity" min="0" max="100" value="100" class="settings-range"/>
-      </div>
-      <div class="settings-section">
-        <label class="settings-label">Logo</label>
-        <div class="img-pick-row">
-          <div class="img-preview" id="card-ed-logo-preview"></div>
-          <button class="pick-btn" id="card-ed-logo-pick">Logo wählen</button>
-          <button class="reset-btn" id="card-ed-logo-remove">✕</button>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="settings-danger-btn" id="card-ed-delete" style="flex:1;width:auto">🗑 Löschen</button>
-        <button class="reset-btn" id="card-ed-reset" style="width:auto;padding:8px 12px">↺</button>
-        <button class="settings-save-btn" id="card-ed-save" style="margin-top:0;flex:2">Speichern</button>
-      </div>
+    </div>
+    <div class="card-editor-footer">
+      <button class="ced-save-btn" id="card-ed-save">✓ Speichern</button>
     </div>
   </div>
 </div>
@@ -618,73 +299,79 @@
 <!-- CUSTOM PROVIDER MODAL -->
 <div class="modal-overlay" id="custom-provider-modal" style="display:none">
   <div class="modal">
-    <h3>Eigenen Anbieter hinzufügen</h3>
-    <input type="text" class="color-text" id="cp-name" placeholder="Name" style="width:100%;margin-bottom:8px"/>
-    <input type="text" class="color-text" id="cp-url" placeholder="URL (https://...)" style="width:100%;margin-bottom:8px"/>
-    <div class="color-row" style="margin-bottom:12px">
-      <input type="color" id="cp-color" value="#30c5bb"/>
-      <input type="text" class="color-text" id="cp-color-text" placeholder="Farbe"/>
+    <h3>➕ Eigenen Anbieter</h3>
+    <div style="display:flex;flex-direction:column;gap:10px;margin:14px 0">
+      <input type="text" class="color-text" id="cp-name" placeholder="Name" style="width:100%"/>
+      <input type="text" class="color-text" id="cp-url" placeholder="URL (https://...)" style="width:100%"/>
+      <div class="color-row"><input type="color" id="cp-color" value="#30c5bb"/><input type="text" class="color-text" id="cp-color-text" placeholder="#30c5bb" maxlength="7" style="flex:1"/></div>
     </div>
-    <div class="modal-buttons">
-      <button class="modal-btn primary" id="cp-save">Hinzufügen</button>
-      <button class="modal-btn" id="cp-cancel">Abbrechen</button>
+    <div class="modal-buttons"><button class="modal-btn primary" id="cp-save">Hinzufügen</button><button class="modal-btn" id="cp-cancel">Abbrechen</button></div>
+  </div>
+</div>
+
+<!-- PROFIL MANAGER (komplett neu) -->
+<div class="modal-overlay" id="profile-manager-overlay" style="display:none">
+  <div class="profile-manager-modal">
+    <div class="pm-header">
+      <span class="pm-title">👤 Profile</span>
+      <button class="pm-close" id="pm-close">✕</button>
+    </div>
+    <div class="pm-list" id="pm-list"></div>
+    <div class="pm-footer">
+      <button class="pm-btn-new" id="pm-btn-new">+ Neues Profil</button>
+      <button class="pm-btn-logout" id="pm-btn-logout" title="Profil abmelden">Abmelden</button>
     </div>
   </div>
 </div>
 
-<!-- PROFILE SWITCHER MODAL (Punkt 22) -->
-<div class="modal-overlay" id="profile-switcher-modal" style="display:none">
-  <div class="modal profile-switcher-content" style="max-width:480px;width:95%;text-align:left">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h3 style="font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--tx)">Profil wechseln</h3>
-      <button class="settings-close" id="profile-switcher-close">✕</button>
+<!-- PIN EINGABE -->
+<div class="modal-overlay" id="pin-overlay" style="display:none">
+  <div class="modal" style="max-width:320px">
+    <div style="font-size:36px;margin-bottom:8px">🔒</div>
+    <h3 id="pin-title">PIN eingeben</h3>
+    <div class="pin-dots-row" id="pin-dots-row">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
     </div>
-    <div id="profile-list-modal" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
-    <button class="settings-save-btn" id="btn-add-profile-modal" style="margin-top:0">+ Neues Profil</button>
+    <div class="pin-keypad">
+      <button class="pin-key" data-k="1">1</button><button class="pin-key" data-k="2">2</button><button class="pin-key" data-k="3">3</button>
+      <button class="pin-key" data-k="4">4</button><button class="pin-key" data-k="5">5</button><button class="pin-key" data-k="6">6</button>
+      <button class="pin-key" data-k="7">7</button><button class="pin-key" data-k="8">8</button><button class="pin-key" data-k="9">9</button>
+      <button class="pin-key" data-k="clear" style="font-size:11px;color:var(--tx3)">⌫</button><button class="pin-key" data-k="0">0</button><button class="pin-key" data-k="cancel" style="font-size:11px;color:var(--tx3)">✕</button>
+    </div>
+    <div id="pin-error" style="color:var(--danger);font-size:12px;margin-top:6px;display:none;text-align:center">Falscher PIN</div>
   </div>
 </div>
 
-<!-- PIN INPUT MODAL -->
-<div class="modal-overlay" id="pin-modal" style="display:none">
-  <div class="modal">
-    <h3>🔒 PIN eingeben</h3>
-    <p>Dieses Profil ist PIN-geschützt.</p>
-    <input type="password" class="color-text" id="pin-input" placeholder="PIN eingeben" maxlength="8" style="width:100%;margin-bottom:8px;text-align:center;font-size:20px;letter-spacing:6px"/>
-    <div id="pin-error" style="color:var(--danger);font-size:12px;margin-bottom:8px;display:none">Falscher PIN</div>
-    <div class="modal-buttons">
-      <button class="modal-btn primary" id="btn-pin-confirm">Bestätigen</button>
-      <button class="modal-btn" id="btn-pin-cancel">Abbrechen</button>
-    </div>
-  </div>
-</div>
-
-<!-- PROFILE EDITOR MODAL -->
-<div class="modal-overlay" id="profile-editor-modal" style="display:none">
+<!-- PROFIL EDITOR -->
+<div class="modal-overlay" id="profile-editor-overlay" style="display:none">
   <div class="modal" style="max-width:400px;text-align:left">
-    <h3 id="profile-editor-title">Profil bearbeiten</h3>
-    <div style="display:flex;flex-direction:column;gap:10px;margin:12px 0">
-      <div class="settings-section">
-        <label class="settings-label">Profilbild</label>
-        <div class="img-pick-row">
-          <div class="img-preview" id="profile-ed-avatar-preview" style="width:50px;height:50px;border-radius:50%;font-size:24px;display:flex;align-items:center;justify-content:center">👤</div>
-          <button class="pick-btn" id="btn-pick-profile-avatar">Bild wählen</button>
-          <button class="reset-btn" id="btn-reset-profile-avatar">↺</button>
+    <h3 id="ped-title">Profil bearbeiten</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;margin:14px 0">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="ped-avatar" id="ped-avatar-preview">👤</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="ced-btn" id="ped-pick-avatar">📷 Bild wählen</button>
+          <button class="ced-btn danger" id="ped-clear-avatar">Entfernen</button>
         </div>
       </div>
-      <div class="settings-section">
-        <label class="settings-label">Name</label>
-        <input type="text" class="color-text" id="profile-ed-name" placeholder="Profilname" style="width:100%"/>
-      </div>
-      <div class="settings-section">
-        <label class="settings-label">PIN (optional, 4–8 Ziffern)</label>
-        <input type="password" class="color-text" id="profile-ed-pin" placeholder="PIN leer lassen = kein PIN" maxlength="8" style="width:100%"/>
+      <div class="ced-field"><label class="ced-label">Name</label><input type="text" class="ced-input" id="ped-name" placeholder="Profilname"/></div>
+      <div class="ced-field">
+        <label class="ced-label">PIN (4 Ziffern, optional)</label>
+        <div class="pin-dots-row" id="ped-pin-dots" style="justify-content:flex-start;gap:6px;margin-bottom:6px">
+          <div class="pin-dot" id="ppd0"></div><div class="pin-dot" id="ppd1"></div><div class="pin-dot" id="ppd2"></div><div class="pin-dot" id="ppd3"></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="ced-btn" id="ped-set-pin">PIN setzen/ändern</button>
+          <button class="ced-btn danger" id="ped-remove-pin">PIN entfernen</button>
+        </div>
       </div>
     </div>
     <div style="display:flex;gap:8px">
-      <button class="settings-danger-btn" id="btn-delete-profile-ed" style="width:auto;flex:1">Profil löschen</button>
-      <button class="settings-save-btn" id="btn-save-profile-ed" style="margin-top:0;flex:2">Speichern</button>
+      <button class="settings-danger-btn" id="ped-delete" style="width:auto;flex:1">Profil löschen</button>
+      <button class="ced-save-btn" id="ped-save" style="margin-top:0;flex:2">Speichern</button>
     </div>
-    <button class="modal-btn" id="btn-cancel-profile-ed" style="width:100%;margin-top:8px">Abbrechen</button>
+    <button class="modal-btn" id="ped-cancel" style="width:100%;margin-top:8px">Abbrechen</button>
   </div>
 </div>
 
@@ -692,13 +379,19 @@
 <div class="detail-overlay" id="hidden-overlay" style="display:none">
   <div class="hidden-panel">
     <div class="hidden-panel-header">
-      <h3>Ausgeblendete Einträge</h3>
+      <h3>Ausgeblendet</h3>
+      <div style="display:flex;gap:6px">
+        <button class="news-tab active" data-hf="all" id="hf-all">Alle</button>
+        <button class="news-tab" data-hf="movies" id="hf-movies">Filme</button>
+        <button class="news-tab" data-hf="shows" id="hf-shows">Serien</button>
+        <button class="news-tab" data-hf="anime" id="hf-anime">Anime</button>
+      </div>
     </div>
     <div id="hidden-grid" class="hidden-grid"></div>
   </div>
 </div>
 
-<!-- WATCHED CONTENT MODAL (Punkt 24) -->
+<!-- WATCHED CONTENT -->
 <div class="detail-overlay" id="watched-content-overlay" style="display:none">
   <div class="detail-modal" style="max-width:800px">
     <button class="detail-close" id="watched-content-close">✕</button>
@@ -706,105 +399,253 @@
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
         <h2 style="font-family:var(--font-d);font-size:20px;font-weight:800;color:var(--tx)">📺 Bereits angeschaut</h2>
         <input type="text" class="color-text" id="watched-search" placeholder="Suchen…" style="flex:1;min-width:160px"/>
-        <select class="wl-select" id="watched-filter">
-          <option value="all">Alle</option>
-          <option value="movie">🎬 Filme</option>
-          <option value="tv">📺 Serien</option>
-          <option value="anime">⛩️ Anime</option>
-        </select>
-        <button class="pick-btn" id="btn-add-watched" style="white-space:nowrap">+ Hinzufügen</button>
+        <select class="wl-select" id="watched-filter"><option value="all">Alle</option><option value="movie">Filme</option><option value="tv">Serien</option><option value="anime">Anime</option></select>
+        <button class="pick-btn" id="btn-add-watched">+ Hinzufügen</button>
       </div>
       <div id="watched-content-grid" class="watchlist-grid" style="max-height:60vh;overflow-y:auto"></div>
     </div>
   </div>
 </div>
 
-<!-- CLOCK -->
-<div class="clock-widget" id="clock-widget" style="display:none">
-  <span id="clock-time">00:00</span>
-</div>
-<div class="clock-ctx-menu" id="clock-ctx-menu" style="display:none">
-  <button id="clock-ctx-disable">Uhr deaktivieren</button>
-  <div style="height:1px;background:var(--bor);margin:2px 0"></div>
-  <div style="padding:4px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
-    <span style="font-size:12px;color:var(--tx)">Digital</span>
-    <label class="toggle-switch" style="flex-shrink:0"><input type="checkbox" id="clock-ctx-type-toggle"/><span class="toggle-slider"></span></label>
-    <span style="font-size:12px;color:var(--tx)">Analog</span>
+<!-- SETTINGS (Modal statt Panel) -->
+<div class="settings-overlay" id="settings-overlay" style="display:none">
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-modal-sidebar">
+      <div class="sms-title">⚙️ Einstellungen</div>
+      <nav class="sms-nav">
+        <button class="sms-btn active" data-stab="appearance">🎨 Design</button>
+        <button class="sms-btn" data-stab="account">🔑 Account</button>
+        <button class="sms-btn" data-stab="clock">🕐 Uhr</button>
+        <button class="sms-btn" data-stab="notifications">🔔 Benachrichtigungen</button>
+        <button class="sms-btn" data-stab="plugins">🧩 Plugins</button>
+        <button class="sms-btn" data-stab="advanced">⚙ Mehr</button>
+      </nav>
+      <div style="flex:1"></div>
+      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.0.0</div>
+    </div>
+    <div class="settings-modal-content">
+      <button class="settings-modal-close" id="settings-close">✕</button>
+
+      <!-- DESIGN TAB -->
+      <div class="smt-content active" id="smt-appearance">
+        <h2 class="smt-title">🎨 Design</h2>
+        <div class="smt-grid">
+          <div class="smt-card">
+            <div class="smt-card-label">Hintergrundbild</div>
+            <div class="img-pick-row"><div class="img-preview" id="prev-app-bg"></div><button class="pick-btn" id="pick-bg-image">Bild wählen</button><button class="reset-btn" id="reset-bg-image">↺</button></div>
+          </div>
+          <div class="smt-card">
+            <div class="smt-card-label">Akzentfarbe</div>
+            <div class="color-row"><input type="color" id="set-accent-color" value="#30c5bb"/><input type="text" class="color-text" id="set-accent-text" placeholder="#30c5bb" maxlength="7"/><button class="reset-btn" data-reset="accentColor">↺</button></div>
+          </div>
+          <div class="smt-card">
+            <div class="smt-card-label">Schriftart</div>
+            <select id="font-family-select" class="wl-select" style="width:100%">
+              <option value="DM Sans">DM Sans</option><option value="Inter">Inter</option><option value="Rajdhani">Rajdhani</option><option value="Orbitron">Orbitron</option><option value="Exo 2">Exo 2</option><option value="system-ui">System</option>
+            </select>
+          </div>
+          <div class="smt-card">
+            <div class="smt-card-label">Schriftgröße: <span id="font-size-val">14px</span></div>
+            <input type="range" id="font-size-range" min="10" max="22" value="14" class="settings-range"/>
+          </div>
+          <div class="smt-card">
+            <div class="smt-card-label">Eckenradius: <span id="card-radius-val">14px</span></div>
+            <input type="range" id="card-radius" min="0" max="30" value="14" class="settings-range"/>
+          </div>
+          <div class="smt-card">
+            <div class="smt-card-label">Sidebar-Breite: <span id="sidebar-width-val">200px</span></div>
+            <input type="range" id="sidebar-width" min="160" max="300" value="200" class="settings-range"/>
+          </div>
+          <div class="smt-card smt-toggle-card">
+            <div class="smt-card-label">Glassmorphismus</div>
+            <label class="toggle-switch"><input type="checkbox" id="glass-toggle"/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="smt-card smt-toggle-card">
+            <div class="smt-card-label">Partikel-Hintergrund</div>
+            <label class="toggle-switch"><input type="checkbox" id="particles-toggle"/><span class="toggle-slider"></span></label>
+          </div>
+          <!-- Partikel-Optionen -->
+          <div class="smt-card smt-full" id="particles-options-section" style="display:none">
+            <div class="smt-card-label" style="margin-bottom:10px">Partikel-Optionen</div>
+            <div class="smt-sub-grid">
+              <div><label class="ced-label">Anzahl: <span id="particle-count-val">80</span></label><input type="range" id="particle-count" min="10" max="200" value="80" class="settings-range"/></div>
+              <div><label class="ced-label">Größe: <span id="particle-size-val">1.5</span></label><input type="range" id="particle-size" min="0.5" max="5" step="0.5" value="1.5" class="settings-range"/></div>
+              <div><label class="ced-label">Geschwindigkeit: <span id="particle-speed-val">1</span></label><input type="range" id="particle-speed" min="0.1" max="5" step="0.1" value="1" class="settings-range"/></div>
+              <div><label class="ced-label">Farbe</label><div class="color-row"><input type="color" id="particle-color" value="#30c5bb"/><input type="text" class="color-text" id="particle-color-text" maxlength="7"/></div></div>
+              <div style="grid-column:1/-1"><label class="ced-label">Formen (mehrere wählbar)</label><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px"><button class="particle-shape-btn lang-btn active" data-shape="circle">●</button><button class="particle-shape-btn lang-btn" data-shape="triangle">▲</button><button class="particle-shape-btn lang-btn" data-shape="star">★</button><button class="particle-shape-btn lang-btn" data-shape="line">—</button><button class="particle-shape-btn lang-btn" data-shape="ring">○</button></div></div>
+            </div>
+          </div>
+          <div class="smt-card">
+            <div class="smt-card-label">Sprache / Language</div>
+            <div class="lang-select-wrap"><button class="lang-btn active" data-lang="de">🇩🇪 Deutsch</button><button class="lang-btn" data-lang="en">🇬🇧 English</button></div>
+          </div>
+          <!-- Optisches Untermenü -->
+          <div class="smt-card smt-full">
+            <div class="smt-card-label" style="margin-bottom:10px">Weitere Optik-Optionen</div>
+            <div class="smt-sub-grid">
+              <div class="smt-toggle-card"><span class="smt-card-label">Karten-Schatten</span><label class="toggle-switch"><input type="checkbox" id="card-shadow-toggle" checked/><span class="toggle-slider"></span></label></div>
+              <div class="smt-toggle-card"><span class="smt-card-label">Karten-Hover-Zoom</span><label class="toggle-switch"><input type="checkbox" id="card-hover-zoom-toggle" checked/><span class="toggle-slider"></span></label></div>
+              <div class="smt-toggle-card"><span class="smt-card-label">Animationen</span><label class="toggle-switch"><input type="checkbox" id="animations-toggle" checked/><span class="toggle-slider"></span></label></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT TAB -->
+      <div class="smt-content" id="smt-account">
+        <h2 class="smt-title">🔑 Account &amp; Sessions</h2>
+        <p class="settings-hint" style="margin-bottom:12px">Wird minütlich aktualisiert.</p>
+        <div id="session-list"></div>
+        <div class="settings-divider"></div>
+        <button class="settings-danger-btn" id="btn-logout-all">Von ALLEN Diensten abmelden</button>
+        <div class="settings-divider"></div>
+        <button class="pick-btn" id="btn-google-auth" style="text-align:center;margin-top:4px">🔐 Bei Google anmelden (YouTube)</button>
+      </div>
+
+      <!-- UHR TAB -->
+      <div class="smt-content" id="smt-clock">
+        <h2 class="smt-title">🕐 Uhr</h2>
+        <div class="smt-grid">
+          <div class="smt-card smt-toggle-card"><div class="smt-card-label">Uhr anzeigen</div><label class="toggle-switch"><input type="checkbox" id="clock-enabled"/><span class="toggle-slider"></span></label></div>
+          <div class="smt-card">
+            <div class="smt-card-label">Typ</div>
+            <div style="display:flex;gap:6px"><button class="clock-type-btn lang-btn active" data-clock-type="digital">Digital</button><button class="clock-type-btn lang-btn" data-clock-type="analog">Analog</button></div>
+          </div>
+          <div class="smt-card smt-toggle-card"><div class="smt-card-label">Sekunden</div><label class="toggle-switch"><input type="checkbox" id="clock-show-seconds"/><span class="toggle-slider"></span></label></div>
+          <div class="smt-card">
+            <div class="smt-card-label">Farbe</div>
+            <div class="color-row"><input type="color" id="clock-color" value="#cfcfcf"/><input type="text" class="color-text" id="clock-color-text" placeholder="#cfcfcf" maxlength="7"/><button class="reset-btn" data-reset="clockColor">↺</button></div>
+          </div>
+          <div class="smt-card"><div class="smt-card-label">Transparenz: <span id="clock-opacity-val">50%</span></div><input type="range" id="clock-opacity" min="0" max="100" value="50" class="settings-range"/></div>
+          <div class="smt-card"><div class="smt-card-label">Größe: <span id="clock-size-val">36px</span></div><input type="range" id="clock-size" min="12" max="60" value="36" class="settings-range"/></div>
+          <div class="smt-card smt-full"><div class="settings-hint" id="clock-drag-hint" style="display:none">💡 Solange diese Einstellung offen ist, kannst du die Uhr verschieben.</div></div>
+        </div>
+      </div>
+
+      <!-- BENACHRICHTIGUNGEN TAB -->
+      <div class="smt-content" id="smt-notifications">
+        <h2 class="smt-title">🔔 Benachrichtigungen</h2>
+        <div class="smt-grid" id="notif-settings-list">
+          <div class="smt-card smt-toggle-card"><div><div class="smt-card-label">⏸ Pause-Erinnerung</div><div style="font-size:11px;color:var(--tx2)">Erinnert nach 2h Streaming</div></div><label class="toggle-switch"><input type="checkbox" id="notif-stream-break" checked/><span class="toggle-slider"></span></label></div>
+          <div class="smt-card smt-toggle-card"><div><div class="smt-card-label">🔔 Benachrichtigungston</div><div style="font-size:11px;color:var(--tx2)">Ton bei Pause-Erinnerung</div></div><label class="toggle-switch"><input type="checkbox" id="notif-sound" checked/><span class="toggle-slider"></span></label></div>
+          <div class="smt-card smt-toggle-card"><div><div class="smt-card-label">🚀 Update-Hinweis</div><div style="font-size:11px;color:var(--tx2)">Bei neuer Version benachrichtigen</div></div><label class="toggle-switch"><input type="checkbox" id="notif-updates" checked/><span class="toggle-slider"></span></label></div>
+          <div class="smt-card smt-toggle-card"><div><div class="smt-card-label">🏆 Achievement freigeschaltet</div><div style="font-size:11px;color:var(--tx2)">Bei neuem Achievement</div></div><label class="toggle-switch"><input type="checkbox" id="notif-achievements" checked/><span class="toggle-slider"></span></label></div>
+          <div class="smt-card smt-toggle-card"><div><div class="smt-card-label">📌 Watchlist-Erinnerung</div><div style="font-size:11px;color:var(--tx2)">Wenn Upcoming-Titel verfügbar wird</div></div><label class="toggle-switch"><input type="checkbox" id="notif-watchlist" checked/><span class="toggle-slider"></span></label></div>
+        </div>
+      </div>
+
+      <!-- PLUGINS TAB -->
+      <div class="smt-content" id="smt-plugins">
+        <h2 class="smt-title">🧩 Plugins</h2>
+        <div id="plugin-presets-list"></div>
+      </div>
+
+      <!-- MEHR TAB -->
+      <div class="smt-content" id="smt-advanced">
+        <h2 class="smt-title">⚙ Mehr</h2>
+        <div class="smt-grid">
+          <div class="smt-card smt-full">
+            <div class="smt-card-label">Updates</div>
+            <button class="pick-btn" id="btn-check-updates">🔍 Nach Updates suchen</button>
+            <div id="update-check-result" style="margin-top:6px;font-size:12px;color:var(--tx2)"></div>
+          </div>
+          <div class="smt-card smt-full">
+            <div class="smt-card-label">VPN</div>
+            <button class="pick-btn" id="btn-check-vpn">🛡 VPN prüfen</button>
+            <div id="vpn-status" style="margin-top:8px;font-size:12px;color:var(--tx2)"></div>
+            <div id="vpn-list" style="margin-top:8px"></div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <input type="text" class="color-text" id="vpn-name-input" placeholder="Name (z.B. FritzBox)" style="flex:1"/>
+              <input type="text" class="color-text" id="vpn-host-input" placeholder="Host/IP" style="flex:2"/>
+              <button class="pick-btn" id="btn-vpn-save" style="flex-shrink:0">Speichern</button>
+            </div>
+          </div>
+          <div class="smt-card smt-full">
+            <div class="smt-card-label">Watchlist</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="pick-btn" id="btn-view-watchlist-adv">📋 Anzeigen</button>
+              <button class="pick-btn" id="btn-export-watchlist">📤 Export (JSON)</button>
+              <button class="pick-btn" id="btn-import-watchlist">📥 Import (JSON)</button>
+            </div>
+          </div>
+          <div class="smt-card smt-full">
+            <div class="smt-card-label">WideVine CDM</div>
+            <p class="settings-hint">WideVine wird automatisch mit der App installiert.</p>
+            <div id="widevine-status" style="font-size:12px;color:var(--tx2);margin-top:4px"></div>
+          </div>
+          <div class="smt-card smt-full">
+            <div class="smt-card-label">Anbieter</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="pick-btn" id="btn-restore-providers">↺ Standard wiederherstellen</button>
+              <button class="pick-btn" id="btn-show-onboarding">🎬 Onboarding</button>
+            </div>
+          </div>
+          <div class="smt-card smt-full">
+            <div class="smt-card-label">Eigene Anbieter</div>
+            <div id="custom-providers-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- SAVE TOAST -->
-<div class="save-toast" id="save-toast" style="display:none">✓ Gespeichert</div>
-
-<!-- LOADING -->
-<div class="loading-overlay" id="loading-overlay">
-  <div class="loading-ring"></div>
-  <span id="loading-text">Wird geladen…</span>
-</div>
-<div class="error-toast" id="error-toast"></div>
-
-<style id="custom-css-style"></style>
-<script src="js/app.js"></script>
-
-<!-- ONBOARDING OVERLAY -->
+<!-- ONBOARDING -->
 <div class="onboarding-overlay" id="onboarding-overlay" style="display:none">
   <div class="onboarding-modal">
-    <div class="onboarding-progress" id="onboarding-progress">
-      <div class="onboarding-progress-bar" id="onboarding-progress-bar" style="width:20%"></div>
-    </div>
+    <div class="onboarding-progress"><div class="onboarding-progress-bar" id="onboarding-progress-bar" style="width:16.6%"></div></div>
     <!-- Schritt 1: Willkommen -->
     <div class="onboarding-step active" id="ob-step-1">
       <div class="ob-emoji">🎬</div>
       <h2 class="ob-title">Willkommen bei OmniSight</h2>
       <p class="ob-desc">Dein zentrales Hub für alle Streaming-Dienste. Schaue Netflix, Prime, YouTube, Twitch und viele mehr – alles an einem Ort.</p>
-      <div class="ob-feature-grid">
-        <div class="ob-feature"><span>📺</span><span>25+ Anbieter</span></div>
-        <div class="ob-feature"><span>🔔</span><span>Benachrichtigungen</span></div>
-        <div class="ob-feature"><span>📌</span><span>Watchlist</span></div>
-        <div class="ob-feature"><span>📊</span><span>Statistiken</span></div>
+      <div class="ob-feature-grid"><div class="ob-feature"><span>📺</span><span>25+ Anbieter</span></div><div class="ob-feature"><span>🔔</span><span>Push-Nachrichten</span></div><div class="ob-feature"><span>📌</span><span>Watchlist</span></div><div class="ob-feature"><span>📊</span><span>Statistiken</span></div></div>
+    </div>
+    <!-- Schritt 2: Grundeinstellungen -->
+    <div class="onboarding-step" id="ob-step-2">
+      <div class="ob-emoji">⚙️</div>
+      <h2 class="ob-title">Grundeinstellungen</h2>
+      <p class="ob-desc" style="margin-bottom:16px">Passe OmniSight direkt nach deinen Wünschen an.</p>
+      <div class="ob-settings-grid">
+        <div class="ob-setting-row"><label class="ob-setting-label">Sprache</label><div class="lang-select-wrap"><button class="lang-btn active" data-lang="de" id="ob-lang-de">🇩🇪 Deutsch</button><button class="lang-btn" data-lang="en" id="ob-lang-en">🇬🇧 English</button></div></div>
+        <div class="ob-setting-row"><label class="ob-setting-label">Akzentfarbe</label><div class="color-row"><input type="color" id="ob-accent-color" value="#30c5bb"/><span style="font-size:12px;color:var(--tx2)">Hauptfarbe der App</span></div></div>
+        <div class="ob-setting-row"><label class="ob-setting-label">Schriftart</label><select id="ob-font-family" class="wl-select"><option value="DM Sans">DM Sans</option><option value="Inter">Inter</option><option value="Rajdhani">Rajdhani</option><option value="Orbitron">Orbitron</option><option value="Exo 2">Exo 2</option></select></div>
+        <div class="ob-setting-row"><label class="ob-setting-label">Schriftgröße: <span id="ob-font-size-val">14px</span></label><input type="range" id="ob-font-size" min="10" max="22" value="14" class="settings-range"/></div>
       </div>
     </div>
-    <!-- Schritt 2: Übersicht -->
-    <div class="onboarding-step" id="ob-step-2">
-      <div class="ob-emoji">🏠</div>
-      <h2 class="ob-title">Die Übersicht</h2>
-      <p class="ob-desc">Auf der Startseite findest du alle Anbieter als Karten. Du kannst sie per Drag & Drop sortieren, umbenennen, mit eigenem Hintergrundbild versehen und als Favorit markieren.</p>
-      <ul class="ob-tips">
-        <li>✏️ <b>Stift-Icon</b> beim Hover erscheint zum Anpassen einer Karte</li>
-        <li>⭐ <b>Lesezeichen</b> beim Hover zum Hinzufügen zu Favoriten</li>
-        <li>🔍 <b>Suchleiste</b> oben findet Anbieter und Filme direkt</li>
-      </ul>
-    </div>
-    <!-- Schritt 3: Neuigkeiten -->
+    <!-- Schritt 3: Profil -->
     <div class="onboarding-step" id="ob-step-3">
-      <div class="ob-emoji">🎞️</div>
-      <h2 class="ob-title">Neuigkeiten & Upcoming</h2>
-      <p class="ob-desc">Entdecke neue Filme, Serien und Anime direkt in OmniSight – mit Trailern, Streaming-Verfügbarkeit und Release-Daten.</p>
-      <ul class="ob-tips">
-        <li>🎬 Wechsle zwischen <b>Filme</b>, <b>Serien</b> und <b>Anime</b></li>
-        <li>🔖 Merke Inhalte direkt für deine Watchlist</li>
-        <li>▶️ Klick auf eine Karte für Trailer und Details</li>
-      </ul>
-    </div>
-    <!-- Schritt 4: Profile & Einstellungen -->
-    <div class="onboarding-step" id="ob-step-4">
       <div class="ob-emoji">👤</div>
-      <h2 class="ob-title">Profile & Einstellungen</h2>
-      <p class="ob-desc">Lege mehrere Profile an – z.B. für verschiedene Familienmitglieder. Jedes Profil hat eigene Watchlist, Favoriten und Sessions. Du kannst Profile mit einem PIN schützen.</p>
-      <ul class="ob-tips">
-        <li>👤 Profil-Button unten links zum Wechseln</li>
-        <li>🎨 Design, Schriftart, Partikel & mehr in Einstellungen</li>
-        <li>🔔 Push-Pause-Erinnerung alle 2h beim Streamen</li>
-      </ul>
+      <h2 class="ob-title">Dein Profil</h2>
+      <p class="ob-desc" style="margin-bottom:16px">Richte dein persönliches Profil ein.</p>
+      <div class="ob-settings-grid">
+        <div class="ob-setting-row" style="justify-content:center">
+          <div style="text-align:center"><div class="ped-avatar" id="ob-avatar-preview" style="margin:0 auto 8px">👤</div><div style="display:flex;gap:6px;justify-content:center"><button class="ced-btn" id="ob-pick-avatar">📷 Foto</button><button class="ced-btn danger" id="ob-clear-avatar">✕</button></div></div>
+        </div>
+        <div class="ob-setting-row"><label class="ob-setting-label">Profilname</label><input type="text" class="ced-input" id="ob-profile-name" placeholder="Dein Name" value="User"/></div>
+      </div>
     </div>
-    <!-- Schritt 5: Los geht's -->
+    <!-- Schritt 4: Features -->
+    <div class="onboarding-step" id="ob-step-4">
+      <div class="ob-emoji">🎞️</div>
+      <h2 class="ob-title">Neuigkeiten &amp; Upcoming</h2>
+      <p class="ob-desc">Entdecke neue Filme, Serien und Anime direkt in OmniSight.</p>
+      <ul class="ob-tips"><li>🎬 Wechsle zwischen <b>Filme</b>, <b>Serien</b> und <b>Anime</b></li><li>🔖 Merke Inhalte für deine Watchlist</li><li>▶️ Klick auf eine Karte für Trailer und Details</li></ul>
+    </div>
+    <!-- Schritt 5: Statistiken -->
     <div class="onboarding-step" id="ob-step-5">
+      <div class="ob-emoji">📊</div>
+      <h2 class="ob-title">Statistiken &amp; Achievements</h2>
+      <p class="ob-desc">Verfolge deine Streaming-Gewohnheiten und schalte Achievements frei!</p>
+      <ul class="ob-tips"><li>⏱ Streamzeit pro Anbieter</li><li>📅 Nutzung nach Wochentag</li><li>🏆 30+ freischaltbare Achievements</li></ul>
+    </div>
+    <!-- Schritt 6: Fertig -->
+    <div class="onboarding-step" id="ob-step-6">
       <div class="ob-emoji">🚀</div>
       <h2 class="ob-title">Bereit zum Streamen!</h2>
-      <p class="ob-desc">OmniSight ist eingerichtet und bereit. Klicke auf einen Anbieter, um direkt loszulegen. Viel Spaß!</p>
-      <div class="ob-tip-final">💡 Tipp: Du kannst dieses Onboarding jederzeit in <b>Einstellungen → Mehr</b> erneut aufrufen.</div>
+      <p class="ob-desc">OmniSight ist eingerichtet. Klicke auf einen Anbieter, um direkt loszulegen!</p>
+      <div class="ob-tip-final">💡 Tipp: Dieses Onboarding kannst du jederzeit in <b>Einstellungen → Mehr</b> erneut aufrufen.</div>
     </div>
-    <!-- Navigation -->
     <div class="ob-nav">
       <button class="ob-btn-skip" id="ob-skip">Überspringen</button>
       <div class="ob-dots" id="ob-dots"></div>
@@ -813,5 +654,24 @@
   </div>
 </div>
 
+<!-- UHR -->
+<div class="clock-widget" id="clock-widget" style="display:none"><span id="clock-time">00:00</span></div>
+<div class="clock-ctx-menu" id="clock-ctx-menu" style="display:none">
+  <button id="clock-ctx-disable">Uhr deaktivieren</button>
+  <div class="clock-ctx-divider"></div>
+  <div class="clock-ctx-row">
+    <span>Digital</span>
+    <label class="toggle-switch" style="flex-shrink:0"><input type="checkbox" id="clock-ctx-analog"/><span class="toggle-slider"></span></label>
+    <span>Analog</span>
+  </div>
+</div>
+
+<!-- SAVE TOAST -->
+<div class="save-toast" id="save-toast" style="display:none">Gespeichert</div>
+<div class="error-toast" id="error-toast"></div>
+<div class="loading-overlay" id="loading-overlay" style="display:none"><div class="loading-ring"></div></div>
+
+<style id="custom-css-style"></style>
+<script src="js/app.js"></script>
 </body>
 </html>
