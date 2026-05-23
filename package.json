@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -10,7 +10,8 @@
     "build:linux": "electron-builder --linux --publish never",
     "build:release": "electron-builder --win --x64 --publish always",
     "make-icon": "node scripts/generate-icons.js",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "shrinkwrap": "npm shrinkwrap"
   },
   "build": {
     "appId": "com.omnisight.app",

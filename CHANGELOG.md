@@ -1,3 +1,18 @@
+## v3.1.3 — 2026-05-23
+
+### 🐛 Bugfix
+- **Workflow-Fehler behoben**: `${{ !secrets.CSC_LINK }}` und `${{ secrets.CSC_LINK != '' }}` sind keine gültige GitHub Actions YAML-Syntax. Lösung: ein einziger Build-Step mit `CSC_IDENTITY_AUTO_DISCOVERY: false` – das verhindert den `WIN_CSC_LINK`-Fehler zuverlässig ohne Conditionals.
+
+### 🆕 Neue Features
+- **📁 Eigene Anbieter-Gruppen**: Gruppen selbst erstellen, benennen und Anbieter zuweisen. Erscheinen als Filter-Buttons neben den Standard-Kategorien (⚙ Gruppen-Button in der Filter-Leiste)
+- **⭐ F-Taste: Schnell-Favorit**: Im Tastatur-Navigations-Modus (Pfeiltasten) favorisiert/defavorisiert `F` die fokussierte Karte sofort
+- **📌 Upcoming: Watchlist zuerst**: Filme und Serien aus der Watchlist erscheinen in der Upcoming-Slideshow automatisch ganz vorne
+- **📋 Automatischer Release-Draft**: Nach jedem erfolgreichen Build wird automatisch ein Draft-Release auf GitHub erstellt – du musst nur noch auf "Publish" klicken
+
+### 🔧 Verbesserungen
+- Shortcuts-Modal: F-Taste dokumentiert
+- `npm run shrinkwrap` Script für deterministischeren Build (optional)
+
 ## v3.1.2 — 2026-05-23
 
 ### 🐛 Bugfixes

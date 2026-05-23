@@ -272,6 +272,10 @@ async function buildProviderGrid(){
   // Kategorie-Filter anwenden
   if(activeCat!=='all'){
     if(activeCat==='custom')entries=entries.filter(([id])=>!!customProviders[id]);
+    else if(settings.providerGroups&&settings.providerGroups[activeCat]){
+      const grpProviders=settings.providerGroups[activeCat].providers||[];
+      entries=entries.filter(([id])=>grpProviders.includes(id));
+    }
     else entries=entries.filter(([id])=>getProviderCategory(id)===activeCat);
   }
   if(settings.sortByUsage){const stats=await window.electronAPI.getStreamStats(activeProfileId).catch(()=>({}));entries=entries.sort((a,b)=>(stats[b[0]]?.total||0)-(stats[a[0]]?.total||0));}
@@ -1391,6 +1395,7 @@ function setupGridKeyboardNav(){
     else if(e.key==='ArrowDown'){e.preventDefault();focusIdx=Math.min(focusIdx+cols,cards.length-1);}
     else if(e.key==='ArrowUp'){e.preventDefault();focusIdx=Math.max(focusIdx-cols,0);}
     else if(e.key==='Enter'&&focusIdx>=0){e.preventDefault();const id=cards[focusIdx]?.dataset.id;if(id)openProvider(id);return;}
+    else if((e.key==='f'||e.key==='F')&&focusIdx>=0){e.preventDefault();const id=cards[focusIdx]?.dataset.id;if(id){toggleFavorite(id);showToastMsg((settings.favorites||[]).includes(id)?'⭐ Favorit entfernt':'⭐ Favorit hinzugefügt');}return;}
     else return;
     if(focusIdx<0)focusIdx=0;
     cards.forEach((c,i)=>{c.classList.toggle('keyboard-focus',i===focusIdx);});
