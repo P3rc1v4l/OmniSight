@@ -24,8 +24,7 @@ jobs:
       - name: Abhängigkeiten installieren
         run: npm install
 
-      - name: Icons generieren
-        run: node scripts/generate-icons.js
+      # Icons nur bei Bedarf: node scripts/generate-icons.js
 
       - name: Version auslesen
         id: version
