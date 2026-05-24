@@ -1,3 +1,14 @@
+## v3.1.5 -- 2026-05-24
+
+### Bugfixes
+- Anbieter-Grid wieder sichtbar: buildWatchlist() Aufruf in wl-cat-btn war falsch (buildWatchlistSorted fehlt), Navigation crashte beim Klick auf Gemerkt
+- Doppelter btn-restore-providers Handler entfernt (war in setupSettingsPanel UND als freistehender Code)
+- window.buildWatchlist Alias entfernt (verursachte Verwirrung und indirekten Fehler)
+
+### Neue Features
+- Widevine Auto-Check: Beim App-Start wird geprueft ob WideVine CDM installiert ist. Falls nicht, erscheint ein dezentes Banner mit Hinweis (nur einmal pro Session)
+- Watchlist-Erinnerungs-Datum: Rechtsklick auf Karte -> Erinnerung setzen. Am gewaehlten Tag erscheint beim Start eine Benachrichtigung. Symbol auf Karte zeigt aktive Erinnerung.
+
 ## v3.1.5 — 2026-05-24
 
 ### 🐛 Bugfixes

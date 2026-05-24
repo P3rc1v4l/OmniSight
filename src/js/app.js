@@ -236,7 +236,7 @@ function setupNavigation(){
   document.getElementById('nav-fav-toggle')?.addEventListener('click',()=>{document.getElementById('nav-fav-toggle').classList.toggle('open');document.getElementById('nav-sub-favorites')?.classList.toggle('open');});
   document.getElementById('fav-search')?.addEventListener('input',e=>document.getElementById('nav-sub-favorites-list')?.querySelectorAll('.nav-sub-btn').forEach(b=>{b.style.display=b.textContent.toLowerCase().includes(e.target.value.toLowerCase())?'flex':'none';}));
   // Watchlist Kategorie Links
-  document.querySelectorAll('.wl-cat-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.wl-cat-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');buildWatchlist(btn.dataset.cat);});});
+  document.querySelectorAll('.wl-cat-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.wl-cat-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');buildWatchlistSorted(btn.dataset.cat);});});
   // News Switcher
   document.querySelectorAll('#news-type-switcher .media-type-text-btn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('#news-type-switcher .media-type-text-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');slideshows.news.mediaType=btn.dataset.media;settings.newsLastTab=btn.dataset.media;autoSave();loadSlideshow('news',btn.dataset.media,slideshows.news.tab);}));
   document.querySelectorAll('.news-tab').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('.news-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');slideshows.news.tab=tab.dataset.tab;loadSlideshow('news',slideshows.news.mediaType,tab.dataset.tab);}));
@@ -958,8 +958,6 @@ function buildWatchlistSorted(cat){
   });
   content.appendChild(grid);
 }
-// Globale buildWatchlist überschreiben
-window.buildWatchlist=buildWatchlistSorted;
 
 // ════════ ZULETZT GEÖFFNET (Home-Bereich) ════════════════════════
 function buildRecentlyOpened(){
@@ -1105,7 +1103,6 @@ document.getElementById('btn-import-watchlist')?.addEventListener('click',()=>{
   });
   input.click();
 });
-document.getElementById('btn-restore-providers')?.addEventListener('click',()=>{settings.deletedProviders=[];settings.customProviders={};customProviders={};providerOrder=[];settings.providerOrder=[];autoSave();buildProviderGrid();showToastMsg('Standardanbieter wiederhergestellt');});
 document.getElementById('btn-show-onboarding')?.addEventListener('click',()=>{closeSettings();setTimeout(()=>showOnboarding(true),200);});
 document.getElementById('pick-bg-image')?.addEventListener('click',async()=>{const r=await window.electronAPI.pickImage('appBg');if(r){const url=r.base64||r.filePath||r;settings.appBgImage=url;applyBgImage(url);autoSave();}});
 document.getElementById('reset-bg-image')?.addEventListener('click',()=>{settings.appBgImage='';applyBgImage('');autoSave();});
