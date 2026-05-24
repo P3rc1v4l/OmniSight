@@ -1,11 +1,16 @@
 name: Build OmniSight
 
 on:
-  push:
-    branches: [main]
-    tags:
-      - 'v*'
+  # NUR manueller Start oder Tag-Push – kein Auto-Trigger bei normalem Commit!
   workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Grund für den Build (optional)'
+        required: false
+        default: 'Manueller Build'
+  push:
+    tags:
+      - 'v*'   # Automatisch nur bei versionierten Tags (v3.1.4 etc.)
 
 permissions:
   contents: write
@@ -24,19 +29,17 @@ jobs:
       - name: Abhängigkeiten installieren
         run: npm install
 
-      # Icons nur bei Bedarf: node scripts/generate-icons.js
+      # Icons NICHT bei jedem Build generieren
+      # Nur manuell ausfuehren wenn Logo geaendert: node scripts/generate-icons.js
 
       - name: Version auslesen
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $env:GITHUB_OUTPUT
 
-      # Code-Signing deaktivieren wenn kein Zertifikat gesetzt
-      # Trick: CSC_IDENTITY_AUTO_DISCOVERY verhindert WIN_CSC_LINK-Fehler
       - name: Windows Build (.exe)
         run: npm run build
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          # Verhindert den WIN_CSC_LINK-Fehler bei leerem CSC_LINK:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Alte Artifacts aufräumen
@@ -67,7 +70,7 @@ jobs:
           retention-days: 3
           overwrite: true
 
-      # Nur bei Tag v* → Release + latest.yml für Auto-Update
+      # Release nur bei Tag-Push
       - name: GitHub Release erstellen
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
