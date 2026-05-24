@@ -48,6 +48,25 @@
 
 ## 🔖 Neue Version veröffentlichen
 
+> **Wichtig:** Der Build startet **nicht** automatisch bei jedem Commit.
+> Du kannst alle Dateien in Ruhe hochladen und dann manuell starten.
+
+**Option A – Manuell in GitHub Actions starten:**
+1. GitHub Repo → Actions → „Build OmniSight"
+2. „Run workflow" klicken → Build startet sofort
+
+**Option B – Automatisch mit Tag:**
+```
+node scripts/bump-version.js patch
+```
+Das Script erstellt automatisch einen Tag (`v3.1.5`) → Build + Release starten automatisch.
+
+**Alle Dateien aktualisieren, dann bauen:**
+1. Alle geänderten Dateien in GitHub hochladen (in beliebiger Reihenfolge)
+2. Erst wenn alles hochgeladen ist: Actions → Run workflow
+
+
+
 **Option A – Automatisch (empfohlen):**
 ```
 node scripts/bump-version.js patch   # Bugfix: x.y.Z+1

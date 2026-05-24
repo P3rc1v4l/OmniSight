@@ -949,7 +949,8 @@ function buildWatchlistSorted(cat){
     const card=document.createElement('div');card.className='wl-card';
     const poster=item.poster?`<img class="wl-card-poster" src="${item.poster}" loading="lazy" onerror="this.style.display='none'"/>`:' <div class="wl-card-poster-ph">🎬</div>';
     const dateStr=item.releaseDate?new Date(item.releaseDate).toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'}):'';
-    card.innerHTML=`${poster}<div class="wl-card-body"><div class="wl-card-title">${item.title||''}</div>${dateStr?`<div class="wl-card-date">📅 ${dateStr}</div>`:''}</div><button class="wl-card-remove">✕</button>`;
+    const reminderStr=item.reminderDate?`🔔 ${new Date(item.reminderDate).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}`:'';
+    card.innerHTML=`${poster}<div class="wl-card-body"><div class="wl-card-title">${item.title||''}</div>${dateStr?`<div class="wl-card-date">📅 ${dateStr}</div>`:''}${reminderStr?`<div class="wl-card-date" style="color:var(--acc)">${reminderStr}</div>`:''}</div><button class="wl-card-remove">✕</button>`;
     card.querySelector('.wl-card-remove').addEventListener('click',e=>{e.stopPropagation();watchlist=watchlist.filter(w=>w.id!==item.id);settings.watchlist=watchlist;autoSave();card.style.transition='all .25s';card.style.opacity='0';card.style.transform='scale(.9)';setTimeout(()=>buildWatchlistSorted(catArg),260);});
     card.addEventListener('contextmenu',e=>{e.preventDefault();document.querySelectorAll('.wl-ctx-menu').forEach(m=>m.remove());const menu=document.createElement('div');menu.className='wl-ctx-menu';menu.style.cssText=`position:fixed;left:${Math.min(e.clientX,window.innerWidth-180)}px;top:${Math.min(e.clientY,window.innerHeight-120)}px;background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r-sm);z-index:3000;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.5);padding:4px 0`;[{v:'movie',l:'🎬 Film'},{v:'tv',l:'📺 Serie'},{v:'anime',l:'⛩️ Anime'}].forEach(c=>{const btn=document.createElement('button');btn.style.cssText='display:block;width:100%;padding:8px 14px;border:none;background:transparent;color:var(--tx);font-size:13px;cursor:pointer;text-align:left';btn.textContent=(c.v===item.mediaType?'✓ ':'')+c.l;btn.onmouseenter=()=>btn.style.background='var(--bgch)';btn.onmouseleave=()=>btn.style.background='transparent';btn.addEventListener('click',()=>{const idx=watchlist.findIndex(w=>w.id===item.id);if(idx>-1){watchlist[idx].mediaType=c.v;settings.watchlist=watchlist;autoSave();}menu.remove();buildWatchlistSorted(catArg);});menu.appendChild(btn);});document.body.appendChild(menu);setTimeout(()=>document.addEventListener('click',()=>menu.remove(),{once:true}),10);});
     card.addEventListener('click',async()=>{await showDetailPopup(item.tmdbId,item.tmdbType||'movie',item.title);const check=setInterval(()=>{if(document.getElementById('detail-overlay').style.display==='none'){clearInterval(check);if(!watchlist.find(w=>w.id===item.id))buildWatchlistSorted(catArg);}},300);});
@@ -1263,6 +1264,16 @@ function setupSettingsSearch(){
 
 // ══ WATCHLIST RELEASE CHECK ════════════════════════════════════════
 async function checkWatchlistReleases(){
+  // Erinnerungs-Datum prüfen
+  const today=new Date().toISOString().split('T')[0];
+  watchlist.forEach(item=>{
+    if(item.reminderDate===today){
+      if(settings.notificationsConfig?.watchlist!==false){
+        addNotification('🔔','Watchlist-Erinnerung',`Heute: ${item.title}`);
+        window.electronAPI.showNotification('🔔 Watchlist-Erinnerung','Heute: '+item.title);
+      }
+    }
+  });
   if(!watchlist.length)return;
   const ids=watchlist.map(i=>({tmdbId:i.tmdbId,tmdbType:i.tmdbType||'movie',title:i.title})).filter(i=>i.tmdbId);
   try{

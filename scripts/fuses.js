@@ -1,32 +1,42 @@
 'use strict';
 /**
  * Electron Fuses – Sicherheits-Schalter
- * Werden beim Build in die EXE eingebrannt und können nicht per Code überschrieben werden.
- * Dokumentation: https://www.electronjs.org/docs/latest/tutorial/fuses
+ * Werden beim Build in die EXE eingebrannt.
  */
-const { flipFuses, FuseVersion, FuseV1Options } = require('@electron/fuses');
 const path = require('path');
+const fs = require('fs');
 
 module.exports = async ({ appOutDir, packager }) => {
-  const ext = packager.platform.nodeName === 'darwin' ? '.app' : '';
-  const exeName = packager.appInfo.productFilename + ext;
+  // Korrekte Binary-Pfad-Ermittlung
+  const platform = packager.platform.nodeName;
+  let exeName;
+  if (platform === 'win32') {
+    exeName = packager.appInfo.productFilename + '.exe';
+  } else if (platform === 'darwin') {
+    exeName = packager.appInfo.productFilename + '.app';
+  } else {
+    exeName = packager.appInfo.productFilename;
+  }
+
   const electronBinaryPath = path.join(appOutDir, exeName);
 
+  // Pruefen ob Datei existiert bevor wir Fuses setzen
+  if (!fs.existsSync(electronBinaryPath)) {
+    console.warn('[Fuses] Binary nicht gefunden:', electronBinaryPath);
+    return;
+  }
+
   try {
+    const { flipFuses, FuseVersion, FuseV1Options } = require('@electron/fuses');
     await flipFuses(electronBinaryPath, {
       version: FuseVersion.V1,
-      // Node.js im Renderer dauerhaft deaktivieren (auch wenn nodeIntegration: true gesetzt würde)
       [FuseV1Options.RunAsNode]: false,
-      // ASAR-Integritätsprüfung aktivieren
-      [FuseV1Options.EnableCookieEncryption]: true,
-      // Devtools in Produktion deaktivieren
       [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
-      // NODE_PATH deaktivieren
       [FuseV1Options.EnableNodeCliInspectArguments]: false,
     });
-    console.log('✓ Electron Fuses erfolgreich gesetzt');
+    console.log('[Fuses] Erfolgreich gesetzt');
   } catch (e) {
-    // Fuses sind optional – Build soll nicht fehlschlagen wenn @electron/fuses fehlt
-    console.warn('⚠ Fuses konnten nicht gesetzt werden:', e.message);
+    // Fuses sind optional – Build soll nicht fehlschlagen
+    console.warn('[Fuses] Konnten nicht gesetzt werden:', e.message);
   }
 };

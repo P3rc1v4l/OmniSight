@@ -1,3 +1,19 @@
+## v3.1.5 — 2026-05-24
+
+### 🐛 Bugfixes
+- **Icon-Fehler behoben**: Das ICO hatte keinen 256x256-Eintrag → electron-builder hat abgebrochen. Neues ICO mit allen Groessen (16/32/48/64/128/256px) und transparentem Hintergrund.
+- **Fuses-Fehler behoben**: `scripts/fuses.js` suchte nach falscher Datei (ohne `.exe`-Erweiterung auf Windows) → Pfad-Ermittlung korrigiert.
+
+### 🎨 Design
+- **Neues Logo**: Transparenter Hintergrund, keine schwarze Box mehr in Taskleiste und Splash.
+
+### 🔧 Verbesserungen
+- **Build startet nicht mehr bei jedem Commit**: Workflow laeuft nur noch bei manuellem Start (Actions → Run workflow) oder bei Tag-Push. So koennen alle Dateien in Ruhe hochgeladen werden.
+- Icons werden nicht mehr bei jedem Build neu generiert (nur wenn Logo geaendert wird).
+
+### 🆕 Neue Features
+- **Watchlist-Erinnerungs-Datum**: Rechtsklick auf Watchlist-Karte → Erinnerung setzen (JJJJ-MM-TT). An diesem Tag erscheint beim App-Start eine Benachrichtigung. Symbol auf der Karte zeigt aktive Erinnerung.
+
 ## v3.1.4 — 2026-05-24
 
 ### 🐛 Kritische Bugfixes
