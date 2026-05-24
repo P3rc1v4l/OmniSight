@@ -381,4 +381,32 @@ ipcMain.handle('check-url',async(_,url)=>{try{const r=await session.defaultSessi
 ipcMain.on('open-external',(_,url)=>shell.openExternal(url));
 
 app.whenReady().then(createMainWindow);
+
+// Beim Beenden: Daten-Lösch-Dialog (für Deinstallation)
+app.on('will-quit', (e) => {
+  // Nur anzeigen wenn explizit deinstalliert wird (schwer zu erkennen)
+  // Alternative: Spezielle --uninstall flag
+  if (process.argv.includes('--uninstall')) {
+    e.preventDefault();
+    const choice = dialog.showMessageBoxSync({
+      type: 'question',
+      title: 'Daten löschen?',
+      message: 'Möchtest du alle OmniSight-Daten löschen?\nDazu gehören Profile, Watchlist, Einstellungen und Sessions.',
+      buttons: ['Ja, alles löschen', 'Nein, behalten'],
+      defaultId: 1,
+      cancelId: 1
+    });
+    if (choice === 0) {
+      try {
+        const userDataPath = app.getPath('userData');
+        const fs_local = require('fs');
+        if (fs_local.existsSync(userDataPath)) {
+          fs_local.rmSync(userDataPath, { recursive: true, force: true });
+        }
+      } catch(e) { console.error('Fehler beim Löschen:', e); }
+    }
+    app.quit();
+  }
+});
+
 app.on('window-all-closed',()=>{if(process.platform!=='darwin')app.quit();});

@@ -603,3 +603,115 @@ body:not(.no-hover-zoom) .provider-card:hover{transform:translateY(-3px)}
 .plugin-preset-btn--install{background:var(--acc)!important;color:#fff!important;border:none!important}
 .plugin-preset-btn--remove{background:rgba(229,115,115,.15)!important;border:1px solid var(--danger)!important;color:var(--danger)!important}
 .plugin-preset-btn--info{background:var(--accg)!important;border:1px solid var(--acc)!important;color:var(--acc)!important}
+
+/* ═══════════════════════════════════════════════════════════════════
+   v3.1.9 FIXES
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* 1. Karten: weißer Balken entfernen */
+.provider-card{overflow:hidden}
+.card-body{background:transparent!important;border-top:none!important}
+.providers-grid .provider-card::after{display:none!important}
+
+/* 2. Karten: optisch überarbeitet */
+.provider-card{
+  border-radius:14px;
+  box-shadow:var(--card-shadow,0 2px 12px rgba(0,0,0,.18));
+  transition:transform .18s,box-shadow .18s,border-color .18s;
+  border:1px solid var(--bor);
+  background:var(--bgc);
+  position:relative;overflow:hidden;
+}
+.provider-card:hover{
+  transform:var(--card-hover-zoom,translateY(-3px) scale(1.015));
+  box-shadow:0 8px 28px rgba(0,0,0,.28);
+  border-color:var(--borh);
+}
+.card-banner{height:90px;position:relative;overflow:hidden;border-radius:12px 12px 0 0}
+.card-favicon{width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+.card-body{padding:8px 10px;background:var(--bgc)!important}
+.card-name{font-size:12px;font-weight:700;color:var(--tx)}
+.card-tag{font-size:10px;color:var(--tx3)}
+.card-bookmark{
+  position:absolute;top:7px;right:7px;
+  background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);
+  border-radius:6px;width:26px;height:26px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;z-index:10;
+  opacity:0;
+}
+.provider-card:hover .card-bookmark{opacity:1}
+.card-bookmark.active{opacity:1;background:var(--acc);border-color:var(--acc)}
+.card-bookmark.active svg{stroke:#fff}
+.card-edit-btn{
+  position:absolute;top:7px;left:7px;
+  background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);
+  border-radius:6px;width:26px;height:26px;font-size:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;opacity:0;transition:all .15s;z-index:10;
+}
+.provider-card:hover .card-edit-btn{opacity:1}
+.card-session-dot{
+  position:absolute;bottom:5px;right:5px;
+  width:7px;height:7px;border-radius:50%;
+  background:#66bb6a;box-shadow:0 0 5px #66bb6a;z-index:11;
+}
+.card-new-badge{
+  position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+  background:var(--acc);color:#fff;font-size:8px;font-weight:800;
+  padding:2px 6px;border-radius:999px;z-index:12;white-space:nowrap;
+}
+.card-quality-badge{
+  position:absolute;bottom:5px;left:6px;
+  background:rgba(0,0,0,.6);color:#fff;font-size:9px;
+  font-weight:700;padding:2px 6px;border-radius:4px;z-index:11;
+}
+.card-last{font-size:9px;color:var(--acc);font-weight:600;opacity:.8}
+
+/* 3. Sidebar Light-Mode: immer gleiche Farbe */
+[data-theme="light"] .sidebar,
+[data-theme="light"] .sidebar-bottom{
+  background:var(--bg2)!important;
+}
+
+/* 4. Neuigkeiten/Upcoming: Button-Position */
+.slide-card-hover-btns{bottom:auto!important;top:7px!important;flex-direction:row!important;right:auto!important;left:auto!important;width:100%!important;justify-content:space-between!important;padding:0 7px!important;box-sizing:border-box!important}
+.slide-hide-btn-v2{order:1}
+.slide-bm-btn-v2{order:2}
+
+/* 5. Karten-Schatten, Hover-Zoom, Animationen über CSS-Variablen */
+:root{
+  --card-shadow:0 2px 12px rgba(0,0,0,.18);
+  --card-hover-zoom:translateY(-3px) scale(1.015);
+  --anim-speed:1;
+}
+.no-animations *{transition:none!important;animation:none!important}
+
+/* 6. Partikel-Canvas immer hinter allem */
+#particles-canvas{
+  position:fixed!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  pointer-events:none!important;
+  z-index:0!important;
+}
+
+/* 7. Plugins: Button-Farben */
+.plugin-install-btn{background:var(--acc)!important;color:#fff!important;border:none!important}
+.plugin-uninstall-btn{background:rgba(229,115,115,.15)!important;border:1px solid #e57373!important;color:#e57373!important}
+.plugin-info-btn{background:var(--bgc)!important;border:1px solid var(--bor)!important;color:var(--tx2)!important}
+
+/* 8. Account: Zeilen-Auswahl statt Checkboxen */
+.session-row{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 10px;border:1px solid transparent;
+  border-radius:var(--r-sm);cursor:pointer;transition:all .15s;
+  margin-bottom:4px;
+}
+.session-row.selected{background:var(--accg)!important;border-color:var(--acc)!important}
+.session-row:hover{background:var(--bgc);border-color:var(--borh)}
+.session-row input[type="checkbox"]{display:none!important}
+
+/* 9. Onboarding Guide: immer vorne */
+#widevine-guide-overlay{z-index:10000!important}

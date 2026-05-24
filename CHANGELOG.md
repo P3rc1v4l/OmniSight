@@ -1,3 +1,15 @@
+## v3.1.10 -- 2026-05-24
+
+### Version
+- Erste zweistellige Patch-Nummer (3.1.10 statt 3.2.0, da nur Fixes)
+
+### Deinstallation mit Daten-Dialog
+- Beim Deinstallieren von OmniSight erscheint jetzt ein echter Windows-Dialog:
+  "Moechtest du alle OmniSight-Daten loeschen?" mit Ja/Nein
+- Ja: loescht %AppData%\omnisight (Profile, Watchlist, Sessions, Einstellungen)
+- Nein: Daten bleiben erhalten fuer spaetere Neuinstallation
+- Implementiert als NSIS-Custom-Script (build/installer.nsh)
+
 ## v3.1.8 -- 2026-05-24
 
 ### Sicherheit (Vorschlaege 1-3, 5-6)

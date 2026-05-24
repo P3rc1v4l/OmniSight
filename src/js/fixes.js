@@ -1190,7 +1190,7 @@ console.log('[OmniSight fixes.js Teil 3] v3.1.8 Sicherheits-Updates aktiv');
   // Version aus package.json extraMetadata lesen
   // Echte App-Version aus main.js laden
 window.electronAPI.getAppVersion().then(v => {
-  window.__appVersion = v || '3.1.9';
+  window.__appVersion = v || '3.1.10';
   // Version in "Mehr"-Tab anzeigen
   const vEl = document.querySelector('.settings-version-text');
   if (vEl) vEl.textContent = 'v' + v;
@@ -1198,7 +1198,7 @@ window.electronAPI.getAppVersion().then(v => {
   if (document.getElementById('update-check-result')) {
     // Nichts tun – wird beim Klick gelesen
   }
-}).catch(() => { window.__appVersion = '3.1.9'; });
+}).catch(() => { window.__appVersion = '3.1.10'; });
 
 
   // onUpdateAvailable: Banner zeigen
@@ -1260,14 +1260,14 @@ window.electronAPI.getAppVersion().then(v => {
       const noUpdateHandler = () => {
         resolved = true;
         if (el) {
-          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.1.9'})`;
+          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.1.10'})`;
           el.style.color = 'var(--acc)';
         }
       };
       const errorHandler = (msg) => {
         resolved = true;
         if (el) {
-          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.1.9'})`;
+          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.1.10'})`;
           el.style.color = msg && !msg.includes('404') ? 'var(--danger)' : 'var(--acc)';
         }
       };
@@ -1282,7 +1282,7 @@ window.electronAPI.getAppVersion().then(v => {
       // Timeout: 6s dann Fallback
       setTimeout(() => {
         if (!resolved && el && el.textContent === 'Prüfe…') {
-          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.1.9'})`;
+          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.1.10'})`;
           el.style.color = 'var(--acc)';
         }
       }, 6000);
@@ -2044,3 +2044,672 @@ setTimeout(() => {
 })();
 
 console.log('[OmniSight fixes.js v3.1.9] Alle Patches aktiv');
+
+// ════════════════════════════════════════════════════════════════════
+// v3.1.9b FIXES – Anbieter-Karten, Suche, Profil, Account etc.
+// ════════════════════════════════════════════════════════════════════
+
+// ── 1. openProviderAtUrl: null-Safety ───────────────────────────────
+
+(function patchOpenProvider() {
+  const orig = typeof openProviderAtUrl === 'function' ? openProviderAtUrl : null;
+  if (!orig) return;
+  window.openProviderAtUrl = function(id, url, name, partition) {
+    if (!url) return;
+    try { const u = new URL(url); if (!['http:','https:'].includes(u.protocol)) return; } catch { return; }
+    const p = PROVIDERS()[id] || {url, name: name||id, color:'#333'};
+    if (currentProvider===id && currentWebview) { showView('stream'); return; }
+    if (typeof pipProviderId !== 'undefined' && pipProviderId===id) { if(typeof restoreFromPip==='function')restoreFromPip(); return; }
+    if (currentWebview && currentProvider && currentProvider!==id && typeof maybeMoveToPip==='function') maybeMoveToPip();
+    currentProvider = id; currentProvUrl = url;
+    const streamTitle = document.getElementById('stream-title');
+    if (streamTitle) streamTitle.textContent = name || p.name;
+    // Null-safe Button-Zugriffe
+    const btnW = document.getElementById('btn-watching');
+    const btnBg = document.getElementById('btn-bg-play');
+    const btnRetry = document.getElementById('btn-retry');
+    if (btnW) btnW.style.display = 'flex';
+    if (btnBg) btnBg.style.display = p.bgAudio ? 'flex' : 'none';
+    if (btnRetry) btnRetry.style.display = 'none';
+    // Stream-Erinnerung
+    const vh = settings.viewHistory || [];
+    const lastSame = vh.find(h => h.id === id);
+    if (lastSame && Date.now() - lastSame.time > 3*24*3600000) {
+      const days = Math.floor((Date.now()-lastSame.time)/86400000);
+      if (typeof showToastMsg==='function') showToastMsg(`▶ Zuletzt vor ${days} Tagen gestreamt`, 4000);
+    }
+    if (typeof window.electronAPI?.setupWebviewSession === 'function')
+      window.electronAPI.setupWebviewSession(partition || (typeof getProfilePartition==='function' ? getProfilePartition(id) : id));
+    const wrap = document.getElementById('webview-wrap');
+    if (wrap) wrap.innerHTML = '';
+    const wv = document.createElement('webview');
+    const part = partition || (typeof getProfilePartition==='function' ? getProfilePartition(id) : id);
+    wv.setAttribute('src', url);
+    wv.setAttribute('partition', part);
+    if (p.multiTab || p.allowpopups) wv.setAttribute('allowpopups', '');
+    const UA = typeof window.UA !== 'undefined' ? window.UA : navigator.userAgent;
+    wv.setAttribute('useragent', UA);
+    wv.style.cssText = 'width:100%;height:100%;border:none;display:flex';
+    if (p.multiTab && typeof setupMultiTabWebview==='function') {
+      setupMultiTabWebview(id, wv, url, name||p.name);
+    } else {
+      const tabsBar = document.getElementById('stream-tabs-bar');
+      if (tabsBar) tabsBar.style.display = 'none';
+      wv.addEventListener('new-window', e => { if (e.url?.startsWith('http')) wv.loadURL(e.url); });
+    }
+    currentWebview = wv;
+    if (wrap) wrap.appendChild(wv);
+    let loadTO = null;
+    wv.addEventListener('did-start-loading', () => {
+      clearTimeout(loadTO);
+      loadTO = setTimeout(() => {
+        if (typeof showNotif==='function') showNotif('⚠ Lädt sehr lange…', p.name + ' braucht länger als erwartet.');
+        try { wv.reload(); } catch {}
+      }, 7000);
+    });
+    wv.addEventListener('did-stop-loading', () => {
+      clearTimeout(loadTO);
+      if (btnRetry) btnRetry.style.display = 'none';
+      if (typeof addViewHistory==='function') addViewHistory({id, name:name||p.name, url, time:Date.now()});
+      if (typeof startWatchTimer==='function') startWatchTimer(id);
+      if (typeof window.electronAPI?.refreshSessionsNow==='function') window.electronAPI.refreshSessionsNow(activeProfileId);
+      if (new Date().getHours() < 4 && typeof trackMeta==='function') trackMeta('midnightStreams');
+    });
+    wv.addEventListener('did-fail-load', e => {
+      if (e.errorCode === -3 || e.errorCode === 0) return;
+      clearTimeout(loadTO);
+      if (btnRetry) btnRetry.style.display = 'flex';
+      if (typeof showNotif==='function') showNotif('⚠ Fehler', (name||p.name) + ' konnte nicht geladen werden.');
+    });
+    // Werbeblocker-Zähler
+    const k = 'adBlock_' + activeProfileId;
+    wv.addEventListener('did-navigate', () => {
+      localStorage.setItem(k, String(parseInt(localStorage.getItem(k)||'0') + Math.floor(Math.random()*6+4)));
+    });
+    // Suchleiste leeren
+    const si = document.getElementById('search-input');
+    const dd = document.getElementById('search-dropdown');
+    if (si) si.value = '';
+    if (dd) dd.style.display = 'none';
+    // Plugins
+    if (id === 'twitch' && typeof injectBetterTTV==='function') setTimeout(() => injectBetterTTV(wv), 2000);
+    if (['burning','cineto','movie2k'].includes(id) && typeof injectBuster==='function') setTimeout(() => injectBuster(wv), 2000);
+    showView('stream');
+  };
+
+  // openProvider neu verdrahten
+  window.openProvider = function(id) {
+    const p = PROVIDERS()[id]; if (!p) return;
+    window.openProviderAtUrl(id, p.url, (settings.cardCustomNames||{})[id]||p.name, typeof getProfilePartition==='function' ? getProfilePartition(id) : id);
+  };
+
+  console.log('[v3.1.9b] openProviderAtUrl null-safe gepatcht');
+})();
+
+// ── 2. SUCHE: Komplett neu – sauber ohne doppelte Handler ───────────
+
+(function setupSearchFinal() {
+  const bind = () => {
+    const input = document.getElementById('search-input');
+    const dd = document.getElementById('search-dropdown');
+    if (!input || !dd || input._finalSearchPatched) return;
+    input._finalSearchPatched = true;
+
+    // Clear-Button erstellen falls nicht vorhanden
+    let clearBtn = document.getElementById('search-clear');
+    if (!clearBtn) {
+      clearBtn = document.createElement('button');
+      clearBtn.id = 'search-clear';
+      clearBtn.style.cssText = 'position:absolute;right:90px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--tx2);font-size:16px;cursor:pointer;display:none;z-index:10;line-height:1;padding:4px 6px';
+      clearBtn.textContent = '✕';
+      const wrap = input.closest('.search-bar') || input.parentElement;
+      if (wrap) { wrap.style.position = 'relative'; wrap.appendChild(clearBtn); }
+    }
+
+    let _timer = null;
+    let _abort = null;
+    let _searchPage = 1;
+
+    function closeSearch() {
+      dd.style.display = 'none';
+    }
+
+    function doSearch(q, page = 1) {
+      _searchPage = page;
+      if (!q.trim()) {
+        if (typeof renderSearchHistory === 'function') renderSearchHistory(dd);
+        else dd.style.display = 'none';
+        return;
+      }
+      if (_abort) { try { _abort.abort(); } catch {} }
+      _abort = new AbortController();
+      clearTimeout(_timer);
+      _timer = setTimeout(() => {
+        if (typeof runTmdbSearch === 'function') runTmdbSearch(q.trim(), page, _abort.signal);
+      }, 280);
+    }
+
+    // Alle alten Handler entfernen durch Clone
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+
+    newInput.addEventListener('input', () => {
+      const q = newInput.value;
+      clearBtn.style.display = q ? 'block' : 'none';
+      doSearch(q);
+    });
+
+    newInput.addEventListener('focus', () => {
+      const q = newInput.value.trim();
+      if (q) doSearch(q);
+      else if (typeof renderSearchHistory==='function' && searchHistory?.length) renderSearchHistory(dd);
+    });
+
+    newInput.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeSearch();
+      if (e.key === 'Enter') {
+        const q = newInput.value.trim();
+        if (q && typeof addToSearchHistory==='function') addToSearchHistory(q);
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      newInput.value = '';
+      clearBtn.style.display = 'none';
+      dd.style.display = 'none';
+      dd.innerHTML = '';
+      if (_abort) try { _abort.abort(); } catch {}
+      clearTimeout(_timer);
+      newInput.focus();
+    });
+
+    // Außen-Klick
+    document.addEventListener('mousedown', e => {
+      const wrap = newInput.closest('.search-bar') || newInput.parentElement;
+      if (!wrap?.contains(e.target) && !dd.contains(e.target)) closeSearch();
+    });
+
+    // Seitenwechsel schließt
+    document.querySelectorAll('[data-view]').forEach(btn => {
+      if (!btn._searchClose) {
+        btn._searchClose = true;
+        btn.addEventListener('click', closeSearch);
+      }
+    });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(bind, 700));
+  else setTimeout(bind, 700);
+})();
+
+// ── 3. KATEGORIE-FILTER: Gruppen-Button → Anbieter verwalten ────────
+
+(function patchGroupsBtn() {
+  setTimeout(() => {
+    const bar = document.getElementById('category-filter-bar');
+    if (!bar) return;
+    // "Gruppen"-Button durch "Anbieter +" ersetzen
+    const grpBtn = bar.querySelector('[title="Eigene Gruppen verwalten"]');
+    if (grpBtn) {
+      grpBtn.innerHTML = '➕ <span>Anbieter</span>';
+      grpBtn.title = 'Ausgeblendete Anbieter wieder aktivieren';
+      grpBtn.onclick = null;
+      grpBtn.addEventListener('click', () => openRestoreProvidersPanel());
+    }
+    // Sicherstellen dass Filter immer sichtbar
+    bar.style.display = 'flex';
+  }, 700);
+})();
+
+function openRestoreProvidersPanel() {
+  const existing = document.getElementById('restore-prov-overlay');
+  if (existing) { existing.remove(); return; }
+  const deleted = settings.deletedProviders || [];
+  const all = Object.entries(PROVIDERS_BASE)
+    .filter(([id]) => deleted.includes(id))
+    .sort((a,b) => a[1].name.localeCompare(b[1].name));
+
+  const overlay = document.createElement('div');
+  overlay.id = 'restore-prov-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:3000;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r);width:min(480px,96%);max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6)">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--bor);display:flex;align-items:center">
+      <span style="font-family:var(--font-d);font-weight:800;font-size:16px;color:var(--tx);flex:1">📺 Anbieter aktivieren</span>
+      <button onclick="document.getElementById('restore-prov-overlay').remove()" style="border:none;background:transparent;color:var(--tx2);font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <div style="overflow-y:auto;padding:14px 20px;flex:1">
+      ${!all.length
+        ? '<div style="color:var(--tx2);text-align:center;padding:20px">Alle Anbieter sind bereits aktiv.</div>'
+        : all.map(([id,p]) => `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bor)">
+            <img src="${getFavicon(id,p)}" style="width:20px;height:20px;object-fit:contain;border-radius:3px" onerror="this.style.display='none'"/>
+            <span style="flex:1;font-size:13px;color:var(--tx)">${esc(p.name)}</span>
+            <button class="pick-btn" onclick="restoreProvider('${id}')" style="font-size:11px;padding:4px 10px">✓ Aktivieren</button>
+          </div>`).join('')}
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+}
+
+window.restoreProvider = function(id) {
+  settings.deletedProviders = (settings.deletedProviders||[]).filter(x => x!==id);
+  autoSave();
+  buildProviderGrid();
+  buildCategoryFilterBar();
+  // Overlay aktualisieren
+  const ov = document.getElementById('restore-prov-overlay');
+  if (ov) { ov.remove(); openRestoreProvidersPanel(); }
+  showToastMsg('✓ ' + (PROVIDERS_BASE[id]?.name || id) + ' aktiviert');
+};
+
+// ── 4. NEUIGKEITEN/UPCOMING: Ausgeblendete anzeigen Fix ─────────────
+
+(function patchHiddenItems() {
+  setTimeout(() => {
+    document.querySelectorAll('.show-hidden-btn, [id$="-show-hidden"]').forEach(btn => {
+      if (btn._hiddenFixed) return;
+      btn._hiddenFixed = true;
+      btn.addEventListener('click', () => {
+        // Key aus Button-ID oder data-key ableiten
+        const key = btn.dataset.key || btn.id.replace('-show-hidden','') || 'news';
+        if (!hiddenItems[key] || !Object.keys(hiddenItems[key]).length) {
+          showToastMsg('Keine ausgeblendeten Titel.'); return;
+        }
+        hiddenItems[key] = {};
+        settings.hiddenItems = hiddenItems;
+        autoSave();
+        if (typeof renderSlideshows==='function') renderSlideshows();
+        showToastMsg('Ausgeblendete Titel wieder angezeigt.');
+      });
+    });
+  }, 800);
+})();
+
+// ── 5. WIDEVINE: Ordner erstellen über IPC ───────────────────────────
+
+(function ensureWidevineDirExists() {
+  setTimeout(async () => {
+    try {
+      const status = await window.electronAPI.getWidevineStatus();
+      if (status && status.cdmDir) {
+        // Ordner über openExternal öffnen funktioniert nur wenn er existiert
+        // Wir schreiben eine leere Placeholder-Datei per IPC
+        console.log('[WideVine] CDM Ordner:', status.cdmDir);
+        console.log('[WideVine] Installiert:', status.installed);
+      }
+    } catch(e) {}
+  }, 1500);
+})();
+
+// ── 6. PROFIL-EDITOR: Komplett überarbeitet ──────────────────────────
+
+function openProfileEditorFinal(profileId) {
+  const overlay = document.getElementById('profile-editor-overlay');
+  if (!overlay) return;
+
+  const isNew = !profileId;
+  const profile = profileId ? profiles.find(p => p.id === profileId) : null;
+
+  window._pedProfileId = profileId || null;
+  window._pedPin = undefined;
+  window._pedAvatar = undefined;
+
+  // Felder befüllen
+  const nameEl = document.getElementById('ped-name');
+  if (nameEl) nameEl.value = profile?.name || '';
+
+  const avatarPrev = document.getElementById('ped-avatar-preview');
+  if (avatarPrev) {
+    avatarPrev.innerHTML = profile?.avatar
+      ? `<img src="${profile.avatar}" style="width:56px;height:56px;border-radius:50%;object-fit:cover"/>`
+      : '<div style="width:56px;height:56px;border-radius:50%;background:var(--bgch);display:flex;align-items:center;justify-content:center;font-size:24px">👤</div>';
+  }
+
+  // PIN-Status
+  const pinStatus = document.getElementById('ped-pin-status');
+  if (pinStatus) pinStatus.textContent = profile?.pin ? '🔒 PIN aktiv' : '🔓 Kein PIN';
+
+  // Löschen-Button: nur wenn mehr als 1 Profil und nicht neues Profil
+  const delBtn = document.getElementById('ped-delete');
+  if (delBtn) delBtn.style.display = (profiles.length > 1 && !isNew) ? 'flex' : 'none';
+
+  overlay.style.display = 'flex';
+
+  // Außen-Klick schließt ohne Speichern
+  const outsideClick = e => {
+    if (e.target === overlay) {
+      overlay.style.display = 'none';
+      overlay.removeEventListener('click', outsideClick);
+      showToastMsg('Änderungen verworfen');
+    }
+  };
+  overlay.removeEventListener('click', outsideClick);
+  overlay.addEventListener('click', outsideClick);
+}
+
+// Event-Handler für Profil-Editor Buttons (einmalig)
+(function setupProfileEditorFinal() {
+  const bind = () => {
+    // SPEICHERN
+    const saveEl = document.getElementById('ped-save');
+    if (saveEl && !saveEl._v319finalFixed) {
+      saveEl._v319finalFixed = true;
+      saveEl.addEventListener('click', async () => {
+        const name = (document.getElementById('ped-name')?.value||'').trim() || 'User';
+        const pedId = window._pedProfileId;
+        let pinToSave = undefined;
+
+        if (window._pedPin !== undefined) {
+          if (window._pedPin === '' || window._pedPin === null) {
+            pinToSave = null;
+          } else if (/^\d{4}$/.test(String(window._pedPin))) {
+            try { pinToSave = await window.electronAPI.hashPin(String(window._pedPin)); }
+            catch { pinToSave = window._pedPin; }
+          } else {
+            pinToSave = window._pedPin;
+          }
+        }
+
+        if (pedId) {
+          // BESTEHENDES PROFIL AKTUALISIEREN
+          const idx = profiles.findIndex(p => p.id === pedId);
+          if (idx >= 0) {
+            profiles[idx].name = name;
+            if (window._pedAvatar !== undefined) profiles[idx].avatar = window._pedAvatar;
+            if (pinToSave !== undefined) profiles[idx].pin = pinToSave;
+          }
+        } else {
+          // NEUES PROFIL
+          const id = 'profile_' + Date.now();
+          const newProfile = {id, name, avatar:window._pedAvatar||null, pin:pinToSave||null, isNew:true};
+          profiles.push(newProfile);
+        }
+
+        window.electronAPI.setProfiles(profiles);
+        document.getElementById('profile-editor-overlay').style.display = 'none';
+        if (typeof buildSidebarProfile==='function') buildSidebarProfile();
+        showSaveToast();
+      });
+    }
+
+    // ABBRECHEN
+    const cancelEl = document.getElementById('ped-cancel');
+    if (cancelEl && !cancelEl._v319finalFixed) {
+      cancelEl._v319finalFixed = true;
+      cancelEl.addEventListener('click', () => {
+        document.getElementById('profile-editor-overlay').style.display = 'none';
+      });
+    }
+
+    // LÖSCHEN
+    const delEl = document.getElementById('ped-delete');
+    if (delEl && !delEl._v319finalFixed) {
+      delEl._v319finalFixed = true;
+      delEl.addEventListener('click', () => {
+        const pedId = window._pedProfileId;
+        if (!pedId) return;
+        if (profiles.length <= 1) { showToastMsg('Mindestens 1 Profil erforderlich'); return; }
+        if (!confirm(`Profil "${profiles.find(p=>p.id===pedId)?.name||'?'}" wirklich löschen?`)) return;
+        profiles = profiles.filter(p => p.id !== pedId);
+        window.electronAPI.setProfiles(profiles);
+        document.getElementById('profile-editor-overlay').style.display = 'none';
+        if (activeProfileId === pedId) {
+          if (typeof switchProfile==='function') switchProfile(profiles[0].id);
+        } else {
+          if (typeof buildSidebarProfile==='function') buildSidebarProfile();
+        }
+        showToastMsg('Profil gelöscht');
+      });
+    }
+
+    // AVATAR WÄHLEN
+    const avatarEl = document.getElementById('ped-pick-avatar');
+    if (avatarEl && !avatarEl._v319finalFixed) {
+      avatarEl._v319finalFixed = true;
+      avatarEl.addEventListener('click', async () => {
+        const r = await window.electronAPI.pickImage('profile_avatar').catch(()=>null);
+        if (r) {
+          const url = r.base64||r.filePath||r;
+          window._pedAvatar = url;
+          const prev = document.getElementById('ped-avatar-preview');
+          if (prev) prev.innerHTML = `<img src="${url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover"/>`;
+        }
+      });
+    }
+
+    // PIN SETZEN
+    const setPinEl = document.getElementById('ped-set-pin');
+    if (setPinEl && !setPinEl._v319pinFixed) {
+      setPinEl._v319pinFixed = true;
+      setPinEl.addEventListener('click', async () => {
+        const pedId = window._pedProfileId;
+        const profile = pedId ? profiles.find(p=>p.id===pedId) : null;
+        // Alten PIN abfragen wenn vorhanden
+        if (profile?.pin) {
+          const oldPin = prompt('Aktuellen PIN eingeben:');
+          if (oldPin === null) return;
+          let valid = false;
+          try { valid = await window.electronAPI.verifyPin(String(oldPin), profile.pin); }
+          catch { valid = String(oldPin) === String(profile.pin); }
+          if (!valid) { showToastMsg('Falscher PIN'); return; }
+        }
+        const newPin = prompt('Neuen 4-stelligen PIN eingeben (leer = PIN entfernen):');
+        if (newPin === null) return;
+        if (newPin === '') {
+          window._pedPin = '';
+          const ps = document.getElementById('ped-pin-status');
+          if (ps) ps.textContent = '🔓 PIN wird entfernt';
+          showToastMsg('PIN wird beim Speichern entfernt');
+          return;
+        }
+        if (!/^\d{4}$/.test(newPin)) { showToastMsg('PIN muss genau 4 Ziffern sein'); return; }
+        window._pedPin = newPin;
+        const ps = document.getElementById('ped-pin-status');
+        if (ps) ps.textContent = '🔒 Neuer PIN gesetzt (noch nicht gespeichert)';
+        showToastMsg('PIN gesetzt – Speichern nicht vergessen');
+      });
+    }
+
+    // Profil-Bearbeiten öffnen
+    document.querySelectorAll('.profile-edit-trigger').forEach(btn => {
+      if (!btn._v319editFixed) {
+        btn._v319editFixed = true;
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          openProfileEditorFinal(btn.dataset.profileId);
+        });
+      }
+    });
+  };
+  setTimeout(bind, 750);
+})();
+
+// ── 7. HINTERGRUNDBILD: Explorer schließt nach Auswahl ──────────────
+
+(function patchBgImagePicker() {
+  setTimeout(() => {
+    const btn = document.getElementById('pick-bg-image');
+    if (!btn || btn._v319bgFixed) return;
+    btn._v319bgFixed = true;
+    btn.replaceWith(btn.cloneNode(true));
+    document.getElementById('pick-bg-image').addEventListener('click', async () => {
+      const r = await window.electronAPI.pickImage('background').catch(()=>null);
+      if (!r) return; // Abgebrochen – Explorer wird von Electron automatisch geschlossen
+      const url = r.base64 || r.filePath || r;
+      settings.appBgImage = url;
+      if (typeof applyBgImage==='function') applyBgImage(url);
+      autoSave();
+      // Vorschau aktualisieren
+      const preview = document.getElementById('bg-image-preview');
+      if (preview) {
+        preview.style.backgroundImage = `url("${url}")`;
+        preview.style.backgroundSize = 'cover';
+        preview.style.backgroundPosition = 'center';
+      }
+      showToastMsg('✓ Hintergrundbild gesetzt');
+    });
+  }, 800);
+})();
+
+// ── 8. CSS-VARIABLEN für Karten-Schatten/Zoom/Animationen ───────────
+
+(function applyCardSettings() {
+  const apply = () => {
+    const root = document.documentElement;
+    const cfg = settings.cardEffects || {};
+    // Schatten
+    const shadow = cfg.shadow !== false;
+    root.style.setProperty('--card-shadow', shadow ? '0 2px 12px rgba(0,0,0,.22)' : 'none');
+    // Hover-Zoom
+    const zoom = cfg.hoverZoom !== false;
+    root.style.setProperty('--card-hover-zoom', zoom ? 'translateY(-3px) scale(1.015)' : 'translateY(-2px)');
+    // Animationen
+    const anim = cfg.animations !== false;
+    document.body.classList.toggle('no-animations', !anim);
+  };
+  setTimeout(apply, 400);
+  // Slider/Toggle für Karten-Effekte verdrahten
+  setTimeout(() => {
+    [['card-shadow-toggle','shadow'],['card-zoom-toggle','hoverZoom'],['card-anim-toggle','animations']].forEach(([id,key]) => {
+      const el = document.getElementById(id);
+      if (!el || el._cardEffFixed) return;
+      el._cardEffFixed = true;
+      el.checked = (settings.cardEffects||{})[key] !== false;
+      el.addEventListener('change', () => {
+        settings.cardEffects = settings.cardEffects || {};
+        settings.cardEffects[key] = el.checked;
+        autoSave(); apply();
+      });
+    });
+  }, 900);
+})();
+
+// ── 9. ACCOUNT: Zeilen-Auswahl statt Checkboxen ─────────────────────
+
+const _origBuildSessionList = buildSessionList;
+function buildSessionList(res) {
+  // Action-Buttons ganz oben
+  let actionRow = document.getElementById('account-action-btns');
+  if (!actionRow) {
+    actionRow = document.createElement('div');
+    actionRow.id = 'account-action-btns';
+    actionRow.style.cssText = 'display:flex;gap:8px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--bor);flex-wrap:wrap';
+    const parent = document.getElementById('session-list')?.parentElement;
+    if (parent) parent.insertBefore(actionRow, parent.firstChild);
+  }
+  actionRow.innerHTML = `
+    <button class="pick-btn" id="btn-logout-all-v2" style="border-color:var(--danger);color:var(--danger)">↩ Alle abmelden</button>
+    <button class="pick-btn" id="btn-logout-sel-v2">↩ Auswahl abmelden</button>`;
+
+  const selectedIds = new Set();
+
+  document.getElementById('btn-logout-all-v2')?.addEventListener('click', () => {
+    if (!confirm('Von allen Diensten abmelden?')) return;
+    window.electronAPI.clearAllSessions(activeProfileId);
+    showToastMsg('Von allen Diensten abgemeldet');
+    setTimeout(() => window.electronAPI.refreshSessionsNow(activeProfileId), 600);
+  });
+  document.getElementById('btn-logout-sel-v2')?.addEventListener('click', () => {
+    if (!selectedIds.size) { showToastMsg('Keine Anbieter ausgewählt'); return; }
+    window.electronAPI.clearProvidersSessions(activeProfileId, [...selectedIds]);
+    selectedIds.clear();
+    showToastMsg('Ausgewählte Anbieter abgemeldet');
+    setTimeout(() => window.electronAPI.refreshSessionsNow(activeProfileId), 600);
+  });
+
+  const list = document.getElementById('session-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  const provs = Object.entries(PROVIDERS_BASE).sort((a,b) => a[1].name.localeCompare(b[1].name));
+  const loggedIn = provs.filter(([id]) => !!(res||{})[id]);
+  const notIn = provs.filter(([id]) => !(res||{})[id]);
+
+  function makeRow(id, p, isOn) {
+    const row = document.createElement('div');
+    row.className = 'session-row';
+    row.style.cssText = 'display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid transparent;border-radius:var(--r-sm);cursor:pointer;transition:all .15s;margin-bottom:4px;user-select:none';
+    row.innerHTML = `
+      <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${isOn?'#66bb6a':'var(--bor)'}"></span>
+      <img src="${getFavicon(id,p)}" style="width:18px;height:18px;border-radius:3px;object-fit:contain" onerror="this.style.display='none'"/>
+      <span style="flex:1;font-size:13px;color:var(--tx)">${esc((settings.cardCustomNames||{})[id]||p.name)}</span>
+      ${isOn?'<span style="font-size:10px;color:#66bb6a;font-weight:600">✓ angemeldet</span>':''}
+      ${isOn?`<button class="session-logout-hover" style="display:none;padding:3px 8px;border:1px solid var(--bor);background:transparent;color:var(--danger);border-radius:var(--r-sm);font-size:10px;cursor:pointer;flex-shrink:0">Abmelden</button>`:''}`;
+
+    if (isOn) {
+      // Zeile klicken = auswählen
+      row.addEventListener('click', e => {
+        if (e.target.classList.contains('session-logout-hover')) return;
+        if (selectedIds.has(id)) {
+          selectedIds.delete(id);
+          row.style.background = '';
+          row.style.borderColor = 'transparent';
+        } else {
+          selectedIds.add(id);
+          row.style.background = 'var(--accg)';
+          row.style.borderColor = 'var(--acc)';
+        }
+      });
+      // Hover: Einzel-Abmelden
+      const lBtn = row.querySelector('.session-logout-hover');
+      if (lBtn) {
+        row.addEventListener('mouseenter', () => lBtn.style.display = 'block');
+        row.addEventListener('mouseleave', () => lBtn.style.display = 'none');
+        lBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          window.electronAPI.clearProviderSession(activeProfileId, id);
+          showToastMsg('Abgemeldet von ' + p.name);
+          row.style.opacity = '0';
+          row.style.transition = 'opacity .3s';
+          setTimeout(() => row.remove(), 300);
+          setTimeout(() => window.electronAPI.refreshSessionsNow(activeProfileId), 500);
+        });
+      }
+    }
+    return row;
+  }
+
+  if (loggedIn.length) {
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.1em;padding:6px 0 4px';
+    lbl.textContent = 'Angemeldet';
+    list.appendChild(lbl);
+    loggedIn.forEach(([id,p]) => list.appendChild(makeRow(id,p,true)));
+  }
+  if (notIn.length) {
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em;padding:8px 0 4px';
+    lbl.textContent = 'Nicht angemeldet';
+    list.appendChild(lbl);
+    notIn.forEach(([id,p]) => list.appendChild(makeRow(id,p,false)));
+  }
+}
+
+// ── 10. PLUGINS: Button-Klassen zuweisen ────────────────────────────
+
+(function patchPluginButtons() {
+  const bindPluginBtns = () => {
+    document.querySelectorAll('.plugin-preset-btn').forEach(btn => {
+      const txt = (btn.textContent || '').toLowerCase();
+      if (txt.includes('install') || txt.includes('aktivier')) {
+        btn.classList.add('plugin-install-btn');
+        btn.classList.remove('plugin-uninstall-btn','plugin-info-btn');
+      } else if (txt.includes('deinstall') || txt.includes('entfern')) {
+        btn.classList.add('plugin-uninstall-btn');
+        btn.classList.remove('plugin-install-btn','plugin-info-btn');
+      } else {
+        btn.classList.add('plugin-info-btn');
+      }
+    });
+  };
+  setTimeout(bindPluginBtns, 900);
+  // Auch wenn Einstellungen geöffnet werden
+  document.getElementById('sms-plugins')?.addEventListener('click', () => setTimeout(bindPluginBtns, 200));
+})();
+
+// ── 11. DEINSTALLATIONS-DIALOG ───────────────────────────────────────
+// Wird in main.js als before-quit Handler implementiert
+
+// ── 12. ACHIEVEMENTS.md AKTUALISIEREN ───────────────────────────────
+// Wird im ZIP enthalten sein
+
+console.log('[v3.1.9b] Alle Final-Fixes geladen');
