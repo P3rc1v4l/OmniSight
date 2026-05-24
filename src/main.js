@@ -13,6 +13,30 @@ function setupCrashReporter(){
 }
 
 
+// ── IPC RATE-LIMITING ────────────────────────────────────────────
+const _ipcCallCounts = {};
+const _ipcRateLimits = {
+  'set-settings': {max: 20, window: 5000},
+  'set-profiles': {max: 10, window: 5000},
+  'record-watch-time': {max: 120, window: 60000},
+};
+function checkRateLimit(channel) {
+  const limit = _ipcRateLimits[channel];
+  if (!limit) return true;
+  const now = Date.now();
+  if (!_ipcCallCounts[channel]) _ipcCallCounts[channel] = {count:0, start:now};
+  if (now - _ipcCallCounts[channel].start > limit.window) {
+    _ipcCallCounts[channel] = {count:1, start:now};
+    return true;
+  }
+  _ipcCallCounts[channel].count++;
+  if (_ipcCallCounts[channel].count > limit.max) {
+    console.warn('[RateLimit] Channel überflutet:', channel);
+    return false;
+  }
+  return true;
+}
+
 // ── INPUT VALIDATION ──────────────────────────────────────────────
 function validateString(val, maxLen=256){return typeof val==='string'&&val.length<=maxLen;}
 function validateProfileId(id){return validateString(id,64)&&/^[a-zA-Z0-9_-]+$/.test(id);}
@@ -34,6 +58,24 @@ let mainWindow;
 // Kombination: Strg+Shift+Alt+R  → hash wird im Renderer verglichen
 const ADMIN_HASH=crypto.createHash('sha256').update('OmniSight_AdminReset_2025_Ctrl+Shift+Alt+R').digest('hex');
 ipcMain.handle('get-admin-hash',()=>ADMIN_HASH);
+
+
+// ── PIN HASHING ───────────────────────────────────────────────────
+// Verhindert dass PINs im Klartext im electron-store liegen
+function hashPin(pin) {
+  if (!pin) return null;
+  return crypto.createHash('sha256').update('omnisight_pin_salt_'+pin).digest('hex');
+}
+// IPC: PIN prüfen (Renderer sendet Hash-Anfrage)
+ipcMain.handle('hash-pin', (_, pin) => {
+  if (!validateString(pin, 4)) return null;
+  return hashPin(pin);
+});
+ipcMain.handle('verify-pin', (_, pin, hash) => {
+  if (!validateString(pin, 4) || !validateString(hash, 64)) return false;
+  return hashPin(pin) === hash;
+});
+
 
 // ── WIDEVINE ──────────────────────────────────────────────────────
 function setupWidevine(){
@@ -58,7 +100,23 @@ function isAd(url){try{const h=new URL(url).hostname;return[...DEFAULT_ADS,...st
 
 // ── SESSION ───────────────────────────────────────────────────────
 function setupSession(ses){
+  // CSP für app-eigene Seiten
+  ses.webRequest.onHeadersReceived({urls:['file://*']}, (d,cb)=>{
+    const h=d.responseHeaders||{};
+    // Nur eigene Seiten bekommen strikte CSP, Webviews nicht
+    if(d.url.endsWith('index.html')||d.url.endsWith('splash.html')){
+      h['Content-Security-Policy']=["default-src 'self' 'unsafe-inline' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:;"];
+    }
+    cb({responseHeaders:h});
+  });
   ses.setCertificateVerifyProc((_,cb)=>cb(0));
+  // Kamera/Mikrofon nur wenn Nutzer explizit erlaubt
+  ses.setPermissionRequestHandler((webContents, permission, cb) => {
+    const allowed = ['geolocation','notifications','fullscreen','clipboard-read','clipboard-sanitized-write'];
+    // Streaming-spezifisch
+    if (['media','mediaKeySystem'].includes(permission)) return cb(true);
+    cb(allowed.includes(permission));
+  });
   ses.setUserAgent(UA);
   try{ses.webRequest.onBeforeRequest({urls:['<all_urls>']},({url},cb)=>cb({cancel:isAd(url)}));}catch{}
   try{ses.webRequest.onBeforeSendHeaders({urls:['<all_urls>']},(d,cb)=>{const h=d.requestHeaders;h['User-Agent']=UA;h['Accept-Language']='de-DE,de;q=0.9';delete h['X-Frame-Options'];cb({requestHeaders:h});});}catch{}
@@ -141,7 +199,7 @@ ipcMain.handle('get-theme',()=>store.get('theme','dark'));
 ipcMain.on('set-theme',(_,v)=>store.set('theme',v));
 ipcMain.handle('get-settings',()=>({...DEFS,...store.get('settings',{})}));
 let _settingsWritePending=false;
-ipcMain.on('set-settings',(_,v)=>{
+ipcMain.on('set-settings',(_,v)=>{ if(!checkRateLimit('set-settings'))return;
   if(_settingsWritePending)return;
   _settingsWritePending=true;
   setImmediate(()=>{store.set('settings',v);_settingsWritePending=false;});

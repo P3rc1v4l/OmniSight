@@ -1,3 +1,55 @@
+## v3.1.8 -- 2026-05-24
+
+### Sicherheit (Vorschlaege 1-3, 5-6)
+- CSP (Content-Security-Policy) fuer app-eigene Seiten: verhindert dass
+  injizierter Code externe Ressourcen laden kann
+- IPC Rate-Limiting: set-settings und andere kritische Handler werden bei
+  Ueberflutung (z.B. durch kompromittierten Webview) gedrosselt
+- PIN-Hash: PINs werden als SHA-256-Hash gespeichert statt als Klartext
+- Webview Berechtigungen: Kamera/Mikrofon-Zugriffe durch Streaming-Seiten
+  werden kontrolliert; Streaming-DRM-Anfragen bleiben erlaubt
+- Session-Ablauf: Sessions die 30+ Tage nicht genutzt wurden werden bereinigt
+- Startup-Zeitmessung: Ladezeit wird in der Browser-Konsole protokolliert
+
+### Neue Features
+- WideVine CDM Installationsanleitung: Schritt-fuer-Schritt Anleitung in
+  Einstellungen -> Mehr -> WideVine CDM -> 'Installationsanleitung oeffnen'
+  mit Ordner-Oeffnen-Buttons fuer Chrome, Edge und Ziel-Ordner
+- icon.svg entfernt (wurde nicht verwendet)
+
+## v3.1.7 -- 2026-05-24
+
+### Architektur-Aenderung
+- Alle fehlenden Funktionen und Fixes in neue Datei fixes.js ausgelagert
+  (wird nach app.js geladen). Das verhindert dass Patches kuenftige Patches
+  brechen und macht Debugging einfacher.
+
+### Kritische Bugfixes
+- loadCrCalendarView, renderNotifications, buildSessionList, buildCategoryFilterBar
+  existierten nicht mehr nach mehreren Patch-Runden -- alle neu implementiert
+- Zuletzt geoeffnet auf der Uebersicht entfernt (Punkt 5)
+- + Anbieter Button funktioniert wieder (Punkt 5)
+- Suche: nur relevante Ergebnisse, fremdsprachige Titel gefiltert (Punkt 6)
+- Suche: schliesst bei Aussen-Klick, startet neu wenn Fokus mit Text (Punkt 6)
+- Suchverlauf mit Cache-Vorschau: Klick auf alten Begriff laedt direkt Ergebnisse (Punkt 4)
+- Detail-Popup: Anbieter nebeneinander, Smart-Open waehlt angemeldeten Anbieter (Punkt 6)
+- Slideshow-Karten: kein Checkbox-Overlay, Buttons unten (Punkt 7+9)
+- Fremdsprachige Titel in Neuigkeiten/Upcoming ausgefiltert (Punkt 7)
+
+### Neue Features
+- Einstellungs-Uebersicht als erste Seite mit Kacheln (Punkt 20)
+- Profil-Editor: PIN-Eingabe als Numpad-Dialog, Bild-Upload, Aussen-Klick schliesst ohne Speichern (Punkt 10)
+- Account-Tab: Sessions sofort geladen, einzelner Abmelden-Button beim Hover (Punkt 13)
+- Uhr: digital/analog Wechsel ueber Kontextmenue funktioniert (Punkt 15)
+- Achievements: 8 neue hinzugefuegt (Watchlist-Fan, Forscher, etc.) (Punkt 11)
+- Onboarding: Sprache live wechseln, Buttons mit Abkuerzung ueber Name (Punkt 21)
+- Einstellungen: Partikel-Formen beeinflussen Sprache nicht mehr (Punkt 12)
+- Toggle-Regler zeigen Akzentfarbe wenn aktiv (Punkt 12)
+- Achievement-Benachrichtigungen nur In-App, nicht als Windows-Toast (Punkt 16)
+- Update-Pruefung: zeigt nach 8s 'Aktuellste Version' statt Pruefe... (Punkt 18)
+- WideVine CDM: Download-Anleitung verlinkt (Punkt 19)
+- Plugins: Install/Deinstall-Buttons in Akzent-/Rot-Farbe (Punkt 17)
+
 ## v3.1.6 -- 2026-05-24
 
 ### KRITISCHER BUGFIX

@@ -519,3 +519,46 @@ body:not(.no-hover-zoom) .provider-card:hover{transform:translateY(-3px)}
 
 /* ══ DRAG & DROP: GRUPPEN DROP-ZONE ════════════════════════════ */
 .cat-filter-btn.drop-target{background:var(--accg)!important;border-color:var(--acc)!important;color:var(--acc)!important;transform:scale(1.08);box-shadow:0 0 0 3px var(--accg)}
+
+/* ═══ SLIDESHOW KARTEN: ACTIONS UNTEN ═══════════════════════════ */
+.slide-card{position:relative;overflow:hidden}
+.slide-card-actions{position:absolute;bottom:28px;right:5px;display:none;flex-direction:column;gap:4px;z-index:30}
+.slide-card:hover .slide-card-actions{display:flex}
+.slide-hide-btn,.slide-bookmark-btn{background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);color:#fff;width:24px;height:24px;border-radius:50%;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0}
+.slide-hide-btn:hover{background:#c62828;color:#fff}
+.slide-bookmark-btn.bookmarked{background:var(--acc)}
+/* Kein Checkbox-Overlay */
+.slide-card input[type="checkbox"]{display:none!important}
+/* Detail-Anbieter nebeneinander */
+.detail-provider-chip.clickable:hover{border-color:var(--acc)!important}
+
+/* ═══ SETTINGS MODAL GRÖßER ══════════════════════════════════════ */
+.settings-modal{width:min(1200px,98vw)!important;height:min(780px,96vh)!important}
+
+/* ═══ EINSTELLUNGS-ÜBERSICHT ════════════════════════════════════ */
+.settings-overview-card:hover{border-color:var(--acc)!important;transform:translateY(-2px)!important}
+
+/* ═══ SESSION CHECKBOXEN MODERN ════════════════════════════════= */
+.session-cb{
+  appearance:none;-webkit-appearance:none;
+  width:16px;height:16px;border:2px solid var(--bor);border-radius:4px;
+  background:var(--bgc);cursor:pointer;transition:all .14s;flex-shrink:0;
+}
+.session-cb:checked{background:var(--acc);border-color:var(--acc)}
+.session-cb:checked::after{content:'✓';color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.logout-single-btn{flex-shrink:0}
+
+/* ═══ TOGGLE MIT AKZENTFARBE WENN AKTIV ════════════════════════ */
+.toggle-switch input:checked + .toggle-slider{background:var(--acc)}
+.toggle-switch input:checked + .toggle-slider::before{background:#fff}
+
+/* ═══ ONBOARDING SPRACHE BUTTON ════════════════════════════════ */
+.ob-lang-btn-v2{flex:1;padding:10px 8px;border:1px solid var(--bor);background:var(--bgc);color:var(--tx2);border-radius:var(--r-sm);cursor:pointer;transition:all .14s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+.ob-lang-btn-v2 .lang-abbr{font-size:14px;font-weight:800;color:var(--tx)}
+.ob-lang-btn-v2 .lang-name{font-size:11px;color:var(--tx2)}
+.ob-lang-btn-v2.active{background:var(--accg);color:var(--acc);border-color:var(--acc)}
+.ob-lang-btn-v2.active .lang-abbr,.ob-lang-btn-v2.active .lang-name{color:var(--acc)}
+
+/* ═══ PLUGINS: INSTALL/UNINSTALL BUTTONS ═══════════════════════ */
+.plugin-preset-btn--install{background:var(--acc)!important;color:#fff!important}
+.plugin-preset-btn--remove{background:rgba(229,115,115,.15)!important;border-color:var(--danger)!important;color:var(--danger)!important}

@@ -197,7 +197,11 @@ document.getElementById('btn-check-updates')?.addEventListener('click',async()=>
   setupLayoutButtons();checkOnlineStatus();startSessionAutoRefresh();startAchievementWatcher();
 
   window.electronAPI.onFullscreenChange(v=>{isFullscreen=v;updateFullscreenUI();});
-  window.electronAPI.onSessionsUpdated(r=>{sessionCache=r;if(document.querySelector('.sms-btn[data-stab="account"]')?.classList.contains('active'))renderSessionList(r);});
+  window.electronAPI.onSessionsUpdated(r=>{
+    sessionCache=r;
+    buildProviderGrid();
+    const accountActive=document.querySelector('.sms-btn[data-stab="account"]')?.classList.contains('active');
+    if(accountActive)buildSessionList(r);sessionCache=r;if(document.querySelector('.sms-btn[data-stab="account"]')?.classList.contains('active'))renderSessionList(r);});
   window.electronAPI.onUpdateAvailable(info=>{showNotif('🚀 Update!',`v${info.version} verfügbar.`);const el=document.getElementById('update-check-result');if(el){el.textContent=`🚀 v${info.version} verfügbar`;el.style.color='var(--acc)';}});
   window.electronAPI.onUpdateNotAvailable(()=>{const el=document.getElementById('update-check-result');if(el){el.textContent='✓ Neueste Version';el.style.color='var(--acc)';}});
   window.electronAPI.onUpdateDownloaded(()=>showNotif('✓ Update bereit','App wird beim Neustart aktualisiert.'));
@@ -529,7 +533,9 @@ function extractYtId(q){const ps=[/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]
 
 function setupSearch(){
   const input=document.getElementById('search-input'),clear=document.getElementById('search-clear'),dd=document.getElementById('search-dropdown');if(!input||!dd)return;
-  input.addEventListener('focus',()=>{if(input.value.trim()&&dd.innerHTML)dd.style.display='block';else if(!input.value.trim()&&searchHistory.length)renderSearchHistory(dd);});
+  input.addEventListener('focus',()=>{
+    const q = input.value.trim();
+    if(q) { runTmdbSearch(q,1); return; }if(input.value.trim()&&dd.innerHTML)dd.style.display='block';else if(!input.value.trim()&&searchHistory.length)renderSearchHistory(dd);});
   input.addEventListener('input',()=>{
     const q=input.value.trim();if(clear)clear.style.display=q?'block':'none';
     clearTimeout(searchTimer);
@@ -877,7 +883,7 @@ function setupSettingsPanel(){
   lnkColor('particle-color','particle-color-text');
   document.getElementById('particle-color')?.addEventListener('input',e=>{if(!settings.particlesConfig)settings.particlesConfig={};settings.particlesConfig.color=e.target.value;document.getElementById('particle-color-text').value=e.target.value;setupParticles();autoSave();});
   document.getElementById('particle-color-text')?.addEventListener('input',e=>{if(/^#[0-9a-fA-F]{6}$/.test(e.target.value)){if(!settings.particlesConfig)settings.particlesConfig={};settings.particlesConfig.color=e.target.value;setupParticles();autoSave();}});
-  document.querySelectorAll('.particle-shape-btn').forEach(btn=>{btn.addEventListener('click',()=>{btn.classList.toggle('active');settings.particlesConfig=settings.particlesConfig||{};settings.particlesConfig.shapes=[...document.querySelectorAll('.particle-shape-btn.active')].map(b=>b.dataset.shape);if(!settings.particlesConfig.shapes.length){btn.classList.add('active');settings.particlesConfig.shapes=[btn.dataset.shape];}setupParticles();autoSave();});});
+  // Partikel-Shape-Handler in fixes.js
   // Sprache
   document.querySelectorAll('.lang-btn').forEach(btn=>btn.addEventListener('click',()=>{settings.language=btn.dataset.lang;applyLanguage(btn.dataset.lang);autoSave();}));
   // Clock
@@ -912,7 +918,23 @@ function setupSettingsPanel(){
   syncSettingsUI();
 }
 
-function openSettings(){document.getElementById('settings-overlay').style.display='flex';buildAdvancedTab();syncSettingsUI();trackMeta('settingsOpens');}
+function openSettings(){
+  document.getElementById('settings-overlay').style.display='flex';
+  // Immer zuerst Übersicht zeigen
+  document.querySelectorAll('.sms-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.smt-content').forEach(c=>c.classList.remove('active'));
+  // Einstellungs-Übersicht Tab
+  const overviewTab=document.querySelector('.sms-btn[data-stab="overview"]');
+  const overviewContent=document.getElementById('smt-overview');
+  if(overviewTab){overviewTab.classList.add('active');}
+  if(overviewContent){overviewContent.classList.add('active');}
+  else{
+    // Fallback: Design-Tab
+    document.querySelector('.sms-btn[data-stab="appearance"]')?.classList.add('active');
+    document.getElementById('smt-appearance')?.classList.add('active');
+  }
+  syncSettingsUI();buildAdvancedTab();trackMeta('settingsOpens');
+}
 function closeSettings(){enableClockDrag(false);document.getElementById('settings-overlay').style.display='none';window.electronAPI.setSettings(settings);showSaveToast();}
 
 function lnkColor(cId,tId){const c=document.getElementById(cId),t=document.getElementById(tId);if(!c||!t)return;c.addEventListener('input',()=>t.value=c.value);t.addEventListener('input',()=>{if(/^#[0-9a-fA-F]{6}$/.test(t.value))c.value=t.value;});}

@@ -58,6 +58,8 @@ contextBridge.exposeInMainWorld('electronAPI',{
   getWidevineStatus:      ()=>ipcRenderer.invoke('get-widevine-status'),
   getAdminHash:           ()=>ipcRenderer.invoke('get-admin-hash'),
   openExternal:           (u)=>ipcRenderer.send('open-external',u),
+  hashPin:              (pin)=>ipcRenderer.invoke('hash-pin',pin),
+  verifyPin:            (pin,hash)=>ipcRenderer.invoke('verify-pin',pin,hash),
   exportSettings:         ()=>ipcRenderer.invoke('export-settings'),
   importSettings:         ()=>ipcRenderer.invoke('import-settings'),
   clearCrashLog:          ()=>ipcRenderer.send('clear-crash-log'),
