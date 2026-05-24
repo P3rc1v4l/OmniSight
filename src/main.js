@@ -77,6 +77,19 @@ ipcMain.handle('verify-pin', (_, pin, hash) => {
 });
 
 
+
+// ── WIDEVINE ORDNER ANLEGEN ───────────────────────────────────────
+function setupWidevineDir() {
+  const path_ = require('path');
+  const userData = app.getPath('userData');
+  const cdmDir = path_.join(userData, 'WidevineCdm', '_platform_specific', 'win_x64');
+  if (!fs_.existsSync(cdmDir)) {
+    fs_.mkdirSync(cdmDir, { recursive: true });
+    console.log('[WideVine] Ordner angelegt:', cdmDir);
+  }
+  return cdmDir;
+}
+
 // ── WIDEVINE ──────────────────────────────────────────────────────
 function setupWidevine(){
   const base=app.getPath('userData');
@@ -362,6 +375,7 @@ ipcMain.handle('import-settings',async()=>{
     if(data.theme)store.set('theme',data.theme);
     return{ok:true};}catch(e){return{ok:false,error:e.message};}
 });
+ipcMain.handle('get-app-version',()=>require('./package.json').version);
 ipcMain.handle('check-online',async()=>{try{await session.defaultSession.fetch('https://www.google.com',{method:'HEAD'});return true;}catch{return false;}});
 ipcMain.handle('check-url',async(_,url)=>{try{const r=await session.defaultSession.fetch(url,{method:'HEAD',headers:{'User-Agent':UA}});return{ok:true,status:r.status};}catch(e){return{ok:false,error:e.message};}});
 ipcMain.on('open-external',(_,url)=>shell.openExternal(url));

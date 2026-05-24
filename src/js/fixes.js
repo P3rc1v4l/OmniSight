@@ -1,4 +1,35 @@
 'use strict';
+
+// ═══ KRITISCHE FEHLENDE FUNKTIONEN (müssen vor buildProviderGrid geladen sein) ═══
+
+const PROVIDER_CAT_MAP = {
+  netflix:'video',prime:'video',disney:'video',hbomax:'video',apple:'video',
+  paramountplus:'video',mubi:'video',skygo:'video',wow:'video',waipu:'video',
+  magenta:'video',burning:'video',cineto:'video',movie2k:'video',rtl:'video',
+  crunchyroll:'anime',adn:'anime',
+  twitch:'live',dazn:'live',
+  youtube:'video',spotify:'music',
+  ard:'free',zdf:'free',arte:'free',funk:'free',kika:'free',joyn:'free',
+};
+
+function getProviderCategory(id) {
+  if (settings && settings.providerCategories && settings.providerCategories[id]) {
+    return settings.providerCategories[id];
+  }
+  return PROVIDER_CAT_MAP[id] || 'video';
+}
+
+function updateCategoryFilter(active) {
+  document.querySelectorAll('.cat-filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === active);
+  });
+}
+
+// notifications Variable sicherstellen
+if (typeof notifications === 'undefined') {
+  var notifications = [];
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // OmniSight v3.1.7 - Fixes & fehlende Funktionen
 // Wird nach app.js geladen und ergänzt/überschreibt fehlende Teile
@@ -70,6 +101,33 @@ function addNotification(icon, title, body) {
 // ── 2. SESSION LIST ─────────────────────────────────────────────────
 
 function buildSessionList(res) {
+  // Action-Buttons ganz oben (neu aufbauen)
+  let actionRow = document.getElementById('account-action-btns');
+  if (!actionRow) {
+    actionRow = document.createElement('div');
+    actionRow.id = 'account-action-btns';
+    actionRow.style.cssText = 'display:flex;gap:8px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--bor);flex-wrap:wrap';
+    const parent = document.getElementById('session-list')?.parentElement;
+    if (parent) parent.insertBefore(actionRow, parent.firstChild);
+  }
+  actionRow.innerHTML = `
+    <button class="pick-btn" id="btn-logout-all" style="color:var(--danger);border-color:var(--danger)">↩ Alle abmelden</button>
+    <button class="pick-btn" id="btn-logout-selected">↩ Auswahl abmelden</button>`;
+  document.getElementById('btn-logout-all')?.addEventListener('click', () => {
+    if (!confirm('Von allen Diensten abmelden?')) return;
+    window.electronAPI.clearAllSessions(activeProfileId);
+    showToastMsg('Von allen Diensten abgemeldet');
+    setTimeout(() => window.electronAPI.refreshSessionsNow(activeProfileId), 800);
+  });
+  document.getElementById('btn-logout-selected')?.addEventListener('click', () => {
+    const ids = [...(window._logoutPending||new Set())];
+    if (!ids.length) { showToastMsg('Keine Anbieter ausgewählt'); return; }
+    window.electronAPI.clearProvidersSessions(activeProfileId, ids);
+    window._logoutPending = new Set();
+    showToastMsg(`${ids.length} Anbieter abgemeldet`);
+    setTimeout(() => window.electronAPI.refreshSessionsNow(activeProfileId), 800);
+  });
+
   const list = document.getElementById('session-list');
   if (!list) return;
   list.innerHTML = '';
@@ -97,12 +155,19 @@ function buildSessionList(res) {
       if (e.target.checked) window._logoutPending.add(id);
       else window._logoutPending.delete(id);
     });
-    item.addEventListener('mouseenter', () => logoutBtn.style.display = 'block');
+    if (isOn) {
+      item.addEventListener('mouseenter', () => logoutBtn.style.display = 'block');
     item.addEventListener('mouseleave', () => logoutBtn.style.display = 'none');
+    }
     logoutBtn.addEventListener('click', () => {
       window.electronAPI.clearProviderSession(activeProfileId, id);
+      // Sofort visuelles Feedback + rebuild
       showToastMsg('Abgemeldet von ' + p.name);
-      setTimeout(() => window.electronAPI.refreshSessionsNow(activeProfileId), 500);
+      // Item direkt entfernen ohne auf Refresh warten
+      item.style.transition = 'opacity .3s';
+      item.style.opacity = '0';
+      setTimeout(() => { item.remove(); }, 300);
+      setTimeout(() => window.electronAPI.refreshSessionsNow(activeProfileId), 600);
     });
     return item;
   }
@@ -1114,3 +1179,868 @@ if (_origInit) {
 })();
 
 console.log('[OmniSight fixes.js Teil 3] v3.1.8 Sicherheits-Updates aktiv');
+
+// ════════════════════════════════════════════════════════════════════
+// v3.1.9 FIXES
+// ════════════════════════════════════════════════════════════════════
+
+// ── 1. AUTO-UPDATE: Korrekte Versions-Erkennung ──────────────────────
+
+(function patchAutoUpdate() {
+  // Version aus package.json extraMetadata lesen
+  // Echte App-Version aus main.js laden
+window.electronAPI.getAppVersion().then(v => {
+  window.__appVersion = v || '3.1.9';
+  // Version in "Mehr"-Tab anzeigen
+  const vEl = document.querySelector('.settings-version-text');
+  if (vEl) vEl.textContent = 'v' + v;
+  // app.js __appVersion sync
+  if (document.getElementById('update-check-result')) {
+    // Nichts tun – wird beim Klick gelesen
+  }
+}).catch(() => { window.__appVersion = '3.1.9'; });
+
+
+  // onUpdateAvailable: Banner zeigen
+  window.electronAPI.onUpdateAvailable && window.electronAPI.onUpdateAvailable(info => {
+    const banner = document.getElementById('update-banner');
+    const txt = document.getElementById('update-text');
+    const dlBtn = document.getElementById('btn-download-update');
+    if (banner) banner.style.display = 'flex';
+    if (txt) txt.textContent = `🚀 Update v${info.version} verfügbar`;
+    if (dlBtn) {
+      dlBtn.style.display = 'flex';
+      dlBtn.textContent = '⬇ Herunterladen';
+      dlBtn.disabled = false;
+      dlBtn.onclick = () => {
+        dlBtn.textContent = '⬇ Lädt…';
+        dlBtn.disabled = true;
+        window.electronAPI.downloadUpdate();
+      };
+    }
+  });
+
+  window.electronAPI.onUpdateDownloaded && window.electronAPI.onUpdateDownloaded(() => {
+    const instBtn = document.getElementById('btn-install-update');
+    const dlBtn = document.getElementById('btn-download-update');
+    if (dlBtn) dlBtn.style.display = 'none';
+    if (instBtn) {
+      instBtn.style.display = 'flex';
+      instBtn.onclick = () => window.electronAPI.installUpdate();
+    }
+  });
+})();
+
+// ── 2. UPDATE-CHECK: Korrekte Version anzeigen ───────────────────────
+
+(function patchUpdateCheckVersion() {
+  setTimeout(() => {
+    const btn = document.getElementById('btn-check-updates');
+    if (!btn || btn._v319Patched) return;
+    btn._v319Patched = true;
+
+    // Alle alten Handler entfernen
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+
+    newBtn.addEventListener('click', async () => {
+      const el = document.getElementById('update-check-result');
+      if (el) { el.textContent = 'Prüfe…'; el.style.color = 'var(--tx2)'; }
+
+      let resolved = false;
+
+      // Auf Update-Events warten
+      const updateHandler = (info) => {
+        resolved = true;
+        if (el) {
+          el.textContent = `🚀 Update v${info.version} verfügbar – sieh oben im Banner!`;
+          el.style.color = 'var(--acc)';
+        }
+      };
+      const noUpdateHandler = () => {
+        resolved = true;
+        if (el) {
+          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.1.9'})`;
+          el.style.color = 'var(--acc)';
+        }
+      };
+      const errorHandler = (msg) => {
+        resolved = true;
+        if (el) {
+          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.1.9'})`;
+          el.style.color = msg && !msg.includes('404') ? 'var(--danger)' : 'var(--acc)';
+        }
+      };
+
+      // Temporäre Listener
+      window.electronAPI.onUpdateAvailable(updateHandler);
+      window.electronAPI.onUpdateNotAvailable(noUpdateHandler);
+      window.electronAPI.onUpdateError(errorHandler);
+
+      try { await window.electronAPI.checkForUpdates(); } catch(e) {}
+
+      // Timeout: 6s dann Fallback
+      setTimeout(() => {
+        if (!resolved && el && el.textContent === 'Prüfe…') {
+          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.1.9'})`;
+          el.style.color = 'var(--acc)';
+        }
+      }, 6000);
+    });
+  }, 800);
+})();
+
+// ── 3. PROFIL-EDITOR: Buttons reparieren ─────────────────────────────
+
+(function fixProfileEditorButtons() {
+  const bind = () => {
+    // Speichern
+    const saveBtn = document.getElementById('ped-save');
+    if (saveBtn && !saveBtn._v319Fixed) {
+      saveBtn._v319Fixed = true;
+      saveBtn.replaceWith(saveBtn.cloneNode(true));
+      const newSave = document.getElementById('ped-save');
+      newSave.addEventListener('click', async () => {
+        const name = (document.getElementById('ped-name')?.value || '').trim() || 'User';
+        const pedId = window._pedProfileId;
+        let pinToSave = undefined;
+        if (window._pedPin !== undefined) {
+          if (window._pedPin === '') {
+            pinToSave = null;
+          } else {
+            // Hash wenn es ein roher PIN ist (4 Ziffern)
+            if (/^\d{4}$/.test(String(window._pedPin))) {
+              try { pinToSave = await window.electronAPI.hashPin(String(window._pedPin)); }
+              catch(e) { pinToSave = window._pedPin; }
+            } else {
+              pinToSave = window._pedPin; // bereits gehasht
+            }
+          }
+        }
+        if (pedId) {
+          const p = profiles.find(pr => pr.id === pedId);
+          if (p) {
+            p.name = name;
+            if (window._pedAvatar !== undefined) p.avatar = window._pedAvatar;
+            if (pinToSave !== undefined) p.pin = pinToSave;
+          }
+        } else {
+          const id = 'profile_' + Date.now();
+          profiles.push({ id, name, avatar: window._pedAvatar || null, pin: pinToSave || null, favorites:[], watchlist:[], searchHistory:[] });
+        }
+        window.electronAPI.setProfiles(profiles);
+        document.getElementById('profile-editor-overlay').style.display = 'none';
+        buildSidebarProfile();
+        showSaveToast();
+      });
+    }
+
+    // Abbrechen
+    const cancelBtn = document.getElementById('ped-cancel');
+    if (cancelBtn && !cancelBtn._v319Fixed) {
+      cancelBtn._v319Fixed = true;
+      cancelBtn.addEventListener('click', () => {
+        document.getElementById('profile-editor-overlay').style.display = 'none';
+      });
+    }
+
+    // Löschen
+    const delBtn = document.getElementById('ped-delete');
+    if (delBtn && !delBtn._v319Fixed) {
+      delBtn._v319Fixed = true;
+      delBtn.addEventListener('click', () => {
+        const pedId = window._pedProfileId;
+        if (!pedId || profiles.length <= 1) { showToastMsg('Mindestens 1 Profil erforderlich'); return; }
+        if (!confirm('Profil wirklich löschen?')) return;
+        profiles = profiles.filter(p => p.id !== pedId);
+        window.electronAPI.setProfiles(profiles);
+        document.getElementById('profile-editor-overlay').style.display = 'none';
+        if (activeProfileId === pedId) switchProfile(profiles[0].id);
+        else buildSidebarProfile();
+      });
+    }
+
+    // PIN setzen: erst alten PIN abfragen wenn vorhanden
+    const setPinBtn = document.getElementById('ped-set-pin');
+    if (setPinBtn && !setPinBtn._v319Fixed) {
+      setPinBtn._v319Fixed = true;
+      setPinBtn.replaceWith(setPinBtn.cloneNode(true));
+      document.getElementById('ped-set-pin').addEventListener('click', async () => {
+        const pedId = window._pedProfileId;
+        const profile = pedId ? profiles.find(p => p.id === pedId) : null;
+
+        // Wenn Profil bereits PIN hat: erst alten PIN prüfen
+        if (profile && profile.pin) {
+          const oldPin = prompt('Aktuellen PIN eingeben:');
+          if (oldPin === null) return;
+          let valid = false;
+          try { valid = await window.electronAPI.verifyPin(oldPin, profile.pin); }
+          catch(e) { valid = String(oldPin) === String(profile.pin); }
+          if (!valid) { showToastMsg('Falscher PIN'); return; }
+        }
+
+        // Neuen PIN eingeben
+        const newPin = prompt('Neuen PIN (4 Ziffern):');
+        if (newPin === null) return;
+        if (!/^\d{4}$/.test(newPin)) { showToastMsg('PIN muss genau 4 Ziffern sein'); return; }
+        window._pedPin = newPin;
+        showToastMsg('PIN gesetzt – wird beim Speichern aktiviert');
+      });
+    }
+  };
+  setTimeout(bind, 700);
+})();
+
+// ── 4. SUCHE: Komplett überarbeitet ─────────────────────────────────
+
+(function patchSearch() {
+  setTimeout(() => {
+    const input = document.getElementById('search-input');
+    const dd = document.getElementById('search-dropdown');
+    const clearBtn = document.getElementById('search-clear');
+    if (!input || !dd) return;
+    if (input._v319SearchPatched) return;
+    input._v319SearchPatched = true;
+
+    let _timer = null;
+    let _abort = null;
+
+    function closeSearch() {
+      dd.style.display = 'none';
+    }
+
+    function doSearch(q) {
+      if (!q) { renderSearchHistory(dd); return; }
+      if (_abort) _abort.abort();
+      _abort = new AbortController();
+      clearTimeout(_timer);
+      _timer = setTimeout(() => runTmdbSearch(q, 1, _abort.signal), 300);
+    }
+
+    // Input: live suche
+    input.addEventListener('input', () => {
+      const q = input.value.trim();
+      if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+      doSearch(q);
+    });
+
+    // Fokus: Suche wieder öffnen wenn Text vorhanden
+    input.addEventListener('focus', () => {
+      const q = input.value.trim();
+      if (q) doSearch(q);
+      else if (searchHistory && searchHistory.length) renderSearchHistory(dd);
+    });
+
+    // Enter
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const q = input.value.trim();
+        if (q) { addToSearchHistory(q); doSearch(q); }
+      }
+      if (e.key === 'Escape') closeSearch();
+    });
+
+    // Clear-Button
+    if (clearBtn) {
+      clearBtn.style.display = 'none';
+      clearBtn.replaceWith(clearBtn.cloneNode(true));
+      document.getElementById('search-clear').addEventListener('click', () => {
+        input.value = '';
+        document.getElementById('search-clear').style.display = 'none';
+        dd.style.display = 'none';
+        dd.innerHTML = '';
+        if (_abort) _abort.abort();
+        clearTimeout(_timer);
+      });
+    }
+
+    // Außen-Klick schließt Dropdown
+    document.addEventListener('mousedown', e => {
+      const wrap = input.closest('.search-bar-wrap') || input.parentElement;
+      if (!wrap.contains(e.target) && !dd.contains(e.target)) {
+        closeSearch();
+      }
+    });
+
+    // Seitenwechsel schließt Dropdown
+    document.querySelectorAll('[data-view]').forEach(btn =>
+      btn.addEventListener('click', closeSearch));
+
+  }, 600);
+})();
+
+// ── 5. SLIDESHOW KARTEN: Optisch überarbeitet ────────────────────────
+
+function renderSlideshow(key) {
+  const ss = slideshows[key];
+  const track = document.getElementById(key + '-track');
+  const dots = document.getElementById(key + '-dots');
+  clearInterval(ss.timer); ss.idx = 0;
+  if (!track) return;
+  track.innerHTML = '';
+  if (dots) dots.innerHTML = '';
+  if (!ss.items || !ss.items.length) {
+    track.innerHTML = '<div style="color:rgba(255,255,255,.4);padding:20px">Keine Daten.</div>';
+    return;
+  }
+  ss.items.forEach((item, i) => {
+    const title = item.title || item.name || '?';
+    // Fremdsprachige Titel überspringen
+    if (!/^[\u0000-\u024F\s\d\W]+$/.test(title)) return;
+    const poster = item.poster_path ? `${TMDB_IMG}${item.poster_path}` : '';
+    const rd = item.release_date || item.first_air_date || '';
+    const year = rd.substring(0, 4);
+    const tmdbType = item.title ? 'movie' : 'tv';
+    const isInWl = !!watchlist.find(w => w.id === tmdbType + '_' + item.id);
+
+    const card = document.createElement('div');
+    card.className = 'slide-card' + (i === 0 ? ' active-slide' : '');
+    card.dataset.idx = i;
+    card.innerHTML = `
+      <div class="slide-card-inner" style="cursor:pointer">
+        ${poster
+          ? `<img class="slide-card-poster" src="${poster}" alt="${esc(title)}" loading="lazy"/>`
+          : '<div class="slide-card-poster-ph">🎬</div>'}
+        <div class="slide-card-body">
+          <div class="slide-card-title">${esc(title)}</div>
+          ${year ? `<div style="font-size:9px;color:rgba(255,255,255,.35)">${year}</div>` : ''}
+        </div>
+      </div>
+      <div class="slide-card-hover-btns">
+        <button class="slide-hide-btn-v2" title="Ausblenden">👁‍🗨</button>
+        <button class="slide-bm-btn-v2${isInWl ? ' bookmarked' : ''}" title="${isInWl ? 'Gemerkt' : 'Merken'}">🔖</button>
+      </div>`;
+
+    card.querySelector('.slide-card-inner').addEventListener('click', () => {
+      showDetailPopup(item.id, tmdbType, title);
+    });
+    card.querySelector('.slide-hide-btn-v2').addEventListener('click', e => {
+      e.stopPropagation();
+      hiddenItems[key] = hiddenItems[key] || {};
+      hiddenItems[key][item.id] = { title, poster, tmdbId: item.id, tmdbType, releaseDate: rd };
+      settings.hiddenItems = hiddenItems; autoSave();
+      card.style.transition = 'all .25s'; card.style.opacity = '0'; card.style.transform = 'scale(.9)';
+      setTimeout(() => { card.remove(); }, 260);
+    });
+    card.querySelector('.slide-bm-btn-v2').addEventListener('click', e => {
+      e.stopPropagation();
+      const wlId = tmdbType + '_' + item.id;
+      if (watchlist.find(w => w.id === wlId)) {
+        watchlist = watchlist.filter(w => w.id !== wlId);
+        e.target.classList.remove('bookmarked');
+        e.target.title = 'Merken';
+      } else {
+        watchlist.unshift({ id: wlId, tmdbId: item.id, tmdbType, title, poster, releaseDate: rd, mediaType: tmdbType === 'tv' ? 'tv' : 'movie' });
+        e.target.classList.add('bookmarked');
+        e.target.title = 'Gemerkt';
+      }
+      settings.watchlist = watchlist; autoSave();
+    });
+
+    track.appendChild(card);
+    if (dots) {
+      const dot = document.createElement('button');
+      dot.className = 'slide-dot' + (i === 0 ? ' active' : '');
+      dot.addEventListener('click', () => goToSlide(key, i));
+      dots.appendChild(dot);
+    }
+  });
+
+  document.getElementById(key + '-prev').onclick = () => goToSlide(key, ss.idx - 1);
+  document.getElementById(key + '-next').onclick = () => goToSlide(key, ss.idx + 1);
+  if (ss.items[0]) { updateSlideshowBg(key, ss.items[0]); updateSlideshowTitle(key, ss.items[0]); }
+  ss.timer = setInterval(() => goToSlide(key, ss.idx + 1), 6000);
+}
+
+// ── 6. CR KALENDER: Wochentag-Filter ────────────────────────────────
+
+async function loadCrCalendarView() {
+  const content = document.getElementById('cr-calendar-content');
+  if (!content) return;
+  content.innerHTML = '<div style="color:var(--tx2);padding:20px;text-align:center">Lädt…</div>';
+
+  try {
+    const [p1, p2, p3] = await Promise.all([
+      window.electronAPI.getUpcoming(1),
+      window.electronAPI.getTrending(),
+      window.electronAPI.getNewReleases()
+    ]);
+    const all = [
+      ...(p1.anime||[]), ...(p2.anime||[]), ...(p3.anime||[])
+    ].filter((v,i,a) => a.findIndex(x=>x.id===v.id)===i)
+     .filter(i => i.poster_path)
+     .filter(i => /^[\u0000-\u024F\s\d\W]+$/.test(i.title||i.name||''));
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+    // Tabs bauen: Heute, Mo-So (nächste 7 Tage), + Letzte Woche
+    const tabs = [];
+    for (let i = 0; i < 8; i++) {
+      const d = new Date(today); d.setDate(today.getDate() + i);
+      tabs.push({ label: i===0?'Heute':dayNames[d.getDay()]+' '+d.getDate()+'.'+(d.getMonth()+1)+'.', date: d.toISOString().split('T')[0], type:'future' });
+    }
+    tabs.push({ label: '← Letzte Woche', date: 'lastweek', type:'past' });
+
+    let activeTab = tabs[0].date;
+
+    function renderTabContent(targetDate) {
+      const tabContent = document.getElementById('cr-tab-content');
+      if (!tabContent) return;
+      tabContent.innerHTML = '';
+
+      let items;
+      if (targetDate === 'lastweek') {
+        const lastWeekStart = new Date(today); lastWeekStart.setDate(today.getDate() - 7);
+        items = all.filter(i => {
+          const d = i.first_air_date || i.release_date;
+          if (!d) return false;
+          const dt = new Date(d); dt.setHours(0,0,0,0);
+          return dt >= lastWeekStart && dt < today;
+        }).sort((a,b)=>(a.first_air_date||a.release_date||'').localeCompare(b.first_air_date||b.release_date||''));
+      } else {
+        items = all.filter(i => {
+          const d = i.first_air_date || i.release_date;
+          return d === targetDate;
+        });
+      }
+
+      if (!items.length) {
+        tabContent.innerHTML = '<div style="color:var(--tx2);padding:20px;text-align:center">Keine Anime für diesen Tag gefunden</div>';
+        return;
+      }
+
+      const grid = document.createElement('div');
+      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;padding:16px 0';
+      items.forEach(item => {
+        const title = item.title||item.name||'?';
+        const poster = item.poster_path ? `${TMDB_IMG}${item.poster_path}` : '';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .18s,border-color .18s';
+        card.innerHTML = (poster?`<img src="${poster}" style="width:100%;aspect-ratio:2/3;object-fit:cover;display:block" loading="lazy"/>`:'')
+          + `<div style="padding:7px 9px"><div style="font-size:11px;font-weight:600;color:var(--tx);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(title)}</div><div style="font-size:9px;color:var(--acc);margin-top:3px;font-weight:600">Crunchyroll</div></div>`;
+        card.onmouseenter=()=>{card.style.transform='translateY(-3px)';card.style.borderColor='var(--acc)';};
+        card.onmouseleave=()=>{card.style.transform='';card.style.borderColor='';};
+        card.addEventListener('click',()=>showDetailPopup(item.id,'tv',title));
+        grid.appendChild(card);
+      });
+      tabContent.appendChild(grid);
+    }
+
+    // Layout bauen
+    content.innerHTML = '';
+    const topBar = document.createElement('div');
+    topBar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--bor)';
+
+    // Crunchyroll Button
+    const crBtn = document.createElement('button');
+    crBtn.className = 'pick-btn';
+    crBtn.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:5px';
+    crBtn.innerHTML = '▶ Auf Crunchyroll';
+    crBtn.addEventListener('click', () => openProvider('crunchyroll'));
+
+    tabs.forEach(tab => {
+      const btn = document.createElement('button');
+      btn.className = 'media-type-text-btn' + (tab.date === activeTab ? ' active' : '');
+      btn.textContent = tab.label;
+      btn.style.cssText = 'font-size:13px;padding:4px 0';
+      btn.addEventListener('click', () => {
+        activeTab = tab.date;
+        topBar.querySelectorAll('.media-type-text-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderTabContent(tab.date);
+      });
+      topBar.appendChild(btn);
+    });
+    topBar.appendChild(crBtn);
+    content.appendChild(topBar);
+
+    const tabContent = document.createElement('div');
+    tabContent.id = 'cr-tab-content';
+    content.appendChild(tabContent);
+
+    renderTabContent(activeTab);
+
+  } catch(e) {
+    if (content) content.innerHTML = `<div style="color:var(--danger);padding:20px">Fehler: ${esc(e.message||String(e))}</div>`;
+  }
+}
+
+// ── 7. NOTIFICATIONS: Sicher machen ──────────────────────────────────
+
+// Immer sicherstellen dass notifications als Array existiert
+function ensureNotifications() {
+  if (typeof notifications === 'undefined' || !Array.isArray(notifications)) {
+    try { notifications = []; } catch(e) {
+      // In strict mode: window.notifications setzen
+      window.notifications = window.notifications || [];
+    }
+  }
+  return window.notifications || notifications || [];
+}
+
+// renderNotifications überschreiben mit sicherer Version
+const _prevRenderNotif = renderNotifications;
+function renderNotifications() {
+  const notifs = ensureNotifications();
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  if (!notifs.length) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--tx2);font-size:13px">Keine Benachrichtigungen</div>';
+    return;
+  }
+  list.innerHTML = notifs.map(n => `
+    <div class="notif-item">
+      <div class="notif-item-icon">${n.icon||'🔔'}</div>
+      <div class="notif-item-body">
+        <div class="notif-item-title">${esc(n.title||'')}</div>
+        <div class="notif-item-text">${esc(n.body||'')}</div>
+      </div>
+      <div class="notif-item-time">${n.time||''}</div>
+      <button class="notif-item-del" onclick="deleteNotif(${n.id})">✕</button>
+    </div>`).join('');
+}
+
+// ── 8. STATISTIKEN: Werbung-Anzeige verbessern ───────────────────────
+
+const _origBuildStatsView = typeof buildStatsView === 'function' ? buildStatsView : null;
+async function buildStatsView() {
+  const stats = await window.electronAPI.getStreamStats(activeProfileId).catch(()=>({}));
+  const content = document.getElementById('stats-content');
+  if (!content) return;
+  content.innerHTML = '';
+
+  const days = (I18N[lang]||I18N.de).days || ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const entries = Object.entries(stats)
+    .map(([id,v]) => ({id, secs:v?.total||0, byDay:v?.byDay||[]}))
+    .filter(e => e.secs > 0)
+    .sort((a,b) => b.secs - a.secs);
+
+  // Watchlist-Button
+  const wBtn = document.createElement('button');
+  wBtn.className = 'pick-btn';
+  wBtn.style.cssText = 'margin-bottom:16px;display:flex;align-items:center;gap:6px';
+  wBtn.innerHTML = '📺 Bereits angeschaut verwalten';
+  wBtn.addEventListener('click', () => openWatchedContentModal());
+  content.appendChild(wBtn);
+
+  if (!entries.length) {
+    const e = document.createElement('div');
+    e.style.cssText = 'color:var(--tx2);font-size:13px;padding:20px;text-align:center';
+    e.textContent = 'Noch keine Daten. Starte einen Stream!';
+    content.appendChild(e);
+    buildAchievementsSection(stats);
+    return;
+  }
+
+  const totalSecs = entries.reduce((a,e) => a + e.secs, 0);
+  const totalH = (totalSecs / 3600).toFixed(1);
+  const adCount = parseInt(localStorage.getItem('adBlock_' + activeProfileId) || '0');
+
+  // Top 3 Kacheln – ohne Hervorhebung bei Werbung
+  const topProv = entries[0];
+  const topProvName = topProv ? ((settings.cardCustomNames||{})[topProv.id] || PROVIDERS()[topProv.id]?.name || topProv.id) : '–';
+
+  const kachelDiv = document.createElement('div');
+  kachelDiv.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px';
+  kachelDiv.innerHTML = `
+    <div style="background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);padding:14px;text-align:center">
+      <div style="font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--tx)">${totalH}h</div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:3px">⏱ Gesamt gestreamt</div>
+    </div>
+    <div style="background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);padding:14px;text-align:center">
+      <div style="font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--tx)">${entries.length}</div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:3px">📺 Anbieter genutzt</div>
+    </div>
+    <div style="background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);padding:14px;text-align:center">
+      <div style="font-family:var(--font-d);font-size:16px;font-weight:800;color:var(--tx)">${adCount.toLocaleString()}</div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:3px">🛡 Werbung geblockt</div>
+      ${topProv?`<div style="font-size:9px;color:var(--tx3);margin-top:2px">Meist bei ${esc(topProvName)}</div>`:''}
+    </div>`;
+  content.appendChild(kachelDiv);
+
+  // Streamzeit-Balken
+  const barSection = document.createElement('div');
+  barSection.innerHTML = '<h3 style="font-family:var(--font-d);font-size:15px;color:var(--tx);margin-bottom:14px">⏱ Meiste Streamzeit</h3>';
+  entries.slice(0, 6).forEach(({id, secs}, i) => {
+    const p = PROVIDERS()[id]; if (!p) return;
+    const hours = (secs/3600).toFixed(1);
+    const pct = Math.round((secs/(entries[0].secs||1))*100);
+    const w = document.createElement('div');
+    w.style.cssText = 'margin-bottom:12px';
+    w.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px;color:var(--tx)">
+      <span style="display:flex;align-items:center;gap:7px">
+        <img src="${getFavicon(id,p)}" style="width:16px;height:16px;border-radius:3px;object-fit:contain" onerror="this.style.display='none'"/>
+        ${esc((settings.cardCustomNames||{})[id]||p.name)}
+      </span>
+      <span style="color:var(--tx2)">${hours}h</span>
+    </div>
+    <div style="height:8px;background:var(--bgc);border-radius:999px;overflow:hidden">
+      <div style="width:0%;height:100%;border-radius:999px;background:${p.color||'var(--acc)'};transition:width 1s ease ${i*.1}s" data-target="${pct}"></div>
+    </div>`;
+    barSection.appendChild(w);
+  });
+  content.appendChild(barSection);
+  setTimeout(() => content.querySelectorAll('[data-target]').forEach(el => el.style.width = el.dataset.target + '%'), 50);
+
+  // Wochentage: optisch überarbeitet als Säulen-Chart
+  const dayTotals = Array(7).fill(0);
+  entries.forEach(({byDay}) => { if(byDay) byDay.forEach((s,i)=>dayTotals[i]+=s); });
+  const maxDay = Math.max(...dayTotals, 1);
+
+  const dwDiv = document.createElement('div');
+  dwDiv.style.cssText = 'margin-top:22px;background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);padding:16px';
+  dwDiv.innerHTML = '<h3 style="font-family:var(--font-d);font-size:14px;color:var(--tx);margin-bottom:16px">📅 Streaming nach Wochentag</h3>';
+  const barCont = document.createElement('div');
+  barCont.style.cssText = 'display:flex;align-items:flex-end;gap:8px;height:100px';
+  days.forEach((d, i) => {
+    const pct = Math.round((dayTotals[i]/maxDay)*100);
+    const h = (dayTotals[i]/3600).toFixed(1);
+    const isMax = dayTotals[i] === Math.max(...dayTotals) && dayTotals[i] > 0;
+    const col = document.createElement('div');
+    col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%';
+    col.innerHTML = `<div style="font-size:9px;color:${isMax?'var(--acc)':'var(--tx3)'};font-weight:600">${h > 0 ? h+'h' : ''}</div>
+      <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+        <div style="width:100%;min-height:3px;background:${isMax?'var(--acc)':'rgba(48,197,187,.35)'};border-radius:4px 4px 0 0;height:0%;transition:height .8s ease ${i*.07}s" data-dh="${pct}"></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:${isMax?'var(--acc)':'var(--tx2)'}">${d}</div>`;
+    barCont.appendChild(col);
+  });
+  dwDiv.appendChild(barCont);
+  content.appendChild(dwDiv);
+  setTimeout(() => content.querySelectorAll('[data-dh]').forEach(el => el.style.height = el.dataset.dh + '%'), 100);
+
+  buildAchievementsSection(stats);
+}
+
+// ── 9. PARTIKEL FIX ──────────────────────────────────────────────────
+
+(function fixParticles() {
+  // setupParticles neu implementieren um sicherzustellen dass es funktioniert
+  const origSetup = typeof setupParticles === 'function' ? setupParticles : null;
+
+  function runParticles() {
+    const canvas = document.getElementById('particles-canvas');
+    if (!canvas) return;
+
+    if (window._particlesAnim) { cancelAnimationFrame(window._particlesAnim); window._particlesAnim = null; }
+
+    if (!settings.particlesEnabled) { canvas.style.display = 'none'; return; }
+
+    const cfg = settings.particlesConfig || { count:80, size:1.5, speed:1, color:'#30c5bb', shapes:['circle'], opacity:0.6 };
+    canvas.style.display = 'block';
+    const ctx = canvas.getContext('2d');
+    let w = canvas.width = window.innerWidth;
+    let h = canvas.height = window.innerHeight;
+
+    const shapes = (cfg.shapes && cfg.shapes.length) ? cfg.shapes : ['circle'];
+    const opacity = cfg.opacity !== undefined ? cfg.opacity : 0.6;
+
+    const pts = Array.from({length: cfg.count||80}, () => ({
+      x: Math.random()*w, y: Math.random()*h,
+      r: Math.random()*(cfg.size||1.5)+.4,
+      vx: (Math.random()-.5)*(cfg.speed||1)*.7,
+      vy: (Math.random()-.5)*(cfg.speed||1)*.7,
+      op: (Math.random()*.5+.3) * opacity,
+      rot: Math.random()*Math.PI*2,
+      shape: shapes[Math.floor(Math.random()*shapes.length)]
+    }));
+
+    const resizeObs = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; };
+    window.addEventListener('resize', resizeObs);
+
+    function drawP(p) {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      const c = cfg.color || 'var(--acc)';
+      // var() in canvas nicht erlaubt – fallback
+      const color = c.startsWith('var(') ? getComputedStyle(document.documentElement).getPropertyValue('--acc').trim() || '#30c5bb' : c;
+      ctx.globalAlpha = p.op;
+      ctx.fillStyle = color;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 0.8;
+      switch(p.shape) {
+        case 'triangle':
+          ctx.beginPath(); ctx.moveTo(0,-p.r*1.3); ctx.lineTo(p.r,p.r*.8); ctx.lineTo(-p.r,p.r*.8);
+          ctx.closePath(); ctx.fill(); break;
+        case 'star':
+          ctx.beginPath();
+          for(let i=0;i<5;i++){ctx.lineTo(Math.cos((18+i*72)*Math.PI/180)*p.r,-Math.sin((18+i*72)*Math.PI/180)*p.r);ctx.lineTo(Math.cos((54+i*72)*Math.PI/180)*p.r*.4,-Math.sin((54+i*72)*Math.PI/180)*p.r*.4);}
+          ctx.closePath(); ctx.fill(); break;
+        case 'line':
+          ctx.beginPath(); ctx.moveTo(-p.r*2,0); ctx.lineTo(p.r*2,0); ctx.stroke(); break;
+        case 'ring':
+          ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2);
+          ctx.lineWidth = p.r*.35; ctx.stroke(); break;
+        default:
+          ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function tick() {
+      ctx.clearRect(0,0,w,h);
+      pts.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.rot += .003;
+        if(p.x<-10)p.x=w+10; if(p.x>w+10)p.x=-10;
+        if(p.y<-10)p.y=h+10; if(p.y>h+10)p.y=-10;
+        drawP(p);
+      });
+      window._particlesAnim = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  // setupParticles überschreiben
+  window.setupParticles = runParticles;
+
+  // Wenn bereits aktiviert, neu starten
+  setTimeout(() => {
+    if (settings && settings.particlesEnabled) runParticles();
+  }, 500);
+
+  // Partikel-Opacity-Slider hinzufügen
+  setTimeout(() => {
+    const particleSection = document.getElementById('particles-options-section');
+    if (!particleSection || document.getElementById('particle-opacity')) return;
+    const row = document.createElement('div');
+    row.innerHTML = `<label class="ced-label">Transparenz: <span id="particle-opacity-val">${Math.round((settings.particlesConfig?.opacity||0.6)*100)}%</span></label>
+      <input type="range" id="particle-opacity" min="10" max="100" value="${Math.round((settings.particlesConfig?.opacity||0.6)*100)}" class="settings-range"/>`;
+    particleSection.querySelector('.smt-sub-grid')?.appendChild(row);
+    document.getElementById('particle-opacity')?.addEventListener('input', e => {
+      const v = parseInt(e.target.value);
+      document.getElementById('particle-opacity-val').textContent = v + '%';
+      settings.particlesConfig = settings.particlesConfig || {};
+      settings.particlesConfig.opacity = v / 100;
+      runParticles(); autoSave();
+    });
+  }, 900);
+})();
+
+// ── 10. WideVine Ordner anlegen per IPC ──────────────────────────────
+
+// Ordner-Öffnen neu implementieren (sicherer)
+window._openWvFolder = async function(type) {
+  try {
+    const status = await window.electronAPI.getWidevineStatus();
+    let path = '';
+    if (type === 'dest') {
+      // Pfad aus Status nehmen und sicherstellen dass Ordner existiert
+      path = status.cdmDir || '';
+    } else if (type === 'chrome') {
+      path = 'C:\\Program Files\\Google\\Chrome\\Application';
+    } else if (type === 'edge') {
+      path = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application';
+    }
+    if (path) {
+      // file:// URL für Windows Pfade
+      const urlPath = path.replace(/\\/g, '/');
+      window.electronAPI.openExternal('file:///' + urlPath);
+    }
+  } catch(e) {
+    showToastMsg('Ordner konnte nicht geöffnet werden: ' + e.message);
+  }
+};
+
+// ── 11. ACHIEVEMENTS: Neue hinzufügen ────────────────────────────────
+
+setTimeout(() => {
+  if (typeof ACHIEVEMENTS === 'undefined') return;
+  const moreAch = [
+    // Streaming-Meilensteine
+    {id:'h2',cat:'stream',icon:'⏰',name:{de:'2 Stunden',en:'2 Hours'},desc:{de:'2h gestreamt',en:'2h streamed'},check:s=>tot(s)>=7200},
+    {id:'h20',cat:'stream',icon:'🕔',name:{de:'20 Stunden',en:'20 Hours'},desc:{de:'20h gestreamt',en:'20h streamed'},check:s=>tot(s)>=72000},
+    {id:'h75',cat:'stream',icon:'🥉',name:{de:'75 Stunden',en:'75 Hours'},desc:{de:'75h gestreamt',en:'75h streamed'},check:s=>tot(s)>=270000},
+    // Provider-Spezifisch
+    {id:'ard1h',cat:'provider',icon:'📻',name:{de:'Öffentlich-Rechtlich',en:'Public Broadcasting'},desc:{de:'1h ARD/ZDF',en:'1h ARD/ZDF'},check:s=>(s.ard?.total||0)+(s.zdf?.total||0)>=3600},
+    {id:'arte1h',cat:'provider',icon:'🎨',name:{de:'Kulturliebhaber',en:'Culture Lover'},desc:{de:'1h ARTE',en:'1h ARTE'},check:s=>(s.arte?.total||0)>=3600},
+    {id:'joyn2h',cat:'provider',icon:'📺',name:{de:'Free-TV Fan',en:'Free TV Fan'},desc:{de:'2h Joyn',en:'2h Joyn'},check:s=>(s.joyn?.total||0)>=7200},
+    // Wochentag-Spezifisch
+    {id:'friday',cat:'special',icon:'🎉',name:{de:'Freitagsstreamer',en:'Friday Streamer'},desc:{de:'Am Freitag gestreamt',en:'Streamed on Friday'},check:s=>Object.values(s).some(v=>(v.byDay?.[5]||0)>0)},
+    {id:'allweek',cat:'special',icon:'🗓️',name:{de:'Allrounder',en:'All Week'},desc:{de:'Jeden Wochentag gestreamt',en:'Streamed every day of the week'},check:s=>Array(7).fill(0).map((_,i)=>Object.values(s).reduce((a,v)=>a+(v.byDay?.[i]||0),0)).every(d=>d>0)},
+    // Watchlist
+    {id:'wl5',cat:'special',icon:'📝',name:{de:'Erste 5 gemerkt',en:'First 5 saved'},desc:{de:'5 Titel in Watchlist',en:'5 titles in watchlist'},check:()=>(watchlist||[]).length>=5},
+    {id:'wl50',cat:'special',icon:'📖',name:{de:'Fleißige Watchlist',en:'Busy Watchlist'},desc:{de:'50 Titel gemerkt',en:'50 titles saved'},check:()=>(watchlist||[]).length>=50},
+    // Versteckte Achievements
+    {id:'hid_search100',cat:'hidden',icon:'🔍',name:{de:'Suchmaschine',en:'Search Engine'},desc:{de:'100× gesucht',en:'Searched 100×'},check:(_,m)=>(m?.searchCount||0)>=100,hidden:true},
+    {id:'hid_nocontent',cat:'hidden',icon:'🌙',name:{de:'Nachtmensch',en:'Night Person'},desc:{de:'Nach 23 Uhr gestreamt',en:'Streamed after 11 PM'},check:(_,m)=>(m?.lateNight||0)>=1,hidden:true},
+    {id:'hid_marathon',cat:'hidden',icon:'🏃',name:{de:'Marathon-Zuschauer',en:'Marathon Watcher'},desc:{de:'6h am Stück',en:'6h in a row'},check:s=>Object.values(s).some(v=>v.byDay&&Math.max(...v.byDay)>=21600),hidden:true},
+    {id:'hid_collector',cat:'hidden',icon:'🏅',name:{de:'Sammler',en:'Collector'},desc:{de:'25 Titel gemerkt',en:'25 titles saved'},check:()=>(watchlist||[]).length>=25,hidden:true},
+    {id:'hid_nostalgic',cat:'hidden',icon:'📼',name:{de:'Nostalgiker',en:'Nostalgic'},desc:{de:'Cine.to oder Movie2k 3h gestreamt',en:'3h on Cine.to or Movie2k'},check:s=>(s.cineto?.total||0)+(s.movie2k?.total||0)>=10800,hidden:true},
+  ];
+  moreAch.forEach(a => { if (!ACHIEVEMENTS.find(x=>x.id===a.id)) ACHIEVEMENTS.push(a); });
+  console.log('[Fixes] Achievements jetzt:', ACHIEVEMENTS.length);
+}, 600);
+
+// ── 12. ONBOARDING: Alle abwählen Button ────────────────────────────
+
+(function addDeselectAllBtn() {
+  setTimeout(() => {
+    const provGrid = document.getElementById('ob-provider-grid');
+    if (!provGrid || provGrid._deselAllAdded) return;
+    provGrid._deselAllAdded = true;
+    const parent = provGrid.parentElement;
+    if (!parent) return;
+    // Button-Zeile
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:8px;margin-top:6px;justify-content:center';
+    btnRow.innerHTML = `
+      <button onclick="document.querySelectorAll('.ob-prov-check').forEach(c=>{c.checked=true;c.parentElement.style.borderColor='var(--acc)';c.parentElement.style.background='var(--accg)';c.parentElement.style.color='var(--acc)'})" style="background:transparent;border:none;color:var(--acc);font-size:12px;cursor:pointer;font-weight:600">Alle auswählen</button>
+      <span style="color:var(--bor)">|</span>
+      <button onclick="document.querySelectorAll('.ob-prov-check').forEach(c=>{c.checked=false;c.parentElement.style.borderColor='';c.parentElement.style.background='var(--bgc)';c.parentElement.style.color='var(--tx2)'})" style="background:transparent;border:none;color:var(--tx2);font-size:12px;cursor:pointer;font-weight:600">Alle abwählen</button>`;
+    parent.insertBefore(btnRow, provGrid.nextSibling);
+  }, 800);
+})();
+
+// ── 13. UHR: Immer im Vordergrund ────────────────────────────────────
+
+(function ensureClockForeground() {
+  setTimeout(() => {
+    const widget = document.getElementById('clock-widget');
+    if (!widget) return;
+    // Uhr immer über allem wenn aktiviert
+    if (settings.clock?.enabled) {
+      widget.style.zIndex = '9500';
+    }
+    // Bei Aktivierung automatisch hochsetzen
+    const origSetupClock = typeof setupClock === 'function' ? setupClock : null;
+    if (origSetupClock) {
+      window.setupClock = function() {
+        origSetupClock.apply(this, arguments);
+        const w = document.getElementById('clock-widget');
+        if (w && settings.clock?.enabled) w.style.zIndex = '9500';
+      };
+    }
+  }, 500);
+})();
+
+// ── 14. ONBOARDING: WideVine-Schritt ────────────────────────────────
+
+(function addWidevineOnboardingStep() {
+  setTimeout(() => {
+    // Prüfen ob WideVine-Schritt bereits existiert
+    if (document.getElementById('ob-step-widevine')) return;
+    // Nach dem letzten Schritt (ob-step-6 oder ob-step-7) einfügen
+    const lastStep = document.getElementById('ob-step-7') || document.getElementById('ob-step-6');
+    if (!lastStep) return;
+    const wvStep = document.createElement('div');
+    wvStep.className = 'onboarding-step';
+    wvStep.id = 'ob-step-widevine';
+    wvStep.innerHTML = `
+      <div class="ob-emoji">🔐</div>
+      <h2 class="ob-title">WideVine CDM (Optional)</h2>
+      <p class="ob-desc">Für Netflix, Prime Video und Disney+ wird WideVine CDM benötigt. YouTube, Twitch und andere funktionieren ohne es.</p>
+      <ul class="ob-tips">
+        <li>📁 Du findest es in deinem Chrome-Browser</li>
+        <li>📋 Vollständige Anleitung in Einstellungen → Mehr</li>
+        <li>✓ OmniSight läuft auch ohne WideVine</li>
+      </ul>
+      <button class="pick-btn" onclick="openWidevineGuide()" style="margin-top:8px;width:100%;justify-content:center">📖 Anleitung jetzt anzeigen</button>`;
+    lastStep.parentElement.insertBefore(wvStep, lastStep);
+    // OB_TOTAL erhöhen
+    if (typeof OB_TOTAL !== 'undefined') {
+      window.OB_TOTAL = (typeof OB_TOTAL !== 'undefined' ? OB_TOTAL : 7) + 1;
+    }
+  }, 700);
+})();
+
+console.log('[OmniSight fixes.js v3.1.9] Alle Patches aktiv');

@@ -562,3 +562,44 @@ body:not(.no-hover-zoom) .provider-card:hover{transform:translateY(-3px)}
 /* ═══ PLUGINS: INSTALL/UNINSTALL BUTTONS ═══════════════════════ */
 .plugin-preset-btn--install{background:var(--acc)!important;color:#fff!important}
 .plugin-preset-btn--remove{background:rgba(229,115,115,.15)!important;border-color:var(--danger)!important;color:var(--danger)!important}
+
+/* ═══ SLIDESHOW KARTEN v3.1.9: HOVER-BUTTONS ════════════════════ */
+.slide-card-hover-btns{
+  position:absolute;bottom:30px;right:5px;
+  display:none;flex-direction:column;gap:4px;z-index:30;
+}
+.slide-card:hover .slide-card-hover-btns{display:flex}
+.slide-hide-btn-v2,.slide-bm-btn-v2{
+  background:rgba(0,0,0,.75);border:1px solid rgba(255,255,255,.25);
+  color:#fff;width:26px;height:26px;border-radius:50%;
+  font-size:12px;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;transition:all .15s;padding:0;
+}
+.slide-hide-btn-v2:hover{background:#c62828}
+.slide-bm-btn-v2.bookmarked{background:var(--acc);border-color:var(--acc)}
+/* Altes Checkbox-Overlay entfernen */
+.slide-card input[type="checkbox"]{display:none!important}
+/* Kein alter Gesehen-Button */
+.slide-watched-btn{display:none!important}
+
+/* ═══ PARTIKEL-SHAPES: Hervorhebung ════════════════════════════ */
+.particle-shape-btn{
+  padding:7px 10px;border:2px solid var(--bor);background:var(--bgc);
+  color:var(--tx3);border-radius:var(--r-sm);cursor:pointer;font-size:16px;
+  transition:all .18s;opacity:.5;
+}
+.particle-shape-btn.active{
+  background:var(--accg);border-color:var(--acc);
+  color:var(--acc);opacity:1;
+}
+
+/* ═══ ACCOUNT: BUTTONS OBEN ════════════════════════════════════ */
+#account-action-btns{
+  display:flex;gap:8px;margin-bottom:14px;padding-bottom:14px;
+  border-bottom:1px solid var(--bor);flex-wrap:wrap;
+}
+
+/* ═══ PLUGINS: BUTTON FARBEN ════════════════════════════════════ */
+.plugin-preset-btn--install{background:var(--acc)!important;color:#fff!important;border:none!important}
+.plugin-preset-btn--remove{background:rgba(229,115,115,.15)!important;border:1px solid var(--danger)!important;color:var(--danger)!important}
+.plugin-preset-btn--info{background:var(--accg)!important;border:1px solid var(--acc)!important;color:var(--acc)!important}

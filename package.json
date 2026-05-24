@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "3.1.8",
+  "version": "3.1.9",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -62,8 +62,7 @@
     "publish": {
       "provider": "github",
       "owner": "P3rc1v4l",
-      "repo": "OmniSight",
-      "private": true
+      "repo": "OmniSight"
     },
     "afterPack": "./scripts/fuses.js",
     "asar": true,
@@ -72,7 +71,8 @@
     ],
     "extraMetadata": {
       "certExpiry": "2029-05-23",
-      "certExpiryNote": "Self-Signed Zertifikat läuft ab – create-cert.ps1 erneut ausführen"
+      "certExpiryNote": "Self-Signed Zertifikat läuft ab – create-cert.ps1 erneut ausführen",
+      "appVersion": "3.1.9"
     },
     "forceCodeSigning": false
   },
