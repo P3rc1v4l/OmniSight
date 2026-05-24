@@ -1,16 +1,20 @@
 name: Build OmniSight
 
 on:
-  # NUR manueller Start oder Tag-Push – kein Auto-Trigger bei normalem Commit!
+  # Manueller Start: Build ohne Release (zum Testen)
   workflow_dispatch:
     inputs:
-      reason:
-        description: 'Grund für den Build (optional)'
+      create_release:
+        description: 'Release erstellen? (nur wenn alle Dateien hochgeladen)'
         required: false
-        default: 'Manueller Build'
+        default: 'false'
+        type: choice
+        options: ['false', 'true']
+
+  # Automatisch bei Tag-Push: Build + Release mit EXE
   push:
     tags:
-      - 'v*'   # Automatisch nur bei versionierten Tags (v3.1.4 etc.)
+      - 'v*'
 
 permissions:
   contents: write
@@ -26,11 +30,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Abhängigkeiten installieren
+      - name: Abhaengigkeiten installieren
         run: npm install
-
-      # Icons NICHT bei jedem Build generieren
-      # Nur manuell ausfuehren wenn Logo geaendert: node scripts/generate-icons.js
 
       - name: Version auslesen
         id: version
@@ -42,7 +43,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - name: Alte Artifacts aufräumen
+      - name: Alte Artifacts aufraeumen
         uses: actions/github-script@v7
         continue-on-error: true
         with:
@@ -61,7 +62,7 @@ jobs:
               }
             }
 
-      - name: Artifact hochladen (nur .exe)
+      - name: Artifact hochladen (.exe zum Herunterladen)
         uses: actions/upload-artifact@v4
         with:
           name: OmniSight-v${{ steps.version.outputs.version }}-Windows
@@ -70,14 +71,21 @@ jobs:
           retention-days: 3
           overwrite: true
 
-      # Release nur bei Tag-Push
-      - name: GitHub Release erstellen
-        if: startsWith(github.ref, 'refs/tags/v')
+      # --- RELEASE ERSTELLEN ---
+      # Automatisch bei Tag-Push (z.B. v3.1.9)
+      # ODER manuell wenn create_release = true
+      - name: GitHub Release mit EXE + latest.yml erstellen
+        if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: OmniSight v${{ steps.version.outputs.version }}
           files: |
             dist/*.exe
             dist/latest.yml
           generate_release_notes: true
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
