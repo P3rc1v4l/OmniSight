@@ -1,7 +1,7 @@
 {
   "name": "omnisight",
-  "version": "3.1.3",
-  "description": "OmniSight – Dein zentrales Streaming-Hub",
+  "version": "3.1.4",
+  "description": "OmniSight \u2013 Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
@@ -72,7 +72,7 @@
     ],
     "extraMetadata": {
       "certExpiry": "2029-05-23",
-      "certExpiryNote": "Self-Signed Zertifikat läuft ab – create-cert.ps1 erneut ausführen"
+      "certExpiryNote": "Self-Signed Zertifikat l\u00e4uft ab \u2013 create-cert.ps1 erneut ausf\u00fchren"
     },
     "forceCodeSigning": false
   },

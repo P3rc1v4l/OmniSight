@@ -516,3 +516,6 @@ body:not(.no-hover-zoom) .provider-card:hover{transform:translateY(-3px)}
 /* ══ KARTEN NEU-BADGE ════════════════════════════════════════════ */
 .card-new-badge{position:absolute;top:-6px;left:50%;transform:translateX(-50%);z-index:12;background:var(--acc);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:999px;letter-spacing:.08em;box-shadow:0 2px 8px rgba(48,197,187,.5);animation:badgePop .4s cubic-bezier(.34,1.56,.64,1)}
 @keyframes badgePop{from{transform:translateX(-50%) scale(.4);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+
+/* ══ DRAG & DROP: GRUPPEN DROP-ZONE ════════════════════════════ */
+.cat-filter-btn.drop-target{background:var(--accg)!important;border-color:var(--acc)!important;color:var(--acc)!important;transform:scale(1.08);box-shadow:0 0 0 3px var(--accg)}

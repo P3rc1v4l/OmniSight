@@ -1,3 +1,21 @@
+## v3.1.4 — 2026-05-24
+
+### 🐛 Kritische Bugfixes
+- **Navigation funktioniert wieder**: IIFE `setupMissingHandlers()` lief synchron vor dem DOM und hat alle Handler zerstoert. Komplett entfernt und direkt in `setupNavigation()` integriert.
+- **Anbieter werden wieder angezeigt**: `buildWatchlist()` existierte nicht mehr (umbenannt zu `buildWatchlistSorted()`) — alle Aufrufe korrigiert.
+- **Einstellungen oeffnen/schliessen**: `openSettings()` nutzte alten Sidebar-Stil — auf Modal umgestellt.
+- **Profil-Switcher und Benachrichtigungs-Glocke**: Handler jetzt zuverlaessig in `setupNavigation()` registriert.
+
+### 🔒 Sicherheit
+- **Dependabot aktiviert**: Wochentliche automatische PRs fuer veraltete npm-Pakete und GitHub Actions (Electron-Major-Updates ausgenommen).
+
+### 🔧 Verbesserungen
+- **Icons nicht mehr bei jedem Build**: `generate-icons.js` aus dem normalen Workflow-Build entfernt — nur noch manuell ausfuehren wenn sich das Logo aendert.
+- **LICENSE**: Umlaute entfernt, jetzt vollstaendig auf Englisch — wird in allen Systemen korrekt angezeigt.
+
+### 🆕 Neue Features
+- **Drag & Drop in Gruppen**: Anbieter-Karten koennen direkt auf einen Gruppen-Button in der Filter-Leiste gezogen werden — Karte wird sofort der Gruppe zugewiesen.
+
 ## v3.1.3 — 2026-05-23
 
 ### 🐛 Bugfix

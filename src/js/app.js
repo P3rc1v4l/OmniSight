@@ -226,7 +226,7 @@ function setupNavigation(){
       else if(v==='stream'){if(currentProvider)showView('stream');else if(pipProviderId)restoreFromPip();else showView('home');}
       else if(v==='news'){showView('news');loadSlideshow('news',slideshows.news.mediaType,slideshows.news.tab);}
       else if(v==='upcoming'){showView('upcoming');loadSlideshow('upcoming',slideshows.upcoming.mediaType);}
-      else if(v==='watchlist'){showView('watchlist');buildWatchlist();}
+      else if(v==='watchlist'){showView('watchlist');buildWatchlistSorted();}
       else if(v==='stats'){showView('stats');buildStatsView();}
       else if(v==='cr-calendar'){showView('cr-calendar');loadCrCalendarView();}
       else showView(v);
@@ -246,6 +246,17 @@ function setupNavigation(){
   // Home Buttons
   document.getElementById('btn-add-provider-home')?.addEventListener('click',()=>document.getElementById('custom-provider-modal').style.display='flex');
   document.getElementById('goto-home-btn')?.addEventListener('click',()=>showView('home'));
+  // Profile-Switcher
+  document.getElementById('btn-profile-switcher')?.addEventListener('click',openProfileManager);
+  // Notification-Bell
+  const _bell=document.getElementById('notif-bell-btn');
+  const _nc=document.getElementById('notif-center');
+  if(_bell&&_nc){
+    _bell.addEventListener('click',e=>{e.stopPropagation();const open=_nc.style.display==='flex';_nc.style.display=open?'none':'flex';if(!open)renderNotifications();});
+    document.addEventListener('click',e=>{if(_nc.style.display==='flex'&&!_nc.contains(e.target)&&!_bell.contains(e.target))_nc.style.display='none';});
+  }
+  document.getElementById('notif-center-close')?.addEventListener('click',()=>document.getElementById('notif-center').style.display='none');
+  document.getElementById('notif-clear-all')?.addEventListener('click',()=>{notifications=[];renderNotifications();updateNotifBadge();window.electronAPI.setNotifications(activeProfileId,[]);});
   setupSortButtons();
 }
 function buildSidebarSubMenus(){const list=document.getElementById('nav-sub-favorites-list');if(!list)return;list.innerHTML='';const favs=(settings.favorites||[]).sort((a,b)=>(PROVIDERS()[a]?.name||'').localeCompare(PROVIDERS()[b]?.name||''));if(!favs.length){const h=document.createElement('div');h.style.cssText='padding:5px 10px;font-size:11px;color:var(--tx3)';h.textContent='Keine Favoriten';list.appendChild(h);return;}favs.forEach(id=>{const p=PROVIDERS()[id];if(!p)return;const btn=document.createElement('button');btn.className='nav-sub-btn';btn.innerHTML=`<img src="${getFavicon(id,p)}" width="14" height="14" style="border-radius:2px;object-fit:contain" onerror="this.style.display='none'"/> ${esc((settings.cardCustomNames||{})[id]||p.name)}`;btn.addEventListener('click',()=>openProvider(id));list.appendChild(btn);});}
@@ -294,6 +305,7 @@ async function buildProviderGrid(){
   if(!settings.sortAlpha&&!settings.sortByUsage)setupDragDrop(grid);
   buildSidebarSubMenus();
   setTimeout(buildRecentlyOpened,50);
+  setTimeout(setupGroupDropZones,100);
 }
 function addGridLabel(grid,text){const el=document.createElement('div');el.className='grid-section-label';el.textContent=text;grid.appendChild(el);}
 
@@ -939,7 +951,7 @@ function buildWatchlistSorted(cat){
     const dateStr=item.releaseDate?new Date(item.releaseDate).toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'}):'';
     card.innerHTML=`${poster}<div class="wl-card-body"><div class="wl-card-title">${item.title||''}</div>${dateStr?`<div class="wl-card-date">📅 ${dateStr}</div>`:''}</div><button class="wl-card-remove">✕</button>`;
     card.querySelector('.wl-card-remove').addEventListener('click',e=>{e.stopPropagation();watchlist=watchlist.filter(w=>w.id!==item.id);settings.watchlist=watchlist;autoSave();card.style.transition='all .25s';card.style.opacity='0';card.style.transform='scale(.9)';setTimeout(()=>buildWatchlistSorted(catArg),260);});
-    card.addEventListener('contextmenu',e=>{e.preventDefault();document.querySelectorAll('.wl-ctx-menu').forEach(m=>m.remove());const menu=document.createElement('div');menu.className='wl-ctx-menu';menu.style.cssText=`position:fixed;left:${Math.min(e.clientX,window.innerWidth-180)}px;top:${Math.min(e.clientY,window.innerHeight-120)}px;background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r-sm);z-index:3000;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.5);padding:4px 0`;[{v:'movie',l:'🎬 Film'},{v:'tv',l:'📺 Serie'},{v:'anime',l:'⛩️ Anime'}].forEach(c=>{const btn=document.createElement('button');btn.style.cssText='display:block;width:100%;padding:8px 14px;border:none;background:transparent;color:var(--tx);font-size:13px;cursor:pointer;text-align:left';btn.textContent=(c.v===item.mediaType?'✓ ':'')+c.l;btn.onmouseenter=()=>btn.style.background='var(--bgch)';btn.onmouseleave=()=>btn.style.background='transparent';btn.addEventListener('click',()=>{const idx=watchlist.findIndex(w=>w.id===item.id);if(idx>-1){watchlist[idx].mediaType=c.v;settings.watchlist=watchlist;autoSave();}menu.remove();buildWatchlist(catArg);});menu.appendChild(btn);});document.body.appendChild(menu);setTimeout(()=>document.addEventListener('click',()=>menu.remove(),{once:true}),10);});
+    card.addEventListener('contextmenu',e=>{e.preventDefault();document.querySelectorAll('.wl-ctx-menu').forEach(m=>m.remove());const menu=document.createElement('div');menu.className='wl-ctx-menu';menu.style.cssText=`position:fixed;left:${Math.min(e.clientX,window.innerWidth-180)}px;top:${Math.min(e.clientY,window.innerHeight-120)}px;background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r-sm);z-index:3000;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.5);padding:4px 0`;[{v:'movie',l:'🎬 Film'},{v:'tv',l:'📺 Serie'},{v:'anime',l:'⛩️ Anime'}].forEach(c=>{const btn=document.createElement('button');btn.style.cssText='display:block;width:100%;padding:8px 14px;border:none;background:transparent;color:var(--tx);font-size:13px;cursor:pointer;text-align:left';btn.textContent=(c.v===item.mediaType?'✓ ':'')+c.l;btn.onmouseenter=()=>btn.style.background='var(--bgch)';btn.onmouseleave=()=>btn.style.background='transparent';btn.addEventListener('click',()=>{const idx=watchlist.findIndex(w=>w.id===item.id);if(idx>-1){watchlist[idx].mediaType=c.v;settings.watchlist=watchlist;autoSave();}menu.remove();buildWatchlistSorted(catArg);});menu.appendChild(btn);});document.body.appendChild(menu);setTimeout(()=>document.addEventListener('click',()=>menu.remove(),{once:true}),10);});
     card.addEventListener('click',async()=>{await showDetailPopup(item.tmdbId,item.tmdbType||'movie',item.title);const check=setInterval(()=>{if(document.getElementById('detail-overlay').style.display==='none'){clearInterval(check);if(!watchlist.find(w=>w.id===item.id))buildWatchlistSorted(catArg);}},300);});
     grid.appendChild(card);
   });
@@ -1419,44 +1431,4 @@ function setupTitlebar(){
 document.addEventListener('DOMContentLoaded',()=>init());
 
 // ══ FEHLENDE HANDLER ══════════════════════════════════════════════
-(function setupMissingHandlers(){
-  // Profil-Switcher Button
-  // Handler direkt ausführen (DOM bereits ready wenn IIFE läuft)
-  setTimeout(()=>{
-    document.getElementById('btn-profile-switcher')?.addEventListener('click',()=>{
-      const overlay=document.getElementById('profile-manager-overlay');
-      if(overlay){
-        // Profilliste bauen
-        const list=document.getElementById('pm-list');if(list){list.innerHTML='';
-        profiles.forEach(p=>{const item=document.createElement('div');item.style.cssText=`display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid ${p.id===activeProfileId?'var(--acc)':'var(--bor)'};border-radius:var(--r-sm);cursor:pointer;background:${p.id===activeProfileId?'var(--accg)':'var(--bgc)'};margin-bottom:8px;transition:all .15s`;item.innerHTML=`<div style="width:36px;height:36px;border-radius:50%;background:var(--bgch);display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;flex-shrink:0">${p.avatar?`<img src="${p.avatar}" style="width:36px;height:36px;object-fit:cover"/>`:'👤'}</div><div style="flex:1"><div style="font-weight:700;color:var(--tx)">${p.name}</div>${p.pin?'<div style="font-size:10px;color:var(--tx3)">🔒 PIN</div>':''}</div>${p.id===activeProfileId?'<span style="font-size:11px;color:var(--acc);font-weight:700">Aktiv</span>':''}`;
-        item.addEventListener('click',()=>{if(p.id===activeProfileId){overlay.style.display='none';return;}if(p.pin){overlay.style.display='none';const pin=prompt('PIN für "'+p.name+'":');if(pin===null)return;if(String(pin)===String(p.pin))switchProfile(p.id);else showToastMsg('Falscher PIN');}else{overlay.style.display='none';switchProfile(p.id);}});
-        list.appendChild(item);});}
-        overlay.style.display='flex';
-      }
-    });
-    // Profile Manager Buttons
-    document.getElementById('pm-close')?.addEventListener('click',()=>document.getElementById('profile-manager-overlay').style.display='none');
-    document.getElementById('pm-btn-new')?.addEventListener('click',()=>{document.getElementById('profile-manager-overlay').style.display='none';openPedForNew();});
-    document.getElementById('pm-btn-logout')?.addEventListener('click',()=>{document.getElementById('profile-manager-overlay').style.display='none';showToastMsg('Profil abgemeldet. App neu starten um Profil zu wählen.');});
-    // Profile Editor
-    document.getElementById('ped-save')?.addEventListener('click',()=>{const name=(document.getElementById('ped-name')?.value||'').trim()||'User';if(window._pedId){const p=profiles.find(pr=>pr.id===window._pedId);if(p){p.name=name;if(window._pedAvatar!==undefined)p.avatar=window._pedAvatar;if(window._pedPin!==undefined)p.pin=window._pedPin||null;}}else{const id='profile_'+Date.now();profiles.push({id,name,avatar:window._pedAvatar||null,pin:null,favorites:[],watchlist:[],searchHistory:[]});}window.electronAPI.setProfiles(profiles);document.getElementById('profile-editor-overlay').style.display='none';buildSidebarProfile();showSaveToast();});
-    document.getElementById('ped-cancel')?.addEventListener('click',()=>document.getElementById('profile-editor-overlay').style.display='none');
-    document.getElementById('ped-delete')?.addEventListener('click',()=>{if(!window._pedId||profiles.length<=1){showToastMsg('Mindestens 1 Profil nötig');return;}if(!confirm('Profil löschen?'))return;profiles=profiles.filter(p=>p.id!==window._pedId);window.electronAPI.setProfiles(profiles);document.getElementById('profile-editor-overlay').style.display='none';if(activeProfileId===window._pedId)switchProfile(profiles[0].id);else buildSidebarProfile();});
-    document.getElementById('ped-pick-avatar')?.addEventListener('click',async()=>{const r=await window.electronAPI.pickImage('pa').catch(()=>null);if(r){const url=r.base64||r.filePath||r;document.getElementById('ped-avatar-preview').innerHTML=`<img src="${url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover"/>`;window._pedAvatar=url;}});
-    document.getElementById('ped-clear-avatar')?.addEventListener('click',()=>{document.getElementById('ped-avatar-preview').innerHTML='👤';window._pedAvatar=null;});
-    document.getElementById('ped-set-pin')?.addEventListener('click',()=>{const p=prompt('Neuen 4-stelligen PIN eingeben:');if(!p)return;if(p.length!==4||!/^\d{4}$/.test(p)){showToastMsg('PIN muss genau 4 Ziffern sein');return;}window._pedPin=p;showToastMsg('PIN gesetzt');});
-    document.getElementById('ped-remove-pin')?.addEventListener('click',()=>{window._pedPin='';showToastMsg('PIN entfernt');});
-    // Notification Bell
-    const bell=document.getElementById('notif-bell-btn');const center=document.getElementById('notif-center');
-    if(bell&&center){
-      bell.addEventListener('click',e=>{e.stopPropagation();const open=center.style.display==='flex';center.style.display=open?'none':'flex';if(!open)renderNotifications();});
-      document.addEventListener('click',e=>{if(center.style.display==='flex'&&!center.contains(e.target)&&!bell.contains(e.target))center.style.display='none';});
-    }
-    document.getElementById('notif-center-close')?.addEventListener('click',()=>{document.getElementById('notif-center').style.display='none';});
-    document.getElementById('notif-clear-all')?.addEventListener('click',()=>{notifications=[];renderNotifications();updateNotifBadge();window.electronAPI.setNotifications(activeProfileId,[]);});
-    // Settings Modal Tabs
-    document.querySelectorAll('.sms-btn[data-stab]').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.sms-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.smt-content').forEach(c=>c.classList.remove('active'));btn.classList.add('active');document.getElementById('smt-'+btn.dataset.stab)?.classList.add('active');if(btn.dataset.stab==='account')buildSessionList(sessionCache||{});if(btn.dataset.stab==='clock')enableClockDrag(true);else enableClockDrag(false);if(btn.dataset.stab==='advanced')buildAdvancedTab();});});
-    // Settings Open/Close
-    // Settings-Handler: in setupSettingsPanel() definiert
-  },200);
-})();
+
