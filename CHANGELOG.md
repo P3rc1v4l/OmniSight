@@ -1,3 +1,19 @@
+## v3.1.6 -- 2026-05-24
+
+### KRITISCHER BUGFIX
+- preload.js war syntaktisch kaputt: durch einen frueheren Patch wurden zwei Zeilen
+  zusammengefuegt ('isFullscreen: ()=>downloadUpdate: ...'), was einen JavaScript-
+  SyntaxError beim Laden warf. Dadurch stand window.electronAPI NICHT zur Verfuegung
+  und init() konnte nicht einmal starten. Alle Buttons und Anbieter fehlten deshalb.
+  preload.js wurde komplett neu und korrekt geschrieben.
+
+### Neue Features (Stabilitaet)
+- Globaler Fehler-Handler: Unbehandelte JavaScript-Fehler zeigen jetzt einen
+  roten Toast unten in der App statt lautlos zu scheitern
+- Healthcheck nach Start: 800ms nach init() wird geprueft ob das Provider-Grid
+  befuellt ist. Falls nicht (wegen eines unbehandelten Fehlers), wird buildProviderGrid()
+  automatisch erneut aufgerufen
+
 ## v3.1.5 -- 2026-05-24
 
 ### Bugfixes

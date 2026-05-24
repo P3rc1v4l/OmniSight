@@ -1,4 +1,22 @@
 'use strict';
+
+// Globaler Fehler-Handler: zeigt Toast bei unbehandelten Fehlern
+window.addEventListener('error', e => {
+  if(!e.error || e.error.__shown) return;
+  e.error.__shown = true;
+  console.error('[OmniSight Error]', e.message, e.filename, e.lineno);
+  const t = document.getElementById('error-toast');
+  if(t){
+    t.textContent = 'Fehler: ' + (e.message||'Unbekannt').slice(0, 80);
+    t.style.display = 'block';
+    clearTimeout(window._errT);
+    window._errT = setTimeout(()=>t.style.display='none', 4000);
+  }
+});
+window.addEventListener('unhandledrejection', e => {
+  console.error('[OmniSight Promise]', e.reason);
+});
+
 // ════════ PROVIDERS ════════════════════════════════════════════════
 const PROVIDERS_BASE = {
   apple:        {name:'Apple TV+',      tag:'Apple Originals',          url:'https://tv.apple.com',                    color:'#555555',quality:'4K'},
@@ -136,7 +154,44 @@ async function init(){
 
   buildSidebarProfile();buildProviderGrid();buildSidebarNav();
   setupClock();setupTitlebar();setupThemeToggle();setupNavigation();
-  setupStreamControls();setupSettingsPanel();setupSearch();
+  setupStreamControls();setupSettingsPanel();
+  // Settings-spezifische Listener:
+document.getElementById('btn-check-updates')?.addEventListener('click',async()=>{const el=document.getElementById('update-check-result');if(el){el.textContent='Prüfe…';el.style.color='var(--tx2)';}await window.electronAPI.checkForUpdates();});
+  
+  // ══ WATCHLIST EXPORT/IMPORT ════════════════════════════════════════
+  document.getElementById('btn-view-watchlist-adv')?.addEventListener('click',()=>{showView('watchlist');buildWatchlistSorted();closeSettings();});
+  // Export/Import Einstellungen
+  document.getElementById('btn-export-settings')?.addEventListener('click',async()=>{const r=await window.electronAPI.exportSettings().catch(()=>({ok:false}));if(r.ok)showToastMsg('✓ Einstellungen exportiert');else if(r!==false)showToastMsg('Abgebrochen');});
+  document.getElementById('btn-import-settings')?.addEventListener('click',async()=>{if(!confirm('Alle aktuellen Einstellungen werden überschrieben. Fortfahren?'))return;const r=await window.electronAPI.importSettings().catch(()=>({ok:false}));if(r.ok){showToastMsg('✓ Einstellungen importiert – App wird neu geladen');setTimeout(()=>location.reload(),1500);}else if(r.error)showToastMsg('Fehler: '+r.error);});
+  document.getElementById('btn-export-watchlist')?.addEventListener('click',()=>{
+    if(!watchlist.length){showToastMsg('Watchlist ist leer');return;}
+    const data=JSON.stringify(watchlist,null,2);
+    const blob=new Blob([data],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`omnisight-watchlist-${Date.now()}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    showToastMsg('Watchlist exportiert');
+  });
+  document.getElementById('btn-import-watchlist')?.addEventListener('click',()=>{
+    const input=document.createElement('input');input.type='file';input.accept='.json,application/json';
+    input.addEventListener('change',async()=>{
+      const file=input.files[0];if(!file)return;
+      try{
+        const text=await file.text();const data=JSON.parse(text);
+        if(!Array.isArray(data))throw new Error('Ungültiges Format');
+        let added=0;data.forEach(item=>{if(!watchlist.find(w=>w.id===item.id)){watchlist.push(item);added++;}});
+        settings.watchlist=watchlist;autoSave();
+        showToastMsg(`${added} Einträge importiert`);
+        buildWatchlistSorted();
+      }catch(e){showToastMsg('Fehler: '+e.message);}
+    });
+    input.click();
+  });
+  document.getElementById('btn-show-onboarding')?.addEventListener('click',()=>{closeSettings();setTimeout(()=>showOnboarding(true),200);});
+  document.getElementById('pick-bg-image')?.addEventListener('click',async()=>{const r=await window.electronAPI.pickImage('appBg');if(r){const url=r.base64||r.filePath||r;settings.appBgImage=url;applyBgImage(url);autoSave();}});
+  document.getElementById('reset-bg-image')?.addEventListener('click',()=>{settings.appBgImage='';applyBgImage('');autoSave();});
+  
+  // ══ PLUGINS ════════════════════════════════════════════════════════setupSearch();
   setupPluginsTab();setupClockContextMenu();setupSidebarCrunchyroll();
   setupParticles();setupPip();setupCardEditor();setupCustomProviderModal();
   setupLayoutButtons();checkOnlineStatus();startSessionAutoRefresh();startAchievementWatcher();
@@ -158,6 +213,7 @@ async function init(){
   showOnboarding(false);
   setTimeout(buildRecentlyOpened, 200);
   setTimeout(checkWatchlistReleases, 4000);
+  setTimeout(runHealthcheck, 800);
   setTimeout(checkCertExpiry, 5000);
   patchSearchEarlyTrigger();
   // Watchlist-Sort Listener
@@ -1072,42 +1128,6 @@ function cachedTmdbSearch(q,page){
 
 
 // ══ UPDATE CHECK ═══════════════════════════════════════════════════
-document.getElementById('btn-check-updates')?.addEventListener('click',async()=>{const el=document.getElementById('update-check-result');if(el){el.textContent='Prüfe…';el.style.color='var(--tx2)';}await window.electronAPI.checkForUpdates();});
-
-// ══ WATCHLIST EXPORT/IMPORT ════════════════════════════════════════
-document.getElementById('btn-view-watchlist-adv')?.addEventListener('click',()=>{showView('watchlist');buildWatchlistSorted();closeSettings();});
-// Export/Import Einstellungen
-document.getElementById('btn-export-settings')?.addEventListener('click',async()=>{const r=await window.electronAPI.exportSettings().catch(()=>({ok:false}));if(r.ok)showToastMsg('✓ Einstellungen exportiert');else if(r!==false)showToastMsg('Abgebrochen');});
-document.getElementById('btn-import-settings')?.addEventListener('click',async()=>{if(!confirm('Alle aktuellen Einstellungen werden überschrieben. Fortfahren?'))return;const r=await window.electronAPI.importSettings().catch(()=>({ok:false}));if(r.ok){showToastMsg('✓ Einstellungen importiert – App wird neu geladen');setTimeout(()=>location.reload(),1500);}else if(r.error)showToastMsg('Fehler: '+r.error);});
-document.getElementById('btn-export-watchlist')?.addEventListener('click',()=>{
-  if(!watchlist.length){showToastMsg('Watchlist ist leer');return;}
-  const data=JSON.stringify(watchlist,null,2);
-  const blob=new Blob([data],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`omnisight-watchlist-${Date.now()}.json`;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-  showToastMsg('Watchlist exportiert');
-});
-document.getElementById('btn-import-watchlist')?.addEventListener('click',()=>{
-  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';
-  input.addEventListener('change',async()=>{
-    const file=input.files[0];if(!file)return;
-    try{
-      const text=await file.text();const data=JSON.parse(text);
-      if(!Array.isArray(data))throw new Error('Ungültiges Format');
-      let added=0;data.forEach(item=>{if(!watchlist.find(w=>w.id===item.id)){watchlist.push(item);added++;}});
-      settings.watchlist=watchlist;autoSave();
-      showToastMsg(`${added} Einträge importiert`);
-      buildWatchlistSorted();
-    }catch(e){showToastMsg('Fehler: '+e.message);}
-  });
-  input.click();
-});
-document.getElementById('btn-show-onboarding')?.addEventListener('click',()=>{closeSettings();setTimeout(()=>showOnboarding(true),200);});
-document.getElementById('pick-bg-image')?.addEventListener('click',async()=>{const r=await window.electronAPI.pickImage('appBg');if(r){const url=r.base64||r.filePath||r;settings.appBgImage=url;applyBgImage(url);autoSave();}});
-document.getElementById('reset-bg-image')?.addEventListener('click',()=>{settings.appBgImage='';applyBgImage('');autoSave();});
-
-// ══ PLUGINS ════════════════════════════════════════════════════════
 function buildPluginsList(){
   const container=document.getElementById('plugin-presets-list');if(!container)return;
   container.innerHTML='';
@@ -1377,6 +1397,25 @@ function checkCertExpiry(){
       addNotification('⚠️','Zertifikat läuft bald ab',`Noch ${daysLeft} Tage bis das Code-Signing-Zertifikat abläuft. Rechtzeitig erneuern!`);
     }
   }catch{}
+}
+
+
+// Healthcheck nach init()
+function runHealthcheck(){
+  const required = ['buildProviderGrid','setupNavigation','openProvider','showView'];
+  const missing = required.filter(fn => typeof window[fn] !== 'function' && typeof eval(fn) !== 'function');
+  if(missing.length){
+    showToastMsg('⚠ Initialisierungsfehler: ' + missing.join(', '), 5000);
+    console.error('[Healthcheck] Fehlende Funktionen:', missing);
+  }
+  // Prüfe ob Provider-Grid leer ist obwohl Anbieter vorhanden
+  setTimeout(()=>{
+    const grid = document.getElementById('providers-grid');
+    if(grid && !grid.children.length && Object.keys(PROVIDERS()).length > 0){
+      console.warn('[Healthcheck] Grid leer – rebuilde…');
+      buildProviderGrid();
+    }
+  }, 1500);
 }
 
 // ══ CRASH-LOG MELDUNG ══════════════════════════════════════════════
