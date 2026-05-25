@@ -4,7 +4,7 @@
 // In-App Feedback + Discord-Link
 // ═══════════════════════════════════════════════════════════════════
 
-const DISCORD_INVITE = 'https://discord.gg/placeholder'; // Bitte anpassen
+const DISCORD_INVITE = 'https://discord.gg/D6BnznYztF';
 
 function setupFeedback() {
   // Feedback-Button in Einstellungen verdrahten
