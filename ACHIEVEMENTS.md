@@ -1,63 +1,52 @@
-# OmniSight – Alle Achievements
+# OmniSight Achievements
 
-> Diese Datei listet alle Achievements auf, inkl. versteckter Achievements.  
-> Stand: v1.2.0
+Alle Achievements die du in OmniSight freischalten kannst.
+🔒 = Verstecktes Achievement
 
----
-
-## ⏱ Streamzeit
+## 🎬 Streaming-Meilensteine
 
 | Icon | ID | Name | Bedingung |
-|------|-----|------|-----------|
-| 🎬 | first_stream | Erster Stream | Ersten Stream gestartet |
-| ⏰ | hour_1 | 1 Stunde | 1h insgesamt gestreamt |
-| 🕔 | hour_5 | 5 Stunden | 5h insgesamt gestreamt |
-| 🕐 | hour_10 | 10 Stunden | 10h insgesamt gestreamt |
-| 🏅 | hour_50 | 50 Stunden | 50h insgesamt gestreamt |
-| 💯 | hour_100 | 100 Stunden | 100h insgesamt gestreamt |
-| 🏆 | hour_500 | 500 Stunden | 500h insgesamt gestreamt |
-| 🦉 | night_owl | Nachteule | An einem Samstag oder Sonntag gestreamt |
-| 📅 | monday | Wochenstart | An einem Montag gestreamt |
+|------|----|------|-----------|
+| ⏰ | h2 | 2 Stunden | 2h gestreamt |
+| 🕔 | h20 | 20 Stunden | 20h gestreamt |
+| 🥉 | h75 | 75 Stunden | 75h gestreamt |
+| 🥈 | h250 | 250 Stunden | 250h gestreamt |
+| 🥇 | h100 | 100 Stunden | 100h gestreamt |
+| 💎 | h500 | 500 Stunden | 500h gestreamt |
+| ⭐ | h1000 | 1000 Stunden | 1000h gestreamt |
 
----
-
-## 📺 Anbieter
+## 📺 Anbieter-Spezifisch
 
 | Icon | ID | Name | Bedingung |
-|------|-----|------|-----------|
-| 🍿 | netflix_1h | Netflix Fan | 1h auf Netflix gestreamt |
-| ▶️ | yt_5h | YouTube Addict | 5h auf YouTube gestreamt |
-| ⛩️ | anime_fan | Anime-Fan | 1h auf Crunchyroll gestreamt |
-| 🐉 | anime_master | Anime-Meister | 10h auf Crunchyroll gestreamt |
-| 🌐 | multi5 | Viel-Streamer | 5 verschiedene Anbieter genutzt |
-| 🎯 | multi10 | Komplett-Streamer | 10 verschiedene Anbieter genutzt |
-| ⚽ | sport_fan | Sport-Fan | 1h auf DAZN gestreamt |
-| 🎵 | music_fan | Musik-Fan | 1h auf Spotify gestreamt |
-| 🎮 | twitch_fan | Twitch-Fan | 2h auf Twitch gestreamt |
+|------|----|------|-----------|
+| 📻 | ard1h | Öffentlich-Rechtlich | 1h ARD oder ZDF |
+| 🎨 | arte1h | Kulturliebhaber | 1h ARTE |
+| 📺 | joyn2h | Free-TV Fan | 2h Joyn |
+| 📦 | prime5h | Prime-Fan | 5h Amazon Prime |
+| 🎵 | spotify5h | Musik-Liebhaber | 5h Spotify |
+| 🌍 | prov15 | 15 Anbieter | 15 verschiedene Anbieter genutzt |
 
----
-
-## ✨ Besonders
+## ⭐ Besondere Erfolge
 
 | Icon | ID | Name | Bedingung |
-|------|-----|------|-----------|
-| 🛋️ | binge_day | Binge-Tag | 4h an einem einzigen Tag gestreamt |
-| 🌅 | early_bird | Frühaufsteher | Insgesamt 3h montags gestreamt |
-
----
+|------|----|------|-----------|
+| 🎉 | friday | Freitagsstreamer | Am Freitag gestreamt |
+| 🗓️ | allweek | Allrounder | Jeden Wochentag gestreamt |
+| 📝 | wl5 | Erste 5 gemerkt | 5 Titel in der Watchlist |
+| 📋 | wl10 | Watchlist-Fan | 10 Titel in der Watchlist |
+| 📚 | wl25 | Watchlist-Sammler | 25 Titel gemerkt |
+| 📖 | wl50 | Fleißige Watchlist | 50 Titel gemerkt |
+| 🔍 | search10 | Forscher | 10× gesucht |
+| 🆕 | customProv | Pionier | Eigenen Anbieter hinzugefügt |
 
 ## 🔒 Versteckte Achievements
 
-> Diese Achievements werden in der App als "X× Versteckt" angezeigt bis sie freigeschaltet werden.
+Diese Achievements werden nicht in der Liste angezeigt – du entdeckst sie beim Spielen!
 
-| Icon | ID | Name | Bedingung |
-|------|-----|------|-----------|
-| 🏠 | hid_100app | Stammgast | App 100× gestartet |
-| ⚙️ | hid_set50 | Einstellungs-Freak | Einstellungen 50× geöffnet |
-| 👑 | hid_1000h | Lebenswerk | 1000h insgesamt gestreamt |
-| 🌙 | hid_midnight | Mitternachts-Freak | Mindestens einmal nach Mitternacht (vor 04:00 Uhr) gestreamt |
-| 🔬 | hid_all20 | Alles-Tester | 20 verschiedene Anbieter genutzt |
-
----
-
-*Achievements werden pro Profil gespeichert und sind nicht übertragbar.*
+| Icon | ID | Hinweis |
+|------|----|---------|
+| 🔍 | hid_search100 | Suche sehr oft |
+| 🌙 | hid_nocontent | Stream spät in der Nacht |
+| 🏃 | hid_marathon | Sehr langer Stream-Marathon |
+| 🏅 | hid_collector | Sammle viele Watchlist-Einträge |
+| 📼 | hid_nostalgic | Nutze bestimmte Anbieter |

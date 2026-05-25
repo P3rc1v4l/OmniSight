@@ -1,3 +1,24 @@
+## v3.1.12 -- 2026-05-25
+
+### Bugfixes
+- ReferenceError 'newInput is not defined': Alter patchSearch-Block (848 Zeilen)
+  existierte noch in fixes.js parallel zu setupSearchFinal -- vollständig entfernt.
+  Jetzt nur noch ein einziger Search-Handler aktiv.
+
+### WideVine CDM: Verbessert
+- DLL-Suche: prueft beide möglichen Pfade
+- Chromium-Switch 'enable-widevine-cdm' explizit gesetzt
+- enable-features um WidevineCdm und EncryptedMediaExtensions erweitert
+- Version auf '4.10.2662.3' (Chrome 124 kompatibel) aktualisiert
+- Konsolen-Log zeigt wo DLL gefunden wurde
+
+### Auto-Update: Neuer Weg (empfohlen)
+- OMNISIGHT_UPDATE_TOKEN: GH_TOKEN wird beim Build als Umgebungsvariable
+  in die App eingebettet -- kein manuelles Token-Eingeben mehr nötig
+- Workflow: OMNISIGHT_UPDATE_TOKEN = secrets.GH_TOKEN gesetzt
+- Robustere Feed-Konfiguration: versucht erst ohne Token, dann mit
+- Fallback: Token-Eingabe in Einstellungen -> Mehr weiterhin möglich
+
 ## v3.1.11 -- 2026-05-25
 
 ### Auto-Update: Grundlegend repariert

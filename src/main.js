@@ -93,15 +93,29 @@ function setupWidevineDir() {
 // ── WIDEVINE ──────────────────────────────────────────────────────
 function setupWidevine(){
   const base=app.getPath('userData');
-  for(const p of[path.join(base,'WidevineCdm'),path.join(base,'WidevineCdm','_platform_specific','win_x64')]){
-    if(fs.existsSync(path.join(p,'widevinecdm.dll'))){
-      app.commandLine.appendSwitch('widevine-cdm-path',p);
-      app.commandLine.appendSwitch('widevine-cdm-version','4.10.2662.0');
+  // Alle möglichen Pfade prüfen (mit und ohne Unterordner)
+  const candidateDirs=[
+    path.join(base,'WidevineCdm','_platform_specific','win_x64'),
+    path.join(base,'WidevineCdm'),
+  ];
+  let found=false;
+  for(const dir of candidateDirs){
+    const dllPath=path.join(dir,'widevinecdm.dll');
+    if(fs.existsSync(dllPath)){
+      console.log('[WideVine] DLL gefunden in:',dir);
+      // widevine-cdm-path muss auf den ORDNER zeigen, nicht auf die DLL
+      app.commandLine.appendSwitch('widevine-cdm-path',dir);
+      // Version aus Chrome 124 (kompatibel mit den meisten Quellen)
+      app.commandLine.appendSwitch('widevine-cdm-version','4.10.2662.3');
+      found=true;
       break;
     }
   }
-  app.commandLine.appendSwitch('enable-features','PlatformEncryptedDolbyVision');
-  app.commandLine.appendSwitch('disable-features','OutOfBlinkCors');
+  if(!found) console.log('[WideVine] Keine DLL gefunden – DRM-Inhalte nicht verfügbar');
+  // DRM & Verschlüsselung aktivieren
+  app.commandLine.appendSwitch('enable-features',
+    'PlatformEncryptedDolbyVision,WidevineCdm,EncryptedMediaExtensions,MediaDrmPreprovisioning');
+  app.commandLine.appendSwitch('enable-widevine-cdm');
 }
 setupWidevine();
 
@@ -190,15 +204,22 @@ function createMainWindow(){
     const {autoUpdater}=require('electron-updater');
     autoUpdater.autoDownload=false; // Download nur auf Nutzer-Wunsch
     autoUpdater.autoInstallOnAppQuit=true; // bei Quit automatisch installieren
-    // GH_TOKEN aus Umgebung oder Electron-Store für private Repos
-    const ghToken = process.env.GH_TOKEN || store.get('ghToken','');
-    autoUpdater.setFeedURL({
+    // Token-Reihenfolge: Build-Zeit ENV > Nutzer-gespeichert > leer
+    const ghToken = process.env.OMNISIGHT_UPDATE_TOKEN || store.get('ghToken','');
+    
+    // Versuche zuerst ohne Token (falls Releases öffentlich zugänglich sind)
+    // Dann mit Token falls verfügbar
+    const feedConfig = {
       provider: 'github',
       owner: 'P3rc1v4l',
       repo: 'OmniSight',
-      private: true,        // Repo ist privat → Token nötig
-      token: ghToken || undefined
-    });
+    };
+    if (ghToken) {
+      feedConfig.private = true;
+      feedConfig.token = ghToken;
+    }
+    autoUpdater.setFeedURL(feedConfig);
+    console.log('[Update] Feed konfiguriert, Token:', ghToken ? 'vorhanden' : 'fehlt');
     autoUpdater.on('update-available',info=>mainWindow?.webContents.send('update-available',info));
     autoUpdater.on('update-not-available',()=>mainWindow?.webContents.send('update-not-available'));
     autoUpdater.on('update-downloaded',info=>{
