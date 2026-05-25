@@ -1,3 +1,35 @@
+## v3.2.0 -- 2026-05-25
+
+### Neue Architektur: Modul-System
+- src/js/ aufgeteilt in:
+  - core/providers.js  – alle Provider-Definitionen, Kategorien, getFavicon
+  - core/i18n.js       – Übersetzungen DE/EN, t() Hilfsfunktion
+  - core/achievements.js – vollständiges Achievement-System
+  - ui/notifications.js  – Benachrichtigungs-Center, addNotification
+  - ui/search.js         – TMDB-Suche mit Cache, Verlauf, Anbieter-Matches
+  - features/widevine.js – WideVine Status-Anzeige, Guide, Banner
+  - features/feedback.js – Beta-Feedback System (In-App + Discord + GitHub Issues)
+- scripts/build-bundle.js: fasst alle Module in der richtigen Reihenfolge
+  zu src/js/bundle.js zusammen (prebuild/prestart wird automatisch ausgeführt)
+- Kein doppelter Code mehr: Funktionen existieren nur in einem Modul
+
+### Beta-Features
+- In-App Feedback: Einstellungen -> Mehr -> Beta-Feedback
+  öffnet GitHub-Issue-Formular mit vorausgefüllten Daten
+- Beta-Achievement: wird automatisch für alle Beta-Nutzer gesetzt
+- Discord-Link: direkt aus der App erreichbar
+
+### WideVine Anleitung
+- Klar kommuniziert: 3 Dateien nötig (DLL + .sig + manifest.json)
+- Banner beim Start wenn WideVine unvollständig
+- Schritt-für-Schritt mit Ordner-Öffnen-Buttons
+
+### NSIS Installer
+- Visuell angepasst (Farben, Texte, Willkommensseite)
+- Checkbox 'App nach Installation starten'
+- Deinstallation: Daten-Lösch-Dialog (Ja/Nein)
+- build/installer.nsh + installer-header.bmp + installer-sidebar.bmp
+
 ## v3.1.14 -- 2026-05-25
 
 ### main.js + preload.js: Komplett neu geschrieben

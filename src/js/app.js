@@ -18,81 +18,20 @@ window.addEventListener('unhandledrejection', e => {
 });
 
 // ════════ PROVIDERS ════════════════════════════════════════════════
-const PROVIDERS_BASE = {
-  apple:        {name:'Apple TV+',      tag:'Apple Originals',          url:'https://tv.apple.com',                    color:'#555555',quality:'4K'},
-  adn:          {name:'ADN',            tag:'Anime Digital Network',    url:'https://www.animedigitalnetwork.de',       color:'#0077CC',quality:'HD'},
-  ard:          {name:'ARD Mediathek',  tag:'Öffentlich-rechtlich',     url:'https://www.ardmediathek.de',             color:'#003D6B',quality:'HD'},
-  arte:         {name:'ARTE',           tag:'Kultur & Dokumentation',   url:'https://www.arte.tv/de',                  color:'#F00000',quality:'HD'},
-  burning:      {name:'BurningSeries',  tag:'Serien & Anime',           url:'https://bs.to',                           color:'#C0392B',quality:'HD',multiTab:true},
-  cineto:       {name:'Cine.to',        tag:'Filme & Serien',           url:'https://cine.to',                         color:'#8B5CF6',quality:'HD',multiTab:true},
-  crunchyroll:  {name:'Crunchyroll',    tag:'Anime & Manga',            url:'https://www.crunchyroll.com',             color:'#F47521',quality:'4K'},
-  dazn:         {name:'DAZN',           tag:'Sport Live-Streams',       url:'https://www.dazn.com',                    color:'#F8D200',quality:'4K'},
-  disney:       {name:'Disney+',        tag:'Marvel, Star Wars & mehr', url:'https://www.disneyplus.com',              color:'#113CCF',quality:'4K'},
-  funk:         {name:'Funk',           tag:'Content Creator Network',  url:'https://www.funk.net',                    color:'#111111',quality:'HD'},
-  hbomax:       {name:'Max (HBO)',       tag:'HBO Originals & mehr',     url:'https://www.max.com',                     color:'#0031DB',quality:'4K'},
-  joyn:         {name:'Joyn',           tag:'Kostenlos streamen',       url:'https://www.joyn.de',                     color:'#E4001B',quality:'HD'},
-  kika:         {name:'KiKA',           tag:'Kinder & Familie',         url:'https://www.kika.de',                     color:'#00A859',quality:'HD'},
-  magenta:      {name:'MagentaTV',      tag:'Telekom Streaming',        url:'https://www.magentatv.de',                color:'#E20074',quality:'4K'},
-  movie2k:      {name:'Movie2k',        tag:'Filme & Serien',           url:'https://movie2k.ch/',                     color:'#FF6B35',quality:'HD'},
-  mubi:         {name:'MUBI',           tag:'Arthouse & Kino',          url:'https://mubi.com',                        color:'#213F5E',quality:'HD'},
-  netflix:      {name:'Netflix',        tag:'Filme & Serien',           url:'https://www.netflix.com',                 color:'#E50914',quality:'4K'},
-  paramountplus:{name:'Paramount+',     tag:'Paramount Originals',      url:'https://www.paramountplus.com',           color:'#0064FF',quality:'4K'},
-  prime:        {name:'Prime Video',    tag:'Amazon Originals',         url:'https://www.primevideo.com',              color:'#00A8E1',quality:'4K'},
-  rtl:          {name:'RTL+',           tag:'RTL Serien & Shows',       url:'https://plus.rtl.de',                     color:'#FF6B00',quality:'HD'},
-  skygo:        {name:'Sky Go',         tag:'Sky Serien & Sport',       url:'https://www.sky.de/entertainment/sky-go', color:'#00205B',quality:'HD'},
-  spotify:      {name:'Spotify',        tag:'Musik & Podcasts',         url:'https://open.spotify.com',                color:'#1DB954',quality:'–',bgAudio:true},
-  twitch:       {name:'Twitch',         tag:'Live-Streams & Gaming',    url:'https://www.twitch.tv',                   color:'#9146FF',quality:'1080p',multiTab:true},
-  waipu:        {name:'Waipu.tv',       tag:'Live-TV & Mediathek',      url:'https://www.waipu.tv',                    color:'#00B4D8',quality:'HD'},
-  wow:          {name:'WOW',            tag:'Sky ohne Abo',             url:'https://www.wowtv.de',                    color:'#00A3E0',quality:'HD'},
-  youtube:      {name:'YouTube',        tag:'Videos & Streams',         url:'https://www.youtube.com',                 color:'#FF0000',quality:'4K',multiTab:true},
-  zdf:          {name:'ZDF Mediathek',  tag:'Öffentlich-rechtlich',     url:'https://www.zdf.de',                      color:'#163A6A',quality:'HD'},
-};
-const TMDB_PMAP={8:'netflix',9:'prime',337:'disney',384:'hbomax',531:'paramountplus',283:'crunchyroll',350:'apple',207:'mubi',29:'waipu'};
+// [PROVIDERS_BASE: in core/providers.js oder core/i18n.js definiert]
+// [TMDB_PMAP: in core/providers.js oder core/i18n.js definiert]
 let customProviders={};
-function PROVIDERS(){return {...PROVIDERS_BASE,...customProviders};}
-function getFavicon(id,p){
-  const d={apple:'tv.apple.com',adn:'animedigitalnetwork.de',ard:'ardmediathek.de',arte:'arte.tv',burning:'bs.to',cineto:'cine.to',crunchyroll:'crunchyroll.com',dazn:'dazn.com',disney:'disneyplus.com',funk:'funk.net',hbomax:'max.com',joyn:'joyn.de',kika:'kika.de',magenta:'magentatv.de',movie2k:'movie2k.ch',mubi:'mubi.com',netflix:'netflix.com',paramountplus:'paramountplus.com',prime:'primevideo.com',rtl:'plus.rtl.de',skygo:'sky.de',spotify:'open.spotify.com',twitch:'twitch.tv',waipu:'waipu.tv',wow:'wowtv.de',youtube:'youtube.com',zdf:'zdf.de'};
-  let domain=d[id];if(!domain&&p?.url){try{domain=new URL(p.url).hostname;}catch{}}
-  return `https://www.google.com/s2/favicons?sz=64&domain=${domain||'example.com'}`;
-}
+// [PROVIDERS: in core/providers.js definiert]
+
+// [getFavicon: in core/providers.js definiert]
+
 
 // ════════ I18N ═════════════════════════════════════════════════════
-const I18N={
-  de:{overview:'Übersicht',favorites:'Favoriten',watchlist:'Gemerkt',news:'Neuigkeiten',upcoming:'Upcoming',crCalendar:'CR Kalender',stats:'Statistiken',settings:'Einstellungen',search:'Film, Serie, Anbieter suchen…',moviesTab:'Filme',showsTab:'Serien',animeTab:'Anime',all:'Alle',defaultProfile:'Standardkonto',days:['So','Mo','Di','Mi','Do','Fr','Sa']},
-  en:{overview:'Overview',favorites:'Favorites',watchlist:'Watchlist',news:"What's New",upcoming:'Upcoming',crCalendar:'CR Calendar',stats:'Statistics',settings:'Settings',search:'Search movies, shows, providers…',moviesTab:'Movies',showsTab:'Shows',animeTab:'Anime',all:'All',defaultProfile:'Default Account',days:['Sun','Mon','Tue','Wed','Thu','Fri','Sat']},
-};
-
+// [I18N: in core/providers.js oder core/i18n.js definiert]
 // ════════ ACHIEVEMENTS ═════════════════════════════════════════════
-const ACH_CATS={stream:{de:'⏱ Streamzeit',en:'⏱ Streaming Time'},provider:{de:'📺 Anbieter',en:'📺 Providers'},special:{de:'✨ Besonders',en:'✨ Special'},hidden:{de:'🔒 Versteckt',en:'🔒 Hidden'}};
-const ACHIEVEMENTS=[
-  {id:'first_stream',cat:'stream', icon:'🎬',name:{de:'Erster Stream',     en:'First Stream'},   desc:{de:'Ersten Stream gestartet',     en:'Started first stream'},  check:s=>Object.values(s).some(v=>(v.total||0)>0)},
-  {id:'hour_1',      cat:'stream', icon:'⏰',name:{de:'1 Stunde',          en:'1 Hour'},          desc:{de:'1h gestreamt',               en:'Streamed 1h'},           check:s=>tot(s)>=3600},
-  {id:'hour_5',      cat:'stream', icon:'🕔',name:{de:'5 Stunden',         en:'5 Hours'},         desc:{de:'5h gestreamt',               en:'Streamed 5h'},           check:s=>tot(s)>=18000},
-  {id:'hour_10',     cat:'stream', icon:'🕐',name:{de:'10 Stunden',        en:'10 Hours'},        desc:{de:'10h gestreamt',              en:'Streamed 10h'},          check:s=>tot(s)>=36000},
-  {id:'hour_50',     cat:'stream', icon:'🏅',name:{de:'50 Stunden',        en:'50 Hours'},        desc:{de:'50h gestreamt',              en:'Streamed 50h'},          check:s=>tot(s)>=180000},
-  {id:'hour_100',    cat:'stream', icon:'💯',name:{de:'100 Stunden',       en:'100 Hours'},       desc:{de:'100h gestreamt',             en:'Streamed 100h'},         check:s=>tot(s)>=360000},
-  {id:'hour_500',    cat:'stream', icon:'🏆',name:{de:'500 Stunden',       en:'500 Hours'},       desc:{de:'500h gestreamt',             en:'Streamed 500h'},         check:s=>tot(s)>=1800000},
-  {id:'night_owl',   cat:'stream', icon:'🦉',name:{de:'Nachteule',         en:'Night Owl'},       desc:{de:'Am Wochenende gestreamt',    en:'Streamed on weekend'},   check:s=>Object.values(s).some(v=>(v.byDay?.[0]||0)+(v.byDay?.[6]||0)>0)},
-  {id:'monday',      cat:'stream', icon:'📅',name:{de:'Wochenstart',       en:'Week Starter'},    desc:{de:'Montags gestreamt',          en:'Streamed on Monday'},    check:s=>Object.values(s).some(v=>(v.byDay?.[1]||0)>0)},
-  {id:'netflix_1h',  cat:'provider',icon:'🍿',name:{de:'Netflix Fan',      en:'Netflix Fan'},     desc:{de:'1h Netflix',                 en:'1h on Netflix'},         check:s=>(s.netflix?.total||0)>=3600},
-  {id:'yt_5h',       cat:'provider',icon:'▶️', name:{de:'YouTube Addict',   en:'YouTube Addict'}, desc:{de:'5h YouTube',                 en:'5h on YouTube'},         check:s=>(s.youtube?.total||0)>=18000},
-  {id:'anime_fan',   cat:'provider',icon:'⛩️',name:{de:'Anime-Fan',        en:'Anime Fan'},       desc:{de:'1h Crunchyroll',             en:'1h on Crunchyroll'},     check:s=>(s.crunchyroll?.total||0)>=3600},
-  {id:'anime_master',cat:'provider',icon:'🐉',name:{de:'Anime-Meister',    en:'Anime Master'},    desc:{de:'10h Crunchyroll',            en:'10h on Crunchyroll'},    check:s=>(s.crunchyroll?.total||0)>=36000},
-  {id:'multi5',      cat:'provider',icon:'🌐',name:{de:'Viel-Streamer',    en:'Multi-Streamer'},  desc:{de:'5 Anbieter genutzt',         en:'Used 5 providers'},      check:s=>Object.values(s).filter(v=>(v.total||0)>0).length>=5},
-  {id:'multi10',     cat:'provider',icon:'🎯',name:{de:'Komplett-Streamer',en:'Full Streamer'},   desc:{de:'10 Anbieter genutzt',        en:'Used 10 providers'},     check:s=>Object.values(s).filter(v=>(v.total||0)>0).length>=10},
-  {id:'sport_fan',   cat:'provider',icon:'⚽',name:{de:'Sport-Fan',        en:'Sports Fan'},      desc:{de:'1h DAZN',                    en:'1h on DAZN'},            check:s=>(s.dazn?.total||0)>=3600},
-  {id:'music_fan',   cat:'provider',icon:'🎵',name:{de:'Musik-Fan',        en:'Music Fan'},       desc:{de:'1h Spotify',                 en:'1h on Spotify'},         check:s=>(s.spotify?.total||0)>=3600},
-  {id:'twitch_fan',  cat:'provider',icon:'🎮',name:{de:'Twitch-Fan',       en:'Twitch Fan'},      desc:{de:'2h Twitch',                  en:'2h on Twitch'},          check:s=>(s.twitch?.total||0)>=7200},
-  {id:'binge_day',   cat:'special', icon:'🛋️',name:{de:'Binge-Tag',        en:'Binge Day'},       desc:{de:'4h an einem Tag',            en:'4h in one day'},         check:s=>Object.values(s).some(v=>v.byDay&&Math.max(...v.byDay)>=14400)},
-  {id:'early_bird',  cat:'special', icon:'🌅',name:{de:'Frühaufsteher',    en:'Early Bird'},      desc:{de:'3h montags gesamt',          en:'3h on Mondays total'},   check:s=>Object.values(s).reduce((a,v)=>a+(v.byDay?.[1]||0),0)>=10800},
-  {id:'hid_100app',  cat:'hidden',  icon:'🏠',name:{de:'Stammgast',        en:'Regular'},         desc:{de:'App 100× gestartet',         en:'App started 100×'},      check:(_,m)=>(m?.appStarts||0)>=100,     hidden:true},
-  {id:'hid_set50',   cat:'hidden',  icon:'⚙️',name:{de:'Einstellungs-Freak',en:'Settings Freak'}, desc:{de:'Einstellungen 50× geöffnet', en:'Settings opened 50×'},   check:(_,m)=>(m?.settingsOpens||0)>=50,  hidden:true},
-  {id:'hid_1000h',   cat:'hidden',  icon:'👑',name:{de:'Lebenswerk',       en:"Life's Work"},     desc:{de:'1000h gestreamt',            en:'1000h streamed'},        check:s=>tot(s)>=3600000,                hidden:true},
-  {id:'hid_midnight',cat:'hidden',  icon:'🌙',name:{de:'Mitternachts-Freak',en:'Midnight Freak'}, desc:{de:'Nach Mitternacht gestreamt', en:'Streamed past midnight'}, check:(_,m)=>(m?.midnightStreams||0)>=1, hidden:true},
-  {id:'hid_all20',   cat:'hidden',  icon:'🔬',name:{de:'Alles-Tester',     en:'All-Tester'},      desc:{de:'20 Anbieter genutzt',        en:'Used 20 providers'},     check:s=>Object.values(s).filter(v=>(v.total||0)>0).length>=20, hidden:true},
-];
-function tot(s){return Object.values(s).reduce((a,v)=>a+(v.total||0),0);}
-function achName(a){return a.name[lang]||a.name.de;}
+// [ACH_CATS + ACHIEVEMENTS: in core/achievements.js definiert]
+
+
 function achDesc(a){return a.desc[lang]||a.desc.de;}
 
 // ════════ PLUGIN PRESETS ═══════════════════════════════════════════
@@ -106,7 +45,7 @@ const PLUGIN_PRESETS=[
 ];
 
 // ════════ GLOBALS ══════════════════════════════════════════════════
-const TMDB_IMG='https://image.tmdb.org/t/p/w300', TMDB_BD='https://image.tmdb.org/t/p/w1280';
+// [TMDB_IMG/TMDB_BD: in ui/search.js definiert]
 const UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const pad=n=>String(n).padStart(2,'0');
@@ -531,79 +470,21 @@ function restoreFromPip(){if(!pipProviderId)return;const id=pipProviderId,pip=do
 // ════════ SEARCH ═══════════════════════════════════════════════════
 function extractYtId(q){const ps=[/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/,/youtube\.com\/shorts\/([\w-]{11})/,/youtube\.com\/embed\/([\w-]{11})/];for(const p of ps){const m=q.match(p);if(m)return m[1];}return null;}
 
-function setupSearch(){
-  const input=document.getElementById('search-input'),clear=document.getElementById('search-clear'),dd=document.getElementById('search-dropdown');if(!input||!dd)return;
-  input.addEventListener('focus',()=>{
-    const q = input.value.trim();
-    if(q) { runTmdbSearch(q,1); return; }if(input.value.trim()&&dd.innerHTML)dd.style.display='block';else if(!input.value.trim()&&searchHistory.length)renderSearchHistory(dd);});
-  input.addEventListener('input',()=>{
-    const q=input.value.trim();if(clear)clear.style.display=q?'block':'none';
-    clearTimeout(searchTimer);
-    if(!q){dd.innerHTML='';if(searchHistory.length)renderSearchHistory(dd);else dd.style.display='none';return;}
-    lastQuery=q;searchPage=1;
-    // AbortController: vorherige Suche abbrechen
-    if(window._tmdbAbort)window._tmdbAbort.abort();
-    window._tmdbAbort=new AbortController();
-    const ytId=extractYtId(q);
-    if(ytId){dd.innerHTML='<div class="search-dd-section">YouTube</div><div class="search-dd-item" id="yt-dd-item" style="cursor:pointer"><img src="https://img.youtube.com/vi/'+ytId+'/mqdefault.jpg" style="width:80px;height:46px;border-radius:5px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'"/><div class="search-dd-info"><div class="search-dd-title">YouTube Video</div><div class="search-dd-meta">Direkt öffnen</div></div></div>';dd.style.display='block';document.getElementById('yt-dd-item')?.addEventListener('click',()=>{dd.style.display='none';openProviderAtUrl('youtube','https://www.youtube.com/watch?v='+ytId,'YouTube',getProfilePartition('youtube'));});return;}
-    renderInstantSuggestions(q,dd);
-    searchTimer=setTimeout(()=>runTmdbSearch(q,1,window._tmdbAbort?.signal),350);
-  });
-  input.addEventListener('keydown',e=>{if(e.key==='Enter'){const q=input.value.trim();if(!q)return;clearTimeout(searchTimer);addToSearchHistory(q);runTmdbSearch(q,1);}});
-  if(clear)clear.addEventListener('click',()=>{input.value='';clear.style.display='none';dd.style.display='none';dd.innerHTML='';lastQuery='';});
-  document.addEventListener('mousedown',e=>{const wrap=input.closest('.search-bar-wrap')||input.closest('.home-actions');if(wrap&&!wrap.contains(e.target)&&!dd.contains(e.target))dd.style.display='none';});
-}
+// [setupSearch: in ui/search.js definiert]
 
-function renderSearchHistory(dd){
-  let html='<div class="search-dd-section" style="display:flex;justify-content:space-between;align-items:center"><span>Zuletzt gesucht</span><button onclick="clearAllSearchHistory()" style="font-size:10px;color:var(--danger);border:none;background:transparent;cursor:pointer;padding:2px 6px;border-radius:4px;font-weight:600">Alle löschen</button></div>';
-  searchHistory.slice(0,10).forEach((q,i)=>{html+=`<div class="search-dd-history-item"><span class="search-dd-history-q" data-q="${esc(q)}">🕐 ${esc(q)}</span><button class="search-dd-history-del" data-i="${i}">✕</button></div>`;});
-  dd.innerHTML=html;dd.style.display='block';
-  dd.querySelectorAll('.search-dd-history-q').forEach(el=>el.addEventListener('click',()=>{document.getElementById('search-input').value=el.dataset.q;document.getElementById('search-input').dispatchEvent(new Event('input'));}));
-  dd.querySelectorAll('.search-dd-history-del').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();searchHistory.splice(parseInt(el.dataset.i),1);settings.searchHistory=searchHistory;autoSave();renderSearchHistory(dd);}));
-}
+
+// [renderSearchHistory: in ui/search.js definiert]
+
 window.clearAllSearchHistory=function(){searchHistory=[];settings.searchHistory=[];autoSave();const dd=document.getElementById('search-dropdown');if(dd)dd.style.display='none';};
 
 function renderInstantSuggestions(q,dd){const ql=q.toLowerCase();const matches=Object.entries(PROVIDERS()).filter(([,p])=>p.name.toLowerCase().includes(ql));if(!matches.length)return;let html='<div class="search-dd-section">Anbieter</div>';matches.slice(0,4).forEach(([id,p])=>{html+=`<div class="search-dd-item" data-prov-open="${id}"><img class="search-dd-poster" src="${getFavicon(id,p)}" style="width:36px;height:36px;object-fit:contain;border-radius:8px;background:${p.color}22;padding:4px" onerror="this.style.display='none'"/><div class="search-dd-info"><div class="search-dd-title">${esc((settings.cardCustomNames||{})[id]||p.name)}</div><div class="search-dd-meta"><span class="search-dd-badge">Anbieter</span></div></div></div>`;});dd.innerHTML=html;dd.style.display='block';dd.querySelectorAll('[data-prov-open]').forEach(el=>el.addEventListener('click',()=>openProvider(el.dataset.provOpen)));}
 
 const _tmdbSearchCache=new Map();
-async function runTmdbSearch(q,page=1,signal=null){
-  const cacheKey=q+'|'+page;
-  const cached=_tmdbSearchCache.get(cacheKey);
-  if(cached&&Date.now()-cached.ts<5*60*1000&&page===1){
-    // Cache-Treffer: direkt rendern ohne API-Call
-    const dd=document.getElementById('search-dropdown');
-    if(dd&&!signal?.aborted){dd.innerHTML=cached.html;dd.style.display='block';
-      dd.querySelectorAll('[data-prov-open]').forEach(el=>el.addEventListener('click',()=>openProvider(el.dataset.provOpen)));
-      dd.querySelectorAll('.search-dd-film').forEach(el=>el.addEventListener('click',async e=>{if(e.target.closest('.search-dd-provider-chip'))return;dd.style.display='none';showDetailPopup(parseInt(el.dataset.tmdb),el.dataset.type,el.dataset.title);}));
-    }return;
-  }
-  const dd=document.getElementById('search-dropdown');if(!dd)return;
-  const ql=q.toLowerCase();const provMatches=Object.entries(PROVIDERS()).filter(([,p])=>p.name.toLowerCase().includes(ql));
-  let html='';
-  if(provMatches.length&&page===1){html+='<div class="search-dd-section">Anbieter</div>';provMatches.slice(0,3).forEach(([id,p])=>{html+=`<div class="search-dd-item" data-prov-open="${id}"><img class="search-dd-poster" src="${getFavicon(id,p)}" style="width:36px;height:36px;object-fit:contain;border-radius:8px;background:${p.color}22;padding:4px" onerror="this.style.display='none'"/><div class="search-dd-info"><div class="search-dd-title">${esc((settings.cardCustomNames||{})[id]||p.name)}</div></div></div>`;});}
-  try{
-    if(signal?.aborted)return;
-    const data=await window.electronAPI.searchTmdb(q);
-    if(signal?.aborted)return;
-    const results=(data.results||[]).filter(r=>r.poster_path&&r.media_type!=='person');
-    if(results.length){
-      if(page===1)html+='<div class="search-dd-section">Filme & Serien</div>';
-      const slice=results.slice((page-1)*8,page*8);
-      slice.forEach(item=>{const title=item.title||item.name||'';const year=(item.release_date||item.first_air_date||'').substring(0,4);const type=item.media_type==='movie'?'Film':'Serie';html+=`<div class="search-dd-item search-dd-film" data-tmdb="${item.id}" data-type="${item.media_type}" data-title="${esc(title)}" style="cursor:pointer"><img class="search-dd-poster" src="${TMDB_IMG}${item.poster_path}" style="width:36px;height:52px;object-fit:cover;border-radius:5px;flex-shrink:0" onerror="this.style.display='none'"/><div class="search-dd-info"><div class="search-dd-title">${esc(title)}</div><div class="search-dd-meta"><span class="search-dd-badge">${type}</span>${year?`<span>${year}</span>`:''}</div><div class="search-dd-providers" id="chips_${item.id}"></div></div></div>`;});
-      if(results.length>page*8)html+=`<div class="search-dd-more" id="dd-more-btn">Weitere Ergebnisse ↓</div>`;
-    }else if(!provMatches.length){html+=`<div style="padding:16px 14px;text-align:center;font-size:13px;color:var(--tx2)">Keine Ergebnisse für „${esc(q)}"</div>`;}
-  }catch(e){html+=`<div style="padding:12px 14px;font-size:12px;color:var(--danger)">Fehler: ${e.message}</div>`;}
-  if(page===1)dd.innerHTML=html;else{const mb=document.getElementById('dd-more-btn');if(mb)mb.remove();const tmp=document.createElement('div');tmp.innerHTML=html;tmp.querySelectorAll('.search-dd-item,.search-dd-more').forEach(el=>dd.appendChild(el));dd.scrollTo({top:dd.scrollHeight,behavior:'smooth'});}
-  dd.style.display='block';
-  // Cache speichern
-  if(page===1)_tmdbSearchCache.set(cacheKey,{html:dd.innerHTML,ts:Date.now()});
-  dd.querySelectorAll('[data-prov-open]').forEach(el=>el.addEventListener('click',()=>openProvider(el.dataset.provOpen)));
-  dd.querySelectorAll('.search-dd-film').forEach(el=>el.addEventListener('click',async e=>{if(e.target.closest('.search-dd-provider-chip'))return;dd.style.display='none';showDetailPopup(parseInt(el.dataset.tmdb),el.dataset.type,el.dataset.title);}));
-  document.getElementById('dd-more-btn')?.addEventListener('click',()=>{searchPage++;runTmdbSearch(lastQuery,searchPage);});
-  dd.querySelectorAll('.search-dd-film').forEach(el=>loadSearchChips(parseInt(el.dataset.tmdb),el.dataset.type,'chips_'+el.dataset.tmdb));
-}
+async // [runTmdbSearch: in ui/search.js definiert]
+
 async function loadSearchChips(tmdbId,type,cId){try{const prov=await window.electronAPI.getStreamingProviders({tmdbId,type});const cont=document.getElementById(cId);if(!cont)return;const all=[...(prov?.flatrate||[]),...(prov?.rent||[])].filter((p,i,a)=>a.findIndex(x=>x.provider_id===p.provider_id)===i&&p.logo_path).slice(0,4);if(all.length)cont.innerHTML=all.map(p=>{const oid=TMDB_PMAP[p.provider_id];return`<div class="search-dd-provider-chip"${oid?` data-prov-open="${oid}"`:''} style="cursor:${oid?'pointer':'default'}"><img src="https://image.tmdb.org/t/p/w45${p.logo_path}" style="width:12px;height:12px;object-fit:contain;border-radius:2px" onerror="this.style.display='none'"/>${esc(p.provider_name)}</div>`;}).join('');cont.querySelectorAll('[data-prov-open]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();openProvider(el.dataset.provOpen);}));}catch{}}
-function addToSearchHistory(q){if(!q||searchHistory.includes(q))return;searchHistory.unshift(q);searchHistory=searchHistory.slice(0,20);settings.searchHistory=searchHistory;autoSave();}
+// [addToSearchHistory: in ui/search.js definiert]
+
 
 // ════════ DETAIL POPUP ═════════════════════════════════════════════
 async function showDetailPopup(tmdbId,tmdbType,title){
@@ -787,15 +668,10 @@ function buildAchievementsSection(stats){
     sec.appendChild(grid);el.appendChild(sec);
   });
 }
-function startAchievementWatcher(){clearInterval(_achWatchInterval);_achWatchInterval=setInterval(async()=>{const stats=await window.electronAPI.getStreamStats(activeProfileId).catch(()=>({}));checkAchievements(false,stats);},30000);}
-async function checkAchievements(live=false,statsArg=null){
-  const stats=statsArg||await window.electronAPI.getStreamStats(activeProfileId).catch(()=>({}));
-  const meta=JSON.parse(localStorage.getItem('achMeta_'+activeProfileId)||'{}');
-  const earned=new Set(JSON.parse(localStorage.getItem('achievements_'+activeProfileId)||'[]'));
-  let newOnes=false;
-  ACHIEVEMENTS.forEach(ach=>{if(earned.has(ach.id))return;let ok=false;try{ok=ach.check(stats,meta);}catch{}if(ok){earned.add(ach.id);newOnes=true;showNotif('🏆 Achievement!',ach.icon+' '+achName(ach)+': '+achDesc(ach));}});
-  if(newOnes){localStorage.setItem('achievements_'+activeProfileId,JSON.stringify([...earned]));if(document.getElementById('view-stats')?.classList.contains('active'))buildStatsView();}
-}
+// [startAchievementWatcher: in core/achievements.js definiert]
+
+// [checkAchievements: in core/achievements.js definiert]
+
 function trackMeta(key){try{const k='achMeta_'+activeProfileId;const meta=JSON.parse(localStorage.getItem(k)||'{}');meta[key]=(meta[key]||0)+1;if(key==='stream'&&new Date().getHours()<4)meta.midnightStreams=(meta.midnightStreams||0)+1;localStorage.setItem(k,JSON.stringify(meta));}catch{}}
 
 // ════════ UHR ══════════════════════════════════════════════════════
@@ -1148,7 +1024,6 @@ function cachedTmdbSearch(q,page){
 // ════════ START ════════════════════════════════════════════════════
 
 
-
 // ══ UPDATE CHECK ═══════════════════════════════════════════════════
 function buildPluginsList(){
   const container=document.getElementById('plugin-presets-list');if(!container)return;
@@ -1210,7 +1085,6 @@ function applyOnboardingSettings(){
 /* [closeOnboarding: Duplikat entfernt] */
 
 
-
 // ══ SHORTCUTS MODAL ════════════════════════════════════════════════
 /* [setupShortcutsModal: Duplikat entfernt] */
 
@@ -1236,7 +1110,6 @@ function setupSettingsSearch(){
     });
   });
 }
-
 
 
 // ══ WATCHLIST RELEASE CHECK ════════════════════════════════════════
@@ -1318,7 +1191,6 @@ function setupQuickLauncher(){
     });
   }
 }
-
 
 
 // ══ STATISTIKEN TEILEN ═════════════════════════════════════════════
