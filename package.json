@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -81,7 +81,7 @@
     "extraMetadata": {
       "certExpiry": "2029-05-23",
       "certExpiryNote": "Self-Signed Zertifikat läuft ab – create-cert.ps1 erneut ausführen",
-      "appVersion": "3.2.0"
+      "appVersion": "3.2.1"
     },
     "forceCodeSigning": false
   },
