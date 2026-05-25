@@ -806,7 +806,7 @@ function setupClock(){
   const pos=clk.position||{x:16,y:52};widget.style.display='block';widget.style.left=pos.x+'px';widget.style.top=pos.y+'px';widget.style.right='auto';widget.style.bottom='auto';widget.style.color=clk.color||'#ff3b30';widget.style.fontSize=(clk.size||22)+'px';widget.style.opacity=String(1-(clk.opacity??0.5));
   const showSecs=!!clk.showSeconds;
   if(clk.type==='analog'){function drawA(){const n=new Date(),h=n.getHours()%12,m=n.getMinutes(),s=n.getSeconds();const sz=Math.max(clk.size||22,18),r=sz*1.8;const ha=((h+m/60)/12)*Math.PI*2-Math.PI/2,ma=(m/60)*Math.PI*2-Math.PI/2,sa=(s/60)*Math.PI*2-Math.PI/2;const c=clk.color||'#ff3b30';timeEl.innerHTML=`<svg width="${r*2}" height="${r*2}" viewBox="0 0 ${r*2} ${r*2}" style="display:block"><circle cx="${r}" cy="${r}" r="${r-2}" fill="none" stroke="${c}" stroke-width="1.5" opacity=".4"/><line x1="${r}" y1="${r}" x2="${r+Math.cos(ha)*r*.55}" y2="${r+Math.sin(ha)*r*.55}" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><line x1="${r}" y1="${r}" x2="${r+Math.cos(ma)*r*.8}" y2="${r+Math.sin(ma)*r*.8}" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>${showSecs?`<line x1="${r}" y1="${r}" x2="${r+Math.cos(sa)*r*.85}" y2="${r+Math.sin(sa)*r*.85}" stroke="${c}" stroke-width=".8" stroke-linecap="round" opacity=".7"/>`:''}''<circle cx="${r}" cy="${r}" r="2" fill="${c}"/></svg>`;} drawA();_clockInt=setInterval(drawA,showSecs?1000:10000);}
-  else{function tick(){timeEl.textContent=pad(new Date().getHours())+':'+pad(new Date().getMinutes())+(showSecs?':'+pad(new Date().getSeconds()):'');}tick();_clockInt=setInterval(tick,1000);}
+  else{/* [tick: Duplikat entfernt] */tick();_clockInt=setInterval(tick,1000);}
 }
 
 function setupClockContextMenu(){
@@ -1164,7 +1164,7 @@ function buildPluginsList(){
     div.appendChild(btn);container.appendChild(div);
   });
 }
-function rebuildPluginDomains(){const all=[...new Set(Object.values(pluginDomainStore).flat())];window.electronAPI.applyExtraAdDomains(all);}
+/* [rebuildPluginDomains: Duplikat entfernt] */
 
 // ══ WATCHED CONTENT ════════════════════════════════════════════════
 function setupWatchedContent(){
@@ -1187,35 +1187,7 @@ function renderWatchedGrid(){
 }
 
 // ══ ONBOARDING ═════════════════════════════════════════════════════
-function setupOnboarding(){
-  document.getElementById('ob-next')?.addEventListener('click',()=>{if(obStep<OB_TOTAL){obStep++;updateObStep();}else{applyOnboardingSettings();closeOnboarding();}});
-  document.getElementById('ob-skip')?.addEventListener('click',()=>{applyOnboardingSettings();closeOnboarding();});
-  // Sprache
-  // Dark/Light-Toggle im Onboarding
-  document.getElementById('ob-theme-dark')?.addEventListener('click',()=>{
-    setTheme('dark',true);
-    document.getElementById('ob-theme-dark').classList.add('active');
-    document.getElementById('ob-theme-light').classList.remove('active');
-  });
-  document.getElementById('ob-theme-light')?.addEventListener('click',()=>{
-    setTheme('light',true);
-    document.getElementById('ob-theme-light').classList.add('active');
-    document.getElementById('ob-theme-dark').classList.remove('active');
-  });
-  document.getElementById('ob-lang-de')?.addEventListener('click',()=>{settings.language='de';applyLanguage('de');document.getElementById('ob-lang-de').classList.add('active');document.getElementById('ob-lang-en').classList.remove('active');});
-  document.getElementById('ob-lang-en')?.addEventListener('click',()=>{settings.language='en';applyLanguage('en');document.getElementById('ob-lang-en').classList.add('active');document.getElementById('ob-lang-de').classList.remove('active');});
-  // Akzentfarbe
-  document.getElementById('ob-accent-color')?.addEventListener('input',e=>{settings.accentColor=e.target.value;applyAccent(e.target.value);});
-  // Schriftart
-  document.getElementById('ob-font-family')?.addEventListener('change',e=>{settings.designOptions.fontFamily=e.target.value;applyFontFamily(e.target.value);});
-  // Schriftgröße
-  document.getElementById('ob-font-size')?.addEventListener('input',e=>{const v=parseInt(e.target.value);document.getElementById('ob-font-size-val').textContent=v+'px';settings.fontSize=v;applyFontSize(v);});
-  // Avatar
-  document.getElementById('ob-pick-avatar')?.addEventListener('click',async()=>{const r=await window.electronAPI.pickImage('ob_avatar');if(r){const url=r.base64||r.filePath||r;document.getElementById('ob-avatar-preview').innerHTML=`<img src="${url}" style="width:64px;height:64px;border-radius:50%;object-fit:cover"/>`;window._obAvatar=url;}});
-  document.getElementById('ob-clear-avatar')?.addEventListener('click',()=>{document.getElementById('ob-avatar-preview').innerHTML='👤';window._obAvatar=null;});
-  // Keyboard-Navigation
-  document.addEventListener('keydown',e=>{const ov=document.getElementById('onboarding-overlay');if(!ov||ov.style.display==='none')return;if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();if(obStep<OB_TOTAL){obStep++;updateObStep();}}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();if(obStep>1){obStep--;updateObStep();}}else if(e.key==='Escape'){applyOnboardingSettings();closeOnboarding();}});
-}
+/* [setupOnboarding: Duplikat entfernt] */
 function applyOnboardingSettings(){
   // Profilname aus Onboarding übernehmen
   const nameInput=document.getElementById('ob-profile-name');const name=(nameInput?.value||'').trim()||'User';
@@ -1234,47 +1206,13 @@ function applyOnboardingSettings(){
   }
   autoSave();buildSidebarProfile();buildCategoryFilterBar();buildProviderGrid();
 }
-function showOnboarding(force=false){
-  if(!force&&settings.onboardingDone)return;
-  obStep=1;updateObStep();
-  // Anbieter-Grid für Schritt 4 befüllen
-  const provGrid=document.getElementById('ob-provider-grid');
-  if(provGrid){
-    provGrid.innerHTML='';
-    const deleted=settings.deletedProviders||[];
-    Object.entries(PROVIDERS_BASE).sort((a,b)=>a[1].name.localeCompare(b[1].name)).forEach(([id,p])=>{
-      const isActive=!deleted.includes(id);
-      const item=document.createElement('label');
-      item.style.cssText='display:flex;align-items:center;gap:6px;padding:7px 9px;background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r-sm);cursor:pointer;transition:all .14s;font-size:12px;color:var(--tx2)';
-      item.innerHTML=`<input type="checkbox" class="ob-prov-check" data-id="${id}" ${isActive?'checked':''} style="accent-color:var(--acc);cursor:pointer"/><img src="${getFavicon(id,p)}" style="width:16px;height:16px;border-radius:3px;object-fit:contain;background:${p.color}22;padding:1px" onerror="this.style.display='none'"/><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</span>`;
-      item.querySelector('input').addEventListener('change',e=>{item.style.borderColor=e.target.checked?'var(--acc)':'var(--bor)';item.style.background=e.target.checked?'var(--accg)':'var(--bgc)';item.style.color=e.target.checked?'var(--acc)':'var(--tx2)';});
-      if(isActive){item.style.borderColor='var(--acc)';item.style.background='var(--accg)';item.style.color='var(--acc)';}
-      provGrid.appendChild(item);
-    });
-  }
-  document.getElementById('onboarding-overlay').style.display='flex';
-  // Aktuellen Profilnamen vorbelegen
-  const p=profiles.find(pr=>pr.id===activeProfileId);const nameInput=document.getElementById('ob-profile-name');if(nameInput&&p)nameInput.value=p.name||'User';
-  // Aktuelle Sprache vorbelegen
-  document.getElementById('ob-lang-de')?.classList.toggle('active',lang==='de');
-  // Theme-Buttons initial setzen
-  const curTheme=document.documentElement.getAttribute('data-theme')||'dark';
-  document.getElementById('ob-theme-dark')?.classList.toggle('active',curTheme==='dark');
-  document.getElementById('ob-theme-light')?.classList.toggle('active',curTheme==='light');document.getElementById('ob-lang-en')?.classList.toggle('active',lang==='en');
-  document.getElementById('ob-accent-color').value=settings.accentColor||'#30c5bb';
-  document.getElementById('ob-font-family').value=settings.designOptions?.fontFamily||'DM Sans';
-  document.getElementById('ob-font-size').value=settings.fontSize||14;document.getElementById('ob-font-size-val').textContent=(settings.fontSize||14)+'px';
-}
-function closeOnboarding(){document.getElementById('onboarding-overlay').style.display='none';settings.onboardingDone=true;autoSave();}
+/* [showOnboarding: Duplikat entfernt] */
+/* [closeOnboarding: Duplikat entfernt] */
 
 
 
 // ══ SHORTCUTS MODAL ════════════════════════════════════════════════
-function setupShortcutsModal(){
-  const openModal=()=>{const existing=document.getElementById('shortcuts-modal-overlay');if(existing){existing.remove();return;}const overlay=document.createElement('div');overlay.id='shortcuts-modal-overlay';overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;display:flex;align-items:center;justify-content:center';overlay.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r);padding:28px 32px;min-width:340px;box-shadow:0 24px 60px rgba(0,0,0,.6)"><div style="font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--tx);margin-bottom:18px">⌨️ Tastenkürzel</div>${[['F11','Vollbild umschalten'],['Strg+F','Suche fokussieren'],['Esc','Vollbild beenden / Schließen'],['?','Diese Übersicht'],['→/←','Onboarding navigieren'],['Strg+Shift+Alt+R','Admin: PIN zurücksetzen']].map(([k,v])=>`<div style="display:flex;justify-content:space-between;gap:24px;padding:7px 0;border-bottom:1px solid var(--bor);font-size:13px"><span style="color:var(--tx2)">${v}</span><kbd style="background:var(--bgc);border:1px solid var(--borh);border-radius:5px;padding:2px 8px;font-size:11px;color:var(--tx);font-family:monospace">${k}</kbd></div>`).join('')}<div style="margin-top:14px;text-align:right"><button onclick="document.getElementById('shortcuts-modal-overlay').remove()" style="border:1px solid var(--bor);background:transparent;color:var(--tx2);padding:6px 16px;border-radius:var(--r-sm);cursor:pointer;font-size:12px">Schließen</button></div></div>`;overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);};
-  document.getElementById('btn-shortcuts-hint')?.addEventListener('click',openModal);
-  document.addEventListener('keydown',e=>{if(e.key==='?'&&!e.ctrlKey&&!e.altKey&&!['INPUT','TEXTAREA'].includes(document.activeElement?.tagName))openModal();});
-}
+/* [setupShortcutsModal: Duplikat entfernt] */
 
 
 // ══ EINSTELLUNGS-SUCHE ═════════════════════════════════════════════
@@ -1490,11 +1428,7 @@ function setupGridKeyboardNav(){
 }
 
 // ══ TITLEBAR ═══════════════════════════════════════════════════════
-function setupTitlebar(){
-  document.getElementById('btn-minimize')?.addEventListener('click',()=>window.electronAPI.minimize());
-  document.getElementById('btn-maximize')?.addEventListener('click',()=>window.electronAPI.maximize());
-  document.getElementById('btn-close')?.addEventListener('click',()=>window.electronAPI.close());
-}
+/* [setupTitlebar: Duplikat entfernt] */
 
 // ══ START ══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded',()=>init());

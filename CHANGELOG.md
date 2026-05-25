@@ -1,3 +1,27 @@
+## v3.1.13 -- 2026-05-25
+
+### Aufräumen: Duplikate entfernt
+- app.js: 6 doppelte Funktionen entfernt (setupTitlebar, showOnboarding,
+  setupOnboarding, closeOnboarding, setupShortcutsModal, rebuildPluginDomains)
+- fixes.js: zweite buildSessionList Definition entfernt
+- Token-Eingabe-Dialog entfernt (war fehlerhaft und nicht nötig)
+- preload.js: getGhToken/setGhToken entfernt
+
+### Auto-Update: Vereinfacht
+- Kein Token mehr nötig -- funktioniert über öffentliche GitHub Releases
+- 404/ENOENT Fehler werden als 'kein Update' behandelt, nicht als Fehler
+- Update-Check-Button zeigt nach 8s 'Aktuellste Version' wenn kein Event kommt
+
+### Miniplayer (PIP): Kein Reload mehr
+- restoreFromPip und moveToPip verschoben den Webview nur im DOM
+  (parentNode.removeChild + appendChild) statt ihn neu zu erstellen
+- Stream läuft nach PIP-Umschaltung nahtlos weiter
+
+### Sessions: Zuverlässigere Erkennung
+- Beim Öffnen des Account-Tabs: erst refreshSessionsNow, dann 800ms warten,
+  dann getAllSessions -- gibt Cookies Zeit um gelesen zu werden
+- Keine Checkboxen mehr nach Session-Update
+
 ## v3.1.12 -- 2026-05-25
 
 ### Bugfixes

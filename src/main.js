@@ -245,17 +245,6 @@ ipcMain.on('clear-crash-log',()=>{
 });
 ipcMain.on('install-update',()=>{try{const{autoUpdater}=require('electron-updater');autoUpdater.quitAndInstall(false,true);}catch{}});
 
-// GH_TOKEN für Auto-Update bei privaten Repos
-ipcMain.handle('get-gh-token',()=>store.get('ghToken',''));
-ipcMain.on('set-gh-token',(_,token)=>{
-  store.set('ghToken',token);
-  // autoUpdater neu konfigurieren
-  try {
-    const {autoUpdater}=require('electron-updater');
-    autoUpdater.setFeedURL({provider:'github',owner:'P3rc1v4l',repo:'OmniSight',private:true,token});
-    autoUpdater.checkForUpdates();
-  } catch {}
-});
 ipcMain.handle('check-for-updates',async()=>{try{await require('electron-updater').autoUpdater.checkForUpdates();}catch{}});
 
 // ── IPC: SETTINGS ─────────────────────────────────────────────────

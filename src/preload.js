@@ -55,8 +55,6 @@ contextBridge.exposeInMainWorld('electronAPI',{
   fetchAdblockList:       (u)=>ipcRenderer.invoke('fetch-adblock-list',u),
   applyExtraAdDomains:    (d)=>ipcRenderer.send('apply-extra-ad-domains',d),
   getExtraAdDomains:      ()=>ipcRenderer.invoke('get-extra-ad-domains'),
-  getGhToken:           ()=>ipcRenderer.invoke('get-gh-token'),
-  setGhToken:           (t)=>ipcRenderer.send('set-gh-token',t),
   getAppVersion:        ()=>ipcRenderer.invoke('get-app-version'),
   getWidevineStatus:      ()=>ipcRenderer.invoke('get-widevine-status'),
   getAdminHash:           ()=>ipcRenderer.invoke('get-admin-hash'),

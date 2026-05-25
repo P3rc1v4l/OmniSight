@@ -961,7 +961,7 @@ if (_origCheckAchievements) {
         // Timeout: wenn nach 8s kein Event → "aktuell"
         setTimeout(() => {
           if (el && el.textContent==='Prüfe…') {
-            el.textContent = '✓ Du hast die aktuellste Version (v'+((typeof settings!=='undefined'&&settings.appVersion)||'3.1.12')+')';
+            el.textContent = '✓ Du hast die aktuellste Version (v'+((typeof settings!=='undefined'&&settings.appVersion)||'3.1.13')+')';
             el.style.color = 'var(--acc)';
           }
         }, 8000);
@@ -1190,7 +1190,7 @@ console.log('[OmniSight fixes.js Teil 3] v3.1.8 Sicherheits-Updates aktiv');
   // Version aus package.json extraMetadata lesen
   // Echte App-Version aus main.js laden
 window.electronAPI.getAppVersion().then(v => {
-  window.__appVersion = v || '3.1.12';
+  window.__appVersion = v || '3.1.13';
   // Version in "Mehr"-Tab anzeigen
   const vEl = document.querySelector('.settings-version-text');
   if (vEl) vEl.textContent = 'v' + v;
@@ -1198,7 +1198,7 @@ window.electronAPI.getAppVersion().then(v => {
   if (document.getElementById('update-check-result')) {
     // Nichts tun – wird beim Klick gelesen
   }
-}).catch(() => { window.__appVersion = '3.1.12'; });
+}).catch(() => { window.__appVersion = '3.1.13'; });
 
 
   // onUpdateAvailable: Banner zeigen
@@ -1260,14 +1260,14 @@ window.electronAPI.getAppVersion().then(v => {
       const noUpdateHandler = () => {
         resolved = true;
         if (el) {
-          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.1.12'})`;
+          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.1.13'})`;
           el.style.color = 'var(--acc)';
         }
       };
       const errorHandler = (msg) => {
         resolved = true;
         if (el) {
-          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.1.12'})`;
+          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.1.13'})`;
           el.style.color = msg && !msg.includes('404') ? 'var(--danger)' : 'var(--acc)';
         }
       };
@@ -1282,7 +1282,7 @@ window.electronAPI.getAppVersion().then(v => {
       // Timeout: 6s dann Fallback
       setTimeout(() => {
         if (!resolved && el && el.textContent === 'Prüfe…') {
-          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.1.12'})`;
+          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.1.13'})`;
           el.style.color = 'var(--acc)';
         }
       }, 6000);
@@ -1740,104 +1740,7 @@ function openProfileEditorFinal(profileId) {
 
 // ── 9. ACCOUNT: Zeilen-Auswahl statt Checkboxen ─────────────────────
 
-const _origBuildSessionList = buildSessionList;
-function buildSessionList(res) {
-  // Action-Buttons ganz oben
-  let actionRow = document.getElementById('account-action-btns');
-  if (!actionRow) {
-    actionRow = document.createElement('div');
-    actionRow.id = 'account-action-btns';
-    actionRow.style.cssText = 'display:flex;gap:8px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--bor);flex-wrap:wrap';
-    const parent = document.getElementById('session-list')?.parentElement;
-    if (parent) parent.insertBefore(actionRow, parent.firstChild);
-  }
-  actionRow.innerHTML = `
-    <button class="pick-btn" id="btn-logout-all-v2" style="border-color:var(--danger);color:var(--danger)">↩ Alle abmelden</button>
-    <button class="pick-btn" id="btn-logout-sel-v2">↩ Auswahl abmelden</button>`;
-
-  const selectedIds = new Set();
-
-  document.getElementById('btn-logout-all-v2')?.addEventListener('click', () => {
-    if (!confirm('Von allen Diensten abmelden?')) return;
-    window.electronAPI.clearAllSessions(activeProfileId);
-    showToastMsg('Von allen Diensten abgemeldet');
-    setTimeout(() => window.electronAPI.refreshSessionsNow(activeProfileId), 600);
-  });
-  document.getElementById('btn-logout-sel-v2')?.addEventListener('click', () => {
-    if (!selectedIds.size) { showToastMsg('Keine Anbieter ausgewählt'); return; }
-    window.electronAPI.clearProvidersSessions(activeProfileId, [...selectedIds]);
-    selectedIds.clear();
-    showToastMsg('Ausgewählte Anbieter abgemeldet');
-    setTimeout(() => window.electronAPI.refreshSessionsNow(activeProfileId), 600);
-  });
-
-  const list = document.getElementById('session-list');
-  if (!list) return;
-  list.innerHTML = '';
-
-  const provs = Object.entries(PROVIDERS_BASE).sort((a,b) => a[1].name.localeCompare(b[1].name));
-  const loggedIn = provs.filter(([id]) => !!(res||{})[id]);
-  const notIn = provs.filter(([id]) => !(res||{})[id]);
-
-  function makeRow(id, p, isOn) {
-    const row = document.createElement('div');
-    row.className = 'session-row';
-    row.style.cssText = 'display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid transparent;border-radius:var(--r-sm);cursor:pointer;transition:all .15s;margin-bottom:4px;user-select:none';
-    row.innerHTML = `
-      <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:${isOn?'#66bb6a':'var(--bor)'}"></span>
-      <img src="${getFavicon(id,p)}" style="width:18px;height:18px;border-radius:3px;object-fit:contain" onerror="this.style.display='none'"/>
-      <span style="flex:1;font-size:13px;color:var(--tx)">${esc((settings.cardCustomNames||{})[id]||p.name)}</span>
-      ${isOn?'<span style="font-size:10px;color:#66bb6a;font-weight:600">✓ angemeldet</span>':''}
-      ${isOn?`<button class="session-logout-hover" style="display:none;padding:3px 8px;border:1px solid var(--bor);background:transparent;color:var(--danger);border-radius:var(--r-sm);font-size:10px;cursor:pointer;flex-shrink:0">Abmelden</button>`:''}`;
-
-    if (isOn) {
-      // Zeile klicken = auswählen
-      row.addEventListener('click', e => {
-        if (e.target.classList.contains('session-logout-hover')) return;
-        if (selectedIds.has(id)) {
-          selectedIds.delete(id);
-          row.style.background = '';
-          row.style.borderColor = 'transparent';
-        } else {
-          selectedIds.add(id);
-          row.style.background = 'var(--accg)';
-          row.style.borderColor = 'var(--acc)';
-        }
-      });
-      // Hover: Einzel-Abmelden
-      const lBtn = row.querySelector('.session-logout-hover');
-      if (lBtn) {
-        row.addEventListener('mouseenter', () => lBtn.style.display = 'block');
-        row.addEventListener('mouseleave', () => lBtn.style.display = 'none');
-        lBtn.addEventListener('click', e => {
-          e.stopPropagation();
-          window.electronAPI.clearProviderSession(activeProfileId, id);
-          showToastMsg('Abgemeldet von ' + p.name);
-          row.style.opacity = '0';
-          row.style.transition = 'opacity .3s';
-          setTimeout(() => row.remove(), 300);
-          setTimeout(() => window.electronAPI.refreshSessionsNow(activeProfileId), 500);
-        });
-      }
-    }
-    return row;
-  }
-
-  if (loggedIn.length) {
-    const lbl = document.createElement('div');
-    lbl.style.cssText = 'font-size:10px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.1em;padding:6px 0 4px';
-    lbl.textContent = 'Angemeldet';
-    list.appendChild(lbl);
-    loggedIn.forEach(([id,p]) => list.appendChild(makeRow(id,p,true)));
-  }
-  if (notIn.length) {
-    const lbl = document.createElement('div');
-    lbl.style.cssText = 'font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em;padding:8px 0 4px';
-    lbl.textContent = 'Nicht angemeldet';
-    list.appendChild(lbl);
-    notIn.forEach(([id,p]) => list.appendChild(makeRow(id,p,false)));
-  }
-}
+/* [buildSessionList v2: Duplikat entfernt] */
 
 // ── 10. PLUGINS: Button-Klassen zuweisen ────────────────────────────
 
@@ -2282,40 +2185,22 @@ console.log('[v3.1.10] Alle Fixes geladen');
         finish(`🚀 Update v${info.version} verfügbar! → Banner oben`, 'var(--acc)');
       });
       const unsubNone = window.electronAPI.onUpdateNotAvailable?.(() => {
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.12'})`, 'var(--acc)');
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`, 'var(--acc)');
       });
       const unsubErr = window.electronAPI.onUpdateError?.(msg => {
         // 404 = kein latest.yml → aktuell
         const isNoRelease = !msg || msg.includes('404') || msg.includes('ENOENT') || msg.includes('Cannot find');
         finish(
           isNoRelease
-            ? `✓ Aktuellste Version (v${window.__appVersion || '3.1.12'})`
+            ? `✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`
             : `Fehler: ${msg}`,
           isNoRelease ? 'var(--acc)' : 'var(--danger)'
         );
       });
 
       // Token prüfen
-      const token = await window.electronAPI.getGhToken?.().catch(() => '');
-      if (!token) {
-        // Kein Token → Token-Eingabe anbieten
-        finish('', 'var(--tx2)');
-        if (el) {
-          el.innerHTML = `<span style="color:var(--tx3);font-size:11px">
-            ⚠ Für private Repos ist ein GitHub-Token nötig.
-            <button id="btn-enter-gh-token" style="margin-left:6px;padding:2px 8px;background:var(--acc);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px">Token eingeben</button>
-          </span>`;
-          document.getElementById('btn-enter-gh-token')?.addEventListener('click', async () => {
-            const t = prompt('GitHub Personal Access Token eingeben:\n(Benötigt: read:packages oder repo Scope)\nhttps://github.com/settings/tokens');
-            if (!t) return;
-            await window.electronAPI.setGhToken(t);
-            showToastMsg('✓ Token gespeichert – prüfe jetzt nach Updates');
-            fresh.click(); // Erneut prüfen
-          });
-        }
-        done = true;
-        return;
-      }
+      // Token wird automatisch beim Build eingebettet (OMNISIGHT_UPDATE_TOKEN)
+      // Kein manueller Token nötig
 
       try {
         await window.electronAPI.checkForUpdates();
@@ -2326,7 +2211,7 @@ console.log('[v3.1.10] Alle Fixes geladen');
 
       // Timeout: 8s
       setTimeout(() => {
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.12'})`, 'var(--acc)');
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`, 'var(--acc)');
       }, 8000);
     });
   }, 900);
@@ -2405,3 +2290,156 @@ window._openWvFolder = async function(type) {
 };
 
 console.log('[v3.1.11] Update + WideVine Fixes geladen');
+
+// ════════════════════════════════════════════════════════════════════
+// v3.1.13 FIXES
+// ════════════════════════════════════════════════════════════════════
+
+// ── 1. SESSION-ERKENNUNG: Zuverlässig über Cookie-Namen ─────────────
+
+async function detectActiveSessions() {
+  try {
+    const res = await window.electronAPI.getAllSessions(activeProfileId);
+    return res || {};
+  } catch { return {}; }
+}
+
+(function improveSessionDisplay() {
+  // Account-Tab: Sessions sofort und korrekt laden
+  const bindAccountTab = () => {
+    document.querySelectorAll('.sms-btn[data-stab="account"]').forEach(btn => {
+      if (btn._sessionV313Fixed) return;
+      btn._sessionV313Fixed = true;
+      btn.addEventListener('click', async () => {
+        // Sofort Sessions laden und anzeigen
+        const el = document.getElementById('session-list');
+        if (el) el.innerHTML = '<div style="color:var(--tx2);padding:20px;text-align:center">Lade Sessions…</div>';
+        
+        try {
+          // Erst refresh anfordern
+          await window.electronAPI.refreshSessionsNow(activeProfileId);
+          // Kurz warten damit Cookies gelesen werden
+          await new Promise(r => setTimeout(r, 800));
+          const res = await window.electronAPI.getAllSessions(activeProfileId);
+          sessionCache = res || {};
+          buildSessionList(sessionCache);
+        } catch(e) {
+          buildSessionList({});
+        }
+      });
+    });
+  };
+  setTimeout(bindAccountTab, 700);
+  
+  // onSessionsUpdated: buildSessionList aufrufen OHNE Checkboxen neu zu erzeugen
+  const origHandler = window.electronAPI.onSessionsUpdated;
+  if (origHandler) {
+    origHandler(res => {
+      sessionCache = res || {};
+      // Nur aktualisieren wenn Account-Tab gerade sichtbar
+      const accountActive = document.querySelector('.sms-btn[data-stab="account"]')?.classList.contains('active');
+      if (accountActive) buildSessionList(sessionCache);
+      // Karten-Dots aktualisieren
+      buildProviderGrid();
+    });
+  }
+})();
+
+// ── 2. MINIPLAYER: Webview NICHT neu laden ───────────────────────────
+
+// restoreFromPip überschreiben: Webview wird nur verschoben, nicht neu erstellt
+window.restoreFromPip = function() {
+  if (!pipProviderId) return;
+  const id = pipProviderId;
+  const pip = document.getElementById('pip-window');
+  const cont = document.getElementById('pip-content');
+  const wrap = document.getElementById('webview-wrap');
+  if (!cont || !wrap) return;
+  
+  const wv = cont.querySelector('webview');
+  if (wv) {
+    // NUR Webview verschieben, NICHT neu laden
+    cont.removeChild(wv);
+    wv.style.cssText = 'width:100%;height:100%;border:none;display:flex';
+    wrap.innerHTML = '';
+    wrap.appendChild(wv);
+    currentWebview = wv;
+    // Session-Dots und Tracking weiterlaufen lassen
+  }
+  
+  if (pip) pip.style.display = 'none';
+  if (cont) cont.innerHTML = '';
+  pipProviderId = null;
+  currentProvider = id;
+  
+  const titleEl = document.getElementById('stream-title');
+  if (titleEl) titleEl.textContent = (settings.cardCustomNames||{})[id] || PROVIDERS()[id]?.name || id;
+  
+  const btnW = document.getElementById('btn-watching');
+  if (btnW) btnW.style.display = 'flex';
+  
+  showView('stream');
+  console.log('[PIP] Webview wiederhergestellt ohne Reload');
+};
+
+// maybeMoveToPip: auch NICHT neu laden
+window.moveToPip = function(id, wv) {
+  const pip = document.getElementById('pip-window');
+  const cont = document.getElementById('pip-content');
+  if (!pip || !cont) return;
+  
+  cont.innerHTML = '';
+  if (wv && wv.parentNode) wv.parentNode.removeChild(wv);
+  if (wv) {
+    wv.style.cssText = 'width:100%;height:100%;border:none;display:flex';
+    cont.appendChild(wv);
+  }
+  
+  pipProviderId = id;
+  const t = document.getElementById('pip-title');
+  if (t) t.textContent = (settings.cardCustomNames||{})[id] || PROVIDERS()[id]?.name || id;
+  
+  pip.style.left = 'auto';
+  pip.style.top = 'auto';
+  pip.style.right = '24px';
+  pip.style.bottom = '24px';
+  pip.style.display = 'flex';
+  console.log('[PIP] Webview in Miniplayer verschoben ohne Reload');
+};
+
+// ── 3. UPDATE-CHECK: Sauber ohne Token-Dialog ────────────────────────
+
+(function patchUpdateCheckClean() {
+  setTimeout(() => {
+    const btn = document.getElementById('btn-check-updates');
+    if (!btn || btn._v313Fixed) return;
+    btn._v313Fixed = true;
+    
+    const fresh = btn.cloneNode(true);
+    btn.parentNode.replaceChild(fresh, btn);
+    
+    fresh.addEventListener('click', async () => {
+      const el = document.getElementById('update-check-result');
+      if (el) { el.textContent = 'Prüfe…'; el.style.color = 'var(--tx2)'; }
+      
+      let resolved = false;
+      const finish = (text, color) => {
+        if (resolved) return;
+        resolved = true;
+        if (el) { el.textContent = text; el.style.color = color || 'var(--tx2)'; }
+      };
+      
+      window.electronAPI.onUpdateAvailable?.(info =>
+        finish(`🚀 Update v${info.version} verfügbar – Banner erscheint oben`, 'var(--acc)'));
+      window.electronAPI.onUpdateNotAvailable?.(() =>
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`, 'var(--acc)'));
+      window.electronAPI.onUpdateError?.(msg =>
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`, 'var(--acc)'));
+      
+      try { await window.electronAPI.checkForUpdates(); } catch {}
+      setTimeout(() => finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`, 'var(--acc)'), 8000);
+    });
+  }, 1000);
+})();
+
+console.log('[v3.1.13] Session, PIP, Update-Check gepatcht');
