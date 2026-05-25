@@ -1303,7 +1303,13 @@ function setupGridKeyboardNav(){
 /* [setupTitlebar: Duplikat entfernt] */
 
 // ══ START ══════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>init());
+// Init: readyState prüfen (Script kann nach DOMContentLoaded geladen werden)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => init());
+} else {
+  // DOM bereits bereit (Script am Ende des HTML)
+  init();
+}
 
 // ══ FEHLENDE HANDLER ══════════════════════════════════════════════
 

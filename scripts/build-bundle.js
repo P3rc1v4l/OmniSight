@@ -37,7 +37,6 @@ const FILES = [
 
 let bundle = `// OmniSight Bundle – generiert am ${new Date().toISOString()}
 // NICHT MANUELL BEARBEITEN – Änderungen in den Quell-Dateien vornehmen
-'use strict';
 `;
 
 let total = 0;

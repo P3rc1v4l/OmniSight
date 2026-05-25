@@ -1,6 +1,5 @@
-// OmniSight Bundle – generiert am 2026-05-25T19:53:05.581Z
+// OmniSight Bundle – generiert am 2026-05-25T20:40:08.381Z
 // NICHT MANUELL BEARBEITEN – Änderungen in den Quell-Dateien vornehmen
-'use strict';
 
 
 // ════════════════════════════════════════════════════════════
@@ -938,7 +937,7 @@ async function checkWidevineBanner() {
 // In-App Feedback + Discord-Link
 // ═══════════════════════════════════════════════════════════════════
 
-const DISCORD_INVITE = 'https://discord.gg/placeholder'; // Bitte anpassen
+const DISCORD_INVITE = 'https://discord.gg/D6BnznYztF';
 
 function setupFeedback() {
   // Feedback-Button in Einstellungen verdrahten
@@ -2342,7 +2341,13 @@ function setupGridKeyboardNav(){
 /* [setupTitlebar: Duplikat entfernt] */
 
 // ══ START ══════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>init());
+// Init: readyState prüfen (Script kann nach DOMContentLoaded geladen werden)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => init());
+} else {
+  // DOM bereits bereit (Script am Ende des HTML)
+  init();
+}
 
 // ══ FEHLENDE HANDLER ══════════════════════════════════════════════
 

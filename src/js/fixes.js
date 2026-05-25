@@ -1,4 +1,3 @@
-'use strict';
 
 // ═══ KRITISCHE FEHLENDE FUNKTIONEN (müssen vor buildProviderGrid geladen sein) ═══
 

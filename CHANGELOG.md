@@ -1,3 +1,27 @@
+## v3.2.2 -- 2026-05-25
+
+### Kritische Bugfixes
+- Alle Buttons tot: 'use strict' im Bundle-Header machte GESAMTES Bundle strict.
+  In strict mode schlaegen implizite Globals fehl → init() wird nicht korrekt
+  registriert → keine Buttons. Behoben: kein 'use strict' mehr im Bundle.
+- DOMContentLoaded: readyState-Check hinzugefuegt damit init() auch dann
+  aufgerufen wird wenn das Script geladen wird nachdem DOM bereits geparst wurde.
+- 'use strict' aus fixes.js entfernt (war redundant im Bundle-Scope).
+
+## v3.2.1 -- 2026-05-25
+
+### Bugfix
+- NSIS-Build-Fehler behoben: installer.nsh hatte !define MUI_HEADERIMAGE
+  was electron-builder bereits selbst setzt -> Konflikt -> Build-Abbruch.
+  Installer-Grafiken werden jetzt korrekt ueber package.json konfiguriert.
+- Discord-Link gesetzt: https://discord.gg/D6BnznYztF
+
+## v3.2.1 -- 2026-05-25
+
+### Fixes
+- Discord-Link eingesetzt: https://discord.gg/D6BnznYztF
+- Bundle neu generiert
+
 ## v3.2.0 -- 2026-05-25
 
 ### Neue Architektur: Modul-System
