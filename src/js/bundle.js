@@ -1,4 +1,4 @@
-// OmniSight Bundle – generiert am 2026-05-25T20:40:08.381Z
+// OmniSight Bundle – generiert am 2026-05-25T20:50:56.498Z
 // NICHT MANUELL BEARBEITEN – Änderungen in den Quell-Dateien vornehmen
 
 
@@ -1518,7 +1518,7 @@ window.clearAllSearchHistory=function(){searchHistory=[];settings.searchHistory=
 function renderInstantSuggestions(q,dd){const ql=q.toLowerCase();const matches=Object.entries(PROVIDERS()).filter(([,p])=>p.name.toLowerCase().includes(ql));if(!matches.length)return;let html='<div class="search-dd-section">Anbieter</div>';matches.slice(0,4).forEach(([id,p])=>{html+=`<div class="search-dd-item" data-prov-open="${id}"><img class="search-dd-poster" src="${getFavicon(id,p)}" style="width:36px;height:36px;object-fit:contain;border-radius:8px;background:${p.color}22;padding:4px" onerror="this.style.display='none'"/><div class="search-dd-info"><div class="search-dd-title">${esc((settings.cardCustomNames||{})[id]||p.name)}</div><div class="search-dd-meta"><span class="search-dd-badge">Anbieter</span></div></div></div>`;});dd.innerHTML=html;dd.style.display='block';dd.querySelectorAll('[data-prov-open]').forEach(el=>el.addEventListener('click',()=>openProvider(el.dataset.provOpen)));}
 
 const _tmdbSearchCache=new Map();
-async // [runTmdbSearch: in ui/search.js definiert]
+// [runTmdbSearch: in ui/search.js definiert]
 
 async function loadSearchChips(tmdbId,type,cId){try{const prov=await window.electronAPI.getStreamingProviders({tmdbId,type});const cont=document.getElementById(cId);if(!cont)return;const all=[...(prov?.flatrate||[]),...(prov?.rent||[])].filter((p,i,a)=>a.findIndex(x=>x.provider_id===p.provider_id)===i&&p.logo_path).slice(0,4);if(all.length)cont.innerHTML=all.map(p=>{const oid=TMDB_PMAP[p.provider_id];return`<div class="search-dd-provider-chip"${oid?` data-prov-open="${oid}"`:''} style="cursor:${oid?'pointer':'default'}"><img src="https://image.tmdb.org/t/p/w45${p.logo_path}" style="width:12px;height:12px;object-fit:contain;border-radius:2px" onerror="this.style.display='none'"/>${esc(p.provider_name)}</div>`;}).join('');cont.querySelectorAll('[data-prov-open]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();openProvider(el.dataset.provOpen);}));}catch{}}
 // [addToSearchHistory: in ui/search.js definiert]

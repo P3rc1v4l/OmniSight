@@ -1,7 +1,7 @@
 {
   "name": "omnisight",
   "version": "3.2.2",
-  "description": "OmniSight \u2013 Dein zentrales Streaming-Hub",
+  "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
@@ -57,16 +57,16 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "OmniSight",
-      "differentialPackage": true,
-      "installerSidebar": "build/installer-sidebar.bmp",
-      "license": "LICENSE",
-      "warningsAsErrors": false,
-      "deleteAppDataOnUninstall": false,
-      "runAfterFinish": true,
       "menuCategory": false,
       "uninstallDisplayName": "OmniSight",
+      "installerHeader": "build/installer-header.bmp",
+      "installerSidebar": "build/installer-sidebar.bmp",
+      "license": "LICENSE",
       "include": "build/installer.nsh",
-      "installerHeader": "build/installer-header.bmp"
+      "differentialPackage": true,
+      "warningsAsErrors": false,
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
     },
     "publish": {
       "provider": "github",
@@ -80,7 +80,7 @@
     ],
     "extraMetadata": {
       "certExpiry": "2029-05-23",
-      "certExpiryNote": "Self-Signed Zertifikat l\u00e4uft ab \u2013 create-cert.ps1 erneut ausf\u00fchren",
+      "certExpiryNote": "Self-Signed Zertifikat läuft ab – create-cert.ps1 erneut ausführen",
       "appVersion": "3.2.2"
     },
     "forceCodeSigning": false

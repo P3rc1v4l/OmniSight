@@ -1,5 +1,18 @@
 ## v3.2.2 -- 2026-05-25
 
+### Kritischer Bugfix
+- "async is not defined": beim Bereinigen von runTmdbSearch aus app.js
+  blieb das "async" Keyword als Fragment stehen → ReferenceError beim Start
+  → alle Buttons tot. async-Fragment aus app.js entfernt.
+- NSIS Build-Fehler v3.2.0/v3.2.1 endgueltig behoben: installer.nsh
+  enthaelt keine !define MUI_* mehr, nur customInstall + customUnInstall.
+
+### Installer
+- Dunkles Installer-Theme mit Teal-Farbverlauf
+- Deinstallations-Dialog verbessert (deutlichere Erklaerung)
+
+## v3.2.2 -- 2026-05-25
+
 ### Kritische Bugfixes
 - Alle Buttons tot: 'use strict' im Bundle-Header machte GESAMTES Bundle strict.
   In strict mode schlaegen implizite Globals fehl → init() wird nicht korrekt

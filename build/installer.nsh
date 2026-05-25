@@ -1,26 +1,36 @@
-; OmniSight – NSIS Installer Customization
-; Nur customInstall und customUnInstall Macros!
-; KEIN !define von MUI_* hier – electron-builder setzt diese bereits
+; ═══════════════════════════════════════════════════════════════════
+; OmniSight – NSIS Custom Installer Script
+; Modernes Design: Dunkles Theme mit Teal-Akzent
+; 
+; WICHTIG: Kein !define von MUI_HEADERIMAGE oder anderen MUI-Vars hier
+; electron-builder setzt diese bereits. Nur customInstall + customUnInstall!
+; ═══════════════════════════════════════════════════════════════════
 
-; ── Installation: Registry-Eintrag ──────────────────────────────────
+; ── Installation ────────────────────────────────────────────────────
 !macro customInstall
+  ; Registrierungseintrag für Deinstallation
   WriteRegStr HKCU "Software\OmniSight" "InstallPath" "$INSTDIR"
   WriteRegStr HKCU "Software\OmniSight" "Version"     "${VERSION}"
+  WriteRegStr HKCU "Software\OmniSight" "Publisher"   "P3rc1v4l"
 !macroend
 
 ; ── Deinstallation: Daten-Lösch-Dialog ──────────────────────────────
 !macro customUnInstall
-  MessageBox MB_YESNO|MB_ICONQUESTION \
-    "Moechtest du alle OmniSight-Daten loeschen?$\r$\n$\r$\nDazu gehoeren:$\r$\n  - Profile und Einstellungen$\r$\n  - Watchlist und Favoriten$\r$\n  - Login-Sessions$\r$\n$\r$\nNein = Daten bleiben fuer Neuinstallation erhalten." \
-    IDNO keep_data
+  ; Modernen Dialog anzeigen
+  MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 \
+    "OmniSight deinstallieren$\r$\n$\r$\nMoechtest du auch alle gespeicherten Daten loeschen?$\r$\n$\r$\n  Ja   $\t$\tProfile, Einstellungen, Watchlist und Sessions werden geloescht$\r$\n  Nein $\t$\tDaten bleiben erhalten (gut fuer Neuinstallation)$\r$\n$\r$\n" \
+    IDNO omnisight_keep_data
 
+    ; Ja geklickt: AppData loeschen
     RMDir /r "$APPDATA\omnisight"
-    DetailPrint "OmniSight-Daten wurden geloescht."
-    Goto data_done
+    RMDir /r "$LOCALAPPDATA\omnisight"
+    DetailPrint "Alle OmniSight-Daten wurden geloescht."
+    Goto omnisight_data_done
 
-  keep_data:
+  omnisight_keep_data:
     DetailPrint "OmniSight-Daten wurden behalten."
 
-  data_done:
+  omnisight_data_done:
+  ; Registrierungseintraege entfernen
   DeleteRegKey HKCU "Software\OmniSight"
 !macroend
