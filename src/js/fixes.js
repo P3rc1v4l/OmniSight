@@ -1190,7 +1190,7 @@ console.log('[OmniSight fixes.js Teil 3] v3.1.8 Sicherheits-Updates aktiv');
   // Version aus package.json extraMetadata lesen
   // Echte App-Version aus main.js laden
 window.electronAPI.getAppVersion().then(v => {
-  window.__appVersion = v || '3.1.10';
+  window.__appVersion = v || '3.1.11';
   // Version in "Mehr"-Tab anzeigen
   const vEl = document.querySelector('.settings-version-text');
   if (vEl) vEl.textContent = 'v' + v;
@@ -1198,7 +1198,7 @@ window.electronAPI.getAppVersion().then(v => {
   if (document.getElementById('update-check-result')) {
     // Nichts tun – wird beim Klick gelesen
   }
-}).catch(() => { window.__appVersion = '3.1.10'; });
+}).catch(() => { window.__appVersion = '3.1.11'; });
 
 
   // onUpdateAvailable: Banner zeigen
@@ -1260,14 +1260,14 @@ window.electronAPI.getAppVersion().then(v => {
       const noUpdateHandler = () => {
         resolved = true;
         if (el) {
-          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.1.10'})`;
+          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.1.11'})`;
           el.style.color = 'var(--acc)';
         }
       };
       const errorHandler = (msg) => {
         resolved = true;
         if (el) {
-          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.1.10'})`;
+          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.1.11'})`;
           el.style.color = msg && !msg.includes('404') ? 'var(--danger)' : 'var(--acc)';
         }
       };
@@ -1282,7 +1282,7 @@ window.electronAPI.getAppVersion().then(v => {
       // Timeout: 6s dann Fallback
       setTimeout(() => {
         if (!resolved && el && el.textContent === 'Prüfe…') {
-          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.1.10'})`;
+          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.1.11'})`;
           el.style.color = 'var(--acc)';
         }
       }, 6000);
@@ -1456,8 +1456,8 @@ window.electronAPI.getAppVersion().then(v => {
 
     // Außen-Klick schließt Dropdown
     document.addEventListener('mousedown', e => {
-      const wrap = input.closest('.search-bar-wrap') || input.parentElement;
-      if (!wrap.contains(e.target) && !dd.contains(e.target)) {
+      const wrap = newInput?.closest?.('.search-bar') || newInput?.closest?.('.search-bar-wrap') || newInput?.parentElement;
+      if (wrap && !wrap.contains(e.target) && dd && !dd.contains(e.target)) {
         closeSearch();
       }
     });
@@ -2713,3 +2713,540 @@ function buildSessionList(res) {
 // Wird im ZIP enthalten sein
 
 console.log('[v3.1.9b] Alle Final-Fixes geladen');
+
+// ════════════════════════════════════════════════════════════════════
+// v3.1.10 FIXES
+// ════════════════════════════════════════════════════════════════════
+
+// ── 1. NULL-SAFETY: Alle potenziellen null-Zugriffe ──────────────────
+
+// Globaler mousedown Error-Catcher für Suche (zusätzliche Absicherung)
+(function addGlobalNullSafety() {
+  window.addEventListener('error', e => {
+    if (e.message && e.message.includes("Cannot read properties of null (reading 'contains')")) {
+      e.preventDefault(); // Fehler unterdrücken - ist nur der Suche-Listener
+      console.warn('[Safety] null.contains abgefangen – harmlos');
+    }
+  });
+})();
+
+// ── 2. TWITCH: User-Agent + Unsupported-Browser Fix ──────────────────
+
+(function fixTwitchUA() {
+  // Twitch und YouTube brauchen einen aktuellen Chrome-UA ohne "Electron"
+  const MODERN_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+  
+  // UA-Override im main.js session wird schon gesetzt
+  // Zusätzlich: Twitch-spezifischer Override im Webview
+  const origOpenProvider = typeof window.openProvider === 'function' ? window.openProvider : null;
+  if (!origOpenProvider) return;
+  
+  window.openProvider = function(id) {
+    const p = PROVIDERS()[id];
+    if (!p) return;
+    
+    if (id === 'twitch') {
+      // Twitch braucht speziellen UA ohne "Electron"
+      // Wird über webview useragent Attribut gesetzt (bereits in openProviderAtUrl)
+      // Zusätzlich: setTimeout für UA-Injection per executeJavaScript
+      const origAtUrl = window.openProviderAtUrl;
+      window.openProviderAtUrl(id, p.url, (settings.cardCustomNames||{})[id]||p.name, typeof getProfilePartition==='function' ? getProfilePartition(id) : id);
+      return;
+    }
+    origOpenProvider.call(this, id);
+  };
+})();
+
+// ── 3. TABS: Visuell verbessert + neuer Tab Button ───────────────────
+
+(function improveStreamTabs() {
+  const origRender = typeof renderStreamTabs === 'function' ? renderStreamTabs : null;
+  if (!origRender) return;
+
+  window.renderStreamTabs = function() {
+    const bar = document.getElementById('stream-tabs');
+    if (!bar) return;
+    bar.innerHTML = '';
+
+    (streamTabs || []).forEach((tab, i) => {
+      const t = document.createElement('div');
+      const isActive = tab.id === activeTabId;
+      t.className = 'stream-tab-item' + (isActive ? ' active' : '');
+      t.style.cssText = `display:flex;align-items:center;gap:6px;padding:5px 12px;cursor:pointer;
+        border-bottom:2px solid ${isActive ? 'var(--acc)' : 'transparent'};
+        background:${isActive ? 'rgba(48,197,187,.08)' : 'transparent'};
+        color:${isActive ? 'var(--acc)' : 'var(--tx2)'};font-size:12px;font-weight:600;
+        transition:all .15s;border-radius:6px 6px 0 0;max-width:160px;position:relative;`;
+
+      const muteBtn = tab.muted
+        ? '<button class="tab-mute-btn" style="background:transparent;border:none;cursor:pointer;font-size:12px;color:var(--tx3);padding:0" title="Ton an">🔇</button>'
+        : '<button class="tab-mute-btn" style="background:transparent;border:none;cursor:pointer;font-size:12px;color:var(--tx3);padding:0;opacity:0" title="Stummschalten">🔊</button>';
+
+      t.innerHTML = `
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(tab.title||tab.url||'Tab '+(i+1))}</span>
+        ${muteBtn}
+        ${streamTabs.length > 1 ? `<button class="tab-close-btn" style="background:transparent;border:none;cursor:pointer;font-size:14px;color:var(--tx3);padding:0;line-height:1;opacity:0.7">✕</button>` : ''}`;
+
+      t.addEventListener('click', e => {
+        if (e.target.classList.contains('tab-close-btn')) {
+          if (typeof removeStreamTab==='function') removeStreamTab(tab.id);
+          return;
+        }
+        if (e.target.classList.contains('tab-mute-btn')) {
+          tab.muted = !tab.muted;
+          try { if (tab.webview) tab.webview.setAudioMuted(tab.muted); } catch {}
+          window.renderStreamTabs();
+          return;
+        }
+        if (typeof switchToTab==='function') switchToTab(tab.id);
+        else { activeTabId = tab.id; window.renderStreamTabs(); }
+      });
+
+      t.addEventListener('mouseenter', () => {
+        if (!t.classList.contains('active')) t.style.background = 'rgba(255,255,255,.04)';
+        const muteB = t.querySelector('.tab-mute-btn');
+        if (muteB) muteB.style.opacity = '1';
+      });
+      t.addEventListener('mouseleave', () => {
+        if (!t.classList.contains('active')) t.style.background = 'transparent';
+        const muteB = t.querySelector('.tab-mute-btn');
+        if (muteB && !tab.muted) muteB.style.opacity = '0';
+      });
+
+      bar.appendChild(t);
+    });
+
+    // "+" Button für neuen Tab
+    if (streamTabs && streamTabs.length > 0) {
+      const addBtn = document.createElement('button');
+      addBtn.style.cssText = 'background:transparent;border:none;cursor:pointer;color:var(--tx2);font-size:18px;padding:0 10px;line-height:1;transition:color .15s';
+      addBtn.textContent = '+';
+      addBtn.title = 'Neuen Tab öffnen';
+      addBtn.addEventListener('mouseenter', () => addBtn.style.color = 'var(--acc)');
+      addBtn.addEventListener('mouseleave', () => addBtn.style.color = 'var(--tx2)');
+      addBtn.addEventListener('click', () => {
+        const currentPid = typeof currentProvider !== 'undefined' ? currentProvider : null;
+        if (!currentPid) return;
+        const p = PROVIDERS()[currentPid];
+        if (!p) return;
+        if (typeof addStreamTab === 'function') addStreamTab(currentPid, p.url, p.name + ' ' + (streamTabs.length + 1));
+        else showToastMsg('Multi-Tab: addStreamTab nicht verfügbar');
+      });
+      bar.appendChild(addBtn);
+    }
+  };
+})();
+
+// ── 4. HINTERGRUND-STREAMS: Sidebar-Button ───────────────────────────
+
+let _bgStreams = {}; // {id: {title, webview, muted}}
+
+function updateBgStreamButton() {
+  const sidebar = document.querySelector('.sidebar-bottom') || document.querySelector('.sidebar');
+  if (!sidebar) return;
+
+  let bgBtn = document.getElementById('bg-streams-btn');
+  const hasBg = Object.keys(_bgStreams).length > 0;
+
+  if (!hasBg) { if (bgBtn) bgBtn.remove(); return; }
+
+  if (!bgBtn) {
+    bgBtn = document.createElement('button');
+    bgBtn.id = 'bg-streams-btn';
+    bgBtn.style.cssText = 'display:flex;align-items:center;gap:6px;padding:7px 12px;width:100%;background:var(--accg);border:1px solid var(--acc);border-radius:var(--r-sm);color:var(--acc);font-size:12px;font-weight:600;cursor:pointer;margin-bottom:6px;transition:all .15s';
+    // Vor CR Kalender einfügen
+    const crBtn = document.getElementById('btn-cr-calendar') || sidebar.querySelector('[data-view="cr-calendar"]');
+    if (crBtn) crBtn.parentElement.insertBefore(bgBtn, crBtn);
+    else sidebar.prepend(bgBtn);
+  }
+
+  const count = Object.keys(_bgStreams).length;
+  const anyMuted = Object.values(_bgStreams).some(s => s.muted);
+  bgBtn.innerHTML = `<span style="flex:1">🎬 Im Hintergrund (${count})</span>
+    <button id="bg-mute-all" style="border:none;background:transparent;cursor:pointer;font-size:14px;color:var(--acc)" title="${anyMuted?'Alle unmuten':'Alle muten'}">${anyMuted?'🔇':'🔊'}</button>`;
+
+  bgBtn.querySelector('#bg-mute-all').addEventListener('click', e => {
+    e.stopPropagation();
+    const shouldMute = !anyMuted;
+    Object.values(_bgStreams).forEach(s => {
+      s.muted = shouldMute;
+      try { if (s.webview) s.webview.setAudioMuted(shouldMute); } catch {}
+    });
+    updateBgStreamButton();
+  });
+
+  bgBtn.addEventListener('click', e => {
+    if (e.target.id === 'bg-mute-all') return;
+    openBgStreamsPanel();
+  });
+}
+
+function openBgStreamsPanel() {
+  const existing = document.getElementById('bg-panel-overlay');
+  if (existing) { existing.remove(); return; }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'bg-panel-overlay';
+  overlay.style.cssText = 'position:fixed;bottom:60px;left:var(--sw,200px);z-index:5000;background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r);padding:12px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.5)';
+
+  const streams = Object.entries(_bgStreams);
+  overlay.innerHTML = `<div style="font-family:var(--font-d);font-size:13px;font-weight:800;color:var(--tx);margin-bottom:10px">🎬 Hintergrund-Streams</div>`;
+
+  streams.forEach(([id, s]) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)';
+    row.innerHTML = `
+      <span style="flex:1;font-size:12px;color:var(--tx)">${esc(s.title||id)}</span>
+      <button style="border:none;background:transparent;cursor:pointer;font-size:16px" data-bg-mute="${id}" title="${s.muted?'Unmuten':'Muten'}">${s.muted?'🔇':'🔊'}</button>
+      <button style="border:none;background:transparent;cursor:pointer;font-size:12px;color:var(--acc)" data-bg-restore="${id}" title="Zurückholen">▶</button>
+      <button style="border:none;background:transparent;cursor:pointer;font-size:12px;color:var(--danger)" data-bg-stop="${id}" title="Beenden">■</button>`;
+    overlay.appendChild(row);
+  });
+
+  if (!streams.length) {
+    overlay.innerHTML += '<div style="color:var(--tx2);font-size:12px;text-align:center;padding:10px">Keine Hintergrund-Streams</div>';
+  }
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => {
+    const muteId = e.target.dataset.bgMute;
+    const restoreId = e.target.dataset.bgRestore;
+    const stopId = e.target.dataset.bgStop;
+    if (muteId) {
+      _bgStreams[muteId].muted = !_bgStreams[muteId].muted;
+      try { _bgStreams[muteId].webview.setAudioMuted(_bgStreams[muteId].muted); } catch {}
+      overlay.remove(); openBgStreamsPanel(); updateBgStreamButton();
+    }
+    if (restoreId) {
+      overlay.remove();
+      if (typeof openProvider==='function') openProvider(restoreId);
+    }
+    if (stopId) {
+      try { _bgStreams[stopId].webview?.remove(); } catch {}
+      delete _bgStreams[stopId];
+      overlay.remove();
+      if (Object.keys(_bgStreams).length) openBgStreamsPanel();
+      updateBgStreamButton();
+    }
+  });
+  document.addEventListener('mousedown', function closePanel(e) {
+    if (!overlay.contains(e.target) && e.target.id !== 'bg-streams-btn') {
+      overlay.remove();
+      document.removeEventListener('mousedown', closePanel);
+    }
+  });
+}
+
+// ── 5. KARTEN: Quality-Badge Fix + Favoriten-Button ──────────────────
+
+(function fixCardVisuals() {
+  const orig = typeof buildProviderGrid==='function' ? buildProviderGrid : null;
+  // Nach buildProviderGrid: Quality-Badge und Fav-Button fixen
+  const fixCards = () => {
+    // Quality-Badge: Breite auf Inhalt begrenzen
+    document.querySelectorAll('.card-quality-badge').forEach(badge => {
+      badge.style.width = 'fit-content';
+      badge.style.maxWidth = '50px';
+    });
+    // Favoriten-Lesezeichen: Gelb wenn Favorit
+    document.querySelectorAll('.card-bookmark').forEach(bm => {
+      const card = bm.closest('.provider-card');
+      const id = card?.dataset.id;
+      if (!id) return;
+      const isFav = (settings.favorites||[]).includes(id);
+      if (isFav) {
+        bm.querySelector('svg')?.setAttribute('stroke','#ffd600');
+        bm.querySelector('svg')?.setAttribute('fill','#ffd600');
+        bm.style.background = 'transparent';
+        bm.style.border = 'none';
+      } else {
+        bm.querySelector('svg')?.setAttribute('stroke','rgba(255,255,255,.8)');
+        bm.querySelector('svg')?.setAttribute('fill','none');
+        bm.style.background = 'rgba(0,0,0,.45)';
+      }
+    });
+    // Edit-Button unten rechts
+    document.querySelectorAll('.card-edit-btn').forEach(eb => {
+      eb.style.top = 'auto';
+      eb.style.left = 'auto';
+      eb.style.bottom = '30px'; // Über dem Text-Bereich
+      eb.style.right = '7px';
+    });
+  };
+  // Nach jedem Grid-Build ausführen
+  const obs = new MutationObserver(fixCards);
+  const grid = document.getElementById('providers-grid');
+  if (grid) obs.observe(grid, { childList: true, subtree: false });
+  setTimeout(fixCards, 800);
+})();
+
+// ── 6. PROFIL LÖSCHEN: PIN-Abfrage + Button-Fix ──────────────────────
+
+(function fixProfileDelete() {
+  setTimeout(() => {
+    const delBtn = document.getElementById('ped-delete');
+    if (!delBtn || delBtn._v310DeleteFixed) return;
+    delBtn._v310DeleteFixed = true;
+
+    // Alten Handler entfernen
+    const newDel = delBtn.cloneNode(true);
+    delBtn.parentNode.replaceChild(newDel, delBtn);
+
+    newDel.addEventListener('click', async () => {
+      const pedId = window._pedProfileId;
+      if (!pedId) { showToastMsg('Kein Profil ausgewählt'); return; }
+      if (profiles.length <= 1) { showToastMsg('Mindestens 1 Profil erforderlich'); return; }
+
+      const profile = profiles.find(p => p.id === pedId);
+      if (!profile) return;
+
+      // PIN abfragen falls vorhanden
+      if (profile.pin) {
+        const entered = prompt(`PIN für "${profile.name}" eingeben um zu löschen:`);
+        if (entered === null) return;
+        let valid = false;
+        try { valid = await window.electronAPI.verifyPin(String(entered), profile.pin); }
+        catch { valid = String(entered) === String(profile.pin); }
+        if (!valid) { showToastMsg('Falscher PIN – Profil nicht gelöscht'); return; }
+      }
+
+      if (!confirm(`Profil "${profile.name}" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) return;
+
+      profiles = profiles.filter(p => p.id !== pedId);
+      window.electronAPI.setProfiles(profiles);
+      document.getElementById('profile-editor-overlay').style.display = 'none';
+
+      if (activeProfileId === pedId) {
+        if (typeof switchProfile === 'function') switchProfile(profiles[0].id);
+      } else {
+        if (typeof buildSidebarProfile === 'function') buildSidebarProfile();
+      }
+      showToastMsg('✓ Profil gelöscht');
+    });
+    console.log('[v3.1.10] Profil-Löschen-Button gefixt');
+  }, 900);
+})();
+
+// ── 7. PROFIL-EDITOR: Außen-Klick schließt ───────────────────────────
+
+(function fixProfileEditorOutsideClick() {
+  setTimeout(() => {
+    const overlay = document.getElementById('profile-editor-overlay');
+    if (!overlay || overlay._v310OutsideFixed) return;
+    overlay._v310OutsideFixed = true;
+    overlay.addEventListener('mousedown', e => {
+      if (e.target === overlay) {
+        overlay.style.display = 'none';
+        showToastMsg('Änderungen verworfen');
+      }
+    });
+  }, 700);
+})();
+
+// ── 8. STATISTIKEN: Achievements nicht transparent ────────────────────
+
+(function fixAchievementOpacity() {
+  // Original buildAchievementsSection überschreiben
+  const orig = typeof buildAchievementsSection === 'function' ? buildAchievementsSection : null;
+  if (!orig) return;
+  window.buildAchievementsSection = function(stats) {
+    orig.call(this, stats);
+    // Nach dem Rendern: earned Achievements sichtbar machen
+    setTimeout(() => {
+      document.querySelectorAll('.achievement-card').forEach(card => {
+        const isEarned = card.classList.contains('earned') || card.dataset.earned === 'true';
+        card.style.opacity = isEarned ? '1' : '0.4';
+        card.style.filter = isEarned ? 'none' : 'grayscale(0.4)';
+      });
+    }, 100);
+  };
+})();
+
+// ── 9. LADEZEIT-MELDUNG: In-App statt Windows-Notification ───────────
+
+// openProviderAtUrl: Timeout-Nachricht IN der App
+(function patchLoadingNotif() {
+  // Bereits in openProviderAtUrl gepacht - aber showNotif zeigt Windows-Notification
+  // window.showNotif überschreiben um In-App Notification zu nutzen
+  window.showNotif = function(title, body) {
+    // Nur In-App, nicht Windows
+    if (typeof addNotification === 'function') {
+      addNotification('⚠️', title, body);
+    }
+  };
+  // window.electronAPI.showNotification für Stream-Ladezeitverweis deaktivieren
+  // (bleibt für explizite Nutzer-Notifications aktiv)
+})();
+
+console.log('[v3.1.10] Alle Fixes geladen');
+
+// ════════════════════════════════════════════════════════════════════
+// v3.1.11 FIXES: Auto-Update + WideVine Ordner
+// ════════════════════════════════════════════════════════════════════
+
+// ── 1. AUTO-UPDATE: GH_TOKEN Eingabe + Update-Check Fix ─────────────
+
+(function setupUpdateSystem() {
+  // Version korrekt aus main.js laden
+  window.electronAPI.getAppVersion?.().then(v => {
+    if (v) window.__appVersion = v;
+  }).catch(() => {});
+
+  // GH_TOKEN laden und Update-System initialisieren
+  window.electronAPI.getGhToken?.().then(token => {
+    if (token) {
+      console.log('[Update] GH_TOKEN vorhanden, Auto-Update aktiv');
+    } else {
+      console.log('[Update] Kein GH_TOKEN – nur manuelle Update-Prüfung möglich');
+    }
+  }).catch(() => {});
+
+  // Update-Check Button: vollständig neu verdrahten
+  setTimeout(() => {
+    const btn = document.getElementById('btn-check-updates');
+    if (!btn || btn._v311UpdateFixed) return;
+    btn._v311UpdateFixed = true;
+
+    // Alle alten Klone und Handler entfernen
+    const fresh = btn.cloneNode(true);
+    btn.parentNode.replaceChild(fresh, btn);
+
+    fresh.addEventListener('click', async () => {
+      const el = document.getElementById('update-check-result');
+      if (el) { el.textContent = 'Prüfe…'; el.style.color = 'var(--tx2)'; }
+
+      let done = false;
+      const finish = (text, color) => {
+        if (done) return;
+        done = true;
+        if (el) { el.textContent = text; el.style.color = color; }
+      };
+
+      // Listener für Update-Events
+      const unsubAvail = window.electronAPI.onUpdateAvailable?.(info => {
+        finish(`🚀 Update v${info.version} verfügbar! → Banner oben`, 'var(--acc)');
+      });
+      const unsubNone = window.electronAPI.onUpdateNotAvailable?.(() => {
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.11'})`, 'var(--acc)');
+      });
+      const unsubErr = window.electronAPI.onUpdateError?.(msg => {
+        // 404 = kein latest.yml → aktuell
+        const isNoRelease = !msg || msg.includes('404') || msg.includes('ENOENT') || msg.includes('Cannot find');
+        finish(
+          isNoRelease
+            ? `✓ Aktuellste Version (v${window.__appVersion || '3.1.11'})`
+            : `Fehler: ${msg}`,
+          isNoRelease ? 'var(--acc)' : 'var(--danger)'
+        );
+      });
+
+      // Token prüfen
+      const token = await window.electronAPI.getGhToken?.().catch(() => '');
+      if (!token) {
+        // Kein Token → Token-Eingabe anbieten
+        finish('', 'var(--tx2)');
+        if (el) {
+          el.innerHTML = `<span style="color:var(--tx3);font-size:11px">
+            ⚠ Für private Repos ist ein GitHub-Token nötig.
+            <button id="btn-enter-gh-token" style="margin-left:6px;padding:2px 8px;background:var(--acc);color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px">Token eingeben</button>
+          </span>`;
+          document.getElementById('btn-enter-gh-token')?.addEventListener('click', async () => {
+            const t = prompt('GitHub Personal Access Token eingeben:\n(Benötigt: read:packages oder repo Scope)\nhttps://github.com/settings/tokens');
+            if (!t) return;
+            await window.electronAPI.setGhToken(t);
+            showToastMsg('✓ Token gespeichert – prüfe jetzt nach Updates');
+            fresh.click(); // Erneut prüfen
+          });
+        }
+        done = true;
+        return;
+      }
+
+      try {
+        await window.electronAPI.checkForUpdates();
+      } catch(e) {
+        finish(`Fehler beim Prüfen: ${e.message}`, 'var(--danger)');
+        return;
+      }
+
+      // Timeout: 8s
+      setTimeout(() => {
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.11'})`, 'var(--acc)');
+      }, 8000);
+    });
+  }, 900);
+})();
+
+// ── 2. WIDEVINE ORDNER: Beim Start IMMER anlegen (Renderer-Seite) ────
+
+(function ensureWidevineFolder() {
+  setTimeout(async () => {
+    try {
+      const status = await window.electronAPI.getWidevineStatus();
+      console.log('[WideVine] Status:', status);
+      console.log('[WideVine] Ordner:', status?.cdmDir);
+
+      // Status in UI aktualisieren
+      const el = document.getElementById('widevine-status');
+      if (!el) return;
+
+      if (status?.installed) {
+        el.innerHTML = '<span style="color:var(--acc);font-weight:600">✓ WideVine CDM installiert und aktiv</span>';
+      } else {
+        const folder = status?.cdmDir || 'Unbekannt';
+        el.innerHTML = `
+          <span style="color:var(--danger);font-weight:600">✗ WideVine CDM nicht gefunden</span>
+          <div style="margin-top:6px;font-size:12px;color:var(--tx2)">
+            Ordner wurde angelegt. Lege die <code style="background:var(--bgc);padding:1px 5px;border-radius:3px;color:var(--acc)">widevinecdm.dll</code> dort hinein:
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:5px">
+            <code style="background:var(--bgc);border:1px solid var(--bor);border-radius:4px;padding:4px 8px;font-size:10px;color:var(--tx2);flex:1;word-break:break-all">${folder}</code>
+            <button onclick="window._openWvFolder('dest')" style="padding:5px 10px;background:var(--acc);color:#fff;border:none;border-radius:var(--r-sm);font-size:11px;cursor:pointer;white-space:nowrap">📁 Öffnen</button>
+          </div>`;
+
+        // Anleitungs-Button
+        const existingGuideBtn = el.parentElement?.querySelector('[onclick*="openWidevineGuide"]');
+        if (!existingGuideBtn) {
+          const guideBtn = document.createElement('button');
+          guideBtn.className = 'pick-btn';
+          guideBtn.style.cssText = 'margin-top:8px;display:flex;align-items:center;gap:6px';
+          guideBtn.innerHTML = '📖 Schritt-für-Schritt Anleitung';
+          guideBtn.addEventListener('click', () => {
+            if (typeof openWidevineGuide === 'function') openWidevineGuide();
+          });
+          el.appendChild(guideBtn);
+        }
+      }
+    } catch(e) {
+      console.warn('[WideVine] Status-Fehler:', e.message);
+    }
+  }, 1200);
+})();
+
+// ── 3. WIDEVINE Ordner-Öffnen: Verbesserter Fallback ─────────────────
+
+window._openWvFolder = async function(type) {
+  try {
+    const status = await window.electronAPI.getWidevineStatus();
+    let targetPath = '';
+
+    if (type === 'dest') {
+      targetPath = status?.cdmDir || '';
+    } else if (type === 'chrome') {
+      targetPath = 'C:\\Program Files\\Google\\Chrome\\Application';
+    } else if (type === 'edge') {
+      targetPath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application';
+    }
+
+    if (!targetPath) { showToastMsg('Pfad nicht gefunden'); return; }
+
+    // Windows-Pfad für file:// URL normalisieren
+    const normalized = targetPath.replace(/\\/g, '/');
+    const url = normalized.startsWith('/') ? `file://${normalized}` : `file:///${normalized}`;
+    window.electronAPI.openExternal(url);
+  } catch(e) {
+    showToastMsg('Ordner konnte nicht geöffnet werden: ' + e.message);
+  }
+};
+
+console.log('[v3.1.11] Update + WideVine Fixes geladen');

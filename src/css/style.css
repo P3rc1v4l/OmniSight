@@ -715,3 +715,48 @@ body:not(.no-hover-zoom) .provider-card:hover{transform:translateY(-3px)}
 
 /* 9. Onboarding Guide: immer vorne */
 #widevine-guide-overlay{z-index:10000!important}
+
+/* ═══ STREAM-TABS v3.1.10 ════════════════════════════════════════ */
+.stream-tabs-bar{
+  background:var(--bg2);border-bottom:1px solid var(--bor);
+  display:flex;align-items:stretch;height:36px;overflow-x:auto;
+  scrollbar-width:none;
+}
+.stream-tabs-bar::-webkit-scrollbar{display:none}
+.stream-tabs{display:flex;align-items:stretch;gap:1px;flex:1}
+.stream-tab-item{
+  display:flex;align-items:center;gap:5px;padding:6px 12px;
+  font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;
+  border-bottom:2px solid transparent;transition:all .15s;
+  max-width:180px;overflow:hidden;
+}
+.stream-tab-item.active{
+  color:var(--acc);border-bottom-color:var(--acc);
+  background:rgba(48,197,187,.08);
+}
+.stream-tab-item:hover:not(.active){background:rgba(255,255,255,.04)}
+
+/* ═══ QUALITY-BADGE: Breite angepasst ════════════════════════════ */
+.card-quality-badge{
+  width:fit-content!important;
+  max-width:55px!important;
+  white-space:nowrap;
+}
+
+/* ═══ KARTEN: EDIT-BUTTON POSITION ══════════════════════════════ */
+.card-edit-btn{
+  top:auto!important;left:auto!important;
+  bottom:32px!important;right:7px!important;
+}
+
+/* ═══ HINTERGRUND-STREAMS BUTTON ════════════════════════════════ */
+#bg-streams-btn:hover{opacity:.85}
+#bg-panel-overlay{animation:fadeIn .18s ease}
+
+/* ═══ ACHIEVEMENTS: EARNED VOLL SICHTBAR ════════════════════════ */
+.achievement-card.earned,.achievement-card[data-earned="true"]{
+  opacity:1!important;filter:none!important;
+}
+.achievement-card:not(.earned):not([data-earned="true"]){
+  opacity:0.38!important;filter:grayscale(0.3)!important;
+}

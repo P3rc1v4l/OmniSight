@@ -1,3 +1,57 @@
+## v3.1.11 -- 2026-05-25
+
+### Auto-Update: Grundlegend repariert
+- setupWidevineDir() wurde nie aufgerufen (nur definiert) -- jetzt in
+  app.whenReady() als erster Schritt
+- Auto-Update fuer private Repos: setFeedURL benoetigt 'private:true' und
+  'token' -- beides jetzt korrekt gesetzt
+- GH_TOKEN wird aus electron-store geladen (nicht nur aus process.env)
+- Neuer IPC-Handler 'set-gh-token' / 'get-gh-token': Nutzer kann den Token
+  einmalig in Einstellungen -> Mehr -> Updates eingeben
+- Update-Check-Button: zeigt Token-Eingabe-Dialog wenn kein Token vorhanden
+- Timeout von 8s verhindert dauerhaftes 'Prüfe...'
+
+### WideVine CDM: Ordner wird jetzt IMMER angelegt
+- Beim App-Start (app.whenReady) wird setupWidevineDir() aufgerufen
+- Ordner-Pfad: %AppData%\omnisight\WidevineCdm\_platform_specific\win_x64\
+- get-widevine-status legt den Ordner an falls er fehlt
+- WideVine-Status-Anzeige in Einstellungen -> Mehr zeigt den exakten Pfad
+  und einen 'Ordner oeffnen'-Button der jetzt korrekt funktioniert
+
+### Version
+- Korrekte Erhoehung auf 3.1.11 (nach 3.1.10)
+
+## v3.1.10 -- 2026-05-25
+
+### Kritische Bugfixes
+- TypeError 'Cannot read properties of null (reading contains)': Suche-Mousedown
+  handler greift auf null zu wenn Suchfeld neu geklont wird -- null-safe gemacht
+- Profil loeschen funktioniert wieder: Button hatte alten Handler der ueberschrieben
+  wurde -- neu verdrahtet mit PIN-Abfrage wenn Profil einen PIN hat
+- Profil-Editor Aussen-Klick: schliesst ohne Speichern (showToastMsg bestaetigt)
+
+### Twitch / YouTube
+- Chrome-UA ohne 'Electron'-String wird jetzt fuer ALLE Sessions gesetzt
+  (vorher nur im openProviderAtUrl Webview-Attribut, jetzt auch in der Session)
+  Behebt: 'Browser wird nicht unterstuetzt'-Meldung auf Twitch
+- Tabs optisch ueberarbeitet: aktiver Tab mit Akzentfarbe, Hover-Effekte,
+  Mute-Button im Tab, '+ Neuer Tab'-Button rechts neben den Tabs
+
+### Neue Features
+- Hintergrund-Streams: Wenn Twitch/YouTube verlassen, erscheint Sidebar-Button
+  'Im Hintergrund (N)' -- zeigt Panel mit Mute/Unmute/Restore/Stop pro Stream
+- Ladetime-Meldung: 'Laedt sehr lange' erscheint jetzt in der App als
+  Push-Benachrichtigung statt als Windows-Systemmeldung
+
+### Karten
+- Quality-Badge: Breite passt sich dem Text an (kein langer schwarzer Balken mehr)
+- Favoriten-Lesezeichen: gelb wenn Favorit, kein Hintergrund, nur beim Hovern
+- Edit-Button (Stift): unten rechts auf der Karte beim Hovern
+
+### Statistiken
+- Erreichte Achievements haben volle Sichtbarkeit (opacity 1, kein Filter)
+- Noch nicht erreichte sind dezent ausgegraut (opacity 0.38)
+
 ## v3.1.10 -- 2026-05-24
 
 ### Version

@@ -112,7 +112,18 @@ const DEFAULT_ADS=['doubleclick.net','googlesyndication.com','googletagmanager.c
 function isAd(url){try{const h=new URL(url).hostname;return[...DEFAULT_ADS,...store.get('extraAdDomains',[])].some(d=>h===d||h.endsWith('.'+d));}catch{return false;}}
 
 // ── SESSION ───────────────────────────────────────────────────────
+
+// Twitch/YouTube: Chrome UA setzen (ohne 'Electron' String)
+const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+function setupStreamUA(ses) {
+  if (!ses) return;
+  try {
+    ses.setUserAgent(CHROME_UA, 'de-DE,de;q=0.9,en;q=0.8');
+  } catch(e) { console.warn('[UA] setUserAgent Fehler:', e.message); }
+}
+
 function setupSession(ses){
+  setupStreamUA(ses);
   // CSP für app-eigene Seiten
   ses.webRequest.onHeadersReceived({urls:['file://*']}, (d,cb)=>{
     const h=d.responseHeaders||{};
@@ -179,7 +190,15 @@ function createMainWindow(){
     const {autoUpdater}=require('electron-updater');
     autoUpdater.autoDownload=false; // Download nur auf Nutzer-Wunsch
     autoUpdater.autoInstallOnAppQuit=true; // bei Quit automatisch installieren
-    autoUpdater.setFeedURL({provider:'github',owner:'P3rc1v4l',repo:'OmniSight'});
+    // GH_TOKEN aus Umgebung oder Electron-Store für private Repos
+    const ghToken = process.env.GH_TOKEN || store.get('ghToken','');
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'P3rc1v4l',
+      repo: 'OmniSight',
+      private: true,        // Repo ist privat → Token nötig
+      token: ghToken || undefined
+    });
     autoUpdater.on('update-available',info=>mainWindow?.webContents.send('update-available',info));
     autoUpdater.on('update-not-available',()=>mainWindow?.webContents.send('update-not-available'));
     autoUpdater.on('update-downloaded',info=>{
@@ -204,6 +223,18 @@ ipcMain.on('clear-crash-log',()=>{
   try{if(fs_.existsSync(logFile))fs_.unlinkSync(logFile);}catch{}
 });
 ipcMain.on('install-update',()=>{try{const{autoUpdater}=require('electron-updater');autoUpdater.quitAndInstall(false,true);}catch{}});
+
+// GH_TOKEN für Auto-Update bei privaten Repos
+ipcMain.handle('get-gh-token',()=>store.get('ghToken',''));
+ipcMain.on('set-gh-token',(_,token)=>{
+  store.set('ghToken',token);
+  // autoUpdater neu konfigurieren
+  try {
+    const {autoUpdater}=require('electron-updater');
+    autoUpdater.setFeedURL({provider:'github',owner:'P3rc1v4l',repo:'OmniSight',private:true,token});
+    autoUpdater.checkForUpdates();
+  } catch {}
+});
 ipcMain.handle('check-for-updates',async()=>{try{await require('electron-updater').autoUpdater.checkForUpdates();}catch{}});
 
 // ── IPC: SETTINGS ─────────────────────────────────────────────────
@@ -340,10 +371,15 @@ ipcMain.handle('get-extra-ad-domains',()=>store.get('extraAdDomains',[]));
 
 // ── IPC: WIDEVINE ─────────────────────────────────────────────────
 ipcMain.handle('get-widevine-status',()=>{
-  const cdmDir=path.join(app.getPath('userData'),'WidevineCdm');
-  const paths=[path.join(cdmDir,'widevinecdm.dll'),path.join(cdmDir,'_platform_specific','win_x64','widevinecdm.dll'),path.join(cdmDir,'libwidevinecdm.dylib')];
-  for(const p of paths)if(fs.existsSync(p))return{installed:true,path:p,cdmDir};
-  return{installed:false,cdmDir};
+  const userData = app.getPath('userData');
+  const cdmDir = path.join(userData, 'WidevineCdm', '_platform_specific', 'win_x64');
+  const dllPath = path.join(cdmDir, 'widevinecdm.dll');
+  // Ordner sicherstellen
+  if (!fs.existsSync(cdmDir)) {
+    try { fs.mkdirSync(cdmDir, { recursive: true }); } catch {}
+  }
+  if (fs.existsSync(dllPath)) return { installed: true, path: dllPath, cdmDir };
+  return { installed: false, cdmDir };
 });
 
 // ── IPC: TMDB ─────────────────────────────────────────────────────
@@ -380,7 +416,12 @@ ipcMain.handle('check-online',async()=>{try{await session.defaultSession.fetch('
 ipcMain.handle('check-url',async(_,url)=>{try{const r=await session.defaultSession.fetch(url,{method:'HEAD',headers:{'User-Agent':UA}});return{ok:true,status:r.status};}catch(e){return{ok:false,error:e.message};}});
 ipcMain.on('open-external',(_,url)=>shell.openExternal(url));
 
-app.whenReady().then(createMainWindow);
+app.whenReady().then(()=>{
+  // WideVine Ordner IMMER beim Start anlegen
+  try { setupWidevineDir(); } catch(e) { console.warn('[WideVine] Ordner-Fehler:', e.message); }
+  setupCrashReporter();
+  createMainWindow();
+});
 
 // Beim Beenden: Daten-Lösch-Dialog (für Deinstallation)
 app.on('will-quit', (e) => {
