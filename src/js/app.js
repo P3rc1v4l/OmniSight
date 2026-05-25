@@ -164,6 +164,12 @@ document.getElementById('btn-check-updates')?.addEventListener('click',async()=>
     const cat=document.querySelector('.wl-cat-btn.active')?.dataset.cat||'all';
     buildWatchlistSorted(cat);
   });
+  // Zusätzliche Setups
+  if (typeof setupProfileEditor === 'function') setupProfileEditor();
+  if (typeof setupFeedback === 'function') setupFeedback();
+  setTimeout(() => {
+    if (typeof checkWidevineBanner === 'function') checkWidevineBanner();
+  }, 2000);
 }
 
 // ════════ LANGUAGE / THEME / FONT / DESIGN ═════════════════════════

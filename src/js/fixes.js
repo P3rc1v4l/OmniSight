@@ -2338,3 +2338,744 @@ window.moveToPip = function(id, wv) {
 })();
 
 console.log('[v3.1.13] Session, PIP, Update-Check gepatcht');
+
+// ════════════════════════════════════════════════════════════════════
+// v3.2.2 FIXES: Suche, Profil, Statistiken, Sprache, Onboarding
+// ════════════════════════════════════════════════════════════════════
+
+// ── 1. SUCHE: Komplett neu implementiert ─────────────────────────────
+
+function setupSearch() {
+  const input   = document.getElementById('search-input');
+  const dd      = document.getElementById('search-dropdown');
+  const clearBtn= document.getElementById('search-clear');
+  if (!input || !dd) return;
+
+  // Placeholder je nach Sprache
+  input.placeholder = t('searchPlaceholder') || 'Anbieter, Film, Serie, YouTube-URL…';
+
+  let _timer = null;
+  let _abort = null;
+
+  function closeSearch() {
+    dd.style.display = 'none';
+  }
+
+  function openSearch(q) {
+    if (!q || !q.trim()) {
+      if (searchHistory && searchHistory.length) renderSearchHistory(dd);
+      else closeSearch();
+      return;
+    }
+    if (_abort) { try { _abort.abort(); } catch {} }
+    _abort = new AbortController();
+    clearTimeout(_timer);
+    _timer = setTimeout(() => runTmdbSearch(q.trim(), 1, _abort.signal), 280);
+  }
+
+  // Alle alten Handler sauber entfernen
+  const fresh = input.cloneNode(true);
+  input.parentNode.replaceChild(fresh, input);
+  if (clearBtn) clearBtn.style.display = 'none';
+
+  fresh.addEventListener('input', () => {
+    const q = fresh.value;
+    if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+    openSearch(q);
+  });
+
+  fresh.addEventListener('focus', () => {
+    const q = fresh.value.trim();
+    if (q) openSearch(q);
+    else if (searchHistory && searchHistory.length) renderSearchHistory(dd);
+  });
+
+  fresh.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeSearch(); fresh.blur(); }
+    if (e.key === 'Enter' && fresh.value.trim()) {
+      if (typeof addToSearchHistory === 'function') addToSearchHistory(fresh.value.trim());
+    }
+  });
+
+  if (clearBtn) {
+    const freshClear = clearBtn.cloneNode(true);
+    clearBtn.parentNode.replaceChild(freshClear, clearBtn);
+    freshClear.innerHTML = '✕';
+    freshClear.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);' +
+      'background:transparent;border:none;color:var(--tx2);font-size:14px;cursor:pointer;' +
+      'display:none;z-index:10;padding:4px 6px;line-height:1;border-radius:4px;';
+    freshClear.title = 'Suche leeren';
+    freshClear.addEventListener('mouseenter', () => freshClear.style.color = 'var(--tx)');
+    freshClear.addEventListener('mouseleave', () => freshClear.style.color = 'var(--tx2)');
+    freshClear.addEventListener('click', () => {
+      fresh.value = '';
+      freshClear.style.display = 'none';
+      dd.innerHTML = '';
+      closeSearch();
+      if (_abort) try { _abort.abort(); } catch {}
+      clearTimeout(_timer);
+      fresh.focus();
+    });
+  }
+
+  // Außen-Klick schließt zuverlässig
+  document.addEventListener('mousedown', e => {
+    const wrap = fresh.closest('.search-bar') ||
+                 fresh.closest('.home-actions') ||
+                 fresh.parentElement;
+    if (!wrap?.contains(e.target) && !dd.contains(e.target)) {
+      closeSearch();
+    }
+  }, true); // capture phase
+
+  // Seitenwechsel schließt
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    btn.addEventListener('click', closeSearch);
+  });
+
+  console.log('[v3.2.2] setupSearch() neu installiert');
+}
+
+// ── 2. PROFIL-EDITOR: Vollständige Neuimplementierung ────────────────
+
+function setupProfileEditor() {
+  const overlay = document.getElementById('profile-editor-overlay');
+  if (!overlay || overlay._v322Setup) return;
+  overlay._v322Setup = true;
+
+  // Außen-Klick schließt
+  overlay.addEventListener('mousedown', e => {
+    if (e.target === overlay) {
+      overlay.style.display = 'none';
+    }
+  });
+
+  // SPEICHERN
+  document.getElementById('ped-save')?.addEventListener('click', async () => {
+    const pedId   = window._pedId;
+    const name    = (document.getElementById('ped-name')?.value || '').trim() || 'User';
+    let   pinSave = undefined;
+
+    // PIN verarbeiten
+    if (window._pedPin !== undefined) {
+      if (!window._pedPin) {
+        pinSave = null; // PIN entfernen
+      } else if (/^\d{4,8}$/.test(String(window._pedPin))) {
+        try {
+          pinSave = await window.electronAPI.hashPin(String(window._pedPin));
+        } catch {
+          pinSave = window._pedPin;
+        }
+      } else {
+        pinSave = window._pedPin; // bereits gehasht
+      }
+    }
+
+    if (pedId) {
+      // Bestehendes Profil updaten
+      const idx = profiles.findIndex(p => p.id === pedId);
+      if (idx >= 0) {
+        profiles[idx].name = name;
+        if (window._pedAvatar !== undefined) profiles[idx].avatar = window._pedAvatar;
+        if (pinSave !== undefined) profiles[idx].pin = pinSave;
+      }
+    } else {
+      // Neues Profil anlegen
+      const newId = 'profile_' + Date.now();
+      profiles.push({
+        id: newId, name, avatar: window._pedAvatar || null,
+        pin: pinSave || null, isNew: true,
+        favorites: [], watchlist: [], searchHistory: [], viewHistory: [],
+      });
+    }
+
+    window.electronAPI.setProfiles(profiles);
+    overlay.style.display = 'none';
+    buildSidebarProfile();
+    showSaveToast();
+    window._pedId = null;
+    window._pedPin = undefined;
+    window._pedAvatar = undefined;
+  });
+
+  // ABBRECHEN
+  document.getElementById('ped-cancel')?.addEventListener('click', () => {
+    overlay.style.display = 'none';
+    window._pedId = null;
+    window._pedPin = undefined;
+    window._pedAvatar = undefined;
+  });
+
+  // LÖSCHEN
+  document.getElementById('ped-delete')?.addEventListener('click', async () => {
+    const pedId = window._pedId;
+    if (!pedId) return;
+    if (profiles.length <= 1) { showToastMsg(t('profileRequired') || 'Mindestens 1 Profil'); return; }
+
+    const profile = profiles.find(p => p.id === pedId);
+    if (!profile) return;
+
+    // PIN abfragen wenn vorhanden
+    if (profile.pin) {
+      const entered = prompt(`PIN für "${profile.name}" eingeben:`);
+      if (entered === null) return;
+      let valid = false;
+      try { valid = await window.electronAPI.verifyPin(String(entered), profile.pin); }
+      catch { valid = String(entered) === String(profile.pin); }
+      if (!valid) { showToastMsg(t('pinWrong') || 'Falscher PIN'); return; }
+    }
+
+    if (!confirm(`Profil "${profile.name}" wirklich löschen?`)) return;
+
+    profiles = profiles.filter(p => p.id !== pedId);
+    window.electronAPI.setProfiles(profiles);
+    overlay.style.display = 'none';
+    window._pedId = null;
+
+    if (activeProfileId === pedId) {
+      switchProfile(profiles[0].id);
+    } else {
+      buildSidebarProfile();
+    }
+    showToastMsg(t('profileDeleted') || 'Profil gelöscht');
+  });
+
+  // AVATAR WÄHLEN
+  document.getElementById('ped-pick-avatar')?.addEventListener('click', async () => {
+    const r = await window.electronAPI.pickImage('avatar').catch(() => null);
+    if (!r) return;
+    const url = r.base64 || r.filePath || r;
+    window._pedAvatar = url;
+    const prev = document.getElementById('ped-avatar-preview');
+    if (prev) prev.innerHTML = `<img src="${url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover"/>`;
+  });
+
+  // PIN SETZEN
+  document.getElementById('ped-set-pin')?.addEventListener('click', async () => {
+    const pedId  = window._pedId;
+    const profile = pedId ? profiles.find(p => p.id === pedId) : null;
+
+    if (profile?.pin) {
+      const old = prompt('Aktuellen PIN eingeben:');
+      if (old === null) return;
+      let valid = false;
+      try { valid = await window.electronAPI.verifyPin(String(old), profile.pin); }
+      catch { valid = String(old) === String(profile.pin); }
+      if (!valid) { showToastMsg(t('pinWrong') || 'Falscher PIN'); return; }
+    }
+
+    const newPin = prompt('Neuen 4-8 stelligen PIN eingeben (leer = PIN entfernen):');
+    if (newPin === null) return;
+
+    if (newPin === '') {
+      window._pedPin = '';
+      const ps = document.getElementById('ped-pin-status');
+      if (ps) ps.textContent = '🔓 PIN wird entfernt';
+      showToastMsg('PIN wird beim Speichern entfernt');
+      return;
+    }
+    if (!/^\d{4,8}$/.test(newPin)) { showToastMsg('PIN muss 4-8 Ziffern haben'); return; }
+    window._pedPin = newPin;
+    const ps = document.getElementById('ped-pin-status');
+    if (ps) ps.textContent = '🔒 Neuer PIN (noch nicht gespeichert)';
+    showToastMsg('PIN gesetzt – Speichern nicht vergessen!');
+  });
+
+  // Neues Profil Button in Profil-Liste
+  document.getElementById('btn-new-profile')?.addEventListener('click', () => {
+    openProfileEditor(null);
+  });
+
+  console.log('[v3.2.2] setupProfileEditor() installiert');
+}
+
+// openProfileEditor mit PIN-Status
+const _origOpenProfileEditor = typeof openProfileEditor === 'function' ? openProfileEditor : null;
+function openProfileEditor(id) {
+  const p = id ? profiles.find(pr => pr.id === id) : null;
+  window._pedId      = id || null;
+  window._pedAvatar  = undefined;
+  window._pedPin     = undefined;
+
+  const titleEl = document.getElementById('ped-title');
+  const nameEl  = document.getElementById('ped-name');
+  const prevEl  = document.getElementById('ped-avatar-preview');
+  const pinEl   = document.getElementById('ped-pin-status');
+  const delBtn  = document.getElementById('ped-delete');
+
+  if (titleEl) titleEl.textContent = p ? 'Profil bearbeiten' : 'Neues Profil';
+  if (nameEl)  nameEl.value = p?.name || '';
+  if (prevEl)  prevEl.innerHTML = p?.avatar
+    ? `<img src="${p.avatar}" style="width:56px;height:56px;border-radius:50%;object-fit:cover"/>`
+    : '<div style="width:56px;height:56px;border-radius:50%;background:var(--bgch);display:flex;align-items:center;justify-content:center;font-size:28px">👤</div>';
+  if (pinEl)   pinEl.textContent = p?.pin ? '🔒 PIN aktiv' : '🔓 Kein PIN';
+  if (delBtn)  delBtn.style.display = (p && profiles.length > 1) ? 'flex' : 'none';
+
+  document.getElementById('profile-editor-overlay').style.display = 'flex';
+}
+
+// Sidebar: aktives Profil hervorheben
+const _origBuildSidebarProfile = typeof buildSidebarProfile === 'function' ? buildSidebarProfile : null;
+function buildSidebarProfile() {
+  if (_origBuildSidebarProfile) _origBuildSidebarProfile();
+
+  // Profil-Liste in der Sidebar aktualisieren
+  const list = document.getElementById('sidebar-profile-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  profiles.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'sidebar-profile-item' + (p.id === activeProfileId ? ' active' : '');
+    item.style.cssText = `display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--r-sm);
+      cursor:pointer;transition:background .15s;margin-bottom:2px;
+      ${p.id === activeProfileId ? 'background:var(--accg);color:var(--acc)' : 'color:var(--tx2)'}`;
+    item.innerHTML = `
+      <div style="width:22px;height:22px;border-radius:50%;overflow:hidden;flex-shrink:0;
+        background:${p.id === activeProfileId ? 'var(--acc)' : 'var(--bgch)'};
+        display:flex;align-items:center;justify-content:center;font-size:12px">
+        ${p.avatar ? `<img src="${p.avatar}" style="width:100%;height:100%;object-fit:cover"/>` : '👤'}
+      </div>
+      <span style="font-size:12px;font-weight:${p.id===activeProfileId?'700':'400'};flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</span>
+      <button class="profile-edit-trigger" data-profile-id="${p.id}"
+        style="background:transparent;border:none;color:var(--tx3);cursor:pointer;font-size:11px;
+          padding:2px 4px;opacity:0;transition:opacity .15s;border-radius:3px"
+        title="Profil bearbeiten">✏</button>`;
+
+    item.addEventListener('mouseenter', () => {
+      item.querySelector('.profile-edit-trigger').style.opacity = '1';
+      if (p.id !== activeProfileId) item.style.background = 'var(--bgc)';
+    });
+    item.addEventListener('mouseleave', () => {
+      item.querySelector('.profile-edit-trigger').style.opacity = '0';
+      if (p.id !== activeProfileId) item.style.background = 'transparent';
+    });
+
+    item.addEventListener('click', e => {
+      if (e.target.closest('.profile-edit-trigger')) {
+        e.stopPropagation();
+        openProfileEditor(e.target.closest('.profile-edit-trigger').dataset.profileId);
+        return;
+      }
+      if (p.id !== activeProfileId) {
+        if (p.pin) {
+          const entered = prompt(`PIN für "${p.name}":`);
+          if (entered === null) return;
+          window.electronAPI.verifyPin(String(entered), p.pin).then(valid => {
+            if (valid) switchProfile(p.id);
+            else showToastMsg(t('pinWrong') || 'Falscher PIN');
+          }).catch(() => {
+            if (String(entered) === String(p.pin)) switchProfile(p.id);
+            else showToastMsg('Falscher PIN');
+          });
+        } else {
+          switchProfile(p.id);
+        }
+      }
+    });
+
+    list.appendChild(item);
+  });
+}
+
+// ── 3. STATISTIKEN: Überarbeitet ─────────────────────────────────────
+
+async function buildStatsView() {
+  const content = document.getElementById('stats-content');
+  if (!content) return;
+  content.innerHTML = '<div style="text-align:center;padding:30px;color:var(--tx2)">Lädt…</div>';
+
+  const stats   = await window.electronAPI.getStreamStats(activeProfileId).catch(() => ({}));
+  const watched = await window.electronAPI.getWatchedContent(activeProfileId).catch(() => []);
+  content.innerHTML = '';
+
+  const entries = Object.entries(stats)
+    .map(([id, v]) => ({ id, secs: v?.total || 0, byDay: v?.byDay || Array(7).fill(0) }))
+    .filter(e => e.secs > 0)
+    .sort((a, b) => b.secs - a.secs);
+
+  const totalSecs  = entries.reduce((a, e) => a + e.secs, 0);
+  const totalH     = (totalSecs / 3600).toFixed(1);
+  const adCount    = parseInt(localStorage.getItem('adBlock_' + activeProfileId) || '0');
+  const topProv    = entries[0];
+  const topProvName = topProv
+    ? ((settings.cardCustomNames || {})[topProv.id] || PROVIDERS()[topProv.id]?.name || topProv.id)
+    : '–';
+  const days_label = (I18N[lang] || I18N.de).days || ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+  // ── Kacheln oben ────────────────────────────────────────────────
+  const kacheln = [
+    { icon: '⏱', label: 'Streamzeit gesamt', value: totalH + 'h', color: 'var(--acc)' },
+    { icon: '📺', label: 'Anbieter genutzt',  value: String(entries.length), color: '#66bb6a' },
+    { icon: '🎬', label: 'Angeschaut',         value: String(watched.length), color: '#ffa726' },
+    { icon: '🛡', label: 'Werbung geblockt',   value: adCount.toLocaleString('de-DE'), color: '#ab47bc', sub: topProv ? `Meist bei ${topProvName}` : '' },
+  ];
+  const kachelWrap = document.createElement('div');
+  kachelWrap.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px';
+  kacheln.forEach(k => {
+    const el = document.createElement('div');
+    el.style.cssText = `background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);
+      padding:14px;text-align:center;transition:border-color .15s`;
+    el.innerHTML = `<div style="font-size:22px;margin-bottom:4px">${k.icon}</div>
+      <div style="font-family:var(--font-d);font-size:22px;font-weight:800;color:${k.color}">${k.value}</div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:3px">${k.label}</div>
+      ${k.sub ? `<div style="font-size:9px;color:var(--tx3);margin-top:2px">${esc(k.sub)}</div>` : ''}`;
+    el.addEventListener('mouseenter', () => el.style.borderColor = k.color);
+    el.addEventListener('mouseleave', () => el.style.borderColor = 'var(--bor)');
+    kachelWrap.appendChild(el);
+  });
+  content.appendChild(kachelWrap);
+
+  // ── Leer-State ───────────────────────────────────────────────────
+  if (!entries.length) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'text-align:center;padding:40px;color:var(--tx2);font-size:13px';
+    empty.innerHTML = '📊 Noch keine Streaming-Daten.<br>Öffne einen Anbieter und streame etwas!';
+    content.appendChild(empty);
+    buildAchievementsSection(stats);
+    return;
+  }
+
+  // ── Meistgenutzte Anbieter (Balken) ─────────────────────────────
+  const barSection = document.createElement('div');
+  barSection.style.cssText = 'background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);padding:16px;margin-bottom:16px';
+  barSection.innerHTML = '<h3 style="font-family:var(--font-d);font-size:14px;color:var(--tx);margin-bottom:14px;font-weight:700">📊 Meistgenutzte Anbieter</h3>';
+
+  entries.slice(0, 8).forEach(({ id, secs }, i) => {
+    const p    = PROVIDERS()[id]; if (!p) return;
+    const h    = (secs / 3600).toFixed(1);
+    const pct  = Math.round((secs / (entries[0].secs || 1)) * 100);
+    const name = (settings.cardCustomNames || {})[id] || p.name;
+    const bar  = document.createElement('div');
+    bar.style.cssText = 'margin-bottom:12px';
+    bar.innerHTML = `
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px">
+        <span style="display:flex;align-items:center;gap:6px;color:var(--tx)">
+          <img src="${getFavicon(id,p)}" style="width:14px;height:14px;border-radius:2px;object-fit:contain" onerror="this.style.display='none'"/>
+          ${esc(name)}
+        </span>
+        <span style="color:var(--tx2);font-weight:600">${h}h</span>
+      </div>
+      <div style="height:7px;background:var(--bgch);border-radius:999px;overflow:hidden">
+        <div style="width:0;height:100%;border-radius:999px;background:${p.color || 'var(--acc)'};transition:width 1s ease ${i * 0.08}s" data-w="${pct}"></div>
+      </div>`;
+    barSection.appendChild(bar);
+  });
+  content.appendChild(barSection);
+  setTimeout(() => content.querySelectorAll('[data-w]').forEach(el => el.style.width = el.dataset.w + '%'), 60);
+
+  // ── Wochentage Säulendiagramm ────────────────────────────────────
+  const dayTotals = Array(7).fill(0);
+  entries.forEach(({ byDay }) => { if (byDay) byDay.forEach((s, i) => dayTotals[i] += s); });
+  const maxDay = Math.max(...dayTotals, 1);
+
+  const daySection = document.createElement('div');
+  daySection.style.cssText = 'background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);padding:16px;margin-bottom:16px';
+  daySection.innerHTML = '<h3 style="font-family:var(--font-d);font-size:14px;color:var(--tx);margin-bottom:14px;font-weight:700">📅 Streaming nach Wochentag</h3>';
+  const barCont = document.createElement('div');
+  barCont.style.cssText = 'display:flex;align-items:flex-end;gap:8px;height:90px;padding-bottom:4px';
+  days_label.forEach((d, i) => {
+    const pct   = Math.round((dayTotals[i] / maxDay) * 100);
+    const h     = (dayTotals[i] / 3600).toFixed(1);
+    const isMax = dayTotals[i] === Math.max(...dayTotals) && dayTotals[i] > 0;
+    const col   = document.createElement('div');
+    col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%';
+    col.innerHTML = `
+      <div style="font-size:9px;color:${isMax ? 'var(--acc)' : 'var(--tx3)'};font-weight:600;height:14px;display:flex;align-items:center">
+        ${dayTotals[i] > 0 ? h + 'h' : ''}
+      </div>
+      <div style="flex:1;width:100%;display:flex;align-items:flex-end">
+        <div style="width:100%;min-height:3px;background:${isMax ? 'var(--acc)' : 'rgba(48,197,187,.3)'};
+          border-radius:4px 4px 0 0;height:0;transition:height .8s ease ${i * 0.06}s" data-dh="${pct}%"></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:${isMax ? 'var(--acc)' : 'var(--tx2)'}">${d}</div>`;
+    barCont.appendChild(col);
+  });
+  daySection.appendChild(barCont);
+  content.appendChild(daySection);
+  setTimeout(() => content.querySelectorAll('[data-dh]').forEach(el => el.style.height = el.dataset.dh), 80);
+
+  // ── Zuletzt angeschaut ───────────────────────────────────────────
+  if (watched.length) {
+    const watchSection = document.createElement('div');
+    watchSection.style.cssText = 'background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);padding:16px;margin-bottom:16px';
+    watchSection.innerHTML = `<h3 style="font-family:var(--font-d);font-size:14px;color:var(--tx);margin-bottom:10px;font-weight:700">🎬 Angeschaut (${watched.length})</h3>`;
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap';
+    watched.slice(0, 12).forEach(item => {
+      const chip = document.createElement('div');
+      chip.style.cssText = 'background:var(--bgch);border:1px solid var(--bor);border-radius:var(--r-sm);padding:4px 10px;font-size:11px;color:var(--tx2)';
+      chip.textContent = item.title || item.name || '?';
+      grid.appendChild(chip);
+    });
+    watchSection.appendChild(grid);
+    if (watched.length > 12) {
+      const more = document.createElement('div');
+      more.style.cssText = 'font-size:11px;color:var(--tx3);margin-top:6px';
+      more.textContent = `+${watched.length - 12} weitere`;
+      watchSection.appendChild(more);
+    }
+    content.appendChild(watchSection);
+  }
+
+  // ── Achievements ─────────────────────────────────────────────────
+  buildAchievementsSection(stats);
+}
+
+// buildAchievementsSection: Achievements vollständig und nicht transparent
+const _origBuildAch = typeof buildAchievementsSection === 'function' ? buildAchievementsSection : null;
+function buildAchievementsSection(stats) {
+  const el = document.getElementById('achievements-content');
+  if (!el) return;
+
+  const earned = new Set(JSON.parse(localStorage.getItem('achievements_' + activeProfileId) || '[]'));
+  el.innerHTML = '';
+
+  // Überschrift mit Fortschritt
+  const total   = ACHIEVEMENTS.filter(a => !a.hidden).length;
+  const earnedCount = [...earned].filter(id => {
+    const a = ACHIEVEMENTS.find(x => x.id === id);
+    return a && !a.hidden;
+  }).length;
+
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px';
+  header.innerHTML = `
+    <h3 style="font-family:var(--font-d);font-size:15px;font-weight:800;color:var(--tx);margin:0">🏆 Achievements</h3>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="font-size:12px;color:var(--tx2)">${earnedCount} / ${total} freigeschaltet</div>
+      <div style="width:100px;height:6px;background:var(--bgch);border-radius:999px;overflow:hidden">
+        <div style="width:${Math.round((earnedCount/total)*100)}%;height:100%;background:var(--acc);border-radius:999px;transition:width 1s ease"></div>
+      </div>
+    </div>`;
+  el.appendChild(header);
+
+  const catLabels = {
+    stream:   { de: '⏱ Streamzeit', en: '⏱ Streaming Time' },
+    provider: { de: '📺 Anbieter',   en: '📺 Providers' },
+    special:  { de: '⭐ Besonders',  en: '⭐ Special' },
+    hidden:   { de: '🔒 Versteckt',  en: '🔒 Hidden' },
+  };
+
+  ['stream', 'provider', 'special', 'hidden'].forEach(cat => {
+    const list = ACHIEVEMENTS.filter(a => a.cat === cat);
+    if (!list.length) return;
+
+    const label = catLabels[cat]?.[lang] || catLabels[cat]?.de || cat;
+    const sec = document.createElement('div');
+    sec.style.cssText = 'margin-bottom:20px';
+    sec.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">${label}</div>`;
+
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px';
+
+    list.forEach(a => {
+      const isEarned = earned.has(a.id);
+      const isHidden = a.hidden && !isEarned;
+      const card = document.createElement('div');
+
+      card.style.cssText = `
+        background:var(--bgc);border:1px solid ${isEarned ? 'var(--acc)' : 'var(--bor)'};
+        border-radius:var(--r-sm);padding:10px;display:flex;align-items:center;gap:8px;
+        opacity:${isEarned ? '1' : '0.45'};
+        transition:all .2s;
+        ${isEarned ? 'background:linear-gradient(135deg,var(--bgc),var(--accg))' : ''}`;
+
+      card.dataset.earned = isEarned ? 'true' : 'false';
+
+      const name = isHidden ? '???' : (a.name[lang] || a.name.de);
+      const desc = isHidden ? 'Muss erst freigeschaltet werden' : (a.desc[lang] || a.desc.de);
+
+      card.innerHTML = `
+        <div style="font-size:22px;flex-shrink:0;filter:${isEarned ? 'none' : 'grayscale(1)'}">${a.icon}</div>
+        <div style="min-width:0">
+          <div style="font-size:11px;font-weight:700;color:${isEarned ? 'var(--acc)' : 'var(--tx)'};
+            overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(name)}</div>
+          <div style="font-size:10px;color:var(--tx3);margin-top:2px;line-height:1.3;
+            display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(desc)}</div>
+        </div>
+        ${isEarned ? '<div style="margin-left:auto;color:var(--acc);font-size:14px;flex-shrink:0">✓</div>' : ''}`;
+
+      if (isEarned) {
+        card.addEventListener('mouseenter', () => {
+          card.style.transform = 'translateY(-2px)';
+          card.style.boxShadow = '0 4px 16px rgba(48,197,187,.2)';
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = '';
+          card.style.boxShadow = '';
+        });
+      }
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    el.appendChild(sec);
+  });
+}
+
+// ── 4. SPRACHE: Komplett funktionierend ──────────────────────────────
+
+function applyLanguage(l) {
+  lang = l;
+  settings.language = l;
+  const tr = (I18N[l] || I18N.de);
+
+  // Alle data-i18n Elemente übersetzen
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (tr[key]) el.textContent = tr[key];
+  });
+
+  // Placeholder übersetzen
+  const si = document.getElementById('search-input');
+  if (si) si.placeholder = tr.searchPlaceholder || 'Anbieter, Film, Serie…';
+
+  // Lang-Buttons in Einstellungen und Onboarding hervorheben
+  document.querySelectorAll('.lang-btn, [data-lang]').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === l);
+  });
+
+  // Sidebar Navigation übersetzen
+  const navMap = {
+    'home': tr.home, 'news': tr.news, 'upcoming': tr.upcoming,
+    'watchlist': tr.watchlist, 'stats': tr.stats, 'settings': tr.settings,
+  };
+  document.querySelectorAll('[data-view]').forEach(btn => {
+    const v = btn.dataset.view;
+    if (navMap[v]) {
+      const span = btn.querySelector('.nav-label') || btn.querySelector('span:last-child');
+      if (span) span.textContent = navMap[v];
+    }
+  });
+
+  // Onboarding Sprache aktualisieren
+  document.querySelectorAll('.ob-lang-btn-v2').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === l);
+  });
+
+  // Days Array für Stats
+  window._days = tr.days || ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+  // Einstellungen-Lang-Buttons
+  document.querySelectorAll('.lang-select-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === l);
+    b.style.background    = b.dataset.lang === l ? 'var(--acc)'  : 'transparent';
+    b.style.color         = b.dataset.lang === l ? '#fff'        : 'var(--tx2)';
+    b.style.borderColor   = b.dataset.lang === l ? 'var(--acc)'  : 'var(--bor)';
+  });
+
+  autoSave();
+  console.log('[Lang] Sprache gesetzt auf:', l);
+}
+
+// Sprach-Buttons überall verdrahten
+(function setupLanguageButtons() {
+  setTimeout(() => {
+    // Alle Elemente mit data-lang Attribut
+    document.querySelectorAll('[data-lang]').forEach(btn => {
+      if (btn._langBound) return;
+      btn._langBound = true;
+      btn.addEventListener('click', () => {
+        applyLanguage(btn.dataset.lang);
+      });
+    });
+  }, 500);
+})();
+
+// ── 5. ONBOARDING: Theme + Font + Sprache ────────────────────────────
+
+(function fixOnboardingSettings() {
+  setTimeout(() => {
+    // Theme-Buttons im Onboarding
+    ['ob-theme-dark', 'ob-theme-light'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (!btn || btn._obThemeBound) return;
+      btn._obThemeBound = true;
+      btn.addEventListener('click', async () => {
+        const newTheme = id === 'ob-theme-light' ? 'light' : 'dark';
+        await window.electronAPI.setTheme(newTheme);
+        document.documentElement.dataset.theme = newTheme;
+        // Buttons hervorheben
+        document.getElementById('ob-theme-dark')?.classList.toggle('active',  newTheme === 'dark');
+        document.getElementById('ob-theme-light')?.classList.toggle('active', newTheme === 'light');
+        // Light-Mode CSS-Variable setzen
+        applyTheme(newTheme);
+      });
+    });
+
+    // Schriftart im Onboarding
+    const fontSel = document.getElementById('ob-font-family');
+    if (fontSel && !fontSel._obFontBound) {
+      fontSel._obFontBound = true;
+      // Aktuellen Wert setzen
+      fontSel.value = settings.designOptions?.fontFamily || 'DM Sans';
+      fontSel.addEventListener('change', () => {
+        const font = fontSel.value;
+        settings.designOptions = settings.designOptions || {};
+        settings.designOptions.fontFamily = font;
+        applyFont(font);
+        autoSave();
+      });
+    }
+
+    // Sprach-Buttons im Onboarding
+    document.querySelectorAll('#ob-lang-de, #ob-lang-en').forEach(btn => {
+      if (!btn || btn._obLangBound) return;
+      btn._obLangBound = true;
+      btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+    });
+
+    // Aktuelle Werte im Onboarding setzen
+    const currentTheme = document.documentElement.dataset.theme || 'dark';
+    document.getElementById('ob-theme-dark')?.classList.toggle('active',  currentTheme === 'dark');
+    document.getElementById('ob-theme-light')?.classList.toggle('active', currentTheme === 'light');
+    document.querySelectorAll('#ob-lang-de, #ob-lang-en').forEach(b => {
+      b.classList.toggle('active', b.dataset.lang === lang);
+    });
+
+  }, 600);
+})();
+
+// applyTheme Hilfsfunktion (falls nicht in app.js)
+if (typeof applyTheme !== 'function') {
+  window.applyTheme = function(theme) {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
+    // CSS-Variable für Light-Mode
+    if (theme === 'light') {
+      document.documentElement.style.setProperty('--bg',    '#f5f5f7');
+      document.documentElement.style.setProperty('--bg2',   '#ffffff');
+      document.documentElement.style.setProperty('--bgc',   '#eeeeef');
+      document.documentElement.style.setProperty('--bgch',  '#e0e0e2');
+      document.documentElement.style.setProperty('--tx',    '#1a1a1f');
+      document.documentElement.style.setProperty('--tx2',   '#555560');
+      document.documentElement.style.setProperty('--tx3',   '#888898');
+      document.documentElement.style.setProperty('--bor',   '#d0d0d8');
+      document.documentElement.style.setProperty('--borh',  '#b0b0b8');
+    } else {
+      // Dark-Mode zurücksetzen
+      document.documentElement.style.removeProperty('--bg');
+      document.documentElement.style.removeProperty('--bg2');
+      document.documentElement.style.removeProperty('--bgc');
+      document.documentElement.style.removeProperty('--bgch');
+      document.documentElement.style.removeProperty('--tx');
+      document.documentElement.style.removeProperty('--tx2');
+      document.documentElement.style.removeProperty('--tx3');
+      document.documentElement.style.removeProperty('--bor');
+      document.documentElement.style.removeProperty('--borh');
+    }
+    // Sidebar-Farbe im Light-Mode synchronisieren
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) sidebar.style.background = '';
+  };
+}
+
+// applyFont Hilfsfunktion
+if (typeof applyFont !== 'function') {
+  window.applyFont = function(font) {
+    document.documentElement.style.setProperty('--font-ui', `"${font}", system-ui, sans-serif`);
+    document.body.style.fontFamily = `"${font}", system-ui, sans-serif`;
+  };
+}
+
+console.log('[v3.2.2] Suche, Profil, Stats, Sprache, Onboarding gepatcht');

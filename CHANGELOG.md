@@ -1,3 +1,35 @@
+## v3.2.3 -- 2026-05-25
+
+### Suche
+- Komplett neu implementiert (setupSearch)
+- Außen-Klick schließt zuverlässig (capture-phase Listener)
+- Clear-Button (✕) funktioniert korrekt
+- Placeholder zeigt korrekte Sprache
+
+### Profil-Editor
+- setupProfileEditor() neu implementiert: alle Buttons verdrahtet
+- Speichern/Löschen/Abbrechen/PIN/Avatar funktionieren
+- PIN-Abfrage beim Löschen wenn vorhanden
+- Außen-Klick schließt das Fenster
+- Sidebar: aktives Profil hervorgehoben, Edit-Button beim Hovern
+
+### Statistiken
+- Komplett überarbeitet: 4 Kacheln (Streamzeit, Anbieter, Angeschaut, Werbung)
+- Balken-Chart: meistgenutzte Anbieter
+- Säulen-Chart: Streaming nach Wochentag
+- Angeschaut-Bereich: letzte Titel
+- Achievements: Fortschrittsbalken, nicht transparent wenn earned
+
+### Sprache
+- applyLanguage() übersetzt jetzt Sidebar, Placeholder, alle data-i18n Elemente
+- Sprach-Buttons überall automatisch verdrahtet
+- Einstellung wird sofort gespeichert
+
+### Onboarding
+- Theme-Wechsel (Light/Dark) funktioniert
+- Schriftart-Auswahl funktioniert
+- Sprach-Buttons funktionieren
+
 ## v3.2.2 -- 2026-05-25
 
 ### Kritischer Bugfix

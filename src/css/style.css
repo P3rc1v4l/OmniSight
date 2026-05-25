@@ -760,3 +760,48 @@ body:not(.no-hover-zoom) .provider-card:hover{transform:translateY(-3px)}
 .achievement-card:not(.earned):not([data-earned="true"]){
   opacity:0.38!important;filter:grayscale(0.3)!important;
 }
+
+/* ═══ v3.2.2: Statistiken, Profil-Sidebar, Achievements ═════════ */
+
+/* Sidebar Profil-Liste */
+.sidebar-profile-item { border-radius: var(--r-sm); }
+.sidebar-profile-item.active { background: var(--accg)!important; }
+
+/* Achievement Karten: earned immer voll sichtbar */
+.achievement-card[data-earned="true"],
+.achievement-card.earned {
+  opacity: 1!important;
+  filter: none!important;
+}
+
+/* Stats: 4-spaltige Kacheln responsive */
+@media (max-width: 900px) {
+  .stats-kacheln { grid-template-columns: repeat(2,1fr)!important; }
+}
+
+/* Suche: Dropdown mit smooth open */
+#search-dropdown {
+  animation: ddOpen .15s ease;
+}
+@keyframes ddOpen {
+  from { opacity:0; transform:translateY(-4px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* Light-Mode: Sidebar gleiche Farbe */
+[data-theme="light"] .sidebar,
+[data-theme="light"] .sidebar-bottom {
+  background: var(--bg2)!important;
+  border-right-color: var(--bor)!important;
+}
+
+/* Onboarding Theme-Buttons hervorheben */
+.ob-lang-btn-v2.active {
+  background: var(--acc)!important;
+  border-color: var(--acc)!important;
+  color: #fff!important;
+}
+
+/* Plugin-Buttons Farben */
+.plugin-install-btn   { background:var(--acc)!important;color:#fff!important;border:none!important }
+.plugin-uninstall-btn { background:rgba(229,115,115,.12)!important;border:1px solid #e57373!important;color:#e57373!important }
