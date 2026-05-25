@@ -1,3 +1,21 @@
+## v3.1.14 -- 2026-05-25
+
+### main.js + preload.js: Komplett neu geschrieben
+- Sauber strukturiert, alle Kommentare, keine doppelten Definitionen
+- WideVine: liest Version aus manifest.json (PFLICHT fuer Electron 34)
+- WideVine: korrekte Chromium-Switches (ohne doppelten Bindestrich)
+- WideVine: HardwareSecureDecryption in enable-features ergaenzt
+- setupSession: Chrome-UA fuer alle Sessions (Twitch-Fix)
+- setupSession: DRM-Berechtigungen (media, mediaKeySystem) erlaubt
+- Auto-Update: ohne Token, setzt auf oeffentliche Releases
+- Crash-Reporter: eingebaut
+- Alle IPC-Handler sauber dokumentiert
+
+### WideVine Anleitung aktualisiert
+- Klar erklaert: 3 Dateien noetig (DLL + .sig + manifest.json)
+- Schritt-fuer-Schritt mit Buttons zum Ordner oeffnen
+- Warnung dass alle 3 Dateien gebraucht werden
+
 ## v3.1.13 -- 2026-05-25
 
 ### Aufräumen: Duplikate entfernt

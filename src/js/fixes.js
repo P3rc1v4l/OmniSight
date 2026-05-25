@@ -961,7 +961,7 @@ if (_origCheckAchievements) {
         // Timeout: wenn nach 8s kein Event → "aktuell"
         setTimeout(() => {
           if (el && el.textContent==='Prüfe…') {
-            el.textContent = '✓ Du hast die aktuellste Version (v'+((typeof settings!=='undefined'&&settings.appVersion)||'3.1.13')+')';
+            el.textContent = '✓ Du hast die aktuellste Version (v'+((typeof settings!=='undefined'&&settings.appVersion)||'3.1.14')+')';
             el.style.color = 'var(--acc)';
           }
         }, 8000);
@@ -1013,71 +1013,85 @@ console.log('[OmniSight fixes.js Teil 2] Alle Patches aktiv');
 function openWidevineGuide() {
   const overlay = document.createElement('div');
   overlay.id = 'widevine-guide-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:4000;display:flex;align-items:center;justify-content:center;padding:20px';
-
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
   overlay.innerHTML = `
-    <div style="background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r);width:min(640px,96%);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.7)">
+    <div style="background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r);width:min(660px,96%);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.7)">
       <div style="display:flex;align-items:center;padding:18px 22px;border-bottom:1px solid var(--bor)">
         <span style="font-size:22px;margin-right:10px">🔐</span>
         <span style="font-family:var(--font-d);font-size:17px;font-weight:800;color:var(--tx);flex:1">WideVine CDM installieren</span>
         <button onclick="document.getElementById('widevine-guide-overlay').remove()"
           style="border:none;background:transparent;color:var(--tx2);font-size:18px;cursor:pointer;padding:4px 8px">✕</button>
       </div>
-      <div style="overflow-y:auto;padding:22px;flex:1">
-        <div style="background:var(--accg);border:1px solid var(--acc);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--tx)">
-          <b>Was ist WideVine?</b><br>
-          WideVine ist ein Sicherheitssystem das Netflix, Amazon Prime und Disney+ nutzen um ihre Inhalte zu schützen.
-          OmniSight braucht es um diese Dienste abspielen zu können. Du hast WideVine bereits auf deinem PC –
-          es ist in Google Chrome eingebaut. Du musst es nur in den richtigen Ordner kopieren.
+      <div style="overflow-y:auto;padding:22px;flex:1;display:flex;flex-direction:column;gap:16px">
+
+        <div style="background:var(--accg);border:1px solid var(--acc);border-radius:var(--r-sm);padding:12px 16px;font-size:13px;color:var(--tx)">
+          <b>Was ist WideVine?</b><br>WideVine ist ein Kopierschutzsystem das Netflix, Disney+, Amazon Prime und Crunchyroll nutzen. OmniSight braucht es um diese Dienste abspielen zu können. Du hast WideVine bereits auf deinem PC – es ist in Google Chrome oder Microsoft Edge eingebaut.
         </div>
 
-        <div style="background:rgba(48,197,187,.08);border:1px solid rgba(48,197,187,.2);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:18px;font-size:12px;color:var(--tx2)">
-          ⚖️ <b>Legal?</b> Ja. Du verwendest WideVine nur auf deinem eigenen PC für Dienste bei denen du angemeldet bist.
-          Du kopierst es aus Chrome (das du bereits installiert hast). Das ist kein Umgehen von DRM, sondern Aktivieren.
+        <div style="background:rgba(102,187,106,.1);border:1px solid #66bb6a;border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--tx)">
+          ⚖️ <b>Legal?</b> Ja. Du verwendest WideVine nur für Dienste bei denen du angemeldet bist. Du kopierst es aus deinem eigenen Chrome-Browser.
         </div>
 
-        ${['chrome','edge'].map((browser,i) => `
-          <div style="margin-bottom:20px">
-            <h3 style="font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--tx);margin-bottom:10px">
-              ${i===0?'🟡 Methode 1: Aus Google Chrome kopieren':'🔵 Methode 2: Aus Microsoft Edge kopieren'}
-              ${i===0?'<span style="font-size:10px;color:var(--acc);font-weight:500;margin-left:8px">(empfohlen)</span>':''}
-            </h3>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              ${[
-                {n:1, txt: i===0
-                  ? 'Öffne diesen Ordner (Strg+L im Explorer, dann den Pfad einfügen):'
-                  : 'Öffne diesen Ordner:',
-                  path: i===0
-                  ? 'C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\[version]\\\\WidevineCdm\\\\_platform_specific\\\\win_x64\\\\'
-                  : 'C:\\\\Program Files (x86)\\\\Microsoft\\\\Edge\\\\Application\\\\[version]\\\\WidevineCdm\\\\_platform_specific\\\\win_x64\\\\',
-                  note: '[version] = die Zahl die du dort siehst (z.B. 124.0.6367.201)',
-                  btn: i===0?'chrome':'edge'},
-                {n:2, txt:'Kopiere diese Datei:', file:'widevinecdm.dll'},
-                {n:3, txt:'Füge sie in diesen Ordner ein:', path:'%AppData%\\\\omnisight\\\\WidevineCdm\\\\_platform_specific\\\\win_x64\\\\', btn:'dest', note:'Dieser Ordner wird automatisch erstellt wenn OmniSight zum ersten Mal startet.'},
-                {n:4, txt:'Starte OmniSight neu. Fertig! ✓'},
-              ].map(step => `
-                <div style="display:flex;gap:10px;align-items:flex-start">
-                  <div style="width:22px;height:22px;border-radius:50%;background:var(--acc);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${step.n}</div>
-                  <div style="flex:1">
-                    <div style="font-size:13px;color:var(--tx);margin-bottom:${step.path||step.file?'5px':'0'}">${step.txt}</div>
-                    ${step.file?`<code style="background:var(--bgc);border:1px solid var(--bor);border-radius:4px;padding:3px 8px;font-size:12px;color:var(--acc)">${step.file}</code>`:''}
-                    ${step.path?`
-                      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">
-                        <code style="background:var(--bgc);border:1px solid var(--bor);border-radius:4px;padding:4px 10px;font-size:11px;color:var(--tx2);flex:1;min-width:0;word-break:break-all">${step.path}</code>
-                        ${step.btn?`<button onclick="window._openWvFolder('${step.btn}')"
-                          style="padding:5px 12px;background:var(--acc);color:#fff;border:none;border-radius:var(--r-sm);font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">📁 Öffnen</button>`:''}
-                      </div>`:''}
-                    ${step.note?`<div style="font-size:11px;color:var(--tx3);margin-top:3px">💡 ${step.note}</div>`:''}
-                  </div>
-                </div>`).join('')}
+        <div style="background:rgba(229,115,115,.1);border:1px solid var(--danger);border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--tx)">
+          ⚠️ <b>Du brauchst genau 3 Dateien</b> – ohne alle drei funktioniert WideVine nicht:<br>
+          <code style="background:var(--bgc);padding:1px 6px;border-radius:3px;font-size:11px">widevinecdm.dll</code> &nbsp;+&nbsp;
+          <code style="background:var(--bgc);padding:1px 6px;border-radius:3px;font-size:11px">widevinecdm.dll.sig</code> &nbsp;+&nbsp;
+          <code style="background:var(--bgc);padding:1px 6px;border-radius:3px;font-size:11px">manifest.json</code>
+        </div>
+
+        <div>
+          <h3 style="font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--tx);margin-bottom:12px">Schritt-für-Schritt Anleitung:</h3>
+          <div style="display:flex;flex-direction:column;gap:12px">
+
+            <div style="display:flex;gap:10px">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+              <div>
+                <div style="font-size:13px;color:var(--tx);font-weight:600">Chrome-Ordner öffnen</div>
+                <div style="font-size:12px;color:var(--tx2);margin-top:3px">Klicke auf den Button um Chrome's WideVine-Ordner zu öffnen. Dort siehst du einen Unterordner mit einer Versionsnummer (z.B. 4.10.2662.3).</div>
+                <button onclick="window._openWvFolder('chrome')" style="margin-top:6px;padding:5px 12px;background:var(--acc);color:#fff;border:none;border-radius:var(--r-sm);font-size:11px;cursor:pointer">📁 Chrome-Ordner öffnen</button>
+                <button onclick="window._openWvFolder('edge')" style="margin-top:6px;margin-left:6px;padding:5px 12px;background:var(--bgc);border:1px solid var(--bor);color:var(--tx2);border-radius:var(--r-sm);font-size:11px;cursor:pointer">📁 Edge-Ordner öffnen</button>
+              </div>
             </div>
-          </div>`).join('<div style="height:1px;background:var(--bor);margin:14px 0"></div>')}
 
-        <div style="background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r-sm);padding:12px 16px;margin-top:8px">
-          <b style="font-size:13px;color:var(--tx)">❓ Hast du kein Chrome/Edge?</b>
+            <div style="display:flex;gap:10px">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+              <div>
+                <div style="font-size:13px;color:var(--tx);font-weight:600">In den Versionsordner navigieren</div>
+                <div style="font-size:12px;color:var(--tx2);margin-top:3px">Öffne den Ordner mit der Versionsnummer, dann den Unterordner <code style="background:var(--bgc);padding:1px 5px;border-radius:3px">_platform_specific</code> → <code style="background:var(--bgc);padding:1px 5px;border-radius:3px">win_x64</code></div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+              <div>
+                <div style="font-size:13px;color:var(--tx);font-weight:600">Alle 3 Dateien kopieren</div>
+                <div style="font-size:12px;color:var(--tx2);margin-top:3px">Kopiere <b>alle</b> Dateien aus diesem Ordner (Strg+A, dann Strg+C)</div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</div>
+              <div>
+                <div style="font-size:13px;color:var(--tx);font-weight:600">In OmniSight-Ordner einfügen</div>
+                <div style="font-size:12px;color:var(--tx2);margin-top:3px">Öffne den OmniSight-WideVine-Ordner und füge die kopierten Dateien ein (Strg+V).</div>
+                <button onclick="window._openWvFolder('dest')" style="margin-top:6px;padding:5px 12px;background:var(--acc);color:#fff;border:none;border-radius:var(--r-sm);font-size:11px;cursor:pointer">📁 Ziel-Ordner öffnen</button>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px">
+              <div style="width:24px;height:24px;border-radius:50%;background:#66bb6a;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">5</div>
+              <div>
+                <div style="font-size:13px;color:var(--tx);font-weight:600">OmniSight neu starten</div>
+                <div style="font-size:12px;color:var(--tx2);margin-top:3px">Schließe OmniSight komplett und öffne es erneut. Netflix, Disney+ und Co. sollten jetzt funktionieren.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r-sm);padding:12px 16px">
+          <b style="font-size:13px;color:var(--tx)">Kein Chrome/Edge?</b>
           <div style="font-size:12px;color:var(--tx2);margin-top:4px">
-            Dann installiere kurz <a href="#" onclick="window.electronAPI.openExternal('https://www.google.com/chrome/');return false" style="color:var(--acc)">Google Chrome</a>,
-            kopiere die Datei, dann kannst du Chrome wieder deinstallieren.
+            Installiere kurz <a href="#" onclick="window.electronAPI.openExternal('https://www.google.com/chrome/');return false" style="color:var(--acc)">Google Chrome</a>, kopiere die 3 Dateien, dann kannst du Chrome wieder deinstallieren.
           </div>
         </div>
       </div>
@@ -1086,9 +1100,8 @@ function openWidevineGuide() {
           style="padding:8px 20px;background:var(--acc);color:#fff;border:none;border-radius:var(--r-sm);font-family:var(--font-d);font-weight:700;cursor:pointer">Verstanden</button>
       </div>
     </div>`;
-
   document.body.appendChild(overlay);
-  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 }
 
 // Ordner-Öffnen Helfer
@@ -1190,7 +1203,7 @@ console.log('[OmniSight fixes.js Teil 3] v3.1.8 Sicherheits-Updates aktiv');
   // Version aus package.json extraMetadata lesen
   // Echte App-Version aus main.js laden
 window.electronAPI.getAppVersion().then(v => {
-  window.__appVersion = v || '3.1.13';
+  window.__appVersion = v || '3.1.14';
   // Version in "Mehr"-Tab anzeigen
   const vEl = document.querySelector('.settings-version-text');
   if (vEl) vEl.textContent = 'v' + v;
@@ -1198,7 +1211,7 @@ window.electronAPI.getAppVersion().then(v => {
   if (document.getElementById('update-check-result')) {
     // Nichts tun – wird beim Klick gelesen
   }
-}).catch(() => { window.__appVersion = '3.1.13'; });
+}).catch(() => { window.__appVersion = '3.1.14'; });
 
 
   // onUpdateAvailable: Banner zeigen
@@ -1260,14 +1273,14 @@ window.electronAPI.getAppVersion().then(v => {
       const noUpdateHandler = () => {
         resolved = true;
         if (el) {
-          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.1.13'})`;
+          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.1.14'})`;
           el.style.color = 'var(--acc)';
         }
       };
       const errorHandler = (msg) => {
         resolved = true;
         if (el) {
-          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.1.13'})`;
+          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.1.14'})`;
           el.style.color = msg && !msg.includes('404') ? 'var(--danger)' : 'var(--acc)';
         }
       };
@@ -1282,7 +1295,7 @@ window.electronAPI.getAppVersion().then(v => {
       // Timeout: 6s dann Fallback
       setTimeout(() => {
         if (!resolved && el && el.textContent === 'Prüfe…') {
-          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.1.13'})`;
+          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.1.14'})`;
           el.style.color = 'var(--acc)';
         }
       }, 6000);
@@ -2185,14 +2198,14 @@ console.log('[v3.1.10] Alle Fixes geladen');
         finish(`🚀 Update v${info.version} verfügbar! → Banner oben`, 'var(--acc)');
       });
       const unsubNone = window.electronAPI.onUpdateNotAvailable?.(() => {
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`, 'var(--acc)');
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.14'})`, 'var(--acc)');
       });
       const unsubErr = window.electronAPI.onUpdateError?.(msg => {
         // 404 = kein latest.yml → aktuell
         const isNoRelease = !msg || msg.includes('404') || msg.includes('ENOENT') || msg.includes('Cannot find');
         finish(
           isNoRelease
-            ? `✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`
+            ? `✓ Aktuellste Version (v${window.__appVersion || '3.1.14'})`
             : `Fehler: ${msg}`,
           isNoRelease ? 'var(--acc)' : 'var(--danger)'
         );
@@ -2211,7 +2224,7 @@ console.log('[v3.1.10] Alle Fixes geladen');
 
       // Timeout: 8s
       setTimeout(() => {
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`, 'var(--acc)');
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.14'})`, 'var(--acc)');
       }, 8000);
     });
   }, 900);
@@ -2432,12 +2445,12 @@ window.moveToPip = function(id, wv) {
       window.electronAPI.onUpdateAvailable?.(info =>
         finish(`🚀 Update v${info.version} verfügbar – Banner erscheint oben`, 'var(--acc)'));
       window.electronAPI.onUpdateNotAvailable?.(() =>
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`, 'var(--acc)'));
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.14'})`, 'var(--acc)'));
       window.electronAPI.onUpdateError?.(msg =>
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`, 'var(--acc)'));
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.14'})`, 'var(--acc)'));
       
       try { await window.electronAPI.checkForUpdates(); } catch {}
-      setTimeout(() => finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.13'})`, 'var(--acc)'), 8000);
+      setTimeout(() => finish(`✓ Aktuellste Version (v${window.__appVersion || '3.1.14'})`, 'var(--acc)'), 8000);
     });
   }, 1000);
 })();
