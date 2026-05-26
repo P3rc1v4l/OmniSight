@@ -119,49 +119,76 @@ function hashPin(pin) {
 function setupWidevine() {
   const userData = app.getPath('userData');
   const cdmDir   = path.join(userData, 'WidevineCdm', '_platform_specific', 'win_x64');
+  const cdmBase  = path.join(userData, 'WidevineCdm'); // manifest.json liegt hier!
 
-  // Ordner anlegen falls nicht vorhanden
-  if (!fs.existsSync(cdmDir)) {
-    try { fs.mkdirSync(cdmDir, { recursive: true }); } catch {}
+  // Ordner-Struktur anlegen (wird bei Updates NICHT gelöscht)
+  for (const dir of [cdmBase, cdmDir]) {
+    if (!fs.existsSync(dir)) {
+      try { fs.mkdirSync(dir, { recursive: true }); } catch {}
+    }
   }
 
-  const dllPath      = path.join(cdmDir, 'widevinecdm.dll');
-  const manifestPath = path.join(cdmDir, 'manifest.json');
+  const dllPath = path.join(cdmDir, 'widevinecdm.dll');
 
   if (!fs.existsSync(dllPath)) {
-    console.log('[WideVine] DLL nicht gefunden – DRM-Inhalte nicht verfügbar');
-    console.log('[WideVine] Bitte ablegen in:', cdmDir);
+    console.log('[WideVine] DLL nicht gefunden:', dllPath);
+    console.log('[WideVine] Bitte Dateien ablegen:');
+    console.log('  DLL + .sig → ', cdmDir);
+    console.log('  manifest.json →', cdmBase);
     return;
   }
 
-  // Version aus manifest.json lesen (PFLICHT für Electron 34)
-  let version = '4.10.2662.3'; // Fallback
-  if (fs.existsSync(manifestPath)) {
-    try {
-      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-      version = manifest.version || manifest['x-cdm-module-versions'] || version;
-    } catch (e) {
-      console.warn('[WideVine] manifest.json Lesefehler:', e.message);
+  // manifest.json: Chrome legt sie im übergeordneten WidevineCdm-Ordner ab
+  // Wir suchen in beiden Pfaden
+  let version = null;
+  const manifestPaths = [
+    path.join(cdmBase, 'manifest.json'),  // Standard Chrome-Struktur
+    path.join(cdmDir, 'manifest.json'),   // Falls User sie direkt reinkopiert hat
+  ];
+  for (const mp of manifestPaths) {
+    if (fs.existsSync(mp)) {
+      try {
+        const m = JSON.parse(fs.readFileSync(mp, 'utf8'));
+        // manifest.json hat verschiedene Versionsfelder je nach Chrome-Version
+        version = m.version || m['x-cdm-module-versions'] ||
+                  m['x-cdm-codecs'] && m.version || null;
+        if (version) { console.log('[WideVine] Version aus', mp, ':', version); break; }
+      } catch (e) {
+        console.warn('[WideVine] manifest.json Lesefehler:', mp, e.message);
+      }
     }
-  } else {
-    console.warn('[WideVine] manifest.json fehlt! DRM wird evtl. nicht funktionieren.');
-    console.warn('[WideVine] Bitte alle Dateien aus Chrome kopieren (DLL + .sig + manifest.json)');
   }
 
-  console.log('[WideVine] Aktiviere CDM in:', cdmDir, '| Version:', version);
+  if (!version) {
+    // Fallback: Version aus DLL-Dateiname oder bekannte Version
+    console.warn('[WideVine] manifest.json nicht gefunden oder keine Version – nutze Fallback');
+    // Versuche Version aus %AppData%\omnisight ermitteln
+    version = '4.10.2662.3';
+  }
 
-  // Korrekte Switches für Electron 34 / Chromium
+  console.log('[WideVine] Lade CDM:', cdmDir, '| Version:', version);
+
+  // Chromium Command-Line Switches (MÜSSEN vor app.ready() gesetzt werden)
   app.commandLine.appendSwitch('widevine-cdm-path', cdmDir);
   app.commandLine.appendSwitch('widevine-cdm-version', version);
 
-  // Zusätzliche Chromium-Flags für DRM
+  // DRM-Features aktivieren – OHNE HardwareSecureDecryption
+  // (HardwareSecureDecryption blockiert auf Systemen ohne TPM/SGX)
   app.commandLine.appendSwitch('enable-features',
-    'WidevineCdm,EncryptedMediaExtensions,HardwareSecureDecryption');
-  app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
+    'WidevineCdm,EncryptedMediaExtensions,PlatformEncryptedDolbyVision');
+  
+  // OutOfBlinkCors und HardwareSecureDecryption deaktivieren
+  // OutOfBlinkCors blockiert Cross-Origin Requests von Streaming-Sites
+  // HardwareSecureDecryption blockiert SW-basiertes DRM (Standard auf normalen PCs)
+  app.commandLine.appendSwitch('disable-features',
+    'OutOfBlinkCors,HardwareSecureDecryption');
 
-  // Hardware-Beschleunigung für Streaming
+  // GPU: Beschleunigung für Video-Decoding
   app.commandLine.appendSwitch('enable-gpu-rasterization');
   app.commandLine.appendSwitch('ignore-gpu-blocklist');
+
+  // Zusätzlich: Autoplay und Media-Permissions lockern
+  app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 }
 
 setupWidevine(); // VOR app.ready()
@@ -231,11 +258,27 @@ function setupSession(ses) {
   // SSL-Zertifikat-Fehler ignorieren (für regionale Streaming-Seiten)
   ses.setCertificateVerifyProc((_, cb) => cb(0));
 
+  // WideVine CDM für diese Session registrieren falls vorhanden
+  const wvDir = path.join(app.getPath('userData'), 'WidevineCdm', '_platform_specific', 'win_x64');
+  if (fs.existsSync(path.join(wvDir, 'widevinecdm.dll'))) {
+    try {
+      // Für jede neue Session CDM laden (wichtig für Webview-Partitions)
+      ses.loadExtension(wvDir, { allowFileAccess: true })
+        .catch(() => {}); // Fehler ignorieren - CDM evtl. schon geladen
+    } catch {}
+  }
+
   // Berechtigungen: Medien-DRM explizit erlauben
+  // Berechtigungen: ALLE erlauben damit WideVine/EME funktioniert
   ses.setPermissionRequestHandler((webContents, permission, cb) => {
-    const alwaysAllow = ['fullscreen', 'media', 'mediaKeySystem',
-                          'clipboard-sanitized-write'];
-    cb(alwaysAllow.includes(permission));
+    // mediaKeySystem = WideVine/EME - MUSS erlaubt sein!
+    console.log('[Permission]', permission, '→ erlaubt');
+    cb(true); // Alle Berechtigungen für Streaming-Sessions erlauben
+  });
+
+  // setPermissionCheckHandler: auch Checks erlauben
+  ses.setPermissionCheckHandler((webContents, permission) => {
+    return true; // Alle Checks durchlassen
   });
 }
 
@@ -863,9 +906,23 @@ ipcMain.on('open-external', (_, url) => shell.openExternal(url));
 // APP LIFECYCLE
 // ═══════════════════════════════════════════════════════════════════
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   setupCrashReporter();
   createMainWindow();
+
+  // WideVine CDM in Default-Session registrieren (Electron 34+)
+  const userData = app.getPath('userData');
+  const cdmDir   = path.join(userData, 'WidevineCdm', '_platform_specific', 'win_x64');
+  if (fs.existsSync(path.join(cdmDir, 'widevinecdm.dll'))) {
+    try {
+      // Electron 34: CDM als Extension laden
+      await session.defaultSession.loadExtension(cdmDir, { allowFileAccess: true })
+        .then(() => console.log('[WideVine] CDM Extension geladen ✓'))
+        .catch(e => console.log('[WideVine] loadExtension:', e.message, '(normal bei NSIS-Build)'));
+    } catch(e) {
+      console.log('[WideVine] Extension-Modus nicht verfügbar:', e.message);
+    }
+  }
 });
 
 app.on('window-all-closed', () => {

@@ -1,3 +1,23 @@
+## v3.2.8 -- 2026-05-26
+
+### KRITISCH: Update löscht keine Daten mehr
+- installer.nsh: customUnInstall prüft /UPDATE Parameter
+  Bei Update: KEINE Daten löschen, Ordner bleiben erhalten
+  Bei echter Deinstallation: Alles wird geloescht
+- WideVine-Ordner wird in customInstall immer angelegt
+
+### KRITISCH: WideVine Fixes (Priorität 1)
+1. HardwareSecureDecryption deaktiviert: Blockiert SW-DRM auf normalen PCs
+   ohne TPM/SGX. Jetzt in disable-features zusammen mit OutOfBlinkCors.
+2. loadExtension(): CDM nach app.ready() als Electron-Extension laden
+   (Electron 34 nutzt anderen CDM-Loading-Mechanismus als Switches allein)
+3. Pro Session: CDM in jede neue partition-Session laden
+4. Alle Permissions: setPermissionRequestHandler() erlaubt alle Rechte
+5. enableblinkfeatures=EncryptedMedia auf Webview gesetzt
+6. dom-ready: WideVine EME-Test direkt im Webview ausgeführt
+7. manifest.json: Suche in BEIDEN Pfaden (cdmBase + cdmDir)
+8. autoplay-policy: no-user-gesture-required für Media-Autoplay
+
 ## v3.2.7 -- 2026-05-26
 
 ### Bugfixes

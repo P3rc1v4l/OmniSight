@@ -448,13 +448,27 @@ function openProviderAtUrl(id,url,name,partition){
   window.electronAPI.setupWebviewSession(partition||getProfilePartition(id));
   const wrap=document.getElementById('webview-wrap');if(wrap)wrap.innerHTML='';
   const wv=document.createElement('webview');
-  wv.setAttribute('src',url);wv.setAttribute('partition',partition||getProfilePartition(id));if(p.multiTab||p.allowpopups)wv.setAttribute('allowpopups','');wv.setAttribute('useragent',UA);wv.style.cssText='width:100%;height:100%;border:none;display:flex';
+  wv.setAttribute('src',url);wv.setAttribute('partition',partition||getProfilePartition(id));if(p.multiTab||p.allowpopups)wv.setAttribute('allowpopups','');wv.setAttribute('useragent',UA);wv.setAttribute('enableblinkfeatures','EncryptedMedia,PictureInPicture');wv.style.cssText='width:100%;height:100%;border:none;display:flex';
   if(p.multiTab){setupMultiTabWebview(id,wv,url,name||p.name);}
   else{document.getElementById('stream-tabs-bar').style.display='none';streamTabs=[];activeTabId=null;wv.addEventListener('new-window',e=>{if(e.url?.startsWith('http'))wv.loadURL(e.url);});}
   currentWebview=wv;if(wrap)wrap.appendChild(wv);
   let loadTO=null;
   wv.addEventListener('did-start-loading',()=>{clearTimeout(loadTO);loadTO=setTimeout(()=>{showNotif('⚠ Lädt sehr lange…',name||p.name+' braucht länger als erwartet. Wird erneut versucht…');try{wv.reload();}catch{}},7000);});
-  wv.addEventListener('did-stop-loading',()=>{clearTimeout(loadTO);document.getElementById('btn-retry').style.display='none';addViewHistory({id,name:name||p.name,url,time:Date.now()});startWatchTimer(id);window.electronAPI.refreshSessionsNow(activeProfileId);if(new Date().getHours()<4)trackMeta('midnightStreams');});
+  wv.addEventListener('dom-ready', () => {
+  // WideVine: EME-Test und Setup
+  try {
+    wv.executeJavaScript(`
+      if (typeof MediaKeys !== 'undefined') {
+        navigator.requestMediaKeySystemAccess('com.widevine.alpha', [{
+          initDataTypes: ['cenc'],
+          videoCapabilities: [{contentType: 'video/mp4;codecs="avc1.42E01E"'}],
+        }]).then(a => console.log('[WideVine] EME OK:', a.keySystem))
+          .catch(e => console.log('[WideVine] EME:', e.message));
+      }
+    `).catch(() => {});
+  } catch {}
+});
+wv.addEventListener('did-stop-loading',()=>{clearTimeout(loadTO);document.getElementById('btn-retry').style.display='none';addViewHistory({id,name:name||p.name,url,time:Date.now()});startWatchTimer(id);window.electronAPI.refreshSessionsNow(activeProfileId);if(new Date().getHours()<4)trackMeta('midnightStreams');});
   wv.addEventListener('did-fail-load',e=>{if(e.errorCode===-3||e.errorCode===0)return;clearTimeout(loadTO);document.getElementById('btn-retry').style.display='flex';showNotif('⚠ Fehler',(name||p.name)+' konnte nicht geladen werden.');});
   // Suchleiste leeren
   const si=document.getElementById('search-input');if(si)si.value='';document.getElementById('search-dropdown').style.display='none';
@@ -472,7 +486,7 @@ function addViewHistory(e){viewHistory=viewHistory.filter(h=>h.id!==e.id).slice(
 
 // ════════ MULTI-TAB ════════════════════════════════════════════════
 function setupMultiTabWebview(pid,wv,url,title){streamTabs=[{id:'tab0',title,url,webview:wv,muted:false}];activeTabId='tab0';document.getElementById('stream-tabs-bar').style.display='block';renderStreamTabs();wv.addEventListener('new-window',e=>{if(e.url?.startsWith('http'))addStreamTab(pid,e.url,e.frameName||e.url);});wv.addEventListener('page-title-updated',e=>{if(streamTabs[0])streamTabs[0].title=e.title.substring(0,30);renderStreamTabs();});}
-function addStreamTab(pid,url,title){const p=PROVIDERS()[pid];if(!p)return;const id='tab_'+Date.now();const wv=document.createElement('webview');wv.setAttribute('src',url);wv.setAttribute('partition',getProfilePartition(pid));wv.setAttribute('allowpopups','');wv.setAttribute('useragent',UA);wv.style.cssText='width:100%;height:100%;border:none;display:flex';wv.addEventListener('new-window',e=>{if(e.url?.startsWith('http'))addStreamTab(pid,e.url,e.url);});wv.addEventListener('page-title-updated',e=>{const t=streamTabs.find(t=>t.id===id);if(t){t.title=e.title.substring(0,30);renderStreamTabs();}});streamTabs.push({id,title:title.substring(0,30),url,webview:wv,muted:false});switchTab(id);}
+function addStreamTab(pid,url,title){const p=PROVIDERS()[pid];if(!p)return;const id='tab_'+Date.now();const wv=document.createElement('webview');wv.setAttribute('src',url);wv.setAttribute('partition',getProfilePartition(pid));wv.setAttribute('allowpopups','');wv.setAttribute('useragent',UA);wv.setAttribute('enableblinkfeatures','EncryptedMedia,PictureInPicture');wv.style.cssText='width:100%;height:100%;border:none;display:flex';wv.addEventListener('new-window',e=>{if(e.url?.startsWith('http'))addStreamTab(pid,e.url,e.url);});wv.addEventListener('page-title-updated',e=>{const t=streamTabs.find(t=>t.id===id);if(t){t.title=e.title.substring(0,30);renderStreamTabs();}});streamTabs.push({id,title:title.substring(0,30),url,webview:wv,muted:false});switchTab(id);}
 function switchTab(id){activeTabId=id;const wrap=document.getElementById('webview-wrap');if(!wrap)return;wrap.innerHTML='';const tab=streamTabs.find(t=>t.id===id);if(tab?.webview){wrap.appendChild(tab.webview);currentWebview=tab.webview;}renderStreamTabs();}
 function closeTab(id){const idx=streamTabs.findIndex(t=>t.id===id);if(idx<0)return;streamTabs.splice(idx,1);if(!streamTabs.length){stopStream();return;}switchTab(streamTabs[Math.max(0,idx-1)].id);}
 function renderStreamTabs(){const bar=document.getElementById('stream-tabs-bar'),cont=document.getElementById('stream-tabs');if(!bar||!cont)return;bar.style.display=streamTabs.length?'block':'none';cont.innerHTML='';streamTabs.forEach(tab=>{const el=document.createElement('div');el.className='stream-tab'+(tab.id===activeTabId?' active':'');el.innerHTML=`<span class="stream-tab-title">${esc(tab.title)}</span><button class="stream-tab-mute">${tab.muted?'🔇':'🔊'}</button><button class="stream-tab-close">✕</button>`;el.querySelector('.stream-tab-title').addEventListener('click',()=>switchTab(tab.id));el.querySelector('.stream-tab-mute').addEventListener('click',e=>{e.stopPropagation();tab.muted=!tab.muted;try{tab.webview.setAudioMuted(tab.muted);}catch{}renderStreamTabs();});el.querySelector('.stream-tab-close').addEventListener('click',e=>{e.stopPropagation();closeTab(tab.id);});cont.appendChild(el);});}
