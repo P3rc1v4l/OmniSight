@@ -10,7 +10,7 @@
     "build:linux": "electron-builder --linux --publish never",
     "build:release": "electron-builder --win --x64 --publish always",
     "make-icon": "node scripts/generate-icons.js",
-    "postinstall": "node scripts/fuses.js || true && (npx @castlabs/evs-eas check --skip 2>/dev/null || true)",
+    "postinstall": "node scripts/fuses.js || true",
     "shrinkwrap": "npm shrinkwrap",
     "bundle": "node scripts/build-bundle.js",
     "prebuild": "node scripts/build-bundle.js",
@@ -82,10 +82,7 @@
       "certExpiryNote": "Self-Signed Zertifikat l\u00e4uft ab \u2013 create-cert.ps1 erneut ausf\u00fchren",
       "appVersion": "3.2.9"
     },
-    "forceCodeSigning": false,
-    "electronDownload": {
-      "mirror": "https://github.com/castlabs/electron-releases/releases/download/"
-    }
+    "forceCodeSigning": false
   },
   "keywords": [
     "streaming",
@@ -95,12 +92,12 @@
   "author": "P3rc1v4l",
   "license": "PROPRIETARY",
   "devDependencies": {
-    "electron": "npm:@castlabs/electron-releases@v34.3.0+wv1.2.0.0",
+    "electron": "^34.0.0",
     "electron-builder": "^24.9.1",
     "sharp": "^0.33.4",
     "png-to-ico": "^2.1.8",
     "@electron/fuses": "^1.8.0",
-    "@castlabs/electron-releases": "v34.3.0+wv1.2.0.0"
+    "@castlabs/evs-eas": "latest"
   },
   "dependencies": {
     "electron-store": "^8.2.0",

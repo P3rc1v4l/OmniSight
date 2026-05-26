@@ -167,6 +167,9 @@ function setupWidevine() {
   }
 
   console.log('[WideVine] Lade CDM:', cdmDir, '| Version:', version);
+  console.log('[WideVine] HINWEIS: Für DRM-Streaming (Netflix, Disney+, Crunchyroll)');
+  console.log('[WideVine] wird ein castlabs-signiertes Electron-Binary benötigt.');
+  console.log('[WideVine] Siehe: https://github.com/castlabs/electron-releases');
 
   // Chromium Command-Line Switches (MÜSSEN vor app.ready() gesetzt werden)
   app.commandLine.appendSwitch('widevine-cdm-path', cdmDir);

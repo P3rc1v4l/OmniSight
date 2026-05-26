@@ -1,4 +1,4 @@
-// OmniSight Bundle – generiert am 2026-05-26T17:21:48.138Z
+// OmniSight Bundle – generiert am 2026-05-26T19:28:12.570Z
 // NICHT MANUELL BEARBEITEN – Änderungen in den Quell-Dateien vornehmen
 
 
