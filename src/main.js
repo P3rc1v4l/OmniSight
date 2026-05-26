@@ -183,12 +183,26 @@ function setupWidevine() {
   app.commandLine.appendSwitch('disable-features',
     'OutOfBlinkCors,HardwareSecureDecryption');
 
-  // GPU: Beschleunigung für Video-Decoding
+  // GPU und Media-Decoding
   app.commandLine.appendSwitch('enable-gpu-rasterization');
   app.commandLine.appendSwitch('ignore-gpu-blocklist');
-
-  // Zusätzlich: Autoplay und Media-Permissions lockern
   app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+  
+  // DRM-Kompatibilität maximieren
+  app.commandLine.appendSwitch('enable-features',
+    'WidevineCdm,EncryptedMediaExtensions,PlatformEncryptedDolbyVision,' +
+    'EnableDrm,MediaDrmPreprovisioning,MediaFoundationClearKeyDecryption');
+  
+  // Kein Software-Rendering-Fallback blockieren
+  app.commandLine.appendSwitch('enable-accelerated-video-decode');
+  app.commandLine.appendSwitch('enable-zero-copy');
+  
+  // Pepper-Plugin-API (für CDM)
+  app.commandLine.appendSwitch('enable-pepper-cdm-support');
+  
+  // Test-Flags für DRM-Kompatibilität
+  app.commandLine.appendSwitch('allow-failed-policy-fetch-for-test');
+  app.commandLine.appendSwitch('disable-background-media-suspend');
 }
 
 setupWidevine(); // VOR app.ready()
@@ -225,7 +239,17 @@ function setupSession(ses) {
   if (!ses) return;
 
   // Chrome UA für alle Requests (verhindert "Browser nicht unterstützt")
+  // Chrome 124 UA – OHNE 'Electron' String (blockiert DRM auf Streaming-Seiten)
   ses.setUserAgent(CHROME_UA, 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7');
+  
+  // DRM: WideVine für diese Session aktivieren
+  const wvDll = path.join(app.getPath('userData'), 'WidevineCdm', '_platform_specific', 'win_x64', 'widevinecdm.dll');
+  if (fs.existsSync(wvDll)) {
+    try {
+      const wvDir = path.dirname(wvDll);
+      ses.loadExtension(wvDir, { allowFileAccess: true }).catch(() => {});
+    } catch {}
+  }
 
   // Ad-Blocker
   ses.webRequest.onBeforeRequest({ urls: ['<all_urls>'] }, ({ url }, cb) =>
@@ -342,6 +366,9 @@ function createMainWindow() {
       webSecurity:              false,
       allowRunningInsecureContent: true,
       sandbox:                  false,
+      // DRM/WideVine
+      allowpopups:              true,
+      enableBlinkFeatures:      'EncryptedMedia,PictureInPicture',
     },
     ...(saved?.x != null ? { x: saved.x, y: saved.y } : {}),
   });
@@ -619,6 +646,20 @@ ipcMain.on('record-watch-time', (_, { providerId, seconds, profileId = 'default'
 });
 ipcMain.handle('get-stream-stats',  (_, p = 'default') => store.get(`streamStats_${p}`, {}));
 ipcMain.handle('get-watched-content', (_, p = 'default') => store.get(`watchedContent_${p}`, []));
+
+// ── Achievements (persistent im electron-store, nicht localStorage) ──
+ipcMain.handle('get-achievements',  (_, profileId) =>
+  store.get(`achievements_${profileId || 'default'}`, []));
+ipcMain.on('set-achievements', (_, { profileId, list }) => {
+  if (!validateStr(profileId, 64) || !Array.isArray(list)) return;
+  store.set(`achievements_${profileId}`, list);
+});
+ipcMain.handle('get-achievement-meta', (_, profileId) =>
+  store.get(`achMeta_${profileId || 'default'}`, {}));
+ipcMain.on('set-achievement-meta', (_, { profileId, meta }) => {
+  if (!validateStr(profileId, 64)) return;
+  store.set(`achMeta_${profileId}`, meta);
+});
 ipcMain.on('set-watched-content',   (_, { profileId, list }) =>
   store.set(`watchedContent_${profileId}`, list));
 

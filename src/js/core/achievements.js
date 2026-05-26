@@ -50,14 +50,32 @@ const ACHIEVEMENTS = [
 
 async function checkAchievements(statsArg = null) {
   try {
-    const stats  = statsArg || await window.electronAPI.getStreamStats(activeProfileId).catch(() => ({}));
-    const metaKey = `achMeta_${activeProfileId}`;
-    const meta    = JSON.parse(localStorage.getItem(metaKey) || '{}');
-    const earned  = new Set(JSON.parse(localStorage.getItem(`achievements_${activeProfileId}`) || '[]'));
+    const stats = statsArg || await window.electronAPI.getStreamStats(activeProfileId).catch(() => ({}));
+    const pid   = activeProfileId || 'default';
+
+    // Aus electron-store laden (persistent, überlebt Updates!)
+    let earnedArr = await window.electronAPI.getAchievements(pid).catch(() => []);
+    let meta      = await window.electronAPI.getAchievementMeta(pid).catch(() => ({}));
+    
+    // Migration: falls noch in localStorage
+    const lsKey = `achievements_${pid}`;
+    const lsData = localStorage.getItem(lsKey);
+    if (lsData && (!earnedArr || earnedArr.length === 0)) {
+      try {
+        earnedArr = JSON.parse(lsData);
+        // In electron-store migrieren
+        window.electronAPI.setAchievements(pid, earnedArr);
+        localStorage.removeItem(lsKey);
+        console.log('[Achievements] localStorage → electron-store migriert');
+      } catch {}
+    }
+
+    const earned  = new Set(earnedArr || []);
     let newOnes   = false;
 
     // Beta-Achievement automatisch setzen
     meta.isBeta = 1;
+    meta.searchCount = (meta.searchCount || 0);
 
     for (const a of ACHIEVEMENTS) {
       if (earned.has(a.id)) continue;
@@ -66,12 +84,17 @@ async function checkAchievements(statsArg = null) {
       if (!ok) continue;
       earned.add(a.id);
       newOnes = true;
+      const name = a.name[(typeof lang !== 'undefined' ? lang : 'de')] || a.name.de;
       if (settings?.notificationsConfig?.achievements !== false) {
-        addNotification('🏆', t('achievementUnlocked'), `${a.icon} ${a.name[lang] || a.name.de}`);
+        if (typeof addNotification === 'function')
+          addNotification('🏆', typeof t === 'function' ? t('achievementUnlocked') : 'Achievement!', `${a.icon} ${name}`);
       }
     }
-    if (newOnes)
-      localStorage.setItem(`achievements_${activeProfileId}`, JSON.stringify([...earned]));
+    if (newOnes) {
+      // In electron-store speichern (nicht localStorage)
+      window.electronAPI.setAchievements(pid, [...earned]);
+      window.electronAPI.setAchievementMeta(pid, meta);
+    }
   } catch (e) {
     console.warn('[Achievements] Fehler:', e.message);
   }

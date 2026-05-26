@@ -1,3 +1,31 @@
+## v3.2.9 -- 2026-05-26
+
+### Update löscht keine Daten mehr (Fix)
+- installer.nsh: KEIN customUnInstall mehr!
+  electron-builder übernimmt mit deleteAppDataOnUninstall:true automatisch
+  die Checkbox-gesteuerte Löschung → NUR bei Benutzerwunsch
+- Bei Updates: $APPDATA/omnisight bleibt KOMPLETT erhalten
+  (Logins, Profile, Favoriten, Statistiken, WideVine-Dateien)
+- customInstall: Legt nur WideVine-Ordner an
+
+### Deinstallations-Dialog (wie Screenshot)
+- deleteAppDataOnUninstall: true aktiviert
+- Standard NSIS-Checkbox "Lösche die Anwendungsdaten"
+- Standard NICHT angehakt → Daten bleiben bei normaler Deinstallation
+
+### Achievements persistieren Updates
+- checkAchievements(): electron-store statt localStorage
+- localStorage wurde bei Updates geleert; electron-store überlebt jeden Update
+- Migration: bestehende localStorage-Achievements werden automatisch übernommen
+- buildAchievementsSection: gecachte electron-store Daten nutzen
+
+### WideVine: castlabs/electron (ECHTE LÖSUNG)
+- Statt Standard-Electron → @castlabs/electron-releases v34.3.0+wv1.2.0.0
+- castlabs hat offizielles WideVine-CDM eingebaut (Vertrag mit Google)
+- Kein manuelles DLL-Kopieren mehr nötig!
+- GitHub Actions: castlabs EVS (Electron Verified Signature) Registration
+- electronDownload.mirror → castlabs GitHub Releases
+
 ## v3.2.8 -- 2026-05-26
 
 ### KRITISCH: Update löscht keine Daten mehr

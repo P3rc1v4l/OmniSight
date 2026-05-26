@@ -97,6 +97,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   importSettings:           ()    => ipcRenderer.invoke('import-settings'),
 
   // ── Sonstiges ───────────────────────────────────────────────────
+  getAchievements:          (p)   => ipcRenderer.invoke('get-achievements', p),
+  setAchievements:          (p,l) => ipcRenderer.send('set-achievements', { profileId:p, list:l }),
+  getAchievementMeta:       (p)   => ipcRenderer.invoke('get-achievement-meta', p),
+  setAchievementMeta:       (p,m) => ipcRenderer.send('set-achievement-meta', { profileId:p, meta:m }),
   checkOnline:              ()    => ipcRenderer.invoke('check-online'),
   checkUrl:                 (u)   => ipcRenderer.invoke('check-url', u),
   checkVpn:                 ()    => ipcRenderer.invoke('check-vpn'),

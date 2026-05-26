@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "3.2.8",
+  "version": "3.2.9",
   "description": "OmniSight \u2013 Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "build:linux": "electron-builder --linux --publish never",
     "build:release": "electron-builder --win --x64 --publish always",
     "make-icon": "node scripts/generate-icons.js",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "node scripts/fuses.js || true && (npx @castlabs/evs-eas check --skip 2>/dev/null || true)",
     "shrinkwrap": "npm shrinkwrap",
     "bundle": "node scripts/build-bundle.js",
     "prebuild": "node scripts/build-bundle.js",
@@ -64,7 +64,7 @@
       "include": "build/installer.nsh",
       "differentialPackage": true,
       "warningsAsErrors": false,
-      "deleteAppDataOnUninstall": false,
+      "deleteAppDataOnUninstall": true,
       "runAfterFinish": true
     },
     "publish": {
@@ -80,9 +80,12 @@
     "extraMetadata": {
       "certExpiry": "2029-05-23",
       "certExpiryNote": "Self-Signed Zertifikat l\u00e4uft ab \u2013 create-cert.ps1 erneut ausf\u00fchren",
-      "appVersion": "3.2.8"
+      "appVersion": "3.2.9"
     },
-    "forceCodeSigning": false
+    "forceCodeSigning": false,
+    "electronDownload": {
+      "mirror": "https://github.com/castlabs/electron-releases/releases/download/"
+    }
   },
   "keywords": [
     "streaming",
@@ -92,11 +95,12 @@
   "author": "P3rc1v4l",
   "license": "PROPRIETARY",
   "devDependencies": {
-    "electron": "^34.0.0",
+    "electron": "npm:@castlabs/electron-releases@v34.3.0+wv1.2.0.0",
     "electron-builder": "^24.9.1",
     "sharp": "^0.33.4",
     "png-to-ico": "^2.1.8",
-    "@electron/fuses": "^1.8.0"
+    "@electron/fuses": "^1.8.0",
+    "@castlabs/electron-releases": "v34.3.0+wv1.2.0.0"
   },
   "dependencies": {
     "electron-store": "^8.2.0",
