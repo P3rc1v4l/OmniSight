@@ -33,7 +33,7 @@ const PLUGIN_PRESETS=[
 ];
 
 // ════════ GLOBALS ══════════════════════════════════════════════════
-// [TMDB_IMG/TMDB_BD: in ui/search.js definiert]
+const TMDB_BD='https://image.tmdb.org/t/p/w1280'; // TMDB_IMG aus search.js
 const UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const pad=n=>String(n).padStart(2,'0');
@@ -129,10 +129,36 @@ document.getElementById('btn-check-updates')?.addEventListener('click',async()=>
   window.electronAPI.onFullscreenChange(v=>{isFullscreen=v;updateFullscreenUI();});
   window.electronAPI.onSessionsUpdated(r=>{
     sessionCache=r;
-    buildProviderGrid();
+    // Nur Session-Dots aktualisieren wenn auf Home-View, kein komplettes Rebuild
+    const homeActive=document.getElementById('view-home')?.classList.contains('active');
+    if(homeActive){
+      // Nur Dots sanft aktualisieren, kein grid.innerHTML='' 
+      Object.entries(r).forEach(([id,isOn])=>{
+        const card=document.querySelector(`.provider-card[data-id="${id}"]`);
+        if(card){
+          let dot=card.querySelector('.card-session-dot');
+          if(isOn&&!dot){dot=document.createElement('div');dot.className='card-session-dot';card.appendChild(dot);}
+          else if(!isOn&&dot)dot.remove();
+        }
+      });
+    }
     const accountActive=document.querySelector('.sms-btn[data-stab="account"]')?.classList.contains('active');
-    if(accountActive)buildSessionList(r);sessionCache=r;if(document.querySelector('.sms-btn[data-stab="account"]')?.classList.contains('active'))renderSessionList(r);});
-  window.electronAPI.onUpdateAvailable(info=>{showNotif('🚀 Update!',`v${info.version} verfügbar.`);const el=document.getElementById('update-check-result');if(el){el.textContent=`🚀 v${info.version} verfügbar`;el.style.color='var(--acc)';}});
+    if(accountActive)buildSessionList(r);
+  });
+  window.electronAPI.onUpdateAvailable(info=>{
+    showNotif('🚀 Update!',`v${info.version} verfügbar.`);
+    // Update-Check Ergebnis
+    const el=document.getElementById('update-check-result');
+    if(el){el.textContent=`🚀 v${info.version} verfügbar – bereit zum Herunterladen`;el.style.color='var(--acc)';}
+    // Download-Button einblenden
+    const dlBtn=document.getElementById('btn-download-update');
+    if(dlBtn){dlBtn.style.display='flex';dlBtn.textContent='⬇ Herunterladen';}
+    // Update-Banner einblenden
+    const banner=document.getElementById('update-banner');
+    const bannerTxt=document.getElementById('update-text');
+    if(banner){banner.style.display='flex';}
+    if(bannerTxt){bannerTxt.textContent=`🚀 Update v${info.version} verfügbar`;}
+  });
   window.electronAPI.onUpdateNotAvailable(()=>{const el=document.getElementById('update-check-result');if(el){el.textContent='✓ Neueste Version';el.style.color='var(--acc)';}});
   window.electronAPI.onUpdateDownloaded(()=>showNotif('✓ Update bereit','App wird beim Neustart aktualisiert.'));
   window.electronAPI.onUpdateError(msg=>{const el=document.getElementById('update-check-result');if(el&&!msg.includes('404')){el.textContent='Fehler: '+msg;el.style.color='var(--danger)';}});

@@ -1,3 +1,28 @@
+## v3.2.7 -- 2026-05-26
+
+### Bugfixes
+- TMDB_BD nicht definiert: wurde faelschlicherweise aus app.js entfernt,
+  wird aber in updateSlideshowBg() und showDetailPopup() benoetigt.
+  Jetzt korrekt in app.js definiert.
+- Suchergebnisse schliessen sich nicht: zweiter capture-Listener instaliert,
+  der zuverlässig schliesst wenn außerhalb geklickt wird.
+- Übersicht wird neugeladen: onSessionsUpdated() hat buildProviderGrid()
+  aufgerufen → grid.innerHTML='' → visuelles Flackern alle 60s.
+  Jetzt werden nur die Session-Dots sanft aktualisiert.
+- Profil-Editor: neu implementiert ohne Rekursion, alle Buttons verdrahtet.
+  _openProfileEditorSafe() als globale Funktion, einmaliges Setup.
+
+### Neue Features
+- Update-Download/Install Buttons: erscheinen automatisch wenn neues
+  Update verfuegbar/heruntergeladen
+- WideVine Anleitung: Button in Einstellungen → Mehr vorhanden
+- Miniplayer: Einstellung ob er automatisch beim Verlassen aktiviert wird
+- Qualitaets-Badge: kein Hintergrund mehr auf Anbieterkarten
+
+### Installer
+- Installation: kein Deinstallations-Dialog mehr (war ein Bug beim Update-Prozess)
+  customUnInstall loescht Daten jetzt automatisch (keine Rueckfrage)
+
 ## v3.2.6 -- 2026-05-26
 
 ### Bugfixes

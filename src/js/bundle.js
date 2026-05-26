@@ -1,4 +1,4 @@
-// OmniSight Bundle – generiert am 2026-05-26T09:54:45.946Z
+// OmniSight Bundle – generiert am 2026-05-26T10:34:20.780Z
 // NICHT MANUELL BEARBEITEN – Änderungen in den Quell-Dateien vornehmen
 
 
@@ -1071,7 +1071,7 @@ const PLUGIN_PRESETS=[
 ];
 
 // ════════ GLOBALS ══════════════════════════════════════════════════
-// [TMDB_IMG/TMDB_BD: in ui/search.js definiert]
+const TMDB_BD='https://image.tmdb.org/t/p/w1280'; // TMDB_IMG aus search.js
 const UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const pad=n=>String(n).padStart(2,'0');
@@ -1167,10 +1167,36 @@ document.getElementById('btn-check-updates')?.addEventListener('click',async()=>
   window.electronAPI.onFullscreenChange(v=>{isFullscreen=v;updateFullscreenUI();});
   window.electronAPI.onSessionsUpdated(r=>{
     sessionCache=r;
-    buildProviderGrid();
+    // Nur Session-Dots aktualisieren wenn auf Home-View, kein komplettes Rebuild
+    const homeActive=document.getElementById('view-home')?.classList.contains('active');
+    if(homeActive){
+      // Nur Dots sanft aktualisieren, kein grid.innerHTML='' 
+      Object.entries(r).forEach(([id,isOn])=>{
+        const card=document.querySelector(`.provider-card[data-id="${id}"]`);
+        if(card){
+          let dot=card.querySelector('.card-session-dot');
+          if(isOn&&!dot){dot=document.createElement('div');dot.className='card-session-dot';card.appendChild(dot);}
+          else if(!isOn&&dot)dot.remove();
+        }
+      });
+    }
     const accountActive=document.querySelector('.sms-btn[data-stab="account"]')?.classList.contains('active');
-    if(accountActive)buildSessionList(r);sessionCache=r;if(document.querySelector('.sms-btn[data-stab="account"]')?.classList.contains('active'))renderSessionList(r);});
-  window.electronAPI.onUpdateAvailable(info=>{showNotif('🚀 Update!',`v${info.version} verfügbar.`);const el=document.getElementById('update-check-result');if(el){el.textContent=`🚀 v${info.version} verfügbar`;el.style.color='var(--acc)';}});
+    if(accountActive)buildSessionList(r);
+  });
+  window.electronAPI.onUpdateAvailable(info=>{
+    showNotif('🚀 Update!',`v${info.version} verfügbar.`);
+    // Update-Check Ergebnis
+    const el=document.getElementById('update-check-result');
+    if(el){el.textContent=`🚀 v${info.version} verfügbar – bereit zum Herunterladen`;el.style.color='var(--acc)';}
+    // Download-Button einblenden
+    const dlBtn=document.getElementById('btn-download-update');
+    if(dlBtn){dlBtn.style.display='flex';dlBtn.textContent='⬇ Herunterladen';}
+    // Update-Banner einblenden
+    const banner=document.getElementById('update-banner');
+    const bannerTxt=document.getElementById('update-text');
+    if(banner){banner.style.display='flex';}
+    if(bannerTxt){bannerTxt.textContent=`🚀 Update v${info.version} verfügbar`;}
+  });
   window.electronAPI.onUpdateNotAvailable(()=>{const el=document.getElementById('update-check-result');if(el){el.textContent='✓ Neueste Version';el.style.color='var(--acc)';}});
   window.electronAPI.onUpdateDownloaded(()=>showNotif('✓ Update bereit','App wird beim Neustart aktualisiert.'));
   window.electronAPI.onUpdateError(msg=>{const el=document.getElementById('update-check-result');if(el&&!msg.includes('404')){el.textContent='Fehler: '+msg;el.style.color='var(--danger)';}});
@@ -3810,3 +3836,352 @@ window._openWvFolder = async function(type) {
 };
 
 console.log('[v3.2.6] Miniplayer, Partikel, Design, WideVine, Plugins gepatcht');
+
+// ════════════════════════════════════════════════════════════════════
+// v3.2.7 FIXES
+// ════════════════════════════════════════════════════════════════════
+
+// ── 1. SUCHE: Außen-Klick WIRKLICH schließen ─────────────────────────
+
+(function fixSearchClose() {
+  // Jedes Mal wenn setupSearch() aufgerufen wurde, wurde ein neuer
+  // 'mousedown' capture-Listener hinzugefügt. Wir nutzen ein Flag.
+  if (window._searchCloseInstalled) return;
+  window._searchCloseInstalled = true;
+
+  document.addEventListener('mousedown', function(e) {
+    const dd    = document.getElementById('search-dropdown');
+    const input = document.getElementById('search-input');
+    if (!dd || dd.style.display === 'none') return;
+
+    const wrap = input?.closest('.search-bar') ||
+                 input?.closest('.home-actions') ||
+                 input?.parentElement;
+
+    if (!wrap?.contains(e.target) && !dd.contains(e.target)) {
+      dd.style.display = 'none';
+    }
+  }, true); // capture = true, läuft vor allen anderen Listenern
+})();
+
+// ── 2. UPDATE: Download/Install Buttons verdrahten ───────────────────
+
+(function setupUpdateButtons() {
+  setTimeout(() => {
+    const dlBtn  = document.getElementById('btn-download-update');
+    const instBtn= document.getElementById('btn-install-update');
+
+    if (dlBtn && !dlBtn._updateBound) {
+      dlBtn._updateBound = true;
+      dlBtn.style.display = 'none'; // erst bei Update einblenden
+      dlBtn.addEventListener('click', () => {
+        dlBtn.textContent = '⬇ Lädt…';
+        dlBtn.disabled    = true;
+        window.electronAPI.downloadUpdate();
+      });
+    }
+
+    if (instBtn && !instBtn._updateBound) {
+      instBtn._updateBound = true;
+      instBtn.style.display = 'none';
+      instBtn.addEventListener('click', () => {
+        instBtn.textContent = '↺ Wird installiert…';
+        instBtn.disabled    = true;
+        window.electronAPI.installUpdate();
+      });
+    }
+
+    // onUpdateDownloaded: Install-Button einblenden
+    window.electronAPI.onUpdateDownloaded?.(() => {
+      if (dlBtn)   dlBtn.style.display   = 'none';
+      if (instBtn) {
+        instBtn.style.display   = 'flex';
+        instBtn.disabled        = false;
+        instBtn.textContent     = '↺ Jetzt installieren';
+      }
+      // Update-Check Ergebnis
+      const el = document.getElementById('update-check-result');
+      if (el) { el.textContent = '✓ Update heruntergeladen – bereit zur Installation'; el.style.color = 'var(--acc)'; }
+    });
+
+    // Fortschritt
+    window.electronAPI.onUpdateDownloadProgress?.((pct) => {
+      if (dlBtn) dlBtn.textContent = `⬇ ${pct}%`;
+    });
+  }, 800);
+})();
+
+// ── 3. WIDEVINE GUIDE: In Einstellungen ──────────────────────────────
+
+(function bindWidevineGuideBtn() {
+  setTimeout(() => {
+    const btn = document.getElementById('btn-widevine-guide');
+    if (btn && !btn._wvBound) {
+      btn._wvBound = true;
+      btn.addEventListener('click', () => {
+        if (typeof openWidevineGuide === 'function') openWidevineGuide();
+        else console.warn('openWidevineGuide nicht gefunden');
+      });
+    }
+  }, 700);
+})();
+
+// ── 4. MINIPLAYER: Auto-Aktivierung einstellbar ───────────────────────
+
+// pip-auto-enable Toggle verdrahten
+(function bindPipAutoToggle() {
+  setTimeout(() => {
+    const toggle = document.getElementById('pip-auto-enable');
+    if (!toggle || toggle._pipBound) return;
+    toggle._pipBound = true;
+    toggle.checked = settings.pipAutoEnable !== false; // default: an
+    toggle.addEventListener('change', () => {
+      settings.pipAutoEnable = toggle.checked;
+      autoSave();
+      showToastMsg(toggle.checked ? '🎬 Miniplayer aktiviert sich automatisch' : '🎬 Miniplayer: manuell');
+    });
+  }, 700);
+})();
+
+// maybeMoveToPip: nur wenn pipAutoEnable aktiv
+const _origMaybeMoveToPip = typeof maybeMoveToPip === 'function' ? maybeMoveToPip : null;
+window.maybeMoveToPip = function() {
+  // Nur automatisch wenn Einstellung aktiv
+  if (settings.pipAutoEnable === false) return; // manuell deaktiviert
+  if (typeof moveToPip === 'function' && window.moveToPip && currentWebview && currentProvider) {
+    window.moveToPip(currentProvider, currentWebview);
+  } else if (_origMaybeMoveToPip) {
+    _origMaybeMoveToPip();
+  }
+};
+
+// ── 5. KARTEN: Qualitäts-Badge ohne Hintergrund ──────────────────────
+
+(function fixQualityBadge() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .card-quality-badge {
+      background: transparent !important;
+      color: rgba(255,255,255,0.6) !important;
+      font-size: 9px !important;
+      font-weight: 700 !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8) !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+// ── 6. PROFIL-EDITOR: Komplett repariert ─────────────────────────────
+
+// openProfileEditor überschreiben – sicher ohne Rekursion
+window._openProfileEditorSafe = function(id) {
+  const p = id ? (typeof profiles !== 'undefined' ? profiles.find(pr => pr.id === id) : null) : null;
+  window._pedId     = id || null;
+  window._pedAvatar = undefined;
+  window._pedPin    = undefined;
+
+  // Overlay holen
+  const overlay = document.getElementById('profile-editor-overlay');
+  if (!overlay) { console.warn('[Profile] Overlay nicht gefunden'); return; }
+
+  // Felder befüllen
+  const titleEl = document.getElementById('ped-title');
+  const nameEl  = document.getElementById('ped-name');
+  const prevEl  = document.getElementById('ped-avatar-preview');
+  const pinEl   = document.getElementById('ped-pin-status');
+  const delBtn  = document.getElementById('ped-delete');
+  const cancelBtn = document.getElementById('ped-cancel');
+
+  if (titleEl) titleEl.textContent = p ? 'Profil bearbeiten' : 'Neues Profil';
+  if (nameEl)  { nameEl.value = p?.name || ''; setTimeout(() => nameEl.focus(), 100); }
+  if (prevEl)  prevEl.innerHTML = p?.avatar
+    ? `<img src="${p.avatar}" style="width:56px;height:56px;border-radius:50%;object-fit:cover"/>`
+    : `<div style="width:56px;height:56px;border-radius:50%;background:var(--bgch);display:flex;align-items:center;justify-content:center;font-size:28px">👤</div>`;
+  if (pinEl)   pinEl.textContent = p?.pin ? '🔒 PIN aktiv' : '🔓 Kein PIN';
+  if (delBtn) {
+    const canDelete = p && (typeof profiles !== 'undefined' ? profiles.length > 1 : false);
+    delBtn.style.display = canDelete ? 'flex' : 'none';
+  }
+
+  overlay.style.display = 'flex';
+  overlay.style.zIndex  = '4000';
+
+  // Außen-Klick schließt (einmalig registrieren)
+  if (!overlay._outsideClick) {
+    overlay._outsideClick = true;
+    overlay.addEventListener('mousedown', e => {
+      if (e.target === overlay) {
+        overlay.style.display = 'none';
+        window._pedId = null;
+      }
+    });
+  }
+};
+
+// Alle Edit-Trigger verdrahten (nach DOM-Aufbau)
+(function bindProfileTriggers() {
+  const bind = () => {
+    // Stift-Buttons in Profil-Liste
+    document.querySelectorAll('.profile-edit-trigger').forEach(btn => {
+      if (btn._trigBound) return;
+      btn._trigBound = true;
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        window._openProfileEditorSafe(btn.dataset.profileId);
+      });
+    });
+    // Neues Profil Button
+    const newBtn = document.getElementById('btn-new-profile');
+    if (newBtn && !newBtn._newBound) {
+      newBtn._newBound = true;
+      newBtn.addEventListener('click', () => window._openProfileEditorSafe(null));
+    }
+  };
+  setTimeout(bind, 700);
+  // Auch nach buildSidebarProfile neu binden
+  const origBSP = window.buildSidebarProfile;
+  if (typeof origBSP === 'function') {
+    window.buildSidebarProfile = function() {
+      origBSP.apply(this, arguments);
+      setTimeout(bind, 100);
+    };
+  }
+})();
+
+// Profil-Editor Buttons: einmalig verdrahten ohne doppelte Handler
+(function setupProfileEditorV327() {
+  const bindEditorBtns = () => {
+    const overlay = document.getElementById('profile-editor-overlay');
+    if (!overlay || overlay._v327Done) return;
+    overlay._v327Done = true;
+
+    // SPEICHERN
+    const saveBtn = document.getElementById('ped-save');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        const pedId = window._pedId;
+        const name  = (document.getElementById('ped-name')?.value || '').trim() || 'User';
+        let pinSave = undefined;
+
+        if (window._pedPin !== undefined) {
+          if (!window._pedPin) {
+            pinSave = null;
+          } else if (/^\d{4,8}$/.test(String(window._pedPin))) {
+            try { pinSave = await window.electronAPI.hashPin(String(window._pedPin)); }
+            catch { pinSave = window._pedPin; }
+          } else {
+            pinSave = window._pedPin;
+          }
+        }
+
+        if (typeof profiles === 'undefined') { showToastMsg('Fehler: profiles nicht definiert'); return; }
+
+        if (pedId) {
+          const idx = profiles.findIndex(p => p.id === pedId);
+          if (idx >= 0) {
+            profiles[idx].name = name;
+            if (window._pedAvatar !== undefined) profiles[idx].avatar = window._pedAvatar;
+            if (pinSave !== undefined) profiles[idx].pin = pinSave;
+          }
+        } else {
+          profiles.push({
+            id: 'profile_' + Date.now(), name,
+            avatar: window._pedAvatar || null,
+            pin: pinSave || null,
+            favorites: [], watchlist: [], searchHistory: [], viewHistory: [],
+          });
+        }
+
+        window.electronAPI.setProfiles(profiles);
+        overlay.style.display = 'none';
+        window._pedId = null; window._pedPin = undefined; window._pedAvatar = undefined;
+        if (typeof buildSidebarProfile === 'function') buildSidebarProfile();
+        showSaveToast();
+      });
+    }
+
+    // ABBRECHEN
+    document.getElementById('ped-cancel')?.addEventListener('click', () => {
+      overlay.style.display = 'none';
+      window._pedId = null;
+    });
+
+    // LÖSCHEN
+    document.getElementById('ped-delete')?.addEventListener('click', async () => {
+      const pedId = window._pedId;
+      if (!pedId || !profiles || profiles.length <= 1) { showToastMsg('Mindestens 1 Profil erforderlich'); return; }
+      const profile = profiles.find(p => p.id === pedId);
+      if (!profile) return;
+
+      if (profile.pin) {
+        const entered = prompt(`PIN für "${profile.name}" eingeben:`);
+        if (entered === null) return;
+        let valid = false;
+        try { valid = await window.electronAPI.verifyPin(String(entered), profile.pin); }
+        catch { valid = String(entered) === String(profile.pin); }
+        if (!valid) { showToastMsg('Falscher PIN'); return; }
+      }
+      if (!confirm(`Profil "${profile.name}" wirklich löschen?`)) return;
+
+      profiles = profiles.filter(p => p.id !== pedId);
+      window.electronAPI.setProfiles(profiles);
+      overlay.style.display = 'none';
+      window._pedId = null;
+      if (activeProfileId === pedId) {
+        if (typeof switchProfile === 'function') switchProfile(profiles[0].id);
+      } else {
+        if (typeof buildSidebarProfile === 'function') buildSidebarProfile();
+      }
+      showToastMsg('Profil gelöscht');
+    });
+
+    // AVATAR
+    document.getElementById('ped-pick-avatar')?.addEventListener('click', async () => {
+      const r = await window.electronAPI.pickImage('avatar').catch(() => null);
+      if (!r) return;
+      const url = r.base64 || r.filePath || r;
+      window._pedAvatar = url;
+      const prev = document.getElementById('ped-avatar-preview');
+      if (prev) prev.innerHTML = `<img src="${url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover"/>`;
+    });
+
+    // PIN
+    document.getElementById('ped-set-pin')?.addEventListener('click', async () => {
+      const pedId   = window._pedId;
+      const profile = pedId ? profiles?.find(p => p.id === pedId) : null;
+      if (profile?.pin) {
+        const old = prompt('Aktuellen PIN eingeben:');
+        if (old === null) return;
+        let valid = false;
+        try { valid = await window.electronAPI.verifyPin(String(old), profile.pin); }
+        catch { valid = String(old) === String(profile.pin); }
+        if (!valid) { showToastMsg('Falscher PIN'); return; }
+      }
+      const newPin = prompt('Neuen PIN (4-8 Ziffern, leer = entfernen):');
+      if (newPin === null) return;
+      if (newPin === '') {
+        window._pedPin = '';
+        const ps = document.getElementById('ped-pin-status');
+        if (ps) ps.textContent = '🔓 PIN wird entfernt';
+        showToastMsg('PIN wird beim Speichern entfernt');
+        return;
+      }
+      if (!/^\d{4,8}$/.test(newPin)) { showToastMsg('PIN: 4-8 Ziffern'); return; }
+      window._pedPin = newPin;
+      const ps = document.getElementById('ped-pin-status');
+      if (ps) ps.textContent = '🔒 Neuer PIN (noch nicht gespeichert)';
+      showToastMsg('PIN gesetzt – Speichern nicht vergessen!');
+    });
+  };
+
+  setTimeout(bindEditorBtns, 800);
+})();
+
+// openProfileEditor global überschreiben
+window.openProfileEditor = function(id) {
+  window._openProfileEditorSafe(id);
+};
+
+console.log('[v3.2.7] Suche, Update, WideVine, PIP, Karte, Profil gepatcht');
