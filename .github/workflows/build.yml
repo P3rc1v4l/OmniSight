@@ -8,7 +8,7 @@ on:
         required: false
         default: 'true'
         type: choice
-        options: ['false', 'true']
+        options: ['true', 'false']
   push:
     tags:
       - 'v*'
@@ -28,19 +28,7 @@ jobs:
           node-version: 20
 
       - name: Abhaengigkeiten installieren
-        run: npm install --ignore-scripts
-        # --ignore-scripts verhindert postinstall Fehler
-
-      - name: castlabs EVS registrieren (WideVine Lizenz)
-        # EVS registriert die App bei castlabs fuer offizielles WideVine
-        # Ohne Registrierung: kein WideVine in der gebauten App
-        run: npx --yes @castlabs/evs-eas check --skip
-        continue-on-error: true
-        # continue-on-error: Falls EVS nicht verfuegbar, normaler Build ohne WideVine
-
-      - name: Scripts ausfuehren (fuses.js etc.)
-        run: npm run postinstall || true
-        continue-on-error: true
+        run: npm install
 
       - name: Version auslesen
         id: version
