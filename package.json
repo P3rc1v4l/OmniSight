@@ -1,7 +1,7 @@
 {
   "name": "omnisight",
   "version": "3.2.9",
-  "description": "OmniSight \u2013 Dein zentrales Streaming-Hub",
+  "description": "OmniSight – Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
@@ -79,7 +79,7 @@
     ],
     "extraMetadata": {
       "certExpiry": "2029-05-23",
-      "certExpiryNote": "Self-Signed Zertifikat l\u00e4uft ab \u2013 create-cert.ps1 erneut ausf\u00fchren",
+      "certExpiryNote": "Self-Signed Zertifikat läuft ab – create-cert.ps1 erneut ausführen",
       "appVersion": "3.2.9"
     },
     "forceCodeSigning": false
@@ -96,8 +96,7 @@
     "electron-builder": "^24.9.1",
     "sharp": "^0.33.4",
     "png-to-ico": "^2.1.8",
-    "@electron/fuses": "^1.8.0",
-    "@castlabs/evs-eas": "latest"
+    "@electron/fuses": "^1.8.0"
   },
   "dependencies": {
     "electron-store": "^8.2.0",

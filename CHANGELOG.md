@@ -1,5 +1,20 @@
 ## v3.2.9 -- 2026-05-26
 
+### Installer / Update
+- deleteAppDataOnUninstall: true → Checkbox "Lösche die Anwendungsdaten"
+  im Deinstallations-Dialog (wie im Screenshot)
+- customUnInstall entfernt – electron-builder übernimmt Datenverwaltung
+- WideVine-Ordner wird bei Installation angelegt und bei Updates NICHT gelöscht
+
+### Achievements
+- Aus electron-store statt localStorage – überlebt alle Updates
+
+### Build
+- create_release default: true (kein manuelles Umschalten nötig)
+- @castlabs Dependencies entfernt (existieren nicht im npm-Registry)
+
+## v3.2.9 -- 2026-05-26
+
 ### Update löscht keine Daten mehr (Fix)
 - installer.nsh: KEIN customUnInstall mehr!
   electron-builder übernimmt mit deleteAppDataOnUninstall:true automatisch
