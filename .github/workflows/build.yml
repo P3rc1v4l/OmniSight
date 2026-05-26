@@ -6,7 +6,7 @@ on:
       create_release:
         description: 'Release erstellen?'
         required: false
-        default: 'true'
+        default: 'false'
         type: choice
         options: ['false', 'true']
   push:
@@ -30,6 +30,10 @@ jobs:
       - name: Abhaengigkeiten installieren
         run: npm install
 
+      - name: castlabs EVS registrieren (WideVine Lizenz)
+        run: npx @castlabs/evs-eas check --skip
+        continue-on-error: true
+
       - name: Version auslesen
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $env:GITHUB_OUTPUT
@@ -39,8 +43,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
-          # Dieser Token wird in die App eingebaut fuer Auto-Update bei privatem Repo
-          OMNISIGHT_UPDATE_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Alte Artifacts aufraeumen
         uses: actions/github-script@v7
@@ -70,8 +72,7 @@ jobs:
           retention-days: 3
           overwrite: true
 
-      # Release NUR bei Tag-Push oder wenn create_release=true
-      - name: GitHub Release mit EXE + latest.yml
+      - name: GitHub Release
         if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
