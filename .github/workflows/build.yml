@@ -6,7 +6,7 @@ on:
       create_release:
         description: 'Release erstellen?'
         required: false
-        default: 'false'
+        default: 'true'
         type: choice
         options: ['false', 'true']
   push:
