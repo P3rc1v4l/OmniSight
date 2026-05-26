@@ -685,7 +685,16 @@ function setupClock(){
   const pos=clk.position||{x:16,y:52};widget.style.display='block';widget.style.left=pos.x+'px';widget.style.top=pos.y+'px';widget.style.right='auto';widget.style.bottom='auto';widget.style.color=clk.color||'#ff3b30';widget.style.fontSize=(clk.size||22)+'px';widget.style.opacity=String(1-(clk.opacity??0.5));
   const showSecs=!!clk.showSeconds;
   if(clk.type==='analog'){function drawA(){const n=new Date(),h=n.getHours()%12,m=n.getMinutes(),s=n.getSeconds();const sz=Math.max(clk.size||22,18),r=sz*1.8;const ha=((h+m/60)/12)*Math.PI*2-Math.PI/2,ma=(m/60)*Math.PI*2-Math.PI/2,sa=(s/60)*Math.PI*2-Math.PI/2;const c=clk.color||'#ff3b30';timeEl.innerHTML=`<svg width="${r*2}" height="${r*2}" viewBox="0 0 ${r*2} ${r*2}" style="display:block"><circle cx="${r}" cy="${r}" r="${r-2}" fill="none" stroke="${c}" stroke-width="1.5" opacity=".4"/><line x1="${r}" y1="${r}" x2="${r+Math.cos(ha)*r*.55}" y2="${r+Math.sin(ha)*r*.55}" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><line x1="${r}" y1="${r}" x2="${r+Math.cos(ma)*r*.8}" y2="${r+Math.sin(ma)*r*.8}" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>${showSecs?`<line x1="${r}" y1="${r}" x2="${r+Math.cos(sa)*r*.85}" y2="${r+Math.sin(sa)*r*.85}" stroke="${c}" stroke-width=".8" stroke-linecap="round" opacity=".7"/>`:''}''<circle cx="${r}" cy="${r}" r="2" fill="${c}"/></svg>`;} drawA();_clockInt=setInterval(drawA,showSecs?1000:10000);}
-  else{/* [tick: Duplikat entfernt] */tick();_clockInt=setInterval(tick,1000);}
+  else{
+    function tick(){
+      const n=new Date();
+      const h=String(n.getHours()).padStart(2,'0');
+      const min=String(n.getMinutes()).padStart(2,'0');
+      const s=String(n.getSeconds()).padStart(2,'0');
+      timeEl.textContent=showSecs?h+':'+min+':'+s:h+':'+min;
+    }
+    tick();_clockInt=setInterval(tick,1000);
+  }
 }
 
 function setupClockContextMenu(){

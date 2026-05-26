@@ -1,3 +1,26 @@
+## v3.2.6 -- 2026-05-26
+
+### Bugfixes
+- tick() nicht definiert: tick() wurde faelschlicherweise als Duplikat
+  aus setupClock() entfernt. Direkt in den else-Branch eingebaut.
+- WideVine manifest.json: liegt in Chrome im WidevineCdm-Ordner (eine
+  Ebene ÜBER _platform_specific/win_x64/). main.js prueft beide Pfade.
+  cdmBase wird an Frontend uebergeben. WideVine-Guide aktualisiert.
+
+### Installer
+- Installation: KEINE Rueckfrage mehr zum Datenhloeschen
+- Deinstallation: Daten werden jetzt AUTOMATISCH geloescht (kein Dialog)
+
+### Features
+- Miniplayer: Komplette Ueberarbeitung. Toolbar mit S/M/L Groessen,
+  Mute-Button, Vollbild-Button, Drag-and-Drop, Hover zeigt Toolbar.
+  Webview wird verschoben (kein Reload).
+- Partikel: Neue setupParticles-Implementierung mit allen Slidern
+  (Anzahl, Groesse, Geschwindigkeit, Transparenz, Farbe, Shapes).
+- Design-Optionen: Karten-Schatten/Zoom/Animationen direkt verdrahtet.
+- Plugin-Buttons: Deinstallieren immer rot, Installieren in Akzentfarbe.
+- WideVine Anleitung: Per Button in Einstellungen aufrufbar.
+
 ## v3.2.5 -- 2026-05-26
 
 ### Kritischer Fix: Endlosrekursion behoben

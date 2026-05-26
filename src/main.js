@@ -642,7 +642,11 @@ ipcMain.handle('get-widevine-status', () => {
   const cdmDir       = path.join(userData, 'WidevineCdm', '_platform_specific', 'win_x64');
   const dllPath      = path.join(cdmDir, 'widevinecdm.dll');
   const sigPath      = path.join(cdmDir, 'widevinecdm.dll.sig');
-  const manifestPath = path.join(cdmDir, 'manifest.json');
+  // manifest.json: Chrome legt es im WidevineCdm-Ordner ab, eine Ebene ÜBER win_x64
+  const cdmBase      = path.join(userData, 'WidevineCdm');
+  const manifestPath = fs.existsSync(path.join(cdmDir, 'manifest.json'))
+    ? path.join(cdmDir, 'manifest.json')    // User hat es direkt reinkopiert
+    : path.join(cdmBase, 'manifest.json');  // Standard Chrome-Position
 
   // Ordner anlegen falls nicht vorhanden
   if (!fs.existsSync(cdmDir)) {
@@ -669,6 +673,13 @@ ipcMain.handle('get-widevine-status', () => {
     manifestExists,
     version,
     cdmDir,
+    cdmBase,
+    // Klare Anleitung wo welche Datei hingehört
+    paths: {
+      dll:      path.join(cdmDir, 'widevinecdm.dll'),
+      sig:      path.join(cdmDir, 'widevinecdm.dll.sig'),
+      manifest: manifestPath,
+    }
   };
 });
 

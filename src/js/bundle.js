@@ -1,4 +1,4 @@
-// OmniSight Bundle – generiert am 2026-05-26T09:17:50.635Z
+// OmniSight Bundle – generiert am 2026-05-26T09:54:45.946Z
 // NICHT MANUELL BEARBEITEN – Änderungen in den Quell-Dateien vornehmen
 
 
@@ -1723,7 +1723,16 @@ function setupClock(){
   const pos=clk.position||{x:16,y:52};widget.style.display='block';widget.style.left=pos.x+'px';widget.style.top=pos.y+'px';widget.style.right='auto';widget.style.bottom='auto';widget.style.color=clk.color||'#ff3b30';widget.style.fontSize=(clk.size||22)+'px';widget.style.opacity=String(1-(clk.opacity??0.5));
   const showSecs=!!clk.showSeconds;
   if(clk.type==='analog'){function drawA(){const n=new Date(),h=n.getHours()%12,m=n.getMinutes(),s=n.getSeconds();const sz=Math.max(clk.size||22,18),r=sz*1.8;const ha=((h+m/60)/12)*Math.PI*2-Math.PI/2,ma=(m/60)*Math.PI*2-Math.PI/2,sa=(s/60)*Math.PI*2-Math.PI/2;const c=clk.color||'#ff3b30';timeEl.innerHTML=`<svg width="${r*2}" height="${r*2}" viewBox="0 0 ${r*2} ${r*2}" style="display:block"><circle cx="${r}" cy="${r}" r="${r-2}" fill="none" stroke="${c}" stroke-width="1.5" opacity=".4"/><line x1="${r}" y1="${r}" x2="${r+Math.cos(ha)*r*.55}" y2="${r+Math.sin(ha)*r*.55}" stroke="${c}" stroke-width="2.5" stroke-linecap="round"/><line x1="${r}" y1="${r}" x2="${r+Math.cos(ma)*r*.8}" y2="${r+Math.sin(ma)*r*.8}" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>${showSecs?`<line x1="${r}" y1="${r}" x2="${r+Math.cos(sa)*r*.85}" y2="${r+Math.sin(sa)*r*.85}" stroke="${c}" stroke-width=".8" stroke-linecap="round" opacity=".7"/>`:''}''<circle cx="${r}" cy="${r}" r="2" fill="${c}"/></svg>`;} drawA();_clockInt=setInterval(drawA,showSecs?1000:10000);}
-  else{/* [tick: Duplikat entfernt] */tick();_clockInt=setInterval(tick,1000);}
+  else{
+    function tick(){
+      const n=new Date();
+      const h=String(n.getHours()).padStart(2,'0');
+      const min=String(n.getMinutes()).padStart(2,'0');
+      const s=String(n.getSeconds()).padStart(2,'0');
+      timeEl.textContent=showSecs?h+':'+min+':'+s:h+':'+min;
+    }
+    tick();_clockInt=setInterval(tick,1000);
+  }
 }
 
 function setupClockContextMenu(){
@@ -3247,3 +3256,557 @@ async function loadCrCalendarView() {
 }
 
 console.log('[OmniSight fixes.js] Geladen – keine Rekursionen');
+
+// ════════════════════════════════════════════════════════════════════
+// v3.2.6 FIXES
+// ════════════════════════════════════════════════════════════════════
+
+// ── 1. MINIPLAYER: Komplett überarbeitet ─────────────────────────────
+
+(function setupPipImproved() {
+  const PIP_W = 340, PIP_H = 200;
+  let isDragging = false, dragOffX = 0, dragOffY = 0;
+
+  function setupPip() {
+    const pip = document.getElementById('pip-window');
+    if (!pip || pip._v326Setup) return;
+    pip._v326Setup = true;
+
+    // Modernes Design
+    pip.style.cssText = `
+      position:fixed; width:${PIP_W}px; height:${PIP_H}px;
+      right:24px; bottom:24px; left:auto; top:auto;
+      background:#000; border-radius:12px; overflow:hidden;
+      box-shadow:0 8px 32px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.08);
+      z-index:8000; display:none; flex-direction:column;
+      transition:box-shadow .2s;
+    `;
+
+    // Toolbar oben
+    let toolbar = document.getElementById('pip-toolbar');
+    if (!toolbar) {
+      toolbar = document.createElement('div');
+      toolbar.id = 'pip-toolbar';
+      toolbar.style.cssText = `
+        display:flex; align-items:center; gap:6px; padding:6px 10px;
+        background:rgba(0,0,0,.85); backdrop-filter:blur(8px);
+        border-bottom:1px solid rgba(255,255,255,.08);
+        position:absolute; top:0; left:0; right:0; z-index:10;
+        opacity:0; transition:opacity .2s;
+      `;
+
+      const title = document.createElement('span');
+      title.id = 'pip-title';
+      title.style.cssText = 'font-size:11px;color:#fff;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      title.textContent = 'Mini-Player';
+
+      // Größenregler
+      const sizes = [
+        { label: 'S', w: 240, h: 135 },
+        { label: 'M', w: 340, h: 200 },
+        { label: 'L', w: 480, h: 270 },
+      ];
+      const sizeWrap = document.createElement('div');
+      sizeWrap.style.cssText = 'display:flex;gap:3px';
+      sizes.forEach(sz => {
+        const b = document.createElement('button');
+        b.textContent = sz.label;
+        b.style.cssText = 'background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.7);font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer;transition:all .15s';
+        b.addEventListener('mouseenter', () => b.style.background = 'rgba(255,255,255,.2)');
+        b.addEventListener('mouseleave', () => b.style.background = 'rgba(255,255,255,.1)');
+        b.addEventListener('click', () => {
+          pip.style.width  = sz.w + 'px';
+          pip.style.height = sz.h + 'px';
+          const cont = document.getElementById('pip-content');
+          if (cont) { const wv = cont.querySelector('webview'); if (wv) wv.style.height = (sz.h - 32) + 'px'; }
+        });
+        sizeWrap.appendChild(b);
+      });
+
+      // Mute Button
+      const muteBtn = document.createElement('button');
+      muteBtn.id = 'pip-mute-btn';
+      muteBtn.style.cssText = 'background:rgba(255,255,255,.1);border:none;color:#fff;font-size:14px;padding:3px 8px;border-radius:4px;cursor:pointer;line-height:1';
+      muteBtn.textContent = '🔊';
+      muteBtn.title = 'Ton an/aus';
+      muteBtn.addEventListener('click', () => {
+        const cont = document.getElementById('pip-content');
+        const wv = cont?.querySelector('webview');
+        if (!wv) return;
+        const muted = !wv._pipMuted;
+        wv._pipMuted = muted;
+        try { wv.setAudioMuted(muted); } catch {}
+        muteBtn.textContent = muted ? '🔇' : '🔊';
+        muteBtn.style.background = muted ? 'rgba(239,83,80,.4)' : 'rgba(255,255,255,.1)';
+      });
+
+      // Zurück-Button
+      const restoreBtn = document.createElement('button');
+      restoreBtn.style.cssText = 'background:rgba(48,197,187,.2);border:1px solid rgba(48,197,187,.3);color:var(--acc);font-size:10px;padding:3px 8px;border-radius:4px;cursor:pointer;white-space:nowrap';
+      restoreBtn.textContent = '⤢ Vollbild';
+      restoreBtn.title = 'Zurück zum Vollbild';
+      restoreBtn.addEventListener('click', () => {
+        if (typeof restoreFromPip === 'function') restoreFromPip();
+      });
+
+      // Schließen
+      const closeBtn = document.createElement('button');
+      closeBtn.style.cssText = 'background:rgba(239,83,80,.15);border:none;color:#ef5350;font-size:14px;padding:3px 8px;border-radius:4px;cursor:pointer;line-height:1';
+      closeBtn.textContent = '×';
+      closeBtn.title = 'Stream beenden';
+      closeBtn.addEventListener('click', () => {
+        pip.style.display = 'none';
+        const cont = document.getElementById('pip-content');
+        if (cont) cont.innerHTML = '';
+        pipProviderId = null;
+        currentProvider = null;
+        currentWebview = null;
+      });
+
+      toolbar.append(title, sizeWrap, muteBtn, restoreBtn, closeBtn);
+      pip.appendChild(toolbar);
+    }
+
+    // Content-Bereich
+    let cont = document.getElementById('pip-content');
+    if (!cont) {
+      cont = document.createElement('div');
+      cont.id = 'pip-content';
+      cont.style.cssText = `position:absolute;top:32px;left:0;right:0;bottom:0;background:#000`;
+      pip.appendChild(cont);
+    }
+
+    // Hover zeigt Toolbar
+    pip.addEventListener('mouseenter', () => { toolbar.style.opacity = '1'; });
+    pip.addEventListener('mouseleave', () => { toolbar.style.opacity = '0'; });
+
+    // Drag & Drop
+    toolbar.addEventListener('mousedown', e => {
+      if (e.target.tagName === 'BUTTON') return;
+      isDragging = true;
+      const rect = pip.getBoundingClientRect();
+      dragOffX = e.clientX - rect.left;
+      dragOffY = e.clientY - rect.top;
+      pip.style.transition = 'none';
+      pip.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      let x = e.clientX - dragOffX;
+      let y = e.clientY - dragOffY;
+      // Innerhalb des Bildschirms halten
+      x = Math.max(0, Math.min(window.innerWidth - pip.offsetWidth, x));
+      y = Math.max(0, Math.min(window.innerHeight - pip.offsetHeight, y));
+      pip.style.left   = x + 'px';
+      pip.style.top    = y + 'px';
+      pip.style.right  = 'auto';
+      pip.style.bottom = 'auto';
+    });
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      pip.style.transition = 'box-shadow .2s';
+      pip.style.cursor = '';
+    });
+  }
+
+  setTimeout(setupPip, 600);
+})();
+
+// maybeMoveToPip: Webview in Miniplayer verschieben
+window.maybeMoveToPip = function() {
+  const wrap = document.getElementById('webview-wrap');
+  const pip  = document.getElementById('pip-window');
+  const cont = document.getElementById('pip-content');
+  if (!wrap || !pip || !cont || !currentWebview || !currentProvider) return;
+
+  const wv = currentWebview;
+  wrap.removeChild(wv);
+  wv.style.cssText = 'width:100%;height:100%;border:none';
+  cont.innerHTML = '';
+  cont.appendChild(wv);
+
+  pipProviderId = currentProvider;
+  const titleEl = document.getElementById('pip-title');
+  if (titleEl) titleEl.textContent =
+    (settings.cardCustomNames || {})[currentProvider] ||
+    PROVIDERS()[currentProvider]?.name || currentProvider;
+
+  pip.style.display = 'flex';
+  currentProvider = null;
+  currentWebview  = null;
+};
+
+// restoreFromPip: Webview zurück in den Stream
+window.restoreFromPip = function() {
+  const pip  = document.getElementById('pip-window');
+  const cont = document.getElementById('pip-content');
+  const wrap = document.getElementById('webview-wrap');
+  if (!pip || !cont || !wrap || !pipProviderId) return;
+
+  const wv = cont.querySelector('webview');
+  if (wv) {
+    cont.removeChild(wv);
+    wv.style.cssText = 'width:100%;height:100%;border:none;display:flex';
+    wrap.innerHTML = '';
+    wrap.appendChild(wv);
+    currentWebview  = wv;
+    currentProvider = pipProviderId;
+  }
+
+  pip.style.display = 'none';
+  cont.innerHTML = '';
+  pipProviderId  = null;
+
+  const titleEl = document.getElementById('stream-title');
+  if (titleEl) titleEl.textContent =
+    (settings.cardCustomNames || {})[currentProvider] ||
+    PROVIDERS()[currentProvider]?.name || currentProvider;
+
+  showView('stream');
+};
+
+// ── 2. PARTIKEL: Komplett überarbeitet ───────────────────────────────
+
+(function setupParticlesImproved() {
+  function runParticles() {
+    const canvas = document.getElementById('particles-canvas');
+    if (!canvas) return;
+    if (window._particlesAnim) { cancelAnimationFrame(window._particlesAnim); window._particlesAnim = null; }
+    if (!settings.particlesEnabled) { canvas.style.display = 'none'; return; }
+
+    canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0';
+    canvas.style.display = 'block';
+    const ctx = canvas.getContext('2d');
+    let w = canvas.width  = window.innerWidth;
+    let h = canvas.height = window.innerHeight;
+    const cfg = settings.particlesConfig || {};
+    const count   = cfg.count   || 60;
+    const size    = cfg.size    || 1.5;
+    const speed   = cfg.speed   || 0.8;
+    const opacity = cfg.opacity !== undefined ? cfg.opacity : 0.55;
+    const color   = cfg.color   || '#30c5bb';
+    const shapes  = (cfg.shapes && cfg.shapes.length) ? cfg.shapes : ['circle'];
+
+    const pts = Array.from({ length: count }, () => ({
+      x: Math.random() * w, y: Math.random() * h,
+      r: Math.random() * size + 0.4,
+      vx: (Math.random() - .5) * speed * .6,
+      vy: (Math.random() - .5) * speed * .6,
+      rot: Math.random() * Math.PI * 2,
+      op: (Math.random() * .5 + .5) * opacity,
+      shape: shapes[Math.floor(Math.random() * shapes.length)],
+    }));
+
+    window.addEventListener('resize', () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; });
+
+    function drawP(p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = p.op;
+      // Farbe: CSS var() in canvas nicht erlaubt
+      const c = color.startsWith('var(')
+        ? (getComputedStyle(document.documentElement).getPropertyValue('--acc').trim() || '#30c5bb')
+        : color;
+      ctx.fillStyle = c;
+      ctx.strokeStyle = c;
+      ctx.lineWidth = 0.8;
+      switch (p.shape) {
+        case 'triangle':
+          ctx.beginPath(); ctx.moveTo(0,-p.r*1.4); ctx.lineTo(p.r,p.r*.9); ctx.lineTo(-p.r,p.r*.9); ctx.closePath(); ctx.fill(); break;
+        case 'star':
+          ctx.beginPath();
+          for (let i=0;i<5;i++) { ctx.lineTo(Math.cos((18+i*72)*Math.PI/180)*p.r,   -Math.sin((18+i*72)*Math.PI/180)*p.r); ctx.lineTo(Math.cos((54+i*72)*Math.PI/180)*p.r*.4,-Math.sin((54+i*72)*Math.PI/180)*p.r*.4); }
+          ctx.closePath(); ctx.fill(); break;
+        case 'ring':
+          ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.lineWidth=p.r*.35; ctx.stroke(); break;
+        case 'line':
+          ctx.beginPath(); ctx.moveTo(-p.r*2,0); ctx.lineTo(p.r*2,0); ctx.stroke(); break;
+        default: // circle
+          ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function tick() {
+      ctx.clearRect(0,0,w,h);
+      pts.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.rot += .003;
+        if(p.x<-10)p.x=w+10; if(p.x>w+10)p.x=-10;
+        if(p.y<-10)p.y=h+10; if(p.y>h+10)p.y=-10;
+        drawP(p);
+      });
+      window._particlesAnim = requestAnimationFrame(tick);
+    }
+    tick();
+  }
+
+  // UI: Partikel-Einstellungen verdrahten
+  function bindParticleUI() {
+    const sec = document.getElementById('particles-options-section') ||
+                document.querySelector('[id*="particle"]')?.closest('.smt-card');
+    const toggle = document.getElementById('particles-enabled');
+
+    if (toggle && !toggle._pBound) {
+      toggle._pBound = true;
+      toggle.checked = !!settings.particlesEnabled;
+      toggle.addEventListener('change', () => {
+        settings.particlesEnabled = toggle.checked;
+        runParticles();
+        autoSave();
+      });
+    }
+
+    // Anzahl
+    const countEl = document.getElementById('particles-count');
+    if (countEl && !countEl._pBound) {
+      countEl._pBound = true;
+      countEl.value = settings.particlesConfig?.count || 60;
+      countEl.addEventListener('input', () => {
+        settings.particlesConfig = settings.particlesConfig || {};
+        settings.particlesConfig.count = parseInt(countEl.value);
+        runParticles(); autoSave();
+      });
+    }
+    // Geschwindigkeit
+    const speedEl = document.getElementById('particles-speed');
+    if (speedEl && !speedEl._pBound) {
+      speedEl._pBound = true;
+      speedEl.value = (settings.particlesConfig?.speed || 0.8) * 10;
+      speedEl.addEventListener('input', () => {
+        settings.particlesConfig = settings.particlesConfig || {};
+        settings.particlesConfig.speed = parseInt(speedEl.value) / 10;
+        runParticles(); autoSave();
+      });
+    }
+    // Größe
+    const sizeEl = document.getElementById('particles-size');
+    if (sizeEl && !sizeEl._pBound) {
+      sizeEl._pBound = true;
+      sizeEl.value = (settings.particlesConfig?.size || 1.5) * 10;
+      sizeEl.addEventListener('input', () => {
+        settings.particlesConfig = settings.particlesConfig || {};
+        settings.particlesConfig.size = parseInt(sizeEl.value) / 10;
+        runParticles(); autoSave();
+      });
+    }
+    // Transparenz
+    const opEl = document.getElementById('particles-opacity');
+    if (opEl && !opEl._pBound) {
+      opEl._pBound = true;
+      opEl.value = Math.round((settings.particlesConfig?.opacity ?? 0.55) * 100);
+      opEl.addEventListener('input', () => {
+        settings.particlesConfig = settings.particlesConfig || {};
+        settings.particlesConfig.opacity = parseInt(opEl.value) / 100;
+        const lbl = document.getElementById('particles-opacity-val');
+        if (lbl) lbl.textContent = opEl.value + '%';
+        runParticles(); autoSave();
+      });
+    }
+    // Farbe
+    const colorEl = document.getElementById('particles-color') || document.getElementById('particle-color');
+    if (colorEl && !colorEl._pBound) {
+      colorEl._pBound = true;
+      colorEl.value = settings.particlesConfig?.color || '#30c5bb';
+      colorEl.addEventListener('input', () => {
+        settings.particlesConfig = settings.particlesConfig || {};
+        settings.particlesConfig.color = colorEl.value;
+        runParticles(); autoSave();
+      });
+    }
+    // Shapes
+    document.querySelectorAll('.particle-shape-btn').forEach(btn => {
+      if (btn._pBound) return;
+      btn._pBound = true;
+      const shape = btn.dataset.shape;
+      const active = (settings.particlesConfig?.shapes || ['circle']).includes(shape);
+      btn.classList.toggle('active', active);
+      btn.style.opacity = active ? '1' : '0.4';
+      btn.addEventListener('click', () => {
+        settings.particlesConfig = settings.particlesConfig || {};
+        let shapes = [...(settings.particlesConfig.shapes || ['circle'])];
+        if (shapes.includes(shape)) {
+          shapes = shapes.filter(s => s !== shape);
+          if (!shapes.length) shapes = ['circle'];
+        } else {
+          shapes.push(shape);
+        }
+        settings.particlesConfig.shapes = shapes;
+        document.querySelectorAll('.particle-shape-btn').forEach(b => {
+          const active = shapes.includes(b.dataset.shape);
+          b.classList.toggle('active', active);
+          b.style.opacity = active ? '1' : '0.4';
+        });
+        runParticles(); autoSave();
+      });
+    });
+  }
+
+  window.setupParticles = function() { runParticles(); bindParticleUI(); };
+  setTimeout(() => {
+    if (settings?.particlesEnabled) runParticles();
+    bindParticleUI();
+  }, 600);
+})();
+
+// ── 3. DESIGN-OPTIONEN: Karten-Effekte ───────────────────────────────
+
+(function bindDesignOptions() {
+  setTimeout(() => {
+    // Karten-Schatten
+    const shadowToggle = document.getElementById('card-shadow-toggle');
+    if (shadowToggle && !shadowToggle._doBound) {
+      shadowToggle._doBound = true;
+      shadowToggle.checked = settings.designOptions?.cardShadow !== false;
+      shadowToggle.addEventListener('change', () => {
+        settings.designOptions = settings.designOptions || {};
+        settings.designOptions.cardShadow = shadowToggle.checked;
+        document.documentElement.style.setProperty('--card-shadow',
+          shadowToggle.checked ? '0 2px 12px rgba(0,0,0,.22)' : 'none');
+        autoSave();
+      });
+    }
+    // Karten-Hover-Zoom
+    const zoomToggle = document.getElementById('card-zoom-toggle');
+    if (zoomToggle && !zoomToggle._doBound) {
+      zoomToggle._doBound = true;
+      zoomToggle.checked = settings.designOptions?.hoverZoom !== false;
+      zoomToggle.addEventListener('change', () => {
+        settings.designOptions = settings.designOptions || {};
+        settings.designOptions.hoverZoom = zoomToggle.checked;
+        document.documentElement.style.setProperty('--card-hover-zoom',
+          zoomToggle.checked ? 'translateY(-3px) scale(1.015)' : 'translateY(-2px)');
+        autoSave();
+      });
+    }
+    // Animationen
+    const animToggle = document.getElementById('card-anim-toggle');
+    if (animToggle && !animToggle._doBound) {
+      animToggle._doBound = true;
+      animToggle.checked = settings.designOptions?.animations !== false;
+      animToggle.addEventListener('change', () => {
+        settings.designOptions = settings.designOptions || {};
+        settings.designOptions.animations = animToggle.checked;
+        document.body.classList.toggle('no-animations', !animToggle.checked);
+        autoSave();
+      });
+    }
+
+    // Initiale CSS-Variablen setzen
+    const do_ = settings.designOptions || {};
+    document.documentElement.style.setProperty('--card-shadow',
+      do_.cardShadow !== false ? '0 2px 12px rgba(0,0,0,.22)' : 'none');
+    document.documentElement.style.setProperty('--card-hover-zoom',
+      do_.hoverZoom !== false ? 'translateY(-3px) scale(1.015)' : 'translateY(-2px)');
+    if (do_.animations === false) document.body.classList.add('no-animations');
+  }, 500);
+})();
+
+// ── 4. PLUGIN BUTTONS: Farben ────────────────────────────────────────
+
+(function stylePlugins() {
+  const bind = () => {
+    document.querySelectorAll('.plugin-preset-btn').forEach(btn => {
+      const txt = (btn.textContent||'').toLowerCase().trim();
+      // Erst klassen zurücksetzen
+      btn.removeAttribute('style');
+      if (txt.includes('deinstall') || txt.includes('entfern') || txt.includes('remove')) {
+        btn.style.cssText = 'background:rgba(239,83,80,.12)!important;border:1px solid #ef5350!important;color:#ef5350!important;font-weight:600';
+      } else if (txt.includes('install') || txt.includes('aktivier')) {
+        btn.style.cssText = 'background:var(--acc)!important;color:#fff!important;border:none!important';
+      }
+    });
+  };
+  setTimeout(bind, 900);
+  // Auch nach Tab-Wechsel
+  document.getElementById('sms-plugins')?.addEventListener('click', () => setTimeout(bind, 200));
+})();
+
+// ── 5. WIDEVINE GUIDE: In Einstellungen verfügbar machen ─────────────
+
+(function ensureWidevineGuideBtn() {
+  setTimeout(() => {
+    const btn = document.getElementById('btn-widevine-guide') ||
+                document.querySelector('[data-widevine-guide]');
+    if (btn && !btn._wvBound) {
+      btn._wvBound = true;
+      btn.addEventListener('click', () => {
+        if (typeof openWidevineGuide === 'function') openWidevineGuide();
+      });
+    }
+    // WideVine Status in Einstellungen aktualisieren
+    if (typeof checkWidevineStatus === 'function') checkWidevineStatus();
+  }, 800);
+})();
+
+// WideVine Guide Funktion (vollständig)
+function openWidevineGuide() {
+  const existing = document.getElementById('widevine-guide-overlay');
+  if (existing) { existing.remove(); return; }
+  const overlay = document.createElement('div');
+  overlay.id = 'widevine-guide-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r);width:min(660px,96%);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.7)">
+      <div style="display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--bor)">
+        <span style="font-size:20px;margin-right:10px">🔐</span>
+        <span style="font-family:var(--font-d);font-size:16px;font-weight:800;color:var(--tx);flex:1">WideVine CDM installieren</span>
+        <button onclick="document.getElementById('widevine-guide-overlay').remove()" style="border:none;background:transparent;color:var(--tx2);font-size:18px;cursor:pointer">✕</button>
+      </div>
+      <div style="overflow-y:auto;padding:20px;flex:1;display:flex;flex-direction:column;gap:14px">
+        <div style="background:rgba(239,83,80,.1);border:1px solid var(--danger);border-radius:var(--r-sm);padding:12px 16px;font-size:12px">
+          ⚠ <b>Du brauchst genau 3 Dateien:</b><br><br>
+          <b>Ordner 1:</b> <code style="background:var(--bgc);padding:1px 5px;border-radius:3px">WidevineCdm\_platform_specific\win_x64\</code><br>
+          &nbsp;&nbsp;→ <code style="background:var(--bgc);padding:1px 5px;border-radius:3px">widevinecdm.dll</code> + <code style="background:var(--bgc);padding:1px 5px;border-radius:3px">widevinecdm.dll.sig</code><br><br>
+          <b>Ordner 2:</b> <code style="background:var(--bgc);padding:1px 5px;border-radius:3px">WidevineCdm\</code> (eine Ebene höher)<br>
+          &nbsp;&nbsp;→ <code style="background:var(--bgc);padding:1px 5px;border-radius:3px">manifest.json</code>
+        </div>
+        <div style="background:var(--accg);border:1px solid var(--acc);border-radius:var(--r-sm);padding:12px 16px;font-size:12px">
+          📁 In Chrome liegt die Struktur so: <code style="background:var(--bgc);padding:1px 5px;border-radius:3px">Chrome\Application\[Version]\WidevineCdm\</code><br>
+          Dort siehst du: <b>manifest.json</b> (hier) und <b>_platform_specific\win_x64\</b> mit den 2 anderen Dateien.
+        </div>
+        ${[1,2,3,4,5].map((n,i) => {
+          const steps = [
+            {t:'Chrome-Ordner öffnen', d:'Klicke auf den Button um den WidevineCdm-Ordner von Chrome zu öffnen.',
+             btns:[{l:'📁 Chrome',fn:"window._openWvFolder('chrome'"},{l:'📁 Edge',fn:"window._openWvFolder('edge'"}]},
+            {t:'Versionsordner öffnen', d:'Öffne den Ordner mit der Versionsnummer (z.B. 4.10.x.x).'},
+            {t:'manifest.json kopieren', d:'Kopiere die manifest.json aus dem WidevineCdm-Ordner in den OmniSight WidevineCdm-Ordner.',
+             btns:[{l:'📁 Ziel WidevineCdm',fn:"window._openWvFolder('cdmBase'"}]},
+            {t:'DLL + .sig kopieren', d:'Öffne _platform_specific → win_x64. Kopiere widevinecdm.dll und widevinecdm.dll.sig in den OmniSight win_x64-Ordner.',
+             btns:[{l:'📁 Ziel win_x64',fn:"window._openWvFolder('dest'"}]},
+            {t:'App neu starten', d:'Schließe OmniSight komplett und starte es neu. Netflix, Disney+ und Crunchyroll sollten jetzt funktionieren.', ok:true},
+          ];
+          const s = steps[i];
+          return `<div style="display:flex;gap:10px">
+            <div style="width:24px;height:24px;border-radius:50%;background:${s.ok?'#66bb6a':'var(--acc)'};color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px">${n}</div>
+            <div><div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:3px">${s.t}</div>
+            <div style="font-size:12px;color:var(--tx2)">${s.d}</div>
+            ${s.btns?`<div style="display:flex;gap:6px;margin-top:6px">${s.btns.map(b=>`<button onclick="${b.fn})" style="padding:5px 12px;background:var(--acc);color:#fff;border:none;border-radius:var(--r-sm);font-size:11px;cursor:pointer">${b.l}</button>`).join('')}</div>`:''}
+            </div></div>`;
+        }).join('')}
+      </div>
+      <div style="padding:12px 20px;border-top:1px solid var(--bor);display:flex;justify-content:flex-end">
+        <button onclick="document.getElementById('widevine-guide-overlay').remove()" style="padding:8px 20px;background:var(--acc);color:#fff;border:none;border-radius:var(--r-sm);font-family:var(--font-d);font-weight:700;cursor:pointer">Verstanden</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+// _openWvFolder: auch cdmBase öffnen
+window._openWvFolder = async function(type) {
+  try {
+    const status = await window.electronAPI.getWidevineStatus();
+    let targetPath = '';
+    if (type === 'dest')    targetPath = status?.cdmDir  || '';
+    else if (type === 'cdmBase') targetPath = status?.cdmBase || '';
+    else if (type === 'chrome') targetPath = 'C:\\Program Files\\Google\\Chrome\\Application';
+    else if (type === 'edge')   targetPath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application';
+    if (!targetPath) { showToastMsg('Pfad nicht gefunden'); return; }
+    window.electronAPI.openExternal('file:///' + targetPath.replace(/\\/g, '/'));
+  } catch(e) { showToastMsg('Ordner konnte nicht geöffnet werden'); }
+};
+
+console.log('[v3.2.6] Miniplayer, Partikel, Design, WideVine, Plugins gepatcht');
