@@ -1,18 +1,6 @@
 'use strict';
 
-// Globaler Fehler-Handler: zeigt Toast bei unbehandelten Fehlern
-window.addEventListener('error', e => {
-  if(!e.error || e.error.__shown) return;
-  e.error.__shown = true;
-  console.error('[OmniSight Error]', e.message, e.filename, e.lineno);
-  const t = document.getElementById('error-toast');
-  if(t){
-    t.textContent = 'Fehler: ' + (e.message||'Unbekannt').slice(0, 80);
-    t.style.display = 'block';
-    clearTimeout(window._errT);
-    window._errT = setTimeout(()=>t.style.display='none', 4000);
-  }
-});
+// [Error-Handler: in index.html];
 window.addEventListener('unhandledrejection', e => {
   console.error('[OmniSight Promise]', e.reason);
 });
@@ -68,6 +56,9 @@ function getProfilePartition(id){const p=PROVIDERS()[id];const base=(p?.partitio
 
 // ════════ INIT ═════════════════════════════════════════════════════
 async function init(){
+  console.log('[OmniSight] init() gestartet');
+  try {
+
   settings=await window.electronAPI.getSettings();
   const D={favorites:[],cardImages:{},cardImageOffsets:{},cardBgColors:{},cardBgOpacity:{},cardCustomNames:{},cardCustomTags:{},cardLogos:{},clock:{enabled:false,position:{x:16,y:52},color:'#ff3b30',opacity:0.5,size:22,type:'digital',showSeconds:false},fontSize:14,accentColor:'#30c5bb',hiddenItems:{news:{},upcoming:{}},watchedItems:{news:{},upcoming:{}},watchlist:[],searchHistory:[],viewHistory:[],providerOrder:[],language:'de',particlesEnabled:false,particlesConfig:{count:80,size:1.5,speed:1,color:'#30c5bb',shapes:['circle'],appWide:true},newsLastTab:'movies',upcomingLastTab:'movies',cardLayout:'normal',sortAlpha:false,sortDir:'asc',designOptions:{cardRadius:14,sidebarWidth:200,cardShadow:true,glass:false,fontFamily:'DM Sans'},customProviders:{},deletedProviders:[]};
   Object.entries(D).forEach(([k,v])=>{if(settings[k]==null)settings[k]=v;});
@@ -170,6 +161,12 @@ document.getElementById('btn-check-updates')?.addEventListener('click',async()=>
   setTimeout(() => {
     if (typeof checkWidevineBanner === 'function') checkWidevineBanner();
   }, 2000);
+  } catch(e) {
+    console.error('[OmniSight] FEHLER in init():', e.message, e.stack);
+    const toast = document.getElementById('error-toast');
+    if (toast) { toast.textContent = 'Init-Fehler: ' + e.message; toast.style.display = 'block'; }
+  }
+  console.log('[OmniSight] init() beendet');
 }
 
 // ════════ LANGUAGE / THEME / FONT / DESIGN ═════════════════════════

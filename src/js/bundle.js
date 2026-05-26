@@ -1,4 +1,4 @@
-// OmniSight Bundle – generiert am 2026-05-25T21:39:29.838Z
+// OmniSight Bundle – generiert am 2026-05-26T06:04:25.906Z
 // NICHT MANUELL BEARBEITEN – Änderungen in den Quell-Dateien vornehmen
 
 
@@ -1038,19 +1038,7 @@ function openFeedbackModal() {
 // app.js
 // ════════════════════════════════════════════════════════════
 
-// Globaler Fehler-Handler: zeigt Toast bei unbehandelten Fehlern
-window.addEventListener('error', e => {
-  if(!e.error || e.error.__shown) return;
-  e.error.__shown = true;
-  console.error('[OmniSight Error]', e.message, e.filename, e.lineno);
-  const t = document.getElementById('error-toast');
-  if(t){
-    t.textContent = 'Fehler: ' + (e.message||'Unbekannt').slice(0, 80);
-    t.style.display = 'block';
-    clearTimeout(window._errT);
-    window._errT = setTimeout(()=>t.style.display='none', 4000);
-  }
-});
+// [Error-Handler: in index.html];
 window.addEventListener('unhandledrejection', e => {
   console.error('[OmniSight Promise]', e.reason);
 });
@@ -1106,6 +1094,9 @@ function getProfilePartition(id){const p=PROVIDERS()[id];const base=(p?.partitio
 
 // ════════ INIT ═════════════════════════════════════════════════════
 async function init(){
+  console.log('[OmniSight] init() gestartet');
+  try {
+
   settings=await window.electronAPI.getSettings();
   const D={favorites:[],cardImages:{},cardImageOffsets:{},cardBgColors:{},cardBgOpacity:{},cardCustomNames:{},cardCustomTags:{},cardLogos:{},clock:{enabled:false,position:{x:16,y:52},color:'#ff3b30',opacity:0.5,size:22,type:'digital',showSeconds:false},fontSize:14,accentColor:'#30c5bb',hiddenItems:{news:{},upcoming:{}},watchedItems:{news:{},upcoming:{}},watchlist:[],searchHistory:[],viewHistory:[],providerOrder:[],language:'de',particlesEnabled:false,particlesConfig:{count:80,size:1.5,speed:1,color:'#30c5bb',shapes:['circle'],appWide:true},newsLastTab:'movies',upcomingLastTab:'movies',cardLayout:'normal',sortAlpha:false,sortDir:'asc',designOptions:{cardRadius:14,sidebarWidth:200,cardShadow:true,glass:false,fontFamily:'DM Sans'},customProviders:{},deletedProviders:[]};
   Object.entries(D).forEach(([k,v])=>{if(settings[k]==null)settings[k]=v;});
@@ -1208,6 +1199,12 @@ document.getElementById('btn-check-updates')?.addEventListener('click',async()=>
   setTimeout(() => {
     if (typeof checkWidevineBanner === 'function') checkWidevineBanner();
   }, 2000);
+  } catch(e) {
+    console.error('[OmniSight] FEHLER in init():', e.message, e.stack);
+    const toast = document.getElementById('error-toast');
+    if (toast) { toast.textContent = 'Init-Fehler: ' + e.message; toast.style.display = 'block'; }
+  }
+  console.log('[OmniSight] init() beendet');
 }
 
 // ════════ LANGUAGE / THEME / FONT / DESIGN ═════════════════════════
@@ -3296,7 +3293,7 @@ if (_origCheckAchievements) {
         // Timeout: wenn nach 8s kein Event → "aktuell"
         setTimeout(() => {
           if (el && el.textContent==='Prüfe…') {
-            el.textContent = '✓ Du hast die aktuellste Version (v'+((typeof settings!=='undefined'&&settings.appVersion)||'3.2.0')+')';
+            el.textContent = '✓ Du hast die aktuellste Version (v'+((typeof settings!=='undefined'&&settings.appVersion)||'3.2.4')+')';
             el.style.color = 'var(--acc)';
           }
         }, 8000);
@@ -3447,7 +3444,7 @@ console.log('[OmniSight fixes.js Teil 3] v3.1.8 Sicherheits-Updates aktiv');
   // Version aus package.json extraMetadata lesen
   // Echte App-Version aus main.js laden
 window.electronAPI.getAppVersion().then(v => {
-  window.__appVersion = v || '3.2.0';
+  window.__appVersion = v || '3.2.4';
   // Version in "Mehr"-Tab anzeigen
   const vEl = document.querySelector('.settings-version-text');
   if (vEl) vEl.textContent = 'v' + v;
@@ -3455,7 +3452,7 @@ window.electronAPI.getAppVersion().then(v => {
   if (document.getElementById('update-check-result')) {
     // Nichts tun – wird beim Klick gelesen
   }
-}).catch(() => { window.__appVersion = '3.2.0'; });
+}).catch(() => { window.__appVersion = '3.2.4'; });
 
 
   // onUpdateAvailable: Banner zeigen
@@ -3517,14 +3514,14 @@ window.electronAPI.getAppVersion().then(v => {
       const noUpdateHandler = () => {
         resolved = true;
         if (el) {
-          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.2.0'})`;
+          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.2.4'})`;
           el.style.color = 'var(--acc)';
         }
       };
       const errorHandler = (msg) => {
         resolved = true;
         if (el) {
-          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.2.0'})`;
+          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.2.4'})`;
           el.style.color = msg && !msg.includes('404') ? 'var(--danger)' : 'var(--acc)';
         }
       };
@@ -3539,7 +3536,7 @@ window.electronAPI.getAppVersion().then(v => {
       // Timeout: 6s dann Fallback
       setTimeout(() => {
         if (!resolved && el && el.textContent === 'Prüfe…') {
-          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.2.0'})`;
+          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.2.4'})`;
           el.style.color = 'var(--acc)';
         }
       }, 6000);
@@ -4442,14 +4439,14 @@ console.log('[v3.1.10] Alle Fixes geladen');
         finish(`🚀 Update v${info.version} verfügbar! → Banner oben`, 'var(--acc)');
       });
       const unsubNone = window.electronAPI.onUpdateNotAvailable?.(() => {
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`, 'var(--acc)');
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`, 'var(--acc)');
       });
       const unsubErr = window.electronAPI.onUpdateError?.(msg => {
         // 404 = kein latest.yml → aktuell
         const isNoRelease = !msg || msg.includes('404') || msg.includes('ENOENT') || msg.includes('Cannot find');
         finish(
           isNoRelease
-            ? `✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`
+            ? `✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`
             : `Fehler: ${msg}`,
           isNoRelease ? 'var(--acc)' : 'var(--danger)'
         );
@@ -4468,7 +4465,7 @@ console.log('[v3.1.10] Alle Fixes geladen');
 
       // Timeout: 8s
       setTimeout(() => {
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`, 'var(--acc)');
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`, 'var(--acc)');
       }, 8000);
     });
   }, 900);
@@ -4689,12 +4686,12 @@ window.moveToPip = function(id, wv) {
       window.electronAPI.onUpdateAvailable?.(info =>
         finish(`🚀 Update v${info.version} verfügbar – Banner erscheint oben`, 'var(--acc)'));
       window.electronAPI.onUpdateNotAvailable?.(() =>
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`, 'var(--acc)'));
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`, 'var(--acc)'));
       window.electronAPI.onUpdateError?.(msg =>
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`, 'var(--acc)'));
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`, 'var(--acc)'));
       
       try { await window.electronAPI.checkForUpdates(); } catch {}
-      setTimeout(() => finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`, 'var(--acc)'), 8000);
+      setTimeout(() => finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`, 'var(--acc)'), 8000);
     });
   }, 1000);
 })();

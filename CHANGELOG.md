@@ -1,3 +1,19 @@
+## v3.2.4 -- 2026-05-26
+
+### Kritische Bugfixes
+- Buttons tot: init() mit try/catch umschlossen damit Fehler sichtbar werden
+  und der globale Error-Handler in index.html zeigt den genauen Fehler an.
+  Fehler-Anzeige als roter Banner in der App wenn init() crasht.
+- Globaler window.addEventListener('error') aus app.js entfernt
+  (war Top-Level Code der Konflikte verursachen konnte).
+
+### Installer / Update
+- Deinstallation: "Daten behalten?" Frage erscheint NUR bei Deinstallation,
+  NICHT mehr bei normaler Installation.
+- Update-Installation: quitAndInstall(isSilent=true, isForceRunAfter=true)
+  → Update installiert sich ohne Dialoge, App startet automatisch neu.
+- Erstinstallation: Installationspfad-Auswahl bleibt erhalten.
+
 ## v3.2.3 -- 2026-05-25
 
 ### Suche

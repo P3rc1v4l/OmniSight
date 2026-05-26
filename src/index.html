@@ -440,7 +440,7 @@
         <button class="sms-btn" data-stab="advanced">⚙ Mehr</button>
       </nav>
       <div style="flex:1"></div>
-      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.2.3</div>
+      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.2.4</div>
     </div>
     <div class="settings-modal-content">
       <button class="settings-modal-close" id="settings-close">✕</button>
@@ -706,6 +706,22 @@
 <div class="loading-overlay" id="loading-overlay" style="display:none"><div class="loading-ring"></div></div>
 
 <style id="custom-css-style"></style>
+<!-- Error-Handler für Debugging -->
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  var el = document.getElementById('error-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'error-toast';
+    el.style.cssText = 'position:fixed;top:50px;left:50%;transform:translateX(-50%);background:#c62828;color:#fff;padding:12px 20px;border-radius:8px;z-index:99999;font-size:13px;font-family:monospace;max-width:80vw;word-break:break-all';
+    document.body.appendChild(el);
+  }
+  el.style.display = 'block';
+  el.textContent = 'JS Fehler Z' + line + ': ' + msg;
+  console.error('OMNISIGHT ERROR:', msg, 'at', src, 'line', line);
+  return false; // nicht unterdrücken
+};
+</script>
 <!-- Bundle: alle Module zusammengefasst von scripts/build-bundle.js -->
 <script src="js/bundle.js"></script>
 </body>

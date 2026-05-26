@@ -934,7 +934,7 @@ if (_origCheckAchievements) {
         // Timeout: wenn nach 8s kein Event → "aktuell"
         setTimeout(() => {
           if (el && el.textContent==='Prüfe…') {
-            el.textContent = '✓ Du hast die aktuellste Version (v'+((typeof settings!=='undefined'&&settings.appVersion)||'3.2.0')+')';
+            el.textContent = '✓ Du hast die aktuellste Version (v'+((typeof settings!=='undefined'&&settings.appVersion)||'3.2.4')+')';
             el.style.color = 'var(--acc)';
           }
         }, 8000);
@@ -1085,7 +1085,7 @@ console.log('[OmniSight fixes.js Teil 3] v3.1.8 Sicherheits-Updates aktiv');
   // Version aus package.json extraMetadata lesen
   // Echte App-Version aus main.js laden
 window.electronAPI.getAppVersion().then(v => {
-  window.__appVersion = v || '3.2.0';
+  window.__appVersion = v || '3.2.4';
   // Version in "Mehr"-Tab anzeigen
   const vEl = document.querySelector('.settings-version-text');
   if (vEl) vEl.textContent = 'v' + v;
@@ -1093,7 +1093,7 @@ window.electronAPI.getAppVersion().then(v => {
   if (document.getElementById('update-check-result')) {
     // Nichts tun – wird beim Klick gelesen
   }
-}).catch(() => { window.__appVersion = '3.2.0'; });
+}).catch(() => { window.__appVersion = '3.2.4'; });
 
 
   // onUpdateAvailable: Banner zeigen
@@ -1155,14 +1155,14 @@ window.electronAPI.getAppVersion().then(v => {
       const noUpdateHandler = () => {
         resolved = true;
         if (el) {
-          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.2.0'})`;
+          el.textContent = `✓ Du hast die aktuellste Version (v${window.__appVersion||'3.2.4'})`;
           el.style.color = 'var(--acc)';
         }
       };
       const errorHandler = (msg) => {
         resolved = true;
         if (el) {
-          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.2.0'})`;
+          el.textContent = msg && !msg.includes('404') ? 'Fehler: ' + msg : `✓ Aktuellste Version (v${window.__appVersion||'3.2.4'})`;
           el.style.color = msg && !msg.includes('404') ? 'var(--danger)' : 'var(--acc)';
         }
       };
@@ -1177,7 +1177,7 @@ window.electronAPI.getAppVersion().then(v => {
       // Timeout: 6s dann Fallback
       setTimeout(() => {
         if (!resolved && el && el.textContent === 'Prüfe…') {
-          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.2.0'})`;
+          el.textContent = `✓ Aktuellste Version (v${window.__appVersion||'3.2.4'})`;
           el.style.color = 'var(--acc)';
         }
       }, 6000);
@@ -2080,14 +2080,14 @@ console.log('[v3.1.10] Alle Fixes geladen');
         finish(`🚀 Update v${info.version} verfügbar! → Banner oben`, 'var(--acc)');
       });
       const unsubNone = window.electronAPI.onUpdateNotAvailable?.(() => {
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`, 'var(--acc)');
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`, 'var(--acc)');
       });
       const unsubErr = window.electronAPI.onUpdateError?.(msg => {
         // 404 = kein latest.yml → aktuell
         const isNoRelease = !msg || msg.includes('404') || msg.includes('ENOENT') || msg.includes('Cannot find');
         finish(
           isNoRelease
-            ? `✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`
+            ? `✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`
             : `Fehler: ${msg}`,
           isNoRelease ? 'var(--acc)' : 'var(--danger)'
         );
@@ -2106,7 +2106,7 @@ console.log('[v3.1.10] Alle Fixes geladen');
 
       // Timeout: 8s
       setTimeout(() => {
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`, 'var(--acc)');
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`, 'var(--acc)');
       }, 8000);
     });
   }, 900);
@@ -2327,12 +2327,12 @@ window.moveToPip = function(id, wv) {
       window.electronAPI.onUpdateAvailable?.(info =>
         finish(`🚀 Update v${info.version} verfügbar – Banner erscheint oben`, 'var(--acc)'));
       window.electronAPI.onUpdateNotAvailable?.(() =>
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`, 'var(--acc)'));
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`, 'var(--acc)'));
       window.electronAPI.onUpdateError?.(msg =>
-        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`, 'var(--acc)'));
+        finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`, 'var(--acc)'));
       
       try { await window.electronAPI.checkForUpdates(); } catch {}
-      setTimeout(() => finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.0'})`, 'var(--acc)'), 8000);
+      setTimeout(() => finish(`✓ Aktuellste Version (v${window.__appVersion || '3.2.4'})`, 'var(--acc)'), 8000);
     });
   }, 1000);
 })();

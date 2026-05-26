@@ -420,7 +420,11 @@ ipcMain.on('download-update', () => {
   try { require('electron-updater').autoUpdater.downloadUpdate(); } catch {}
 });
 ipcMain.on('install-update', () => {
-  try { require('electron-updater').autoUpdater.quitAndInstall(false, true); } catch {}
+  try {
+    // isSilent=true: keine NSIS-Dialoge beim Update
+    // isForceRunAfter=true: App startet nach Update automatisch
+    require('electron-updater').autoUpdater.quitAndInstall(true, true);
+  } catch {}
 });
 
 // ── Crash-Log ────────────────────────────────────────────────────────
