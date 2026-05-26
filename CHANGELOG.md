@@ -1,3 +1,16 @@
+## v3.2.5 -- 2026-05-26
+
+### Kritischer Fix: Endlosrekursion behoben
+- Maximum call stack size exceeded: fixes.js hatte seit v3.1.x
+  _orig-Pattern die Endlosrekursionen erzeugt haben:
+  - _origInit: window.init = function() { _origInit() } → Rekursion
+  - _origBuildSidebarProfile: buildSidebarProfile() rief sich selbst auf
+  - _origCheckAchievements: checkAchievements() rief sich selbst auf
+  
+- LÖSUNG: fixes.js komplett neu geschrieben (889 Zeilen statt 3052)
+  Kein einziges _orig-Pattern mehr das window.X überschreibt
+  Alle Funktionen direkt neu implementiert ohne Wrapper-Pattern
+
 ## v3.2.4 -- 2026-05-26
 
 ### Kritische Bugfixes

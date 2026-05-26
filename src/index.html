@@ -440,7 +440,7 @@
         <button class="sms-btn" data-stab="advanced">⚙ Mehr</button>
       </nav>
       <div style="flex:1"></div>
-      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.2.4</div>
+      <div style="font-size:10px;color:var(--tx3);text-align:center;padding:8px">v3.2.5</div>
     </div>
     <div class="settings-modal-content">
       <button class="settings-modal-close" id="settings-close">✕</button>
@@ -713,13 +713,15 @@ window.onerror = function(msg, src, line, col, err) {
   if (!el) {
     el = document.createElement('div');
     el.id = 'error-toast';
-    el.style.cssText = 'position:fixed;top:50px;left:50%;transform:translateX(-50%);background:#c62828;color:#fff;padding:12px 20px;border-radius:8px;z-index:99999;font-size:13px;font-family:monospace;max-width:80vw;word-break:break-all';
+    el.style.cssText = 'position:fixed;top:50px;left:50%;transform:translateX(-50%);background:#c62828;color:#fff;padding:10px 16px;border-radius:8px;z-index:99999;font-size:12px;font-family:monospace;max-width:90vw;word-break:break-all;max-height:200px;overflow-y:auto';
     document.body.appendChild(el);
   }
   el.style.display = 'block';
-  el.textContent = 'JS Fehler Z' + line + ': ' + msg;
-  console.error('OMNISIGHT ERROR:', msg, 'at', src, 'line', line);
-  return false; // nicht unterdrücken
+  // Stack trace für Rekursions-Debugging
+  var stack = err && err.stack ? err.stack.split('\n').slice(0,8).join(' | ') : '';
+  el.textContent = 'Z' + line + ': ' + msg.substring(0,100) + ' | STACK: ' + stack.substring(0,300);
+  console.error('OMNISIGHT ERROR:', msg, 'line:', line, 'stack:', stack);
+  return false;
 };
 </script>
 <!-- Bundle: alle Module zusammengefasst von scripts/build-bundle.js -->
