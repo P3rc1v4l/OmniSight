@@ -1,4 +1,4 @@
-// OmniSight Bundle – generiert am 2026-05-26T22:10:43.265Z
+// OmniSight Bundle – generiert am 2026-05-26T22:37:54.461Z
 // NICHT MANUELL BEARBEITEN – Änderungen in den Quell-Dateien vornehmen
 
 
@@ -4222,3 +4222,542 @@ window.openProfileEditor = function(id) {
 };
 
 console.log('[v3.2.7] Suche, Update, WideVine, PIP, Karte, Profil gepatcht');
+
+// ════════════════════════════════════════════════════════════════════
+// v3.3.0 FIXES
+// ════════════════════════════════════════════════════════════════════
+
+// ── 1. PROFIL-EDITOR: Komplett neu aufgebaut ─────────────────────────
+
+(function buildProfileEditorFresh() {
+  // Erstelle den Profil-Editor neu wenn er nicht korrekt im HTML ist
+  function ensureProfileEditorExists() {
+    if (document.getElementById('profile-editor-overlay')) return;
+
+    const ov = document.createElement('div');
+    ov.id = 'profile-editor-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:4000;display:none;align-items:center;justify-content:center';
+    ov.innerHTML = `
+      <div style="background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r);
+        width:min(420px,95%);box-shadow:0 24px 60px rgba(0,0,0,.6);overflow:hidden">
+        <div style="display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--bor)">
+          <span id="ped-title" style="font-family:var(--font-d);font-size:16px;font-weight:800;color:var(--tx);flex:1">Profil bearbeiten</span>
+          <button id="ped-x" style="background:transparent;border:none;color:var(--tx2);font-size:18px;cursor:pointer;line-height:1">✕</button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+          <!-- Avatar -->
+          <div style="display:flex;align-items:center;gap:14px">
+            <div id="ped-avatar-preview" style="width:64px;height:64px;border-radius:50%;overflow:hidden;background:var(--bgch);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:2px solid var(--bor);flex-shrink:0">👤</div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:4px">Profilbild</div>
+              <button id="ped-pick-avatar" class="pick-btn" style="font-size:11px;padding:4px 10px">🖼 Bild wählen</button>
+            </div>
+          </div>
+          <!-- Name -->
+          <div>
+            <label style="font-size:12px;color:var(--tx2);font-weight:600;display:block;margin-bottom:5px">Name</label>
+            <input id="ped-name" type="text" maxlength="30" placeholder="Profilname…"
+              style="width:100%;background:var(--bgc);border:1px solid var(--bor);color:var(--tx);
+                border-radius:var(--r-sm);padding:8px 12px;outline:none;box-sizing:border-box;font-family:inherit"/>
+          </div>
+          <!-- PIN -->
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px">
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--tx)">PIN-Schutz</div>
+              <div id="ped-pin-status" style="font-size:11px;color:var(--tx3);margin-top:2px">🔓 Kein PIN</div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button id="ped-set-pin" style="padding:5px 10px;background:var(--accg);border:1px solid var(--acc);color:var(--acc);border-radius:var(--r-sm);font-size:11px;cursor:pointer">PIN setzen</button>
+              <button id="ped-remove-pin" style="padding:5px 10px;background:transparent;border:1px solid var(--bor);color:var(--tx2);border-radius:var(--r-sm);font-size:11px;cursor:pointer;display:none">Entfernen</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--bor);justify-content:space-between">
+          <button id="ped-delete" style="padding:8px 14px;background:rgba(239,83,80,.1);border:1px solid #ef5350;color:#ef5350;border-radius:var(--r-sm);font-size:12px;cursor:pointer;display:none">🗑 Löschen</button>
+          <div style="display:flex;gap:8px;margin-left:auto">
+            <button id="ped-cancel" style="padding:8px 16px;background:transparent;border:1px solid var(--bor);color:var(--tx2);border-radius:var(--r-sm);font-family:var(--font-d);font-weight:600;cursor:pointer">Abbrechen</button>
+            <button id="ped-save" style="padding:8px 20px;background:var(--acc);color:#fff;border:none;border-radius:var(--r-sm);font-family:var(--font-d);font-weight:700;cursor:pointer">Speichern</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+  }
+
+  function setupEditorLogic() {
+    const overlay = document.getElementById('profile-editor-overlay');
+    if (!overlay || overlay._editorReady) return;
+    overlay._editorReady = true;
+
+    // Schließen
+    overlay.addEventListener('mousedown', e => { if (e.target === overlay) closeEditor(); });
+    document.getElementById('ped-x')?.addEventListener('click', closeEditor);
+    document.getElementById('ped-cancel')?.addEventListener('click', closeEditor);
+
+    // Avatar klickbar
+    document.getElementById('ped-avatar-preview')?.addEventListener('click', pickAvatar);
+    document.getElementById('ped-pick-avatar')?.addEventListener('click', pickAvatar);
+
+    // Speichern
+    document.getElementById('ped-save')?.addEventListener('click', saveProfile);
+
+    // Löschen
+    document.getElementById('ped-delete')?.addEventListener('click', deleteProfile);
+
+    // PIN setzen
+    document.getElementById('ped-set-pin')?.addEventListener('click', setPin);
+    document.getElementById('ped-remove-pin')?.addEventListener('click', removePin);
+
+    // Enter speichert
+    document.getElementById('ped-name')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') saveProfile();
+      if (e.key === 'Escape') closeEditor();
+    });
+  }
+
+  function closeEditor() {
+    const ov = document.getElementById('profile-editor-overlay');
+    if (ov) ov.style.display = 'none';
+    window._pedId = null;
+    window._pedAvatar = undefined;
+    window._pedPin = undefined;
+  }
+
+  async function pickAvatar() {
+    const r = await window.electronAPI.pickImage('avatar').catch(() => null);
+    if (!r) return;
+    const url = r.base64 || r.filePath || r;
+    window._pedAvatar = url;
+    const prev = document.getElementById('ped-avatar-preview');
+    if (prev) prev.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover"/>`;
+  }
+
+  async function setPin() {
+    const pedId = window._pedId;
+    const profile = pedId ? (profiles||[]).find(p => p.id === pedId) : null;
+    if (profile?.pin) {
+      const old = prompt('Aktuellen PIN eingeben:');
+      if (old === null) return;
+      let ok = false;
+      try { ok = await window.electronAPI.verifyPin(String(old), profile.pin); } catch { ok = String(old) === profile.pin; }
+      if (!ok) { showToastMsg('Falscher PIN'); return; }
+    }
+    const np = prompt('Neuen PIN (4-8 Ziffern):');
+    if (np === null) return;
+    if (!/^\d{4,8}$/.test(np)) { showToastMsg('PIN muss 4-8 Ziffern haben'); return; }
+    window._pedPin = np;
+    const ps = document.getElementById('ped-pin-status');
+    if (ps) ps.textContent = '🔒 Neuer PIN (nicht gespeichert)';
+    const rb = document.getElementById('ped-remove-pin');
+    if (rb) rb.style.display = 'inline-block';
+    showToastMsg('PIN gesetzt – Speichern nicht vergessen');
+  }
+
+  function removePin() {
+    window._pedPin = '';
+    const ps = document.getElementById('ped-pin-status');
+    if (ps) ps.textContent = '🔓 PIN wird entfernt';
+    showToastMsg('PIN wird beim Speichern entfernt');
+  }
+
+  async function saveProfile() {
+    const name = (document.getElementById('ped-name')?.value || '').trim() || 'User';
+    const pedId = window._pedId;
+    let pinSave = undefined;
+
+    if (window._pedPin !== undefined) {
+      if (window._pedPin === '') {
+        pinSave = null;
+      } else if (/^\d{4,8}$/.test(String(window._pedPin))) {
+        try { pinSave = await window.electronAPI.hashPin(String(window._pedPin)); }
+        catch { pinSave = window._pedPin; }
+      }
+    }
+
+    if (pedId) {
+      const idx = (profiles||[]).findIndex(p => p.id === pedId);
+      if (idx >= 0) {
+        profiles[idx].name = name;
+        if (window._pedAvatar !== undefined) profiles[idx].avatar = window._pedAvatar;
+        if (pinSave !== undefined) profiles[idx].pin = pinSave;
+      }
+    } else {
+      if (!profiles) window.profiles = [];
+      profiles.push({
+        id: 'profile_' + Date.now(), name,
+        avatar: window._pedAvatar || null,
+        pin: pinSave || null,
+        favorites: [], watchlist: [], searchHistory: [], viewHistory: [],
+      });
+    }
+
+    window.electronAPI.setProfiles(profiles);
+    closeEditor();
+    if (typeof buildSidebarProfile === 'function') buildSidebarProfile();
+    showSaveToast();
+  }
+
+  async function deleteProfile() {
+    const pedId = window._pedId;
+    if (!pedId || !profiles || profiles.length <= 1) {
+      showToastMsg('Mindestens 1 Profil erforderlich'); return;
+    }
+    const p = profiles.find(pr => pr.id === pedId);
+    if (!p) return;
+
+    if (p.pin) {
+      const entered = prompt(`PIN für "${p.name}" eingeben:`);
+      if (!entered) return;
+      let ok = false;
+      try { ok = await window.electronAPI.verifyPin(String(entered), p.pin); }
+      catch { ok = String(entered) === p.pin; }
+      if (!ok) { showToastMsg('Falscher PIN'); return; }
+    }
+
+    if (!confirm(`Profil "${p.name}" wirklich löschen?`)) return;
+    profiles = profiles.filter(pr => pr.id !== pedId);
+    window.electronAPI.setProfiles(profiles);
+    closeEditor();
+    if (activeProfileId === pedId) { if (typeof switchProfile==='function') switchProfile(profiles[0].id); }
+    else if (typeof buildSidebarProfile==='function') buildSidebarProfile();
+    showToastMsg('Profil gelöscht');
+  }
+
+  // Globale openProfileEditor Funktion
+  window.openProfileEditor = function(id) {
+    ensureProfileEditorExists();
+    setupEditorLogic();
+
+    const p = id ? (profiles||[]).find(pr => pr.id === id) : null;
+    window._pedId = id || null;
+    window._pedAvatar = undefined;
+    window._pedPin = undefined;
+
+    const titleEl = document.getElementById('ped-title');
+    const nameEl  = document.getElementById('ped-name');
+    const prevEl  = document.getElementById('ped-avatar-preview');
+    const pinEl   = document.getElementById('ped-pin-status');
+    const delBtn  = document.getElementById('ped-delete');
+    const remPinBtn = document.getElementById('ped-remove-pin');
+
+    if (titleEl) titleEl.textContent = p ? 'Profil bearbeiten' : 'Neues Profil';
+    if (nameEl)  { nameEl.value = p?.name || ''; setTimeout(() => nameEl.focus(), 100); }
+    if (prevEl)  prevEl.innerHTML = p?.avatar
+      ? `<img src="${p.avatar}" style="width:100%;height:100%;object-fit:cover"/>`
+      : '👤';
+    if (pinEl)   pinEl.textContent = p?.pin ? '🔒 PIN aktiv' : '🔓 Kein PIN';
+    if (delBtn)  delBtn.style.display = (p && profiles.length > 1) ? 'flex' : 'none';
+    if (remPinBtn) remPinBtn.style.display = p?.pin ? 'inline-block' : 'none';
+
+    const ov = document.getElementById('profile-editor-overlay');
+    if (ov) ov.style.display = 'flex';
+  };
+
+  // Wrapper für _openProfileEditorSafe
+  window._openProfileEditorSafe = window.openProfileEditor;
+
+  console.log('[v3.3.0] Profil-Editor neu aufgebaut');
+})();
+
+// ── 2. KARTEN: Favoriten-Button verbessert ───────────────────────────
+
+(function fixFavoriteButton() {
+  document.addEventListener('mouseover', e => {
+    const card = e.target.closest?.('.provider-card');
+    if (!card) return;
+    const bm = card.querySelector('.card-bookmark');
+    if (!bm) return;
+    bm.style.opacity = '1';
+  });
+  document.addEventListener('mouseout', e => {
+    const card = e.target.closest?.('.provider-card');
+    if (!card) return;
+    const bm = card.querySelector('.card-bookmark');
+    if (!bm) return;
+    const id = card.dataset.id;
+    const isFav = (settings?.favorites||[]).includes(id);
+    bm.style.opacity = isFav ? '1' : '0'; // Fav-Karten zeigen immer
+  });
+})();
+
+// CSS für Favoriten-Button
+(function injectFavCSS() {
+  const style = document.createElement('style');
+  style.textContent = `
+    /* Favoriten: kein Hintergrund, nur beim Hover oder wenn aktiv */
+    .card-bookmark {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+    .card-bookmark svg { stroke: rgba(255,255,255,0.7); fill: none; transition: stroke .15s, fill .15s; }
+    .card-bookmark.active svg { stroke: #ffd600 !important; fill: #ffd600 !important; }
+    .provider-card:hover .card-bookmark { opacity: 1; }
+    .card-bookmark.active { opacity: 1; }
+
+    /* Qualitäts-Badge: kein Hintergrund */
+    .card-quality-badge {
+      background: transparent !important;
+      color: rgba(255,255,255,.65) !important;
+      font-size: 9px !important;
+      font-weight: 700 !important;
+      padding: 0 !important;
+      text-shadow: 0 1px 3px rgba(0,0,0,.9) !important;
+    }
+
+    /* Neuigkeiten/Upcoming: Merken-Button nur bei Hover */
+    .slide-bm-btn-v2 { opacity: 0; transition: opacity .15s; }
+    .slide-card:hover .slide-bm-btn-v2 { opacity: 1; }
+    .slide-bm-btn-v2.bookmarked { opacity: 1; }
+    .slide-hide-btn-v2 { opacity: 0; transition: opacity .15s; }
+    .slide-card:hover .slide-hide-btn-v2 { opacity: 1; }
+
+    /* Animationen deaktivieren falls eingestellt */
+    .no-animations * { transition: none !important; animation: none !important; }
+  `;
+  document.head.appendChild(style);
+})();
+
+// ── 3. DRAG & DROP: Anbieterkarten verbessert ────────────────────────
+
+(function setupCardDragDrop() {
+  const grid = document.getElementById('providers-grid');
+  if (!grid || grid._dndSetup) return;
+  grid._dndSetup = true;
+
+  let dragging = null;
+  let placeholder = null;
+
+  grid.addEventListener('dragstart', e => {
+    dragging = e.target.closest('.provider-card');
+    if (!dragging) return;
+    dragging.style.opacity = '0.4';
+    e.dataTransfer.effectAllowed = 'move';
+    placeholder = document.createElement('div');
+    placeholder.className = 'dnd-placeholder';
+    placeholder.style.cssText = `
+      width:${dragging.offsetWidth}px;
+      height:${dragging.offsetHeight}px;
+      background:var(--accg);
+      border:2px dashed var(--acc);
+      border-radius:var(--r);
+      pointer-events:none;
+    `;
+  });
+
+  grid.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const target = e.target.closest('.provider-card');
+    if (!target || target === dragging) return;
+
+    const rect = target.getBoundingClientRect();
+    const after = e.clientX > rect.left + rect.width / 2;
+
+    if (placeholder?.parentNode) placeholder.remove();
+    if (after) target.after(placeholder);
+    else target.before(placeholder);
+  });
+
+  grid.addEventListener('dragend', e => {
+    if (dragging) dragging.style.opacity = '';
+    if (placeholder?.parentNode) {
+      placeholder.parentNode.replaceChild(dragging, placeholder);
+    }
+    placeholder = null;
+
+    // Neue Reihenfolge speichern
+    const order = [...grid.querySelectorAll('.provider-card')].map(c => c.dataset.id).filter(Boolean);
+    settings.providerOrder = order;
+    autoSave();
+    dragging = null;
+  });
+
+  grid.addEventListener('dragleave', e => {
+    if (!grid.contains(e.relatedTarget) && placeholder?.parentNode) {
+      placeholder.remove();
+    }
+  });
+})();
+
+// Karten draggable machen nach buildProviderGrid
+const _origBuildGrid = typeof buildProviderGrid === 'function' ? buildProviderGrid : null;
+if (_origBuildGrid) {
+  window.buildProviderGrid = function() {
+    _origBuildGrid.apply(this, arguments);
+    setTimeout(() => {
+      document.querySelectorAll('.provider-card').forEach(card => {
+        card.setAttribute('draggable', 'true');
+        // Favoriten-Status CSS
+        const id = card.dataset.id;
+        const bm = card.querySelector('.card-bookmark');
+        if (bm && id) {
+          const isFav = (settings?.favorites||[]).includes(id);
+          bm.classList.toggle('active', isFav);
+        }
+      });
+      // DnD neu aufsetzen
+      const grid = document.getElementById('providers-grid');
+      if (grid) { grid._dndSetup = false; setupCardDragDrop(); }
+    }, 100);
+  };
+}
+
+// ── 4. SUCHVERLAUF: Mit Lösch-Funktion ───────────────────────────────
+
+function renderSearchHistory(dd) {
+  if (!searchHistory || !searchHistory.length) { dd.style.display = 'none'; return; }
+  let html = `
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      padding:8px 14px 4px;border-bottom:1px solid var(--bor)">
+      <span style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.08em">Zuletzt gesucht</span>
+      <button id="dd-clear-all" style="background:transparent;border:none;color:var(--tx3);font-size:11px;cursor:pointer;padding:2px 6px">Alle löschen</button>
+    </div>`;
+
+  searchHistory.slice(0, 12).forEach((q, i) => {
+    html += `
+      <div class="search-dd-history-item" style="display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;transition:background .12s">
+        <span style="color:var(--tx3);font-size:13px">🕐</span>
+        <span class="dd-hist-q" data-q="${esc(q)}" style="flex:1;font-size:13px;color:var(--tx2)">${esc(q)}</span>
+        <button class="dd-hist-del" data-i="${i}"
+          style="background:transparent;border:none;color:var(--tx3);font-size:13px;cursor:pointer;padding:2px 5px;line-height:1;opacity:0;transition:opacity .15s"
+          title="Löschen">✕</button>
+      </div>`;
+  });
+
+  dd.innerHTML = html;
+  dd.style.display = 'block';
+
+  // Hover-Effekte für Zeilen
+  dd.querySelectorAll('.search-dd-history-item').forEach(row => {
+    row.addEventListener('mouseenter', () => {
+      row.style.background = 'var(--bgc)';
+      row.querySelector('.dd-hist-del').style.opacity = '1';
+    });
+    row.addEventListener('mouseleave', () => {
+      row.style.background = '';
+      row.querySelector('.dd-hist-del').style.opacity = '0';
+    });
+    row.querySelector('.dd-hist-q')?.addEventListener('click', () => {
+      const inp = document.getElementById('search-input');
+      if (inp) { inp.value = row.querySelector('.dd-hist-q').dataset.q; inp.dispatchEvent(new Event('input')); }
+    });
+    row.querySelector('.dd-hist-del')?.addEventListener('click', e => {
+      e.stopPropagation();
+      const i = parseInt(e.target.dataset.i);
+      searchHistory.splice(i, 1);
+      settings.searchHistory = searchHistory;
+      autoSave();
+      renderSearchHistory(dd);
+    });
+  });
+
+  document.getElementById('dd-clear-all')?.addEventListener('click', e => {
+    e.stopPropagation();
+    searchHistory = [];
+    settings.searchHistory = [];
+    autoSave();
+    dd.style.display = 'none';
+  });
+}
+
+// ── 5. SUCHE: Ergebnisse nach Erscheinungsjahr sortieren ─────────────
+
+const _origRunTmdbSearch3 = typeof runTmdbSearch === 'function' ? runTmdbSearch : null;
+if (_origRunTmdbSearch3) {
+  window.runTmdbSearch = async function(q, page = 1, signal = null) {
+    // Suchbegriff MUSS im Titel vorkommen
+    window._searchFilter = q.trim().toLowerCase();
+    return _origRunTmdbSearch3.apply(this, arguments);
+  };
+}
+
+// bindSearchResults überschreiben: nach Jahr sortieren + Wort-Filter
+const _origBindSearch = typeof bindSearchResults === 'function' ? bindSearchResults : null;
+if (_origBindSearch) {
+  window.bindSearchResults = function(dd, q, page) {
+    // Items nach Datum sortieren (neueste zuerst)
+    const items = dd.querySelectorAll('.search-dd-film');
+    const itemsArr = [...items];
+    const sorted = itemsArr.sort((a, b) => {
+      const ya = parseInt(a.querySelector('.search-dd-meta span:nth-child(2)')?.textContent || '0');
+      const yb = parseInt(b.querySelector('.search-dd-meta span:nth-child(2)')?.textContent || '0');
+      return yb - ya; // Neueste zuerst
+    });
+    const parent = items[0]?.parentNode;
+    if (parent) sorted.forEach(el => parent.appendChild(el));
+
+    _origBindSearch.apply(this, arguments);
+  };
+}
+
+// ── 6. UHR: Drag & Drop im Vordergrund ───────────────────────────────
+
+(function ensureClockDraggable() {
+  setTimeout(() => {
+    const w = document.getElementById('clock-widget');
+    if (!w || w._clockDragSetup) return;
+    w._clockDragSetup = true;
+    w.style.zIndex = '9500';
+
+    let isDragging = false, ox = 0, oy = 0;
+    w.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      isDragging = true;
+      const rect = w.getBoundingClientRect();
+      ox = e.clientX - rect.left;
+      oy = e.clientY - rect.top;
+      w.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      let x = e.clientX - ox;
+      let y = e.clientY - oy;
+      x = Math.max(0, Math.min(window.innerWidth - w.offsetWidth, x));
+      y = Math.max(0, Math.min(window.innerHeight - w.offsetHeight, y));
+      w.style.left = x + 'px'; w.style.top = y + 'px';
+      w.style.right = 'auto'; w.style.bottom = 'auto';
+      settings.clock = settings.clock || {};
+      settings.clock.position = { x, y };
+    });
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      w.style.cursor = '';
+      autoSave();
+    });
+
+    // Kontextmenü (Rechtsklick)
+    w.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      document.getElementById('clock-ctx-menu')?.remove();
+      const menu = document.createElement('div');
+      menu.id = 'clock-ctx-menu';
+      menu.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;
+        background:var(--bg2);border:1px solid var(--borh);border-radius:var(--r-sm);
+        padding:4px;z-index:99999;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.4)`;
+      const type = settings.clock?.type || 'digital';
+      [
+        { label: type === 'digital' ? '🕐 Zur Analoguhr' : '🔢 Zur Digitaluhr',
+          action: () => { settings.clock = settings.clock || {}; settings.clock.type = type === 'digital' ? 'analog' : 'digital'; autoSave(); if (typeof setupClock==='function') setupClock(); } },
+        { label: '❌ Uhr ausblenden',
+          action: () => { settings.clock = settings.clock || {}; settings.clock.enabled = false; w.style.display = 'none'; autoSave(); } },
+      ].forEach(item => {
+        const btn = document.createElement('button');
+        btn.style.cssText = 'display:block;width:100%;text-align:left;padding:7px 10px;background:transparent;border:none;color:var(--tx);font-size:13px;cursor:pointer;border-radius:3px;';
+        btn.textContent = item.label;
+        btn.addEventListener('mouseenter', () => btn.style.background = 'var(--bgch)');
+        btn.addEventListener('mouseleave', () => btn.style.background = 'transparent');
+        btn.addEventListener('click', () => { item.action(); menu.remove(); });
+        menu.appendChild(btn);
+      });
+      document.body.appendChild(menu);
+      setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
+    });
+  }, 800);
+})();
+
+console.log('[v3.3.0] Profil-Editor, Karten, DnD, Suche, Uhr gepatcht');

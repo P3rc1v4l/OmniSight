@@ -1,3 +1,30 @@
+## v3.3.0 -- 2026-05-26
+
+### WideVine: ProgramData (Updates löschen keine Dateien mehr)
+- WideVine-Ordner nach %ProgramData%\OmniSight\WidevineCdm\ verlegt
+- ProgramData ist NIEMALS von deleteAppDataOnUninstall betroffen
+- Migration: alte AppData\WidevineCdm-Dateien werden automatisch kopiert
+
+### Profil-Editor: Komplett neu
+- Wird dynamisch erstellt wenn nicht im HTML vorhanden
+- Alle Buttons funktionieren: Speichern, Abbrechen, Löschen, Avatar, PIN
+- PIN-Entfernen-Button, Außen-Klick schließt, Enter speichert
+
+### Karten: Favoriten & DnD
+- Favoriten-Stern: kein Hintergrund, nur bei Hover oder wenn aktiv
+- Gelb wenn Favorit, sonst weiß, immer ohne Hintergrund
+- Drag & Drop: Placeholder beim Ziehen, Reihenfolge wird gespeichert
+- Draggable-Attribut automatisch gesetzt nach buildProviderGrid
+
+### Suche
+- Verlauf: Einzelne Einträge oder alle löschen
+- Ergebnisse sortiert nach Erscheinungsjahr (neueste zuerst)
+- Löschen-Button (✕) erscheint beim Hovern über Verlaufseintrag
+
+### Uhr
+- Drag & Drop funktioniert (z-index 9500, immer im Vordergrund)
+- Rechtsklick: Kontextmenü mit Digital/Analog-Umschaltung + Deaktivieren
+
 ## v3.2.9 -- 2026-05-26
 
 ### Installer / Update

@@ -1,24 +1,22 @@
-; OmniSight – NSIS Installer Script v3.2.9
-; 
-; deleteAppDataOnUninstall: true in package.json zeigt automatisch
-; die Checkbox "Lösche die Anwendungsdaten" im Deinstallations-Dialog.
-; electron-builder übernimmt das Löschen selbst.
-; 
-; Wir brauchen NUR:
-; - customInstall: WideVine-Ordner anlegen (bleibt bei Updates erhalten)
+; OmniSight – NSIS v3.3.0
+; WideVine in ProgramData (überlebt alle Updates!)
 
 !macro customInstall
-  ; WideVine-Ordner anlegen – wird bei Updates NICHT gelöscht
-  ; (liegt in $APPDATA\omnisight, nicht in $INSTDIR)
-  CreateDirectory "$APPDATA\omnisight\WidevineCdm"
-  CreateDirectory "$APPDATA\omnisight\WidevineCdm\_platform_specific"
-  CreateDirectory "$APPDATA\omnisight\WidevineCdm\_platform_specific\win_x64"
-  
-  ; Registry-Eintrag
   WriteRegStr HKCU "Software\OmniSight" "InstallPath" "$INSTDIR"
   WriteRegStr HKCU "Software\OmniSight" "Version"     "${VERSION}"
+  
+  ; WideVine in ProgramData anlegen (NICHT in AppData!)
+  ; ProgramData wird von deleteAppDataOnUninstall NIEMALS berührt
+  CreateDirectory "$PROGRAMDATA\OmniSight\WidevineCdm"
+  CreateDirectory "$PROGRAMDATA\OmniSight\WidevineCdm\_platform_specific"
+  CreateDirectory "$PROGRAMDATA\OmniSight\WidevineCdm\_platform_specific\win_x64"
+  
+  ; Falls alte WideVine-Dateien in AppData liegen: nach ProgramData migrieren
+  IfFileExists "$APPDATA\omnisight\WidevineCdm\_platform_specific\win_x64\widevinecdm.dll" 0 no_migration
+    CopyFiles "$APPDATA\omnisight\WidevineCdm\_platform_specific\win_x64\*.*" \
+              "$PROGRAMDATA\OmniSight\WidevineCdm\_platform_specific\win_x64\"
+    CopyFiles "$APPDATA\omnisight\WidevineCdm\manifest.json" \
+              "$PROGRAMDATA\OmniSight\WidevineCdm\"
+    DetailPrint "WideVine-Dateien nach ProgramData migriert."
+  no_migration:
 !macroend
-
-; customUnInstall NICHT definieren!
-; electron-builder übernimmt mit deleteAppDataOnUninstall:true
-; die Checkbox-gesteuerte Löschung automatisch.

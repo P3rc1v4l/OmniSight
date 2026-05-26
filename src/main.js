@@ -13,6 +13,17 @@ const crypto = require('crypto');
 const Store  = require('electron-store');
 
 const store = new Store();
+// WideVine Pfade – in ProgramData damit sie Updates überleben
+function getWvPaths() {
+  // ProgramData: C:\ProgramData\OmniSight\WidevineCdm\
+  // Wird NIEMALS von electron-builder deleteAppDataOnUninstall gelöscht
+  const base    = path.join(process.env.PROGRAMDATA || 'C:\\ProgramData', 'OmniSight', 'WidevineCdm');
+  const cdmDir  = path.join(base, '_platform_specific', 'win_x64');
+  const cdmBase = base; // manifest.json liegt hier
+  return { base, cdmDir, cdmBase };
+}
+
+
 let mainWindow = null;
 
 // ── CONSTANTS ─────────────────────────────────────────────────────
@@ -117,11 +128,9 @@ function hashPin(pin) {
 // MUSS vor app.ready() aufgerufen werden!
 // Electron 34 nutzt --widevine-cdm-path (mit doppeltem Bindestrich)
 function setupWidevine() {
-  const userData = app.getPath('userData');
-  const cdmDir   = path.join(userData, 'WidevineCdm', '_platform_specific', 'win_x64');
-  const cdmBase  = path.join(userData, 'WidevineCdm'); // manifest.json liegt hier!
+  const { cdmDir, cdmBase } = getWvPaths();
 
-  // Ordner-Struktur anlegen (wird bei Updates NICHT gelöscht)
+  // Ordner anlegen in ProgramData (Update-sicher)
   for (const dir of [cdmBase, cdmDir]) {
     if (!fs.existsSync(dir)) {
       try { fs.mkdirSync(dir, { recursive: true }); } catch {}
@@ -246,12 +255,9 @@ function setupSession(ses) {
   ses.setUserAgent(CHROME_UA, 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7');
   
   // DRM: WideVine für diese Session aktivieren
-  const wvDll = path.join(app.getPath('userData'), 'WidevineCdm', '_platform_specific', 'win_x64', 'widevinecdm.dll');
-  if (fs.existsSync(wvDll)) {
-    try {
-      const wvDir = path.dirname(wvDll);
-      ses.loadExtension(wvDir, { allowFileAccess: true }).catch(() => {});
-    } catch {}
+  const { cdmDir: wvDir } = getWvPaths();
+  if (fs.existsSync(path.join(wvDir, 'widevinecdm.dll'))) {
+    try { ses.loadExtension(wvDir, { allowFileAccess: true }).catch(() => {}); } catch {}
   }
 
   // Ad-Blocker
@@ -285,14 +291,10 @@ function setupSession(ses) {
   // SSL-Zertifikat-Fehler ignorieren (für regionale Streaming-Seiten)
   ses.setCertificateVerifyProc((_, cb) => cb(0));
 
-  // WideVine CDM für diese Session registrieren falls vorhanden
-  const wvDir = path.join(app.getPath('userData'), 'WidevineCdm', '_platform_specific', 'win_x64');
-  if (fs.existsSync(path.join(wvDir, 'widevinecdm.dll'))) {
-    try {
-      // Für jede neue Session CDM laden (wichtig für Webview-Partitions)
-      ses.loadExtension(wvDir, { allowFileAccess: true })
-        .catch(() => {}); // Fehler ignorieren - CDM evtl. schon geladen
-    } catch {}
+  // WideVine CDM für diese Session (aus ProgramData)
+  const { cdmDir: wvDir2 } = getWvPaths();
+  if (fs.existsSync(path.join(wvDir2, 'widevinecdm.dll'))) {
+    try { ses.loadExtension(wvDir2, { allowFileAccess: true }).catch(() => {}); } catch {}
   }
 
   // Berechtigungen: Medien-DRM explizit erlauben
@@ -725,15 +727,12 @@ ipcMain.handle('get-extra-ad-domains',        () => store.get('extraAdDomains', 
 
 // ── WideVine Status ───────────────────────────────────────────────────
 ipcMain.handle('get-widevine-status', () => {
-  const userData     = app.getPath('userData');
-  const cdmDir       = path.join(userData, 'WidevineCdm', '_platform_specific', 'win_x64');
+  const { cdmDir, cdmBase } = getWvPaths();
   const dllPath      = path.join(cdmDir, 'widevinecdm.dll');
   const sigPath      = path.join(cdmDir, 'widevinecdm.dll.sig');
-  // manifest.json: Chrome legt es im WidevineCdm-Ordner ab, eine Ebene ÜBER win_x64
-  const cdmBase      = path.join(userData, 'WidevineCdm');
   const manifestPath = fs.existsSync(path.join(cdmDir, 'manifest.json'))
-    ? path.join(cdmDir, 'manifest.json')    // User hat es direkt reinkopiert
-    : path.join(cdmBase, 'manifest.json');  // Standard Chrome-Position
+    ? path.join(cdmDir, 'manifest.json')
+    : path.join(cdmBase, 'manifest.json');
 
   // Ordner anlegen falls nicht vorhanden
   if (!fs.existsSync(cdmDir)) {
@@ -955,8 +954,7 @@ app.whenReady().then(async () => {
   createMainWindow();
 
   // WideVine CDM in Default-Session registrieren (Electron 34+)
-  const userData = app.getPath('userData');
-  const cdmDir   = path.join(userData, 'WidevineCdm', '_platform_specific', 'win_x64');
+  const { cdmDir } = getWvPaths();
   if (fs.existsSync(path.join(cdmDir, 'widevinecdm.dll'))) {
     try {
       // Electron 34: CDM als Extension laden
