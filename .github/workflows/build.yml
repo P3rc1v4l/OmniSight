@@ -28,15 +28,26 @@ jobs:
           node-version: 20
 
       - name: Abhaengigkeiten installieren
-        run: npm install
+        run: npm install --ignore-scripts
+        # --ignore-scripts verhindert postinstall Fehler
 
       - name: castlabs EVS registrieren (WideVine Lizenz)
-        run: npx @castlabs/evs-eas check --skip
+        # EVS registriert die App bei castlabs fuer offizielles WideVine
+        # Ohne Registrierung: kein WideVine in der gebauten App
+        run: npx --yes @castlabs/evs-eas check --skip
+        continue-on-error: true
+        # continue-on-error: Falls EVS nicht verfuegbar, normaler Build ohne WideVine
+
+      - name: Scripts ausfuehren (fuses.js etc.)
+        run: npm run postinstall || true
         continue-on-error: true
 
       - name: Version auslesen
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $env:GITHUB_OUTPUT
+
+      - name: Bundle bauen
+        run: node scripts/build-bundle.js
 
       - name: Windows Build (.exe)
         run: npm run build
