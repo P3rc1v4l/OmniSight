@@ -30,10 +30,9 @@ jobs:
       - name: Abhaengigkeiten installieren
         run: npm install
 
-      - name: castlabs EVS (WideVine Signatur – optional)
-        # Aktivieren sobald CASTLABS_EVS_TOKEN in GitHub Secrets gesetzt ist
+      - name: castlabs EVS (WideVine – laeuft nur wenn Secret gesetzt)
+        # Secret CASTLABS_EVS_TOKEN in GitHub Repo Settings setzen
         # Anleitung: WIDEVINE_CASTLABS_SETUP.md
-        if: ${{ secrets.CASTLABS_EVS_TOKEN != '' }}
         run: npx @castlabs/electron-builder-tools@latest castlabs-evs check
         env:
           CASTLABS_EVS_TOKEN: ${{ secrets.CASTLABS_EVS_TOKEN }}
@@ -51,6 +50,25 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Alte Artifacts aufraeumen
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner, repo: context.repo.repo, per_page: 100
+            });
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+            for (const a of artifacts.data.artifacts) {
+              if (new Date(a.created_at).getTime() < cutoff) {
+                try {
+                  await github.rest.actions.deleteArtifact({
+                    owner: context.repo.owner, repo: context.repo.repo, artifact_id: a.id
+                  });
+                } catch(e) {}
+              }
+            }
 
       - name: Artifact hochladen (.exe)
         uses: actions/upload-artifact@v4
