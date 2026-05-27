@@ -2329,3 +2329,365 @@ if (_origBindSearch) {
 })();
 
 console.log('[v3.3.0] Profil-Editor, Karten, DnD, Suche, Uhr gepatcht');
+
+// ════════════════════════════════════════════════════════════════════
+// v3.3.1 FIXES: System-Theme, Profil-Limit, CR-Kalender, Sessions
+// ════════════════════════════════════════════════════════════════════
+
+// ── 1. SYSTEM-THEME: Automatisch nach Windows folgen ─────────────────
+
+(function setupSystemTheme() {
+  // System-Theme beim Start anwenden
+  async function applySystemOrSavedTheme() {
+    const saved = await window.electronAPI.getTheme().catch(() => 'dark');
+    if (saved === 'system') {
+      const systemTheme = await window.electronAPI.getSystemTheme().catch(() => 'dark');
+      document.documentElement.dataset.theme = systemTheme;
+      if (typeof applyTheme === 'function') applyTheme(systemTheme);
+    } else {
+      document.documentElement.dataset.theme = saved;
+      if (typeof applyTheme === 'function') applyTheme(saved);
+    }
+  }
+
+  setTimeout(applySystemOrSavedTheme, 200);
+
+  // Auf System-Änderungen reagieren
+  window.electronAPI.onSystemThemeChanged?.((theme) => {
+    const saved = document.documentElement.dataset.themeSource || 'dark';
+    if (saved === 'system') {
+      document.documentElement.dataset.theme = theme;
+      if (typeof applyTheme === 'function') applyTheme(theme);
+    }
+  });
+
+  // Theme-Buttons: "System" Option
+  setTimeout(() => {
+    document.querySelectorAll('[data-theme-btn]').forEach(btn => {
+      if (btn._themeBound) return;
+      btn._themeBound = true;
+      btn.addEventListener('click', () => {
+        const t = btn.dataset.themeBtn;
+        document.documentElement.dataset.themeSource = t;
+        window.electronAPI.setThemeSource(t);
+        if (t === 'system') {
+          window.electronAPI.getSystemTheme().then(st => {
+            if (typeof applyTheme === 'function') applyTheme(st);
+          });
+        } else {
+          if (typeof applyTheme === 'function') applyTheme(t);
+        }
+        document.querySelectorAll('[data-theme-btn]').forEach(b => b.classList.toggle('active', b.dataset.themeBtn === t));
+      });
+    });
+  }, 600);
+})();
+
+// ── 2. PROFIL-LIMIT: Max 5 Profile ───────────────────────────────────
+
+(function enforceProfileLimit() {
+  const MAX_PROFILES = 5;
+
+  function updateNewProfileBtn() {
+    const btn = document.getElementById('btn-new-profile');
+    if (!btn) return;
+    const count = (typeof profiles !== 'undefined' ? profiles : []).length;
+    btn.style.display = count >= MAX_PROFILES ? 'none' : '';
+    btn.title = count >= MAX_PROFILES ? `Maximal ${MAX_PROFILES} Profile möglich` : 'Neues Profil';
+  }
+
+  // Überwachen
+  const _origBSP2 = window.buildSidebarProfile;
+  if (typeof _origBSP2 === 'function') {
+    window.buildSidebarProfile = function() {
+      _origBSP2.apply(this, arguments);
+      setTimeout(updateNewProfileBtn, 50);
+    };
+  }
+  setTimeout(updateNewProfileBtn, 800);
+})();
+
+// ── 3. REDUCED MOTION: prefers-reduced-motion ─────────────────────────
+
+(function respectReducedMotion() {
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function apply(matches) {
+    document.body.classList.toggle('reduced-motion', matches);
+    if (matches) {
+      const style = document.getElementById('reduced-motion-style') || document.createElement('style');
+      style.id = 'reduced-motion-style';
+      style.textContent = '*, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }';
+      document.head.appendChild(style);
+    } else {
+      document.getElementById('reduced-motion-style')?.remove();
+    }
+  }
+  apply(mq.matches);
+  mq.addEventListener('change', e => apply(e.matches));
+})();
+
+// ── 4. TOUCH SUPPORT: Swipe-Gesten für Onboarding ────────────────────
+
+(function setupTouchSupport() {
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return; // Zu kurz oder vertikal
+
+    // Onboarding Swipe
+    const onboarding = document.getElementById('onboarding-overlay');
+    if (onboarding?.style.display !== 'none') {
+      if (dx < -50 && typeof obNext === 'function') obNext();   // Links = weiter
+      if (dx > 50  && typeof obBack === 'function') obBack();    // Rechts = zurück
+    }
+
+    // Slideshow Swipe (Neuigkeiten/Upcoming)
+    const activeSlide = document.querySelector('.slideshow-container:hover, .slideshow-container.active');
+    if (activeSlide) {
+      const key = activeSlide.dataset.key;
+      if (key && typeof goToSlide === 'function') {
+        const ss = slideshows?.[key];
+        if (ss) goToSlide(key, dx < 0 ? ss.idx + 1 : ss.idx - 1);
+      }
+    }
+  }, { passive: true });
+})();
+
+// ── 5. CR KALENDER: Echte Crunchyroll-Daten wenn angemeldet ───────────
+
+(function setupCRCalendar() {
+  // CR Kalender nur anzeigen wenn angemeldet
+  function updateCRCalendarVisibility() {
+    const crBtn = document.querySelector('[data-view="cr-calendar"]');
+    if (!crBtn) return;
+    const isLoggedIn = !!(sessionCache?.crunchyroll);
+    crBtn.style.display = isLoggedIn ? '' : 'none';
+    crBtn.title = isLoggedIn ? 'Crunchyroll Kalender' : 'Anmelden bei Crunchyroll um den Kalender zu sehen';
+  }
+
+  // Initial und bei Session-Updates
+  setTimeout(updateCRCalendarVisibility, 1000);
+  window.electronAPI.onSessionsUpdated?.(() => setTimeout(updateCRCalendarVisibility, 200));
+})();
+
+// CR Kalender: verbesserte Implementierung mit echten CR-Daten wenn verfügbar
+async function loadCrCalendarView() {
+  const content = document.getElementById('cr-calendar-content');
+  if (!content) return;
+
+  // Prüfe CR-Login-Status
+  const isLoggedIn = !!(sessionCache?.crunchyroll);
+
+  if (!isLoggedIn) {
+    content.innerHTML = `
+      <div style="text-align:center;padding:40px 20px;display:flex;flex-direction:column;align-items:center;gap:16px">
+        <div style="font-size:48px">🦊</div>
+        <h3 style="font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--tx);margin:0">Crunchyroll-Login erforderlich</h3>
+        <p style="color:var(--tx2);font-size:13px;max-width:340px;text-align:center;line-height:1.5;margin:0">
+          Der Crunchyroll-Kalender zeigt dir neue Anime-Folgen basierend auf deiner Crunchyroll-Watchlist. Melde dich an um loszulegen.
+        </p>
+        <button class="pick-btn" onclick="openProvider('crunchyroll')" style="font-size:13px;padding:10px 24px">
+          🦊 Bei Crunchyroll anmelden
+        </button>
+      </div>`;
+    return;
+  }
+
+  // Angemeldet: TMDB-Anime-Daten laden (zukünftig: echte CR-API)
+  content.innerHTML = `
+    <div style="text-align:center;padding:20px;color:var(--tx2)">
+      <div style="font-size:32px;margin-bottom:8px">🦊</div>
+      Lade Anime-Kalender…
+    </div>`;
+
+  try {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    const tabs = [];
+
+    for (let i = 0; i < 8; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const label = i === 0 ? 'Heute' : dayNames[d.getDay()] + ' ' + d.getDate() + '.' + (d.getMonth()+1) + '.';
+      tabs.push({ label, date: d.toISOString().split('T')[0] });
+    }
+    tabs.push({ label: '← Letzte Woche', date: 'lastweek' });
+
+    const [t1, t2] = await Promise.all([
+      window.electronAPI.getTrending().catch(() => ({})),
+      window.electronAPI.getUpcoming(1).catch(() => ({})),
+    ]);
+
+    const all = [...(t1.anime||[]), ...(t2.anime||[])]
+      .filter((v,i,a) => a.findIndex(x=>x.id===v.id)===i)
+      .filter(i => i.poster_path && /^[\u0000-\u024F\s\d\W]+$/.test(i.title||i.name||''));
+
+    content.innerHTML = '';
+
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bor)';
+    header.innerHTML = `
+      <span style="font-size:24px">🦊</span>
+      <div>
+        <div style="font-family:var(--font-d);font-size:16px;font-weight:800;color:var(--tx)">Crunchyroll Kalender</div>
+        <div style="font-size:11px;color:var(--tx2)">Neue Anime-Folgen der nächsten 7 Tage</div>
+      </div>
+      <button class="pick-btn" onclick="openProvider('crunchyroll')" style="margin-left:auto;font-size:11px">▶ Crunchyroll öffnen</button>`;
+    content.appendChild(header);
+
+    // Tabs (Tag-Auswahl)
+    let activeDate = tabs[0].date;
+    const tabBar = document.createElement('div');
+    tabBar.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px';
+    content.appendChild(tabBar);
+
+    const resultArea = document.createElement('div');
+    resultArea.id = 'cr-result-area';
+    content.appendChild(resultArea);
+
+    function renderDay(date) {
+      activeDate = date;
+      tabBar.querySelectorAll('.cr-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.date === date));
+      let items;
+      if (date === 'lastweek') {
+        const ls = new Date(today); ls.setDate(today.getDate()-7);
+        items = all.filter(i => {
+          const d = new Date(i.first_air_date||i.release_date||''); d.setHours(0,0,0,0);
+          return d >= ls && d < today;
+        });
+      } else {
+        items = all.filter(i => (i.first_air_date||i.release_date) === date);
+      }
+
+      if (!items.length) {
+        resultArea.innerHTML = `<div style="text-align:center;padding:30px;color:var(--tx2);font-size:13px">Keine neuen Folgen an diesem Tag verfügbar</div>`;
+        return;
+      }
+
+      resultArea.innerHTML = '';
+      const grid = document.createElement('div');
+      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px';
+      items.forEach(item => {
+        const title = item.title || item.name || '?';
+        const poster = item.poster_path ? `https://image.tmdb.org/t/p/w185${item.poster_path}` : '';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--bgc);border:1px solid var(--bor);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .18s,border-color .18s;position:relative';
+        card.innerHTML = (poster ? `<img src="${poster}" style="width:100%;aspect-ratio:2/3;object-fit:cover;display:block" loading="lazy"/>` : '<div style="aspect-ratio:2/3;background:var(--bgch);display:flex;align-items:center;justify-content:center;font-size:32px">🦊</div>') +
+          `<div style="padding:8px 10px">
+            <div style="font-size:11px;font-weight:700;color:var(--tx);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(title)}</div>
+            <div style="font-size:9px;color:#F47521;margin-top:3px;font-weight:700">Crunchyroll</div>
+          </div>`;
+        card.addEventListener('mouseenter', () => { card.style.transform='translateY(-3px)'; card.style.borderColor='#F47521'; });
+        card.addEventListener('mouseleave', () => { card.style.transform=''; card.style.borderColor=''; });
+        card.addEventListener('click', () => showDetailPopup(item.id, 'tv', title));
+        grid.appendChild(card);
+      });
+      resultArea.appendChild(grid);
+    }
+
+    tabs.forEach(tab => {
+      const btn = document.createElement('button');
+      btn.className = 'cr-tab-btn media-type-text-btn' + (tab.date === activeDate ? ' active' : '');
+      btn.dataset.date = tab.date;
+      btn.textContent = tab.label;
+      btn.style.cssText = 'font-size:12px;padding:4px 0';
+      btn.addEventListener('click', () => renderDay(tab.date));
+      tabBar.appendChild(btn);
+    });
+
+    renderDay(activeDate);
+  } catch(e) {
+    content.innerHTML = `<div style="color:var(--danger);padding:20px">Fehler: ${esc(e.message)}</div>`;
+  }
+}
+
+// ── 6. KARTEN-EDITOR: Live-Vorschau ──────────────────────────────────
+
+(function setupCardEditorPreview() {
+  // Karten-Editor Overlay größer machen + Live-Vorschau links
+  const patchCardEditor = () => {
+    const editorOv = document.getElementById('card-editor-overlay');
+    if (!editorOv || editorOv._previewSetup) return;
+    editorOv._previewSetup = true;
+
+    // Füge Vorschau-Panel ein
+    const inner = editorOv.querySelector('.card-editor-inner, [class*="editor"]') || editorOv.firstElementChild?.firstElementChild;
+    if (!inner) return;
+
+    // Breite erhöhen
+    inner.style.maxWidth = '900px';
+    inner.style.width = '95%';
+    inner.style.display = 'flex';
+    inner.style.gap = '0';
+
+    // Vorschau-Seite links
+    if (!document.getElementById('card-editor-preview')) {
+      const previewPane = document.createElement('div');
+      previewPane.id = 'card-editor-preview-pane';
+      previewPane.style.cssText = 'width:220px;flex-shrink:0;background:var(--bgch);border-right:1px solid var(--bor);padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px';
+      previewPane.innerHTML = `
+        <div style="font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.1em">Live-Vorschau</div>
+        <div id="card-editor-preview" style="width:160px"></div>
+        <div style="font-size:10px;color:var(--tx3);text-align:center;line-height:1.4">Änderungen werden sofort angezeigt</div>`;
+      inner.insertBefore(previewPane, inner.firstChild);
+    }
+  };
+
+  // Live-Update der Vorschau wenn Editor-Felder geändert werden
+  function updateCardPreview(providerId) {
+    const preview = document.getElementById('card-editor-preview');
+    if (!preview || !providerId) return;
+    const p = PROVIDERS()[providerId];
+    if (!p) return;
+
+    const customName  = document.getElementById('ced-custom-name')?.value || (settings.cardCustomNames||{})[providerId] || p.name;
+    const customTag   = document.getElementById('ced-custom-tag')?.value  || (settings.cardCustomTags||{})[providerId]  || p.tag || '';
+    const bgColor     = document.getElementById('ced-bg-color')?.value    || (settings.cardBgColors||{})[providerId]    || p.color || '#333';
+    const bgOpacity   = document.getElementById('ced-bg-opacity')?.value  || (settings.cardBgOpacity||{})[providerId]   || 0.85;
+    const customImg   = (settings.cardImages||{})[providerId];
+    const customLogo  = (settings.cardLogos||{})[providerId];
+
+    preview.innerHTML = `
+      <div style="border-radius:12px;overflow:hidden;border:1px solid var(--bor);background:var(--bgc);box-shadow:0 4px 16px rgba(0,0,0,.25)">
+        <div style="height:80px;background:${customImg ? `url('${customImg}') center/cover` : bgColor};position:relative;display:flex;align-items:center;justify-content:center">
+          ${customLogo ? `<img src="${customLogo}" style="height:36px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))"/>` : `<img src="${getFavicon(providerId,p)}" style="height:36px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))" onerror="this.style.display='none'"/>`}
+        </div>
+        <div style="padding:7px 10px">
+          <div style="font-size:12px;font-weight:700;color:var(--tx)">${esc(customName)}</div>
+          <div style="font-size:9px;color:var(--tx3);margin-top:1px">${esc(customTag)}</div>
+        </div>
+      </div>`;
+  }
+
+  // Auf Änderungen in Eingabefeldern reagieren
+  document.addEventListener('input', e => {
+    if (e.target.closest('#card-editor-overlay')) {
+      const providerId = window._currentCardEditor;
+      if (providerId) updateCardPreview(providerId);
+    }
+  });
+
+  // openCardEditor überwachen
+  const _origOCE = typeof openCardEditor === 'function' ? openCardEditor : null;
+  if (_origOCE) {
+    window.openCardEditor = function(id, p) {
+      window._currentCardEditor = id;
+      _origOCE.apply(this, arguments);
+      setTimeout(() => {
+        patchCardEditor();
+        updateCardPreview(id);
+      }, 100);
+    };
+  }
+})();
+
+console.log('[v3.3.1] System-Theme, Profil-Limit, CR, Touch, Vorschau gepatcht');

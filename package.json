@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "OmniSight \u2013 Dein zentrales Streaming-Hub",
   "main": "src/main.js",
   "scripts": {
@@ -64,7 +64,7 @@
       "include": "build/installer.nsh",
       "differentialPackage": true,
       "warningsAsErrors": false,
-      "deleteAppDataOnUninstall": true,
+      "deleteAppDataOnUninstall": false,
       "runAfterFinish": true
     },
     "publish": {
@@ -80,7 +80,7 @@
     "extraMetadata": {
       "certExpiry": "2029-05-23",
       "certExpiryNote": "Self-Signed Zertifikat l\u00e4uft ab \u2013 create-cert.ps1 erneut ausf\u00fchren",
-      "appVersion": "3.3.0"
+      "appVersion": "3.3.1"
     },
     "forceCodeSigning": false
   },

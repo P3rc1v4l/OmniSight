@@ -1,3 +1,29 @@
+## v3.3.1 -- 2026-05-26
+
+### Logins bleiben bei Updates erhalten
+- deleteAppDataOnUninstall:false → userData/Partitions (Sessions) NICHT gelöscht
+- installer.nsh: Eigener Deinstall-Dialog mit Ja/Nein für Datenlöschung
+
+### System-Theme
+- Automatisch nach Windows-Einstellung (hell/dunkel/system)
+- nativeTheme.on('updated') reagiert auf Änderungen
+
+### Profil-Limit: max. 5 Profile
+- btn-new-profile verschwindet wenn 5 Profile vorhanden
+
+### CR Kalender
+- Nur in Sidebar sichtbar wenn bei Crunchyroll angemeldet
+- Anmelde-Aufforderung wenn nicht eingeloggt
+- Verbessertes Design mit orangem CR-Branding
+
+### Karten-Editor: Live-Vorschau
+- Linkes Panel zeigt Kartenvorschau in Echtzeit
+- Editor-Fenster breiter (900px)
+
+### UI
+- Reduced Motion: respektiert prefers-reduced-motion
+- Touch-Support: Swipe-Gesten für Onboarding und Slideshows
+
 ## v3.3.0 -- 2026-05-26
 
 ### WideVine: ProgramData (Updates löschen keine Dateien mehr)
