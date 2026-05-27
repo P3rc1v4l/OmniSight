@@ -94,7 +94,7 @@
   "devDependencies": {
     "electron": "^34.0.0",
     "electron-builder": "^24.9.1",
-    "sharp": "^0.33.4",
+    "sharp": "^0.34.5",
     "png-to-ico": "^2.1.8",
     "@electron/fuses": "^1.8.0"
   },
