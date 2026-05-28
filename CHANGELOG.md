@@ -4,6 +4,18 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.4.1] – 2026-05-29
+
+### Behoben
+- **Build schlug fehl** (`bundle > windows > nsis ... is not valid`). Der Lizenz-Pfad stand fälschlich unter `bundle.windows.nsis.license` – dieses Feld existiert dort nicht. Korrekt liegt er nun als **`bundle.licenseFile`** auf Bundle-Ebene; der NSIS-Installer zeigt die Lizenz-Seite weiterhin automatisch. Der Fehler steckte bereits seit v0.2.0 in der Konfiguration.
+- Die komplette `tauri.conf.json` wird jetzt gegen das offizielle Tauri-Schema geprüft – aktuell **fehlerfrei**.
+
+### Aufgeräumt
+- Verwaiste Datei **`app-icon.png`** aus dem Projekt-Root entfernt (Überbleibsel des ersten Gerüsts, wurde nicht mehr verwendet).
+- Leeren, ungenutzten Ordner `src/lib/i18n/` entfernt.
+
+---
+
 ## [0.4.0] – 2026-05-29
 
 Profiltrennung & getrennte Streaming-Logins.
