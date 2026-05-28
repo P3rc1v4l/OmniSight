@@ -1,6 +1,13 @@
 # ═══════════════════════════════════════════════════════════════════
-# OmniHub – GitHub Actions Build & Release  v0.3.0
-# Trigger: Manuell (workflow_dispatch) oder Tag v*
+# OmniHub – GitHub Actions Build & Release  v0.3.2
+# ─────────────────────────────────────────────────────────────────
+# Speed-Optimierungen:
+#   1. sccache  → cached einzelne Compilation Units (~50-70% schneller)
+#   2. Cargo.lock  → wird generiert & gecacht → stabile Cache-Keys
+#   3. Swatinem/rust-cache  → cached ~/.cargo/registry (Dependencies)
+# ─────────────────────────────────────────────────────────────────
+# Erster Build:   ~10-12 Min (alles neu kompiliert + gecacht)
+# Folge-Builds:   ~3-5 Min   (Cache-Hits auf Dependencies + sccache)
 # ═══════════════════════════════════════════════════════════════════
 
 name: Build & Release OmniHub
@@ -20,40 +27,57 @@ on:
 permissions:
   contents: write
 
+env:
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+
 jobs:
   build-windows:
     name: Build (Windows x64)
     runs-on: windows-latest
 
     steps:
-      # ── Checkout ────────────────────────────────────────────────────
+      # ── 1. Checkout ─────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Node.js (OHNE npm-cache – kein package-lock.json nötig) ────
+      # ── 2. sccache einrichten (cached Compiler-Output) ─────────────
+      - name: sccache einrichten
+        uses: mozilla-actions/sccache-action@v0.0.9
+
+      # ── 3. Node.js (kein npm-cache – kein package-lock.json) ────────
       - name: Node.js 20 einrichten
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # ── Rust (stable) ───────────────────────────────────────────────
+      # ── 4. Rust stable ──────────────────────────────────────────────
       - name: Rust stable installieren
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
 
-      # ── Rust-Cache ──────────────────────────────────────────────────
-      - name: Rust-Cache
+      # ── 5. Cargo.lock generieren (Voraussetzung für stabilen Cache) ─
+      - name: Cargo.lock generieren
+        working-directory: src-tauri
+        run: cargo generate-lockfile
+
+      # ── 6. Rust-Cache (cached ~/.cargo/registry + target) ───────────
+      #       Läuft NACH Cargo.lock-Generierung für stabilen Cache-Key
+      - name: Rust-Cache (Abhängigkeiten)
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
           cache-on-failure: true
+          # Nur Dependencies cachen, nicht den eigenen Code
+          # → sccache übernimmt das Cachen des eigenen Codes
+          cache-targets: false
 
-      # ── Node-Abhängigkeiten (npm install, nicht npm ci) ─────────────
+      # ── 7. Node-Abhängigkeiten ──────────────────────────────────────
       - name: Node-Abhängigkeiten installieren
         run: npm install
 
-      # ── Version auslesen ────────────────────────────────────────────
+      # ── 8. Version auslesen ─────────────────────────────────────────
       - name: Version auslesen
         id: version
         shell: pwsh
@@ -62,13 +86,14 @@ jobs:
           echo "version=$ver" >> $env:GITHUB_OUTPUT
           Write-Host "Baue OmniHub v$ver..."
 
-      # ── Tauri Build + Release ────────────────────────────────────────
+      # ── 9. Tauri Build + Release ────────────────────────────────────
       - name: Tauri Build & Release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
           TAURI_PRIVATE_KEY:  ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          RUSTC_WRAPPER:      sccache
         with:
           tagName:        v${{ steps.version.outputs.version }}
           releaseName:    'OmniHub v${{ steps.version.outputs.version }}'
@@ -87,7 +112,12 @@ jobs:
           includeUpdaterJson: true
         if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.create_release == 'true'
 
-      # ── Nur Artefakt (kein Release) ─────────────────────────────────
+      # ── 10. sccache Statistiken anzeigen ───────────────────────────
+      - name: sccache Statistiken
+        run: sccache --show-stats
+        if: always()
+
+      # ── 11. Nur Artefakt (kein Release) ────────────────────────────
       - name: Artefakt hochladen (kein Release)
         if: github.event.inputs.create_release == 'false' && !startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
