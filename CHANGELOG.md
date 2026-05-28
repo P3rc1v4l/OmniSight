@@ -1,5 +1,32 @@
 # OmniHub – Changelog
 
+## v0.3.2 – 2026-05-28
+
+### Bugfixes: 7 Rust Compile-Fehler
+| Datei | Fehler | Fix |
+|---|---|---|
+| `lib.rs` | `emit()` nicht gefunden | `use tauri::Emitter;` ergänzt |
+| `lib.rs` | `updater()` nicht gefunden | `use tauri_plugin_updater::UpdaterExt;` ergänzt |
+| `lib.rs` | `unwrap_or_default()` auf `Output` | → `.map(...).unwrap_or(false)` |
+| `streaming.rs` | `weekday()` nicht gefunden | `use chrono::Datelike;` ergänzt |
+| `system.rs` | `open::that()` unbekannt | `open = "5"` zu `Cargo.toml` ergänzt |
+| `system.rs` | Unused imports | `use tauri::Manager`, `use std::io::Read` entfernt |
+| `Cargo.toml` | `open` Crate fehlte | `open = "5"` ergänzt |
+
+### Build-Speed-Optimierung: sccache + Cargo.lock Caching
+**Problem:** Ohne `Cargo.lock` im Repo kein stabiler Cache-Key → alle 583 Pakete werden bei jedem Build neu kompiliert (~8-10 Min reine Compile-Zeit)
+
+**Lösung:**
+- `mozilla-actions/sccache-action` → cached einzelne `.rlib`-Compilate (50-70% Speedup)
+- `cargo generate-lockfile` als eigener Step → erzeugt stabile Cache-Keys
+- `Swatinem/rust-cache` gecacht auf Basis des generierten Lock-Files
+
+**Erwartete Build-Zeiten:**
+- Erster Build: ~10-12 Min (alles neu + Caches werden befüllt)
+- Folge-Builds: ~3-5 Min (Cache-Hits bei Dependencies + sccache)
+
+---
+
 ## v0.3.1 – 2026-05-28
 
 ### Bugfix: tauri.conf.json – NSIS-Config-Fehler

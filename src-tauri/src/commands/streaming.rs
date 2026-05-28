@@ -1,5 +1,7 @@
+// ═══ v0.3.2 – Fix: chrono::Datelike Import ═══
 // ═══ v0.2.0 – Streaming Commands ═══
 use serde_json::Value;
+use chrono::Datelike;
 use tauri_plugin_store::StoreExt;
 
 #[tauri::command]
