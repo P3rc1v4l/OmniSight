@@ -1,6 +1,6 @@
 name: Release
 
-# Laut Vorgabe: manuell ODER automatisch beim Tag v*
+# Laut Vorgabe: manuell (Button) ODER automatisch beim Tag v*
 on:
   workflow_dispatch:
   push:
@@ -27,26 +27,36 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          # KEIN npm-Cache: der bräuchte eine package-lock.json im Repo.
+          # Wir wollen aber nichts lokal erzeugen müssen.
 
       - name: Rust einrichten
         uses: dtolnay/rust-toolchain@stable
 
       - name: Rust-Cache
-        uses: swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
 
+      - name: Versionsnummer aus package.json lesen
+        id: version
+        shell: bash
+        run: echo "v=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Abhängigkeiten installieren
-        run: npm ci
+        # npm install statt npm ci: erzeugt die Lock-Datei selbst auf dem Runner,
+        # es muss also KEINE package-lock.json im Repo liegen.
+        run: npm install
 
       - name: Build + Release erstellen
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'OmniHub ${{ github.ref_name }}'
+          # Tag-Push -> der gepushte Tag (z.B. v0.1.1).
+          # Manueller Start -> Version aus package.json (z.B. v0.1.1).
+          tagName: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.version.outputs.v) }}
+          releaseName: ${{ github.ref_type == 'tag' && format('OmniHub {0}', github.ref_name) || format('OmniHub v{0}', steps.version.outputs.v) }}
           releaseBody: 'Automatisch erstellter Release. Siehe CHANGELOG.md.'
           releaseDraft: true
           prerelease: false
