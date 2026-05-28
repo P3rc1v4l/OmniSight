@@ -6,14 +6,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri_plugin_store::StoreExt;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct SessionInfo {
-    pub profile_id: String,
-    pub provider_id: String,
-    pub partition:   String,
-    pub is_active:   bool,
-}
-
 /// Gibt den Partition-Namen für Profil + Anbieter zurück.
 /// Format: persist:profileId_providerId
 #[tauri::command]

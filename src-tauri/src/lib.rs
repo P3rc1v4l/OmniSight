@@ -1,5 +1,5 @@
 // OmniHub – Tauri Library
-// ═══ v0.3.3 – Splash via JS/CSS, kein Rust-Navigation ═══
+// ═══ v0.3.4 – Crash-Fix: tracing try_init + Store graceful ═══
 
 use tauri::{Emitter, Manager, WindowEvent};
 use tauri_plugin_store::StoreExt;
@@ -9,7 +9,9 @@ mod commands;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tracing_subscriber::fmt::init();
+    // FIX: init() panikt wenn Tauri bereits einen Subscriber gesetzt hat.
+    // try_init() gibt nur ein Err() zurück – kein Panic.
+    let _ = tracing_subscriber::fmt::try_init();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::default().build())
@@ -61,8 +63,15 @@ pub fn run() {
             commands::sessions::clear_all_sessions,
         ])
         .setup(|app| {
-            let _store = app.store("omnihub.json")
-                .expect("Store konnte nicht erstellt werden");
+            // FIX: .expect() durch fehlertolerantes Handling ersetzen
+            // → kein Panic mehr wenn Store nicht sofort erreichbar
+            match app.store("omnihub.json") {
+                Ok(_) => {}
+                Err(e) => {
+                    // Nicht fatal – Store wird bei erstem Zugriff nachgeladen
+                    eprintln!("[OmniHub] Store-Init-Warnung: {e}");
+                }
+            }
 
             // System-Theme polling (Windows) – alle 2s
             #[cfg(target_os = "windows")]

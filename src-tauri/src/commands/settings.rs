@@ -1,5 +1,4 @@
 use serde_json::Value;
-use tauri::State;
 use tauri_plugin_store::StoreExt;
 
 #[tauri::command]

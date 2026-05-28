@@ -1,5 +1,36 @@
 # OmniHub – Changelog
 
+## v0.3.4 – 2026-05-28
+
+### 🔴 Crash-Fix: App startet nicht (0xc0000409)
+**Root Cause:** `tracing_subscriber::fmt::init()` **panikt**, wenn bereits ein globaler Tracing-Subscriber gesetzt ist. Tauri v2.11 setzt intern einen eigenen Subscriber → zweiter `init()`-Call = Panic = `STATUS_STACK_BUFFER_OVERRUN` (0xc0000409) → sofortiger App-Absturz.
+
+| Datei | Alt (buggy) | Neu (fix) |
+|---|---|---|
+| `lib.rs` | `tracing_subscriber::fmt::init()` | `let _ = tracing_subscriber::fmt::try_init()` |
+| `lib.rs` | `app.store(...).expect(...)` → Panic | `match app.store(...) { Err(e) => eprintln!(...) }` |
+
+### ⚠️ Warnings behoben
+| Datei | Warning | Fix |
+|---|---|---|
+| `settings.rs` | `unused import: tauri::State` | Import entfernt |
+| `sessions.rs` | `struct SessionInfo is never constructed` | Struct entfernt |
+
+### ⚡ Build-Speed verbessert
+**Problem:** `cargo generate-lockfile` erzeugte jedes Mal eine neue Lock-Datei → Cache-Key änderte sich → kein stabiler Dependency-Cache.
+
+**Neue Strategie:**
+1. `Cargo.lock` wird nach dem ersten Generieren gecacht (Key = Hash von `Cargo.toml`)
+2. Nächster Build: Lock-Datei aus Cache → stabile Dep-Versionen
+3. `Swatinem/rust-cache` mit `cache-targets: true` → gesamtes `target/` Verzeichnis gecacht
+4. sccache bleibt als zusätzliche Ebene
+
+**Erwartete Build-Zeiten:**
+- Erster Build: ~8-10 Min (alles neu kompiliert + Caches befüllt)
+- **Folge-Builds: ~2-3 Min** (target/ Cache-Hit → nur eigener Code neu kompiliert)
+
+---
+
 ## v0.3.3 – 2026-05-28
 
 ### Bugfix: App startet nicht nach Installation
