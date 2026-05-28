@@ -1,0 +1,17 @@
+# Node / SvelteKit
+node_modules/
+/build/
+/.svelte-kit/
+/package-lock.json.bak
+.env
+.env.*
+!.env.example
+
+# Tauri / Rust
+/src-tauri/target/
+/src-tauri/gen/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.log
