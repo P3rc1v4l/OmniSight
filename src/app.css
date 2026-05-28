@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+
+/*
+  OmniHub Design-Tokens.
+  Alle Werte sind CSS-Variablen, damit die Einstellungen (Akzentfarbe,
+  Schriftgröße, Eckenradius, Sidebar-Breite ...) sie zur Laufzeit überschreiben
+  können – ohne Neukompilieren.
+*/
+:root {
+	--accent: #ff5d3b;          /* OmniHub-Ember, per Einstellung änderbar */
+	--accent-text: #ffffff;     /* Textfarbe auf Akzent-Flächen */
+	--radius: 15px;             /* Eckenradius (Standard 15px) */
+	--font-size: 15px;          /* Grundschriftgröße (Standard 15px) */
+	--sidebar-width: 200px;     /* Sidebar-Breite (Standard 200px) */
+	--font-family: ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+
+	/* Dark-Mode-Palette (Standard) */
+	--bg: #0c0d12;
+	--bg-elev: #15171f;
+	--bg-card: #181b24;
+	--text: #f4f5f7;
+	--text-muted: #9aa0ad;
+	--border: #262a36;
+}
+
+:root[data-theme='light'] {
+	--bg: #f5f6f8;
+	--bg-elev: #ffffff;
+	--bg-card: #ffffff;
+	--text: #14161c;
+	--text-muted: #5b616e;
+	--border: #e2e5ea;
+}
+
+html,
+body {
+	height: 100%;
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font-family);
+	font-size: var(--font-size);
+	-webkit-font-smoothing: antialiased;
+}
+
+#app {
+	height: 100vh;
+	overflow: hidden;
+}
+
+/* Sanfte, dezente Scrollbars im Cinema-Look */
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-thumb {
+	background: var(--border);
+	border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: var(--text-muted);
+}
+
+/* Wiederverwendbare Helfer */
+.omni-card {
+	background: var(--bg-card);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+}
+.omni-accent {
+	background: var(--accent);
+	color: var(--accent-text);
+}
