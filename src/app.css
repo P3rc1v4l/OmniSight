@@ -1,39 +1,48 @@
 @import 'tailwindcss';
 
-/*
-  OmniHub Design-Tokens.
-  Alle Werte sind CSS-Variablen, damit die Einstellungen (Akzentfarbe,
-  Schriftgröße, Eckenradius, Sidebar-Breite ...) sie zur Laufzeit überschreiben
-  können – ohne Neukompilieren.
-*/
-:root {
-	--accent: #ff5d3b;          /* OmniHub-Ember, per Einstellung änderbar */
-	--accent-text: #ffffff;     /* Textfarbe auf Akzent-Flächen */
-	--radius: 15px;             /* Eckenradius (Standard 15px) */
-	--font-size: 15px;          /* Grundschriftgröße (Standard 15px) */
-	--sidebar-width: 200px;     /* Sidebar-Breite (Standard 200px) */
-	--font-family: ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+/* DM Sans als App-Schrift (offline, bundled via @fontsource). */
+@import '@fontsource/dm-sans/400.css';
+@import '@fontsource/dm-sans/500.css';
+@import '@fontsource/dm-sans/600.css';
+@import '@fontsource/dm-sans/700.css';
+@import '@fontsource/dm-sans/800.css';
 
-	/* Dark-Mode-Palette (Standard) */
-	--bg: #0c0d12;
-	--bg-elev: #15171f;
-	--bg-card: #181b24;
-	--text: #f4f5f7;
-	--text-muted: #9aa0ad;
-	--border: #262a36;
+/* OmniHub-Design-Tokens (alle live über Einstellungen änderbar). */
+:root {
+	--accent: #30c5bb;          /* OmniHub-Teal */
+	--accent-text: #00201e;
+	--accent-soft: rgba(48, 197, 187, 0.16);
+	--radius: 15px;
+	--font-size: 14px;
+	--sidebar-width: 220px;
+	--titlebar-h: 36px;
+	--font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+
+	/* Dark-Palette (Standard) */
+	--bg: #0b0c10;
+	--bg-elev: #0f1015;
+	--bg-card: #14161d;
+	--bg-card-2: #1a1d26;
+	--text: #f1f3f6;
+	--text-muted: #8b8f9a;
+	--text-dim: #5e6068;
+	--border: #1f222b;
+	--border-strong: #2a2e3a;
 }
 
 :root[data-theme='light'] {
 	--bg: #f5f6f8;
 	--bg-elev: #ffffff;
 	--bg-card: #ffffff;
+	--bg-card-2: #f0f2f5;
 	--text: #14161c;
 	--text-muted: #5b616e;
+	--text-dim: #8b8f9a;
 	--border: #e2e5ea;
+	--border-strong: #cfd3da;
 }
 
-html,
-body {
+html, body {
 	height: 100%;
 	margin: 0;
 	background: var(--bg);
@@ -41,27 +50,17 @@ body {
 	font-family: var(--font-family);
 	font-size: var(--font-size);
 	-webkit-font-smoothing: antialiased;
-}
-
-#app {
-	height: 100vh;
 	overflow: hidden;
 }
 
-/* Sanfte, dezente Scrollbars im Cinema-Look */
-::-webkit-scrollbar {
-	width: 10px;
-	height: 10px;
-}
-::-webkit-scrollbar-thumb {
-	background: var(--border);
-	border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-	background: var(--text-muted);
-}
+#app { height: 100vh; }
 
-/* Wiederverwendbare Helfer */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Wiederverwendbare Klassen */
 .omni-card {
 	background: var(--bg-card);
 	border: 1px solid var(--border);
@@ -71,3 +70,17 @@ body {
 	background: var(--accent);
 	color: var(--accent-text);
 }
+.section-label {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin: 4px 0 12px;
+}
+
+/* Verhindert, dass Buttons/Inputs den drag-region "klauen" */
+button, input, a, [data-tauri-no-drag] { -webkit-app-region: no-drag; }

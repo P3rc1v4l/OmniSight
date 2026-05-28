@@ -1,6 +1,6 @@
 {
   "name": "omnihub",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "description": "OmniHub – zentraler Streaming-Hub als Desktop-App (Tauri v2 + SvelteKit)",
   "type": "module",
   "private": true,
@@ -14,11 +14,13 @@
     "tauri:build": "tauri build"
   },
   "dependencies": {
+    "@fontsource/dm-sans": "^5.1.0",
     "@tauri-apps/api": "^2.5.0",
     "@tauri-apps/plugin-dialog": "^2.2.0",
     "@tauri-apps/plugin-notification": "^2.2.0",
     "@tauri-apps/plugin-opener": "^2.2.0",
-    "@tauri-apps/plugin-store": "^2.2.0"
+    "@tauri-apps/plugin-store": "^2.2.0",
+    "@tauri-apps/plugin-window-state": "^2.2.0"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.8",

@@ -1,13 +1,8 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { Profile } from '$lib/types';
+import { loadState, saveState } from '$lib/persistence';
 
-/**
- * Hasht eine 4-stellige PIN mit SHA-256.
- * Hinweis: Eine PIN ist nur ein Komfort-Schutz (kein echter Tresor). Für echte
- * Vertraulichkeit müsste man die Profildaten zusätzlich verschlüsseln –
- * das ist als späterer Schritt vorgesehen (siehe Verbesserungsvorschläge).
- */
 export async function hashPin(pin: string): Promise<string> {
 	const data = new TextEncoder().encode(`omnihub:${pin}`);
 	const digest = await crypto.subtle.digest('SHA-256', data);
@@ -15,17 +10,35 @@ export async function hashPin(pin: string): Promise<string> {
 }
 
 export async function verifyPin(pin: string, hash: string | null): Promise<boolean> {
-	if (!hash) return true; // kein PIN gesetzt
+	if (!hash) return true;
 	return (await hashPin(pin)) === hash;
 }
 
-function createDefaultProfile(): Profile {
-	return { id: crypto.randomUUID(), name: 'Profil 1', avatar: undefined, pinHash: null };
-}
-
-// Mindestens 1, maximal 5 Profile.
 export const MAX_PROFILES = 5;
 export const MIN_PROFILES = 1;
 
-export const profiles = writable<Profile[]>(browser ? [createDefaultProfile()] : []);
+function defaultProfile(): Profile {
+	return {
+		id: typeof crypto !== 'undefined' ? crypto.randomUUID() : `p-${Date.now()}`,
+		name: 'Profil 1',
+		pinHash: null
+	};
+}
+
+export const profiles = writable<Profile[]>([]);
 export const activeProfileId = writable<string | null>(null);
+
+let loaded = false;
+export async function hydrateProfiles(): Promise<void> {
+	if (loaded || !browser) return;
+	loaded = true;
+	let list = await loadState<Profile[]>('profiles', []);
+	if (!list.length) list = [defaultProfile()];
+	profiles.set(list);
+	activeProfileId.set(await loadState<string | null>('activeProfileId', list[0].id));
+}
+
+if (browser) {
+	profiles.subscribe(($p) => { if (loaded) void saveState('profiles', $p); });
+	activeProfileId.subscribe(($a) => { if (loaded) void saveState('activeProfileId', $a); });
+}

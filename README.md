@@ -6,6 +6,8 @@ TMDB-Metadaten.
 
 **Tech-Stack:** Tauri v2 (Rust) · SvelteKit (Svelte 5) · Tailwind CSS v4
 
+© 2026 Luka Kalinka. Proprietäre Software – siehe [LICENSE](./LICENSE).
+
 ---
 
 ## Release bauen – komplett in GitHub, ohne lokale Installation
@@ -15,33 +17,71 @@ läuft auf GitHubs Servern:
 
 1. Code liegt in GitHub (Bearbeiten geht direkt über die Weboberfläche).
 2. **Actions-Tab → „Release" → *Run workflow*** klicken
-   *(oder einen Tag pushen, z.B. `v0.1.1`).*
-3. GitHub baut die App und legt einen **Release-Entwurf** an.
-4. Im **Releases-Tab** den Entwurf öffnen → **„Publish release"** → fertig.
-5. Du und deine Nutzer ladet die `.exe`/den Installer aus dem Release herunter.
+   *(oder einen Tag pushen, z.B. `v0.2.0`).*
+3. GitHub baut die App und **veröffentlicht den Release automatisch**.
+4. Im **Releases-Tab** liegt die fertige `.exe` / der Installer zum Download.
 
-> Hinweis: Der Release wird als *Entwurf* erstellt (`releaseDraft: true`), damit
-> du ihn vor der Veröffentlichung prüfen kannst. Möchtest du, dass er sofort
-> öffentlich ist, setze in `.github/workflows/release.yml` `releaseDraft: false`.
+> **Entwurf statt Veröffentlichung?** Beim manuellen Start (*Run workflow*)
+> kannst du die Option **„Nur Entwurf statt veröffentlichtem Release?"** anhaken.
+> Dann landet der Build als Entwurf im Releases-Tab und du veröffentlichst ihn
+> selbst per **„Publish release"**.
 
 ---
 
-## Optional: lokale Entwicklung
+## TMDB-Key eintragen (für Suche, News & Upcoming)
 
-Nur falls du selbst am Code entwickeln willst (für Nutzer **nicht** nötig):
+Damit Filmsuche, Neuigkeiten und Upcoming funktionieren, braucht OmniHub einen
+**kostenlosen** TMDB-API-Key. Eintragen dauert ~1 Minute, alles im Browser:
 
-| Tool | Version |
-|---|---|
-| Node.js | ≥ 20 |
-| Rust (rustup) | stable |
-| Edge WebView2 | unter Windows meist vorinstalliert |
+1. Kostenlos registrieren: <https://www.themoviedb.org/signup>
+2. Key beantragen: <https://www.themoviedb.org/settings/api>
+   → „API Read Access Token" (v4) **oder** „API Key (v3 auth)" kopieren.
+3. In GitHub die Datei **`src-tauri/src/tmdb.rs`** öffnen (Stift-Symbol zum Bearbeiten).
+4. Die Zeile
 
-```bash
-npm install
-npm run tauri:dev      # App-Fenster mit Hot-Reload
-```
+   ```rust
+   const TMDB_API_KEY: &str = "PASTE_YOUR_TMDB_KEY_HERE";
+   ```
 
-## Links
+   ändern in (Beispiel):
 
-- GitHub: https://github.com/P3rc1v4l/OmniHub
-- Discord: https://discord.gg/tnfgta33uj
+   ```rust
+   const TMDB_API_KEY: &str = "dein_key_hier";
+   ```
+
+5. Committen → nächsten Build starten. Fertig.
+
+> Der Key liegt im fertigen Build und ist dort technisch auslesbar. TMDB-Keys
+> sind kostenlos und ratenlimitiert, daher für ein Hobby-Projekt vertretbar.
+> Ohne Key funktioniert die App normal weiter – nur die TMDB-Bereiche zeigen
+> dann einen Hinweis statt Ergebnissen.
+
+---
+
+## Bedienung – Tastenkürzel
+
+| Taste | Funktion |
+|-------|----------|
+| `F1` | Tastenkürzel-Übersicht |
+| `Strg` + `K` | Suche fokussieren |
+| `Strg` + `,` | Einstellungen öffnen |
+| `Strg` + `D` | Hell-/Dunkel-Modus |
+| `Esc` | Dialog schließen |
+
+---
+
+## Projektstruktur (Kurzüberblick)
+
+- `src/routes` – Seiten (Übersicht, Watchlist, News, Upcoming, Statistiken, …)
+- `src/lib/components` – Titelleiste, Sidebar, Karten, Modals
+- `src/lib/stores` – Zustand (Einstellungen, Profile, Anbieter, Watchlist) mit Persistenz
+- `src-tauri/src` – Rust-Backend inkl. `tmdb.rs`
+- `.github/workflows/release.yml` – automatischer Build & Release
+
+---
+
+## Lizenz
+
+Proprietär. Vervielfältigung, Weitergabe oder Veröffentlichung des Quellcodes
+ist ohne ausdrückliche schriftliche Genehmigung **nicht** gestattet.
+Details in [LICENSE](./LICENSE). Kontakt: zzickyzzacky@gmail.com

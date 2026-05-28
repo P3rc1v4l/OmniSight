@@ -1,113 +1,108 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { activeStream } from '$lib/stores/providers';
-	import { APP_NAME } from '$lib/version';
+	import { profiles, activeProfileId } from '$lib/stores/profiles';
+	import { settings } from '$lib/stores/settings';
 
-	// Navigationspunkte laut Doku (Teil 3).
+	export let openSettings: () => void;
+
 	const nav = [
 		{ href: '/', label: 'Übersicht', icon: '🏠' },
-		{ href: '/watchlist', label: 'Watchlist', icon: '📌' },
+		{ href: '/watchlist', label: 'Gemerkt', icon: '🔖' },
 		{ href: '/news', label: 'Neuigkeiten', icon: '📡' },
-		{ href: '/upcoming', label: 'Upcoming', icon: '📅' },
-		{ href: '/stream', label: 'Schaut gerade', icon: '▶️', onlyWhenStreaming: true },
-		{ href: '/stats', label: 'Statistiken', icon: '📊' }
+		{ href: '/upcoming', label: 'Upcoming', icon: '📅' }
 	];
 
 	$: path = $page.url.pathname;
+	$: activeProfile = $profiles.find((p) => p.id === $activeProfileId) ?? $profiles[0];
+
+	function toggleTheme() {
+		settings.update(($s) => ({
+			...$s,
+			appearance: { ...$s.appearance, theme: $s.appearance.theme === 'dark' ? 'light' : 'dark' }
+		}));
+	}
 </script>
 
 <aside class="sidebar" style="width: var(--sidebar-width)">
-	<div class="brand">
-		<span class="logo omni-accent">O</span>
-		<span class="brand-name">{APP_NAME}</span>
-	</div>
-
 	<nav>
 		{#each nav as item}
-			{#if !item.onlyWhenStreaming || $activeStream}
-				<a
-					href={item.href}
-					class="nav-item"
-					class:active={path === item.href}
-					aria-current={path === item.href ? 'page' : undefined}
-				>
-					<span class="nav-icon">{item.icon}</span>
-					<span class="nav-label">{item.label}</span>
-				</a>
-			{/if}
+			<a href={item.href} class="nav-item" class:active={path === item.href}>
+				<span class="icon">{item.icon}</span><span>{item.label}</span>
+			</a>
 		{/each}
+		{#if $activeStream}
+			<a href="/stream" class="nav-item" class:active={path === '/stream'}>
+				<span class="icon">▶️</span><span>Schaut gerade</span>
+			</a>
+		{/if}
 	</nav>
 
-	<div class="sidebar-footer">
-		<a href="/settings" class="nav-item" class:active={path === '/settings'}>
-			<span class="nav-icon">⚙️</span>
-			<span class="nav-label">Einstellungen</span>
+	<div class="bottom">
+		<a href="/cr-calendar" class="nav-item" class:active={path === '/cr-calendar'}>
+			<span class="icon">⛩️</span><span>CR Kalender</span>
 		</a>
+
+		<div class="controls">
+			<button class="ctrl" onclick={toggleTheme} title="Hell/Dunkel" aria-label="Theme">
+				{$settings.appearance.theme === 'dark' ? '🌙' : '☀️'}
+			</button>
+			<button class="ctrl" title="Benachrichtigungen" aria-label="Benachrichtigungen">🔔</button>
+		</div>
+
+		<button class="profile">
+			<span class="avatar">👤</span>
+			<span class="pname">{activeProfile?.name ?? 'User'}</span>
+			<span class="chev">▾</span>
+		</button>
+
+		<a href="/stats" class="nav-item" class:active={path === '/stats'}>
+			<span class="icon">📊</span><span>Statistiken</span>
+		</a>
+		<button class="nav-item as-link" onclick={openSettings}>
+			<span class="icon">⚙️</span><span>Einstellungen</span>
+		</button>
 	</div>
 </aside>
 
 <style>
 	.sidebar {
-		height: 100vh;
-		flex-shrink: 0;
+		height: 100%;
 		background: var(--bg-elev);
 		border-right: 1px solid var(--border);
-		display: flex;
-		flex-direction: column;
-		padding: 16px 12px;
-		box-sizing: border-box;
+		display: flex; flex-direction: column;
+		padding: 14px 12px;
+		flex-shrink: 0; box-sizing: border-box;
 	}
-	.brand {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		padding: 6px 8px 18px;
+	nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+	.nav-item, .as-link {
+		display: flex; align-items: center; gap: 12px;
+		padding: 10px 12px; border-radius: 10px;
+		color: var(--text-muted); text-decoration: none;
+		font-size: 13.5px;
+		background: transparent; border: 0;
+		cursor: pointer; text-align: left; font-family: inherit;
+		transition: background 0.12s, color 0.12s;
 	}
-	.logo {
-		width: 32px;
-		height: 32px;
-		display: grid;
-		place-items: center;
-		border-radius: 9px;
-		font-weight: 800;
-		font-size: 18px;
+	.nav-item:hover, .as-link:hover { background: var(--bg-card); color: var(--text); }
+	.nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+	.icon { width: 18px; text-align: center; font-size: 14px; }
+	.bottom { display: flex; flex-direction: column; gap: 2px; }
+	.controls { display: flex; gap: 6px; padding: 6px 4px; }
+	.ctrl {
+		flex: 1; background: var(--bg-card); border: 1px solid var(--border);
+		color: var(--text-muted); border-radius: 9px;
+		padding: 7px 8px; cursor: pointer; font-size: 14px;
 	}
-	.brand-name {
-		font-weight: 700;
-		letter-spacing: 0.2px;
+	.ctrl:hover { color: var(--text); border-color: var(--border-strong); }
+	.profile {
+		display: flex; align-items: center; gap: 10px;
+		background: var(--bg-card); border: 1px solid var(--border);
+		padding: 8px 10px; border-radius: 10px;
+		cursor: pointer; margin: 6px 0;
+		color: var(--text); font-family: inherit;
 	}
-	nav {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		flex: 1;
-	}
-	.nav-item {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		padding: 10px 12px;
-		border-radius: calc(var(--radius) - 4px);
-		color: var(--text-muted);
-		text-decoration: none;
-		transition: background 0.15s, color 0.15s;
-	}
-	.nav-item:hover {
-		background: var(--bg-card);
-		color: var(--text);
-	}
-	.nav-item.active {
-		background: color-mix(in srgb, var(--accent) 18%, transparent);
-		color: var(--text);
-	}
-	.nav-icon {
-		font-size: 16px;
-		width: 20px;
-		text-align: center;
-	}
-	.sidebar-footer {
-		margin-top: auto;
-		padding-top: 8px;
-		border-top: 1px solid var(--border);
-	}
+	.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 13px; }
+	.pname { flex: 1; text-align: left; font-size: 13px; font-weight: 600; }
+	.chev { color: var(--text-muted); font-size: 10px; }
 </style>

@@ -1,30 +1,26 @@
 // Zentrale Typdefinitionen für OmniHub.
 
+export type Quality = '4K' | '1080p' | 'HD' | 'SD';
+
 export interface Provider {
-	/** Eindeutige, stabile ID (Kebab-Case). */
 	id: string;
-	/** Anzeigename auf der Karte. */
 	name: string;
-	/** Start-URL, die im WebView geöffnet wird. */
+	subtitle: string;       // z.B. "Anime & Manga", "Live-TV & Mediatheken"
 	url: string;
-	/** Kategorie für Gruppierung/Filter. */
 	category: 'film-serien' | 'anime' | 'live-tv' | 'mediathek' | 'sport' | 'musik' | 'video' | 'eigene';
-	/** Markenfarbe (für Karten-Akzent/Fallback-Icon). */
-	color: string;
-	/** Optionales Icon (Pfad in /static/icons oder Daten-URL bei eigenen Anbietern). */
-	icon?: string;
-	/** Vom Nutzer selbst angelegt? */
+	color: string;          // Markenfarbe, Basis der Karte
+	color2?: string;        // optionale 2. Farbe für Verlauf
+	quality: Quality;
+	icon?: string;          // ID aus icons.ts oder Daten-URL bei eigenen Anbietern
 	custom?: boolean;
-	/** In der Übersicht ausgeblendet? (Karteneditor: "aus Übersicht löschen") */
 	hidden?: boolean;
+	favorite?: boolean;
 }
 
 export interface Profile {
 	id: string;
 	name: string;
-	/** Profilbild als Daten-URL oder Pfad. */
 	avatar?: string;
-	/** 4-stellige PIN (gehasht abgelegt, niemals im Klartext). null = keine PIN. */
 	pinHash: string | null;
 }
 
@@ -33,7 +29,6 @@ export interface ClockSettings {
 	type: 'digital' | 'analog';
 	showSeconds: boolean;
 	color: string;
-	/** Transparenz in % (0 = sichtbar, 100 = aus). */
 	transparency: number;
 	size: number;
 }
@@ -67,6 +62,7 @@ export interface Settings {
 	appearance: AppearanceSettings;
 	clock: ClockSettings;
 	notifications: NotificationSettings;
+	onboardingDone: boolean;
 }
 
 export interface WatchlistItem {
@@ -77,4 +73,15 @@ export interface WatchlistItem {
 	overview: string;
 	releaseDate: string | null;
 	addedAt: number;
+}
+
+export interface TmdbItem {
+	id: number;
+	media_type: string;
+	title: string;
+	overview: string;
+	poster: string | null;
+	backdrop: string | null;
+	release_date: string | null;
+	vote_average: number | null;
 }

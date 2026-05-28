@@ -1,182 +1,175 @@
 <script lang="ts">
-	import { visibleProviders, activeStream } from '$lib/stores/providers';
-	import { goto } from '$app/navigation';
-	import type { Provider } from '$lib/types';
+	import { visibleProviders, favoriteProviders, recentProviders, providers } from '$lib/stores/providers';
+	import ProviderCard from '$lib/components/ProviderCard.svelte';
+	import Logo from '$lib/components/Logo.svelte';
+	import { tmdb } from '$lib/tmdb';
+	import { addToWatchlist, watchlist, isInWatchlist } from '$lib/stores/watchlist';
+	import type { TmdbItem, Provider } from '$lib/types';
+	import { activeStream, markOpened } from '$lib/stores/providers';
+	import { openInWindow } from '$lib/streamWindow';
 
 	let search = $state('');
+	let sortAZ = $state(false);
+	let view: 'grid' | 'list' = $state('grid');
+	let tmdbResults = $state<TmdbItem[]>([]);
+	let searching = $state(false);
+	let searchToken = 0;
 
-	// Einfache Client-Filterung nach Name (TMDB-Titelsuche kommt in v0.2).
-	const filtered = $derived(
-		$visibleProviders.filter((p) =>
-			p.name.toLowerCase().includes(search.trim().toLowerCase())
-		)
-	);
+	// Anbieter nach Suche & Sortierung filtern
+	const sortedFiltered = $derived.by(() => {
+		const q = search.trim().toLowerCase();
+		let list = $visibleProviders.filter((p) =>
+			!q || p.name.toLowerCase().includes(q) || p.subtitle.toLowerCase().includes(q)
+		);
+		if (sortAZ) list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+		return list;
+	});
 
-	function openProvider(p: Provider) {
+	// Wenn die Suche keine Anbieter findet -> TMDB anfragen (mit Debounce)
+	$effect(() => {
+		const q = search.trim();
+		if (q.length < 3) { tmdbResults = []; return; }
+		const token = ++searchToken;
+		const t = setTimeout(async () => {
+			searching = true;
+			const res = (await tmdb.search(q)) ?? [];
+			if (token === searchToken) { tmdbResults = res.slice(0, 12); searching = false; }
+		}, 350);
+		return () => clearTimeout(t);
+	});
+
+	function openRecent(p: Provider) {
+		markOpened(p.id);
 		activeStream.set(p);
-		goto('/stream');
-	}
-
-	function initials(name: string) {
-		return name.replace(/[^A-Za-z0-9 ]/g, '').slice(0, 2).toUpperCase();
+		openInWindow(p);
 	}
 </script>
 
 <div class="page">
-	<header class="head">
-		<div>
-			<h1>Übersicht</h1>
-			<p class="sub">Alle deine Dienste an einem Ort.</p>
-		</div>
+	<header class="top">
 		<div class="search">
-			<span class="search-icon">🔎</span>
+			<span class="ic">🔎</span>
 			<input
+				data-omni-search
 				type="text"
-				placeholder="Anbieter suchen … (Titelsuche folgt)"
+				placeholder="Anbieter, Film, Serie, YouTube-URL…"
 				bind:value={search}
 			/>
 		</div>
+		<div class="tools">
+			<button class="tool" class:active={sortAZ} title="A–Z sortieren" onclick={() => (sortAZ = !sortAZ)}>A↓Z</button>
+			<button class="primary"><span>＋</span> Anbieter</button>
+			<div class="view">
+				<button class:active={view === 'grid'} onclick={() => (view = 'grid')} aria-label="Raster">▦</button>
+				<button class:active={view === 'list'} onclick={() => (view = 'list')} aria-label="Liste">≡</button>
+			</div>
+		</div>
 	</header>
 
-	<section class="grid" aria-label="Streaming-Anbieter">
-		{#each filtered as p (p.id)}
-			<button class="card omni-card" onclick={() => openProvider(p)} title={`${p.name} öffnen`}>
-				<div class="logo" style={`background:${p.color}`}>
-					{#if p.icon}
-						<img src={p.icon} alt="" />
-					{:else}
-						<span>{initials(p.name)}</span>
-					{/if}
-				</div>
-				<span class="name">{p.name}</span>
+	{#if $recentProviders.length && !search}
+		<div class="section-label">Zuletzt geöffnet</div>
+		<div class="chips">
+			{#each $recentProviders as p (p.id)}
+				<button class="chip" onclick={() => openRecent(p)} style="--c1: {p.color}; --c2: {p.color2 ?? p.color}">
+					<Logo provider={p} size={24} />
+					<span>{p.name}</span>
+				</button>
+			{/each}
+		</div>
+	{/if}
 
-				<!-- Karteneditor-Button taucht beim Hovern auf (laut Doku). -->
-				<span
-					class="edit"
-					role="button"
-					tabindex="0"
-					title="Karte bearbeiten"
-					onclick={(e) => { e.stopPropagation(); /* Karteneditor folgt in v0.3 */ }}
-					onkeydown={(e) => { if (e.key === 'Enter') e.stopPropagation(); }}
-				>✎</span>
-			</button>
+	{#if $favoriteProviders.length && !search}
+		<div class="section-label">⭐ Favoriten</div>
+		<div class="grid favs">
+			{#each $favoriteProviders as p (p.id)}
+				<ProviderCard provider={p} />
+			{/each}
+		</div>
+	{/if}
+
+	<div class="section-label">Alle Anbieter</div>
+	<div class="grid all">
+		{#each sortedFiltered as p (p.id)}
+			<ProviderCard provider={p} size="compact" />
 		{/each}
+	</div>
 
-		<!-- Eigener-Anbieter-Platzhalter -->
-		<button class="card add omni-card" title="Eigenen Anbieter hinzufügen">
-			<div class="plus">＋</div>
-			<span class="name">Eigener Anbieter</span>
-		</button>
-	</section>
+	{#if search.trim().length >= 3}
+		<div class="section-label" style="margin-top: 26px">Filme & Serien (TMDB)</div>
+		{#if searching}
+			<p class="muted">Suche läuft…</p>
+		{:else if tmdbResults.length === 0}
+			<p class="muted">Keine TMDB-Treffer. Ist der API-Key in <code>src-tauri/src/tmdb.rs</code> eingetragen?</p>
+		{:else}
+			<div class="tmdb">
+				{#each tmdbResults as t (t.media_type + '-' + t.id)}
+					<div class="tcard omni-card">
+						{#if t.poster}
+							<img src={t.poster} alt={t.title} loading="lazy" />
+						{:else}
+							<div class="noimg">?</div>
+						{/if}
+						<div class="tmeta">
+							<div class="tt">{t.title}</div>
+							<div class="ts">{t.media_type === 'tv' ? 'Serie' : 'Film'}{t.release_date ? ' · ' + t.release_date.slice(0, 4) : ''}</div>
+							<button
+								class="add"
+								disabled={isInWatchlist($watchlist, t.id, t.media_type)}
+								onclick={() => addToWatchlist(t)}
+							>
+								{isInWatchlist($watchlist, t.id, t.media_type) ? '✓ gemerkt' : '+ Watchlist'}
+							</button>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	{/if}
 </div>
 
 <style>
-	.page {
-		padding: 28px 32px;
-		max-width: 1400px;
+	.page { padding: 22px 28px 36px; max-width: 1600px; }
+	.top { display: flex; gap: 14px; align-items: center; margin-bottom: 22px; }
+	.search { flex: 1; display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 16px; }
+	.search input { flex: 1; background: transparent; border: 0; outline: 0; color: var(--text); font-size: 14px; font-family: inherit; }
+	.ic { color: var(--text-muted); font-size: 14px; }
+	.tools { display: flex; gap: 8px; align-items: center; }
+	.tool, .view button, .primary {
+		background: var(--bg-card); border: 1px solid var(--border);
+		color: var(--text-muted); padding: 9px 14px; border-radius: 12px;
+		cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600;
 	}
-	.head {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-end;
-		gap: 16px;
-		margin-bottom: 24px;
-		flex-wrap: wrap;
+	.tool.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+	.primary { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); display: inline-flex; gap: 6px; align-items: center; }
+	.view { display: flex; gap: 4px; }
+	.view button { padding: 8px 12px; }
+	.view button.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+	.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+	.chip {
+		display: inline-flex; align-items: center; gap: 8px;
+		padding: 5px 12px 5px 5px;
+		background: var(--bg-card); border: 1px solid var(--border);
+		border-radius: 999px; cursor: pointer; color: var(--text); font-size: 13px;
 	}
-	h1 {
-		margin: 0;
-		font-size: 28px;
-		font-weight: 800;
-		letter-spacing: -0.5px;
-	}
-	.sub {
-		margin: 4px 0 0;
-		color: var(--text-muted);
-	}
-	.search {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		background: var(--bg-card);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		padding: 8px 14px;
-		min-width: 280px;
-	}
-	.search input {
-		background: transparent;
-		border: none;
-		outline: none;
-		color: var(--text);
-		width: 100%;
-		font-size: 14px;
-	}
-	.grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-		gap: 16px;
-	}
-	.card {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 12px;
-		padding: 20px 12px;
-		cursor: pointer;
-		color: var(--text);
-		transition: transform 0.15s, border-color 0.15s;
-	}
-	.card:hover {
-		transform: translateY(-3px);
-		border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
-	}
-	.logo {
-		width: 64px;
-		height: 64px;
-		border-radius: 14px;
-		display: grid;
-		place-items: center;
-		color: #fff;
-		font-weight: 800;
-		font-size: 20px;
-		overflow: hidden;
-	}
-	.logo img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-	}
-	.name {
-		font-size: 14px;
-		font-weight: 600;
-		text-align: center;
-	}
-	.edit {
-		position: absolute;
-		top: 8px;
-		right: 8px;
-		opacity: 0;
-		background: var(--bg-elev);
-		border: 1px solid var(--border);
-		border-radius: 8px;
-		width: 26px;
-		height: 26px;
-		display: grid;
-		place-items: center;
-		font-size: 13px;
-		transition: opacity 0.15s;
-	}
-	.card:hover .edit {
-		opacity: 1;
-	}
+	.chip:hover { border-color: var(--border-strong); }
+
+	.grid.favs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 22px; }
+	.grid.all { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+
+	.tmdb { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+	.tcard { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+	.tcard img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+	.noimg { aspect-ratio: 2/3; display: grid; place-items: center; background: var(--bg-card-2); color: var(--text-dim); font-size: 32px; }
+	.tmeta { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+	.tt { font-weight: 600; font-size: 13px; line-height: 1.25; }
+	.ts { color: var(--text-muted); font-size: 11.5px; }
 	.add {
-		border-style: dashed;
-		color: var(--text-muted);
+		margin-top: 6px; background: var(--accent-soft); color: var(--accent);
+		border: 1px solid var(--accent); padding: 6px 10px; border-radius: 8px;
+		cursor: pointer; font-size: 12px; font-weight: 600;
 	}
-	.plus {
-		font-size: 36px;
-		line-height: 1;
-		color: var(--accent);
-	}
+	.add:disabled { opacity: 0.6; cursor: default; }
+	.muted { color: var(--text-muted); font-size: 13px; }
+	code { background: var(--bg-card); padding: 1px 6px; border-radius: 5px; }
 </style>
