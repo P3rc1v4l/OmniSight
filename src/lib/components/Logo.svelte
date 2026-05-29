@@ -34,15 +34,26 @@
 
 	$: label = overrides[provider.id] ?? provider.name.slice(0, 2);
 	$: fontSize = Math.max(14, size * 0.45);
+	// Eigenes Logo-Bild (Daten-URL oder http)? -> als Bild zeigen, sonst Buchstaben.
+	$: isImage = !!provider.icon && /^(data:|https?:)/i.test(provider.icon);
 </script>
 
-<div
-	class="logo"
-	style="--bg1: {provider.color}; --bg2: {provider.color2 ?? provider.color}; width: {size}px; height: {size}px; font-size: {fontSize}px;"
-	aria-hidden="true"
->
-	<span>{label}</span>
-</div>
+{#if isImage}
+	<img
+		class="logo logo-img"
+		src={provider.icon}
+		alt={provider.name}
+		style="width: {size}px; height: {size}px;"
+	/>
+{:else}
+	<div
+		class="logo"
+		style="--bg1: {provider.color}; --bg2: {provider.color2 ?? provider.color}; width: {size}px; height: {size}px; font-size: {fontSize}px;"
+		aria-hidden="true"
+	>
+		<span>{label}</span>
+	</div>
+{/if}
 
 <style>
 	.logo {
@@ -58,4 +69,11 @@
 		flex-shrink: 0;
 	}
 	.logo span { line-height: 1; }
+	.logo-img {
+		border-radius: 50%;
+		object-fit: cover;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+		flex-shrink: 0;
+		background: var(--bg-card-2);
+	}
 </style>

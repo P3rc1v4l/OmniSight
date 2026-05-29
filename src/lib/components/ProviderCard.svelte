@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Provider } from '$lib/types';
 	import Logo from './Logo.svelte';
-	import { toggleFavorite, favorites } from '$lib/stores/providers';
+	import { toggleFavorite, favorites, editingProvider } from '$lib/stores/providers';
 	import { openProvider } from '$lib/embedded';
 
 	export let provider: Provider;
@@ -20,7 +20,7 @@
 
 	function editClick(e: Event) {
 		e.stopPropagation();
-		// Karteneditor wird in v0.3 ausgebaut.
+		editingProvider.set(provider);
 	}
 
 	function onKey(e: KeyboardEvent) {

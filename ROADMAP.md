@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version aktualisiert**.
-Stand: v0.8.1
+Stand: v0.9.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -65,7 +65,12 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - ✅ (1/2) Profil bleibt beim Start & Seitenwechsel erhalten (zuverlässiger Sofort-Cache + abgesicherter Start)
 - ✅ (3-Klick) Klick auf Karte öffnet wieder; Sortieren nur noch über Greif-Punkt
 - ⏳ (3-Einbettung) Eingebetteter Stream zeigt evtl. nichts -> „Eigenes Fenster" testen / Konsole
-- ⏳ (4) Karteneditor (Name/Farbe/URL/Logo bearbeiten) – war bisher nur ein Platzhalter-Knopf
+
+---
+
+## v0.9.0
+- ✅ (4) Karten-Editor: Name/Untertitel/URL/Farbe/2.Farbe/Qualität/Logo bearbeiten (auch Standard-Anbieter), mit Live-Vorschau + „Auf Standard zurücksetzen"
+- ✅ Eigene Logo-Bilder auf Karten; Bearbeitungen an Standard-Anbietern bleiben gespeichert
 
 ---
 

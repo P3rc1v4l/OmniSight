@@ -4,6 +4,17 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.9.0] – 2026-05-29
+
+### Hinzugefügt
+- **Karten-Editor (Punkt 4):** Über das Stift-Symbol auf jeder Anbieterkarte lässt sich jetzt alles bearbeiten – **Name, Untertitel, URL, Farbe, 2. Farbe (Verlauf), Qualität und ein eigenes Logo-Bild**. Funktioniert für eigene **und** für Standard-Anbieter; Standard-Karten lassen sich per Knopf wieder „Auf Standard zurücksetzen". Mit Live-Vorschau des Logos.
+- **Eigene Logo-Bilder:** Karten können jetzt ein hochgeladenes Bild als rundes Logo zeigen (sonst weiterhin das farbige Buchstaben-Logo).
+
+### Geändert
+- Bearbeitungen an **Standard-Anbietern bleiben erhalten** (werden gespeichert und beim Start wiederhergestellt; neue Felder künftiger Versionen werden weiterhin ergänzt).
+
+---
+
 ## [0.8.1] – 2026-05-29
 
 ### Behoben

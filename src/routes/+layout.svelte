@@ -6,6 +6,7 @@
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import ShortcutsModal from '$lib/components/ShortcutsModal.svelte';
 	import OnboardingModal from '$lib/components/OnboardingModal.svelte';
+	import CardEditorModal from '$lib/components/CardEditorModal.svelte';
 	import Toasts from '$lib/components/Toasts.svelte';
 	import Clock from '$lib/components/Clock.svelte';
 	import Particles from '$lib/components/Particles.svelte';
@@ -88,6 +89,7 @@
 <SettingsModal open={showSettings} initialTab={settingsTab} close={() => (showSettings = false)} />
 <ShortcutsModal open={showShortcuts} close={() => (showShortcuts = false)} />
 <OnboardingModal open={showOnboarding} close={() => (showOnboarding = false)} />
+<CardEditorModal />
 
 <style>
 	.root { display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; position: relative; }

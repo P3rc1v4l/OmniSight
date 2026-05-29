@@ -59,6 +59,21 @@ export function removeCustomProvider(id: string): void {
 	providers.update(($p) => $p.filter((x) => x.id !== id));
 }
 
+// Welche Karte wird gerade im Karteneditor bearbeitet (null = Editor zu).
+export const editingProvider = writable<Provider | null>(null);
+
+// Bearbeitet eine bestehende Karte (Standard ODER eigener Anbieter).
+export function updateProvider(id: string, patch: Partial<Provider>): void {
+	providers.update(($p) => $p.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+}
+
+// Setzt eine Standard-Karte wieder auf ihre Werkseinstellungen zurück.
+export function resetProviderToDefault(id: string): void {
+	const def = DEFAULT_PROVIDERS.find((d) => d.id === id);
+	if (!def) return; // eigene Anbieter haben keinen Standard
+	providers.update(($p) => $p.map((x) => (x.id === id ? { ...structuredClone(def), hidden: x.hidden } : x)));
+}
+
 // --- Katalog (global) ---
 let catalogReady = false;
 export async function hydrateCatalog(): Promise<void> {
@@ -66,10 +81,11 @@ export async function hydrateCatalog(): Promise<void> {
 	catalogReady = true;
 	const saved = await loadState<Provider[] | null>('providers', null);
 	if (saved && Array.isArray(saved) && saved.length) {
-		// Standard-Anbieter mit aktuellen Metadaten, aber gespeicherter Sichtbarkeit.
+		// Gespeicherte Karten-Bearbeitungen übernehmen (Name/Farbe/URL/Logo …),
+		// dabei NEUE Felder künftiger Versionen aus dem Standard ergänzen.
 		const merged = DEFAULT_PROVIDERS.map((def) => {
 			const old = saved.find((x) => x.id === def.id);
-			return old ? { ...def, hidden: old.hidden } : def;
+			return old ? { ...def, ...old } : def;
 		});
 		const customs = saved.filter((x) => x.custom);
 		providers.set([...merged, ...customs]);
