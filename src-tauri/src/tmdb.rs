@@ -11,7 +11,7 @@
 // Hobby-/Open-Source-Projekt. Wer den Key später besser schützen will, kann
 // auf einen eigenen Proxy-Server umstellen – das ist später möglich, ohne die
 // Frontend-Schnittstelle zu ändern.
-const TMDB_API_KEY: &str = "PASTE_YOUR_TMDB_KEY_HERE";
+const TMDB_API_KEY: &str = "b3ddcb410ac0d357566b8f2910eea375";
 
 const TMDB_BASE: &str = "https://api.themoviedb.org/3";
 const TMDB_IMG: &str = "https://image.tmdb.org/t/p";

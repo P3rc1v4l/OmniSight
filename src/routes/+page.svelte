@@ -5,9 +5,8 @@
 	import AddProviderModal from '$lib/components/AddProviderModal.svelte';
 	import { tmdb } from '$lib/tmdb';
 	import { addToWatchlist, watchlist, isInWatchlist } from '$lib/stores/watchlist';
-	import type { TmdbItem, Provider } from '$lib/types';
-	import { activeStream, markOpened } from '$lib/stores/providers';
-	import { openInWindow } from '$lib/streamWindow';
+	import type { TmdbItem } from '$lib/types';
+	import { openProvider } from '$lib/embedded';
 
 	let search = $state('');
 	let sortAZ = $state(false);
@@ -41,12 +40,6 @@
 		}, 350);
 		return () => clearTimeout(t);
 	});
-
-	function openProvider(p: Provider) {
-		markOpened(p.id);
-		activeStream.set(p);
-		openInWindow(p);
-	}
 </script>
 
 <AddProviderModal open={showAdd} close={() => (showAdd = false)} />

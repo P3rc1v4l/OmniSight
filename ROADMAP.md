@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version aktualisiert**.
-Stand: v0.5.0
+Stand: v0.6.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -35,9 +35,14 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - ✅ (13d) Mehr Schriftarten zur Auswahl (gilt für die ganze App)
 - ✅ (15a) PIN-Änderung fragt zuerst den alten PIN ab
 
+## v0.6.0
+- ✅ (8) Anbieter werden im Hauptfenster eingebettet (kein zweites Fenster mehr); Fenster-Fallback vorhanden
+- ✅ TMDB-Key eingetragen – Suche/Neuigkeiten/Upcoming liefern Daten
+
 ---
 
-## Als Nächstes geplant
+## Als Nächstes geplant (Reihenfolge laut Wunsch)
+- ⏳ (Update-Funktion) „Nach Updates suchen": in der App prüfen (Button + automatisch beim Start), Banner zum Herunterladen/Installieren der neuen Version
 - ⏳ (5) Suche nach Filmen/Serien/Anime: Klick öffnet Titel-Info (Inhaltsangabe, Trailer) + Liste der Anbieter, bei denen der Titel läuft (mit Verlinkung)
 - ⏳ (6) Original-Logos der Anbieter auf den Karten (später im Karteneditor anpassbar)
 - ⏳ (4) Erklärung „echte Marken-Logos (lokale SVGs)" – siehe Antwort; Umsetzung folgt mit (6)
@@ -46,7 +51,6 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - ⏳ (13f) **Komplette Übersetzung DE/EN** der gesamten Oberfläche + Anbieter in der jeweiligen Sprache öffnen
 
 ## In Klärung (Machbarkeit / Aufwand)
-- 💡 (8) Anbieter **in der App** öffnen statt als zweites Fenster (eingebettetes Webview im Hauptfenster – Konflikt mit der „Verbindung verweigert"-Lösung, siehe Erklärung)
 - 💡 (9) „CR Kalender" nur bei Crunchyroll-Login sichtbar + echte Kalenderdaten (Login-Erkennung + Datenquelle nötig)
 - 💡 (14) Einstellungen → „Account": angemeldete Anbieter live (1×/Min.) inkl. Anmeldezeit + Logout-Buttons + „überall abmelden" (Cookie-Zugriff je Profil – Machbarkeit wird geprüft)
 

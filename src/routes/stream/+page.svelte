@@ -1,64 +1,119 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy, tick } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { activeStream } from '$lib/stores/providers';
-	import { openInWindow } from '$lib/streamWindow';
 	import { watchTime, sessionStart, formatDuration } from '$lib/stores/tracking';
+	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, type Rect } from '$lib/embedded';
+	import { openInWindow } from '$lib/streamWindow';
 	import Logo from '$lib/components/Logo.svelte';
 
+	let host = $state<HTMLDivElement | null>(null);
 	let now = $state(Date.now());
+
+	function rectOf(): Rect | null {
+		if (!host) return null;
+		const r = host.getBoundingClientRect();
+		return { x: r.left, y: r.top, width: r.width, height: r.height };
+	}
+
+	async function refresh() {
+		await tick();
+		requestAnimationFrame(() => {
+			const r = rectOf();
+			const p = $activeStream;
+			if (r && p) showEmbedded(p, r);
+		});
+	}
+
+	function onResize() {
+		const r = rectOf();
+		if (r) repositionEmbedded(r);
+	}
+
 	onMount(() => {
-		const id = setInterval(() => (now = Date.now()), 1000);
-		return () => clearInterval(id);
+		const timer = setInterval(() => (now = Date.now()), 1000);
+		window.addEventListener('resize', onResize);
+		return () => {
+			clearInterval(timer);
+			window.removeEventListener('resize', onResize);
+		};
 	});
 
-	// Gesamtzeit für den aktiven Anbieter (inkl. noch nicht verbuchter laufender Session)
+	onDestroy(() => {
+		hideEmbedded();
+	});
+
+	// Beim Mounten und bei Anbieterwechsel einbetten (läuft nur, solange die Seite offen ist).
+	$effect(() => {
+		if ($activeStream) refresh();
+	});
+
 	const liveMs = $derived.by(() => {
 		const p = $activeStream;
 		if (!p) return 0;
 		const stored = $watchTime[p.id] ?? 0;
 		const start = sessionStart(p.id);
-		const running = start ? now - start : 0;
-		return stored + running;
+		return stored + (start ? now - start : 0);
 	});
+
+	async function close() {
+		await closeEmbedded();
+		activeStream.set(null);
+		goto('/');
+	}
 </script>
 
 <div class="page">
-	<h1>Schaut gerade</h1>
-	{#if $activeStream}
-		<div class="card omni-card">
-			<div class="head">
-				<Logo provider={$activeStream} size={56} />
-				<div>
-					<div class="big">{$activeStream.name}</div>
-					<p class="sub">{$activeStream.subtitle}</p>
-				</div>
-			</div>
-			<div class="timer">
-				<span class="tlabel">Streamzeit (Anbieter gesamt)</span>
-				<span class="tval">{formatDuration(liveMs)}</span>
-			</div>
-			<div class="actions">
-				<button class="primary" onclick={() => openInWindow($activeStream)}>Fenster in den Vordergrund holen</button>
-				<button class="ghost" onclick={() => activeStream.set(null)}>Aus „Schaut gerade" entfernen</button>
-			</div>
+	{#if !$activeStream}
+		<div class="empty">
+			<h1>Schaut gerade</h1>
+			<p class="muted">Aktuell ist kein Stream geöffnet. Öffne einen Anbieter über die Übersicht.</p>
 		</div>
 	{:else}
-		<p class="muted">Aktuell ist kein Stream geöffnet. Öffne einen Anbieter über die Übersicht.</p>
+		<div class="bar">
+			<Logo provider={$activeStream} size={26} />
+			<div class="info">
+				<span class="nm">{$activeStream.name}</span>
+				<span class="sub">{$activeStream.subtitle}</span>
+			</div>
+			<span class="timer">⏱ {formatDuration(liveMs)}</span>
+			{#if $streamMode === 'window'}
+				<button class="btn" onclick={() => $activeStream && openInWindow($activeStream)}>Fenster zeigen</button>
+			{/if}
+			<button class="btn danger" onclick={close}>Schließen</button>
+		</div>
+
+		{#if $streamMode === 'window'}
+			<div class="hostnote">
+				<p>Dieser Anbieter wird in einem separaten Fenster angezeigt (Einbetten war auf diesem System nicht möglich).</p>
+			</div>
+		{:else}
+			<div class="host" bind:this={host}>
+				<span class="loading">Anbieter wird geladen…</span>
+			</div>
+		{/if}
 	{/if}
 </div>
 
 <style>
-	.page { padding: 22px 28px 36px; }
-	h1 { margin: 0 0 18px; font-size: 26px; font-weight: 800; }
-	.card { padding: 24px; display: flex; flex-direction: column; gap: 18px; max-width: 520px; }
-	.head { display: flex; align-items: center; gap: 16px; }
-	.big { font-size: 22px; font-weight: 700; }
-	.sub { color: var(--text-muted); margin: 2px 0 0; }
-	.timer { display: flex; justify-content: space-between; align-items: center; background: var(--bg-card-2); border-radius: 12px; padding: 14px 18px; }
-	.tlabel { color: var(--text-muted); font-size: 13px; }
-	.tval { font-size: 20px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
-	.actions { display: flex; flex-direction: column; gap: 10px; }
+	.page { display: flex; flex-direction: column; height: 100%; }
+	.empty { padding: 22px 28px; }
+	.empty h1 { margin: 0 0 6px; font-size: 26px; font-weight: 800; }
 	.muted { color: var(--text-muted); }
-	.primary { background: var(--accent); color: var(--accent-text); border: 0; padding: 11px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; }
-	.ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 9px 14px; border-radius: 10px; cursor: pointer; }
+	.bar {
+		display: flex; align-items: center; gap: 12px;
+		padding: 10px 18px; border-bottom: 1px solid var(--border);
+		background: var(--bg-elev); flex-shrink: 0;
+	}
+	.info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+	.nm { font-weight: 700; font-size: 14px; }
+	.sub { color: var(--text-muted); font-size: 12px; }
+	.timer { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; font-size: 13px; }
+	.btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: 9px; cursor: pointer; font-size: 13px; }
+	.btn:hover { border-color: var(--border-strong); }
+	.btn.danger:hover { color: #f87171; border-color: #f87171; }
+	.host { flex: 1; position: relative; display: grid; place-items: center; background: var(--bg); }
+	.loading { color: var(--text-dim); font-size: 13px; }
+	.hostnote { flex: 1; display: grid; place-items: center; padding: 40px; }
+	.hostnote p { color: var(--text-muted); max-width: 420px; text-align: center; }
 </style>

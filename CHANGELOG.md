@@ -4,6 +4,22 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.6.0] – 2026-05-29
+
+### Hinzugefügt
+- **Anbieter werden jetzt IM Hauptfenster angezeigt** (Punkt 8), als echtes eingebettetes Webview statt als zweites Fenster. Kein iframe – die „Verbindung verweigert"-Sperre greift also weiterhin nicht, und Logins bleiben pro Profil getrennt und erhalten.
+- Stream-Ansicht mit Kopfleiste (Anbieter, Live-Streamzeit, „Schließen"); beim Verlassen der Seite wird das Webview ausgeblendet und beim Zurückkehren sofort wieder eingeblendet.
+- **TMDB-Key eingetragen** – Suche, Neuigkeiten und Upcoming liefern jetzt Daten.
+- Defensiver Fallback: Sollte das Einbetten auf einem System nicht funktionieren, öffnet sich automatisch wieder ein separates Fenster (App bleibt nutzbar).
+
+### Technisch
+- `unstable`-Feature des Tauri-Crates aktiviert (für eingebettete Webviews) und passende Webview-Berechtigungen ergänzt.
+
+### Hinweis
+- Das Einbetten ist eine native Windows/WebView2-Funktion und konnte hier nicht auf echtem Windows getestet werden; falls es klemmt, greift automatisch der Fenster-Fallback.
+
+---
+
 ## [0.5.0] – 2026-05-29
 
 Großer Funktionsblock aus der 17-Punkte-Liste.

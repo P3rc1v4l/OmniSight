@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { Provider } from '$lib/types';
 	import Logo from './Logo.svelte';
-	import { toggleFavorite, markOpened, activeStream, favorites } from '$lib/stores/providers';
-	import { openInWindow } from '$lib/streamWindow';
+	import { toggleFavorite, favorites } from '$lib/stores/providers';
+	import { openProvider } from '$lib/embedded';
 
 	export let provider: Provider;
 	export let size: 'large' | 'compact' = 'large';
@@ -10,9 +10,7 @@
 	$: fav = $favorites.includes(provider.id);
 
 	function open() {
-		markOpened(provider.id);
-		activeStream.set(provider);
-		openInWindow(provider);
+		openProvider(provider);
 	}
 
 	function favClick(e: Event) {
