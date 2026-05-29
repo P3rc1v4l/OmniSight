@@ -9,6 +9,12 @@ export const providers = writable<Provider[]>([]);
 // Favoriten & "zuletzt geöffnet" = PRO PROFIL (nur IDs).
 export const favorites = writable<string[]>([]);
 export const recentProviderIds = writable<string[]>([]);
+// Eigene Kartenreihenfolge je Profil (Liste von IDs). Leer = alphabetisch.
+export const providerOrder = writable<string[]>([]);
+
+export function setProviderOrder(ids: string[]): void {
+	providerOrder.set(ids);
+}
 
 export const visibleProviders = derived(providers, ($p) => $p.filter((x) => !x.hidden));
 export const favoriteProviders = derived([providers, favorites], ([$p, $f]) =>
@@ -79,6 +85,7 @@ export async function loadProviderProfileData(profileId: string): Promise<void> 
 	pid = profileId;
 	favorites.set(await loadState<string[]>(`favorites:${profileId}`, []));
 	recentProviderIds.set(await loadState<string[]>(`recent:${profileId}`, []));
+	providerOrder.set(await loadState<string[]>(`order:${profileId}`, []));
 	profReady = true;
 }
 
@@ -86,6 +93,7 @@ if (browser) {
 	providers.subscribe(($p) => { if (catalogReady) void saveState('providers', $p); });
 	favorites.subscribe(($f) => { if (profReady && pid) void saveState(`favorites:${pid}`, $f); });
 	recentProviderIds.subscribe(($r) => { if (profReady && pid) void saveState(`recent:${pid}`, $r); });
+	providerOrder.subscribe(($o) => { if (profReady && pid) void saveState(`order:${pid}`, $o); });
 }
 
 export const activeStream = writable<Provider | null>(null);

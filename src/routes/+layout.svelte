@@ -10,6 +10,7 @@
 	import Clock from '$lib/components/Clock.svelte';
 	import Particles from '$lib/components/Particles.svelte';
 	import UpdateBanner from '$lib/components/UpdateBanner.svelte';
+	import NotificationCenter from '$lib/components/NotificationCenter.svelte';
 	import { checkForUpdate } from '$lib/stores/updater';
 	import { settings, hydrateSettings, applySettings } from '$lib/stores/settings';
 	import { hydrateCatalog } from '$lib/stores/providers';
@@ -80,6 +81,7 @@
 
 <Clock />
 <Toasts />
+<NotificationCenter />
 
 <SettingsModal open={showSettings} initialTab={settingsTab} close={() => (showSettings = false)} />
 <ShortcutsModal open={showShortcuts} close={() => (showShortcuts = false)} />

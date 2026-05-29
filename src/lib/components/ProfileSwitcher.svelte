@@ -76,7 +76,7 @@
 
 	<button class="profile" onclick={toggle}>
 		<span class="avatar">👤</span>
-		<span class="pname">{active?.name ?? 'User'}</span>
+		<span class="pname">{active?.name ?? $profiles[0]?.name ?? 'Profil'}</span>
 		<span class="chev">{open ? '▴' : '▾'}</span>
 	</button>
 </div>

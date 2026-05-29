@@ -10,6 +10,7 @@ import { goto } from '$app/navigation';
 import type { Provider } from '$lib/types';
 import { activeStream, markOpened } from '$lib/stores/providers';
 import { activeProfileId } from '$lib/stores/profiles';
+import { settings } from '$lib/stores/settings';
 import { startSession, endSession, incrementOpenCount } from '$lib/stores/tracking';
 import { openInWindow } from '$lib/streamWindow';
 
@@ -40,6 +41,13 @@ async function getWebviewApi() {
 
 export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 	if (!browser) return;
+	// Nutzer-Einstellung: explizit "Eigenes Fenster" -> gar nicht erst einbetten.
+	if (get(settings).appearance.streamMode === 'window') {
+		usingFallback = true;
+		streamMode.set('window');
+		await openInWindow(p);
+		return;
+	}
 	const pid = get(activeProfileId) ?? 'default';
 	const label = `embed-${pid}-${p.id}`;
 	try {

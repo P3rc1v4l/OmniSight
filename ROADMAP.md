@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version aktualisiert**.
-Stand: v0.7.0
+Stand: v0.8.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -44,19 +44,25 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 
 ---
 
-## Als Nächstes geplant (Reihenfolge laut Wunsch)
-- ⏳ (5) Suche nach Filmen/Serien/Anime: Klick öffnet Titel-Info (Inhaltsangabe, Trailer) + Liste der Anbieter, bei denen der Titel läuft (mit Verlinkung)
-- ⏳ (6) Original-Logos der Anbieter auf den Karten (später im Karteneditor anpassbar)
-- ⏳ (4) Erklärung „echte Marken-Logos (lokale SVGs)" – siehe Antwort; Umsetzung folgt mit (6)
-- ⏳ (13e) Hintergrundbild in den Design-Einstellungen wählbar
-- ⏳ (15b) Vollständiger Profileditor; Haupt-Profil kann mit „PIN + admin" vergessene PINs zurücksetzen
-- ⏳ (13f) **Komplette Übersetzung DE/EN** der gesamten Oberfläche + Anbieter in der jeweiligen Sprache öffnen
-
-## In Klärung (Machbarkeit / Aufwand)
-- 💡 (9) „CR Kalender" nur bei Crunchyroll-Login sichtbar + echte Kalenderdaten (Login-Erkennung + Datenquelle nötig)
-- 💡 (14) Einstellungen → „Account": angemeldete Anbieter live (1×/Min.) inkl. Anmeldezeit + Logout-Buttons + „überall abmelden" (Cookie-Zugriff je Profil – Machbarkeit wird geprüft)
+## v0.8.0
+- ✅ (4) Karten gleich groß + volle Fensterbreite
+- ✅ (6) Partikel-Hintergrund immer sichtbar (inkl. Sidebar)
+- ✅ (16) Uhr sichtbar, 100% Transparenz = aus, im Uhr-Tab verschiebbar
+- ✅ (10) Benachrichtigungscenter öffnet sich (Verlauf)
+- ✅ (8) Neuigkeiten/Upcoming: Zeitlimit gegen ewiges „Lädt…"
+- ✅ (7) Karten per Drag&Drop sortieren, alphabetisch als Standard, pro Profil gespeichert
+- ✅ (11) Hintergrundbild wählbar (mit Deckkraft)
+- ✅ (12) Design-zurücksetzen-Button
+- ✅ (14) Partikel: mehrere Formen, Größe, Geschwindigkeit 0–1
+- ✅ (5-Sicherheit) „Anbieter öffnen als" Eingebettet/Eigenes Fenster
+- ✅ (17) Hinweis „Einstellungen gespeichert" beim Schließen
+- ✅ (13) Erklärungen Karten-Schatten/Animationen + bessere Animationen
 
 ---
 
-## Daueraufgaben
-- Bei jeder Version: `tauri.conf.json` gegen das Tauri-Schema prüfen, Frontend testweise bauen, Repo auf überflüssige Dateien prüfen, diese Roadmap aktualisieren.
+## Als Nächstes geplant (Reihenfolge laut Wunsch)
+- ⏳ (15/15b) Vollständiger Profileditor; Haupt-Profil SELBST wählbar; vergessene PINs über separaten, frei wählbaren Admin-Code zurücksetzen
+- ⏳ (5) Streams starten nicht: Stream-Modus „Eigenes Fenster" als Notlösung; Ursache der Einbettung mit Konsolen-Ausgabe klären
+- ⏳ (9) Crunchyroll-Release-Kalender (benötigt Datenquelle – CR hat keine offene API)
+- ⏳ (18) Plugin-System (bitte konkretisieren, was die Plugins können sollen)
+- ⏳ (19) „Mehr"-Menü-Redesign + VPN / Watchlist-Import-Export / WideVine-Status (Machbarkeit – siehe Antwort)

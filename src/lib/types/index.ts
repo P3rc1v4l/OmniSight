@@ -31,6 +31,8 @@ export interface ClockSettings {
 	color: string;
 	transparency: number;
 	size: number;
+	x: number | null;
+	y: number | null;
 }
 
 export interface NotificationSettings {
@@ -55,6 +57,9 @@ export interface AppearanceSettings {
 	particleCount: number;
 	particleSpeed: number;
 	particleColor: string;
+	particleShapes: string[];
+	particleSize: number;
+	streamMode: 'embedded' | 'window';
 	cardShadow: boolean;
 	cardHoverZoom: boolean;
 	animations: boolean;

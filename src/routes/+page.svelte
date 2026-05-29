@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { visibleProviders, favoriteProviders, recentProviders, favorites, toggleFavorite } from '$lib/stores/providers';
+	import { visibleProviders, favoriteProviders, recentProviders, favorites, toggleFavorite, providerOrder, setProviderOrder } from '$lib/stores/providers';
 	import ProviderCard from '$lib/components/ProviderCard.svelte';
 	import Logo from '$lib/components/Logo.svelte';
 	import AddProviderModal from '$lib/components/AddProviderModal.svelte';
@@ -9,24 +9,45 @@
 	import { openProvider } from '$lib/embedded';
 
 	let search = $state('');
-	let sortAZ = $state(false);
 	let view: 'grid' | 'list' = $state('grid');
 	let showAdd = $state(false);
 	let tmdbResults = $state<TmdbItem[]>([]);
 	let searching = $state(false);
 	let searchToken = 0;
+	let dragId = $state<string | null>(null);
 
 	// "Alle Anbieter": ohne Suche werden Favoriten ausgeblendet (sie stehen oben in
-	// der Favoriten-Reihe). Bei aktiver Suche werden alle Treffer gezeigt.
+	// der Favoriten-Reihe). Reihenfolge: eigene (Drag&Drop) sonst alphabetisch.
 	const sortedFiltered = $derived.by(() => {
 		const q = search.trim().toLowerCase();
 		let list = $visibleProviders.filter((p) =>
 			!q || p.name.toLowerCase().includes(q) || p.subtitle.toLowerCase().includes(q)
 		);
 		if (!q) list = list.filter((p) => !$favorites.includes(p.id));
-		if (sortAZ) list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+		const order = $providerOrder;
+		if (order.length) {
+			list = [...list].sort((a, b) => {
+				const ia = order.indexOf(a.id), ib = order.indexOf(b.id);
+				if (ia === -1 && ib === -1) return a.name.localeCompare(b.name, 'de');
+				if (ia === -1) return 1;
+				if (ib === -1) return -1;
+				return ia - ib;
+			});
+		} else {
+			list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'de'));
+		}
 		return list;
 	});
+
+	function onDrop(targetId: string) {
+		if (!dragId || dragId === targetId) { dragId = null; return; }
+		const ids = sortedFiltered.map((p) => p.id);
+		const from = ids.indexOf(dragId), to = ids.indexOf(targetId);
+		if (from === -1 || to === -1) { dragId = null; return; }
+		ids.splice(to, 0, ids.splice(from, 1)[0]);
+		setProviderOrder(ids);
+		dragId = null;
+	}
 
 	// Wenn die Suche keine Anbieter findet -> TMDB anfragen (mit Debounce)
 	$effect(() => {
@@ -56,7 +77,7 @@
 			/>
 		</div>
 		<div class="tools">
-			<button class="tool" class:active={sortAZ} title="A–Z sortieren" onclick={() => (sortAZ = !sortAZ)}>A↓Z</button>
+			<button class="tool" title="Wieder alphabetisch sortieren (eigene Reihenfolge verwerfen)" onclick={() => setProviderOrder([])}>A↓Z</button>
 			<button class="primary" onclick={() => (showAdd = true)}><span>＋</span> Anbieter</button>
 			<div class="view">
 				<button class:active={view === 'grid'} onclick={() => (view = 'grid')} aria-label="Rasteransicht" title="Raster">▦</button>
@@ -86,17 +107,37 @@
 		</div>
 	{/if}
 
-	<div class="section-label">Alle Anbieter</div>
+	<div class="section-label">Alle Anbieter <span class="hint-inline">· zum Sortieren ziehen</span></div>
 	{#if view === 'grid'}
 		<div class="grid all">
 			{#each sortedFiltered as p (p.id)}
-				<ProviderCard provider={p} size="compact" />
+				<div
+					class="dragwrap"
+					class:dragging={dragId === p.id}
+					draggable="true"
+					role="listitem"
+					ondragstart={() => (dragId = p.id)}
+					ondragend={() => (dragId = null)}
+					ondragover={(e) => e.preventDefault()}
+					ondrop={(e) => { e.preventDefault(); onDrop(p.id); }}
+				>
+					<ProviderCard provider={p} size="large" />
+				</div>
 			{/each}
 		</div>
 	{:else}
 		<div class="list">
 			{#each sortedFiltered as p (p.id)}
-				<div class="lrow" style="--c1: {p.color}; --c2: {p.color2 ?? p.color}">
+				<div
+					class="lrow"
+					class:dragging={dragId === p.id}
+					draggable="true"
+					ondragstart={() => (dragId = p.id)}
+					ondragend={() => (dragId = null)}
+					ondragover={(e) => e.preventDefault()}
+					ondrop={(e) => { e.preventDefault(); onDrop(p.id); }}
+					style="--c1: {p.color}; --c2: {p.color2 ?? p.color}"
+				>
 					<button class="lopen" onclick={() => openProvider(p)} title={`${p.name} öffnen`}>
 						<Logo provider={p} size={34} />
 						<span class="lname">{p.name}</span>
@@ -149,7 +190,11 @@
 </div>
 
 <style>
-	.page { padding: 22px 28px 36px; max-width: 1600px; }
+	.page { padding: 22px 28px 36px; max-width: none; width: 100%; box-sizing: border-box; }
+	.hint-inline { font-size: 11px; font-weight: 500; color: var(--text-dim); }
+	.dragwrap { cursor: grab; }
+	.dragwrap:active { cursor: grabbing; }
+	.dragwrap.dragging, .lrow.dragging { opacity: 0.45; }
 	.top { display: flex; gap: 14px; align-items: center; margin-bottom: 22px; }
 	.search { flex: 1; display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 16px; }
 	.search input { flex: 1; background: transparent; border: 0; outline: 0; color: var(--text); font-size: 14px; font-family: inherit; }
@@ -160,7 +205,6 @@
 		color: var(--text-muted); padding: 9px 14px; border-radius: 12px;
 		cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600;
 	}
-	.tool.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 	.primary { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); display: inline-flex; gap: 6px; align-items: center; }
 	.view { display: flex; gap: 4px; }
 	.view button { padding: 8px 12px; }
@@ -176,7 +220,7 @@
 	.chip:hover { border-color: var(--border-strong); }
 
 	.grid.favs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 22px; }
-	.grid.all { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+	.grid.all { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
 
 	.list { display: flex; flex-direction: column; gap: 8px; }
 	.lrow {

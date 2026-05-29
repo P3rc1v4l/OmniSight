@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { settings } from '$lib/stores/settings';
+	import { settings, clockEditing } from '$lib/stores/settings';
 
 	let now = $state(new Date());
 	onMount(() => {
@@ -9,7 +9,9 @@
 	});
 
 	const c = $derived($settings.clock);
+	const visible = $derived(c.enabled && c.transparency < 100);
 	const opacity = $derived(Math.max(0, Math.min(1, (100 - c.transparency) / 100)));
+	const editing = $derived($clockEditing);
 
 	const timeStr = $derived.by(() => {
 		const h = String(now.getHours()).padStart(2, '0');
@@ -18,21 +20,51 @@
 		return c.showSeconds ? `${h}:${m}:${s}` : `${h}:${m}`;
 	});
 
-	// Analog: Winkel der Zeiger
 	const angles = $derived.by(() => {
-		const sec = now.getSeconds();
-		const min = now.getMinutes();
-		const hr = now.getHours() % 12;
-		return {
-			s: sec * 6,
-			m: min * 6 + sec * 0.1,
-			h: hr * 30 + min * 0.5
-		};
+		const sec = now.getSeconds(), min = now.getMinutes(), hr = now.getHours() % 12;
+		return { s: sec * 6, m: min * 6 + sec * 0.1, h: hr * 30 + min * 0.5 };
 	});
+
+	// Position: gespeicherte x/y, sonst Standard oben rechts
+	const posStyle = $derived(
+		c.x != null && c.y != null
+			? `left:${c.x}px; top:${c.y}px; right:auto;`
+			: `right:18px; top:56px; left:auto;`
+	);
+
+	// Drag (nur im Bearbeiten-Modus)
+	let dragging = false;
+	let offX = 0, offY = 0;
+	function onDown(e: PointerEvent) {
+		if (!editing) return;
+		dragging = true;
+		const el = e.currentTarget as HTMLElement;
+		const r = el.getBoundingClientRect();
+		offX = e.clientX - r.left;
+		offY = e.clientY - r.top;
+		el.setPointerCapture(e.pointerId);
+		e.preventDefault();
+	}
+	function onMove(e: PointerEvent) {
+		if (!dragging) return;
+		const x = Math.max(0, e.clientX - offX);
+		const y = Math.max(0, e.clientY - offY);
+		settings.update((s) => ({ ...s, clock: { ...s.clock, x, y } }));
+	}
+	function onUp() { dragging = false; }
 </script>
 
-{#if c.enabled}
-	<div class="clock" style="opacity: {opacity}; color: {c.color};">
+{#if visible}
+	<div
+		class="clock"
+		class:editing
+		style="{posStyle} opacity: {opacity}; color: {c.color};"
+		onpointerdown={onDown}
+		onpointermove={onMove}
+		onpointerup={onUp}
+		role="presentation"
+	>
+		{#if editing}<span class="grip" title="Zum Verschieben ziehen">⠿</span>{/if}
 		{#if c.type === 'digital'}
 			<span class="digital" style="font-size: {c.size}px;">{timeStr}</span>
 		{:else}
@@ -55,12 +87,23 @@
 <style>
 	.clock {
 		position: fixed;
-		top: calc(var(--titlebar-h) + 14px);
-		right: 18px;
 		z-index: 30;
 		pointer-events: none;
 		user-select: none;
-		text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+		text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+		display: flex; align-items: center; gap: 8px;
 	}
+	/* Im Bearbeiten-Modus ganz nach vorne + greifbar */
+	.clock.editing {
+		z-index: 300;
+		pointer-events: auto;
+		cursor: grab;
+		padding: 8px 10px;
+		border: 1px dashed currentColor;
+		border-radius: 10px;
+		background: rgba(0, 0, 0, 0.25);
+	}
+	.clock.editing:active { cursor: grabbing; }
+	.grip { font-size: 14px; opacity: 0.8; }
 	.digital { font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
 </style>

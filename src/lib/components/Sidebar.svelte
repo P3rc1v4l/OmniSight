@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { activeStream } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
+	import { notifCenterOpen } from '$lib/stores/toasts';
 	import ProfileSwitcher from './ProfileSwitcher.svelte';
 
 	export let openSettings: () => void;
@@ -47,7 +48,7 @@
 			<button class="ctrl" onclick={toggleTheme} title="Hell/Dunkel" aria-label="Theme">
 				{$settings.appearance.theme === 'dark' ? '🌙' : '☀️'}
 			</button>
-			<button class="ctrl" title="Benachrichtigungen" aria-label="Benachrichtigungen">🔔</button>
+			<button class="ctrl" onclick={() => notifCenterOpen.update((v) => !v)} title="Benachrichtigungen" aria-label="Benachrichtigungen">🔔</button>
 		</div>
 
 		<ProfileSwitcher {openProfiles} />

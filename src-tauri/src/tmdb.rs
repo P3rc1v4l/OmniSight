@@ -84,7 +84,10 @@ async fn get_json(path: &str, params: &[(&str, &str)]) -> Result<Value, String> 
                 .into(),
         );
     }
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(15))
+        .build()
+        .map_err(|e| e.to_string())?;
     let url = format!("{TMDB_BASE}{path}");
     let mut req = client.get(&url).query(&[("language", "de-DE")]).query(params);
     // v4-Tokens beginnen mit "ey" (JWT) -> als Bearer-Header. Sonst als query-key.

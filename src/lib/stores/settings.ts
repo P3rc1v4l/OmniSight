@@ -16,15 +16,18 @@ export const DEFAULT_SETTINGS: Settings = {
 		glassmorphism: true,
 		particles: false,
 		particleCount: 50,
-		particleSpeed: 1,
+		particleSpeed: 0.5,
 		particleColor: '#30c5bb',
+		particleShapes: ['circle'],
+		particleSize: 2,
+		streamMode: 'embedded',
 		cardShadow: true,
 		cardHoverZoom: true,
 		animations: true,
 		language: 'de',
 		backgroundOpacity: 100
 	},
-	clock: { enabled: false, type: 'digital', showSeconds: true, color: '#ffffff', transparency: 50, size: 36 },
+	clock: { enabled: false, type: 'digital', showSeconds: true, color: '#ffffff', transparency: 50, size: 36, x: null, y: null },
 	notifications: {
 		pauseReminder: true, sound: true, updateHint: true,
 		achievementUnlocked: true, watchlistReminder: true
@@ -33,6 +36,9 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 export const settings = writable<Settings>(structuredClone(DEFAULT_SETTINGS));
+
+// true, solange der Uhr-Tab in den Einstellungen offen ist -> Uhr wird verschiebbar.
+export const clockEditing = writable(false);
 
 export function applySettings(s: Settings): void {
 	if (!browser) return;
@@ -49,6 +55,17 @@ export function applySettings(s: Settings): void {
 	root.setAttribute('data-shadow', a.cardShadow ? 'true' : 'false');
 	root.setAttribute('data-hover-zoom', a.cardHoverZoom ? 'true' : 'false');
 	root.setAttribute('data-animations', a.animations ? 'true' : 'false');
+	// Partikel-Hintergrund sichtbar machen: Panels werden dann leicht durchscheinend.
+	root.setAttribute('data-particles', a.particles ? 'true' : 'false');
+	// Optionales Hintergrundbild (als CSS-Variable, wird in app.css als Ebene gezeichnet).
+	if (a.backgroundImage) {
+		root.style.setProperty('--bg-image', `url("${a.backgroundImage}")`);
+		root.setAttribute('data-bgimage', 'true');
+		root.style.setProperty('--bg-image-opacity', String((a.backgroundOpacity ?? 100) / 100));
+	} else {
+		root.style.removeProperty('--bg-image');
+		root.setAttribute('data-bgimage', 'false');
+	}
 	let theme = a.theme;
 	if (theme === 'system') {
 		theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';

@@ -4,6 +4,31 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.8.0] – 2026-05-29
+
+### Behoben
+- **Anbieterkarten gleich groß:** „Alle Anbieter" sind jetzt genauso groß wie die Favoriten und füllen die volle Fensterbreite (kein Leerraum rechts mehr).
+- **Partikel-Hintergrund** wird jetzt immer angezeigt (sobald aktiviert) – auf allen Seiten und auch hinter der Sidebar/Titelleiste. Die Größe wird zuverlässig anhand der Fenstergröße gesetzt.
+- **Uhr:** wird wieder angezeigt; bei 100&nbsp;% Transparenz wird sie bewusst ausgeblendet. Im Uhr-Tab erscheint sie ganz vorne und ist per Maus verschiebbar.
+- **Benachrichtigungscenter:** Klick auf die 🔔 öffnet jetzt ein Panel mit dem Verlauf der letzten Hinweise (mit „Leeren").
+- **Neuigkeiten/Upcoming:** TMDB-Anfragen haben jetzt ein Zeitlimit (15&nbsp;s) – die Seite bleibt nicht mehr ewig auf „Lädt…" hängen, sondern zeigt im Fehlerfall einen Hinweis.
+
+### Hinzugefügt
+- **Karten per Drag & Drop sortieren:** Standard ist alphabetisch; eigene Reihenfolge wird automatisch pro Profil gespeichert. Button „A↓Z" stellt wieder alphabetisch her.
+- **Hintergrundbild** in den Design-Einstellungen wählbar (inkl. Deckkraft-Regler und „Entfernen").
+- **Design zurücksetzen**-Button (setzt alle Design-Optionen auf Standard).
+- **Partikel-Optionen erweitert:** mehrere Formen gleichzeitig (Kreis/Quadrat/Dreieck/Stern), Größe einstellbar, Geschwindigkeit jetzt 0–1 in 0,1-Schritten.
+- **Anbieter öffnen als** „Eingebettet" oder „Eigenes Fenster" (Sicherheits-Schalter, falls die Einbettung auf einem Gerät nicht klappt).
+- **Einstellungen-Hinweis:** Beim Schließen der Einstellungen erscheint unten rechts „Einstellungen gespeichert".
+- Erklärungen zu „Karten-Schatten" und „Animationen" direkt im Design-Tab; Animationen wirken jetzt deutlicher.
+
+### Noch offen (kommt als Nächstes)
+- Profileditor inkl. selbst wählbarem Haupt-Profil und separatem Admin-Code zum PIN-Zurücksetzen.
+- Streams, die nach Klick nichts zeigen: bitte Stream-Modus testweise auf „Eigenes Fenster" stellen und Rückmeldung geben (Details in der Antwort).
+- Crunchyroll-Kalender, Plugin-System, VPN/WideVine-Status.
+
+---
+
 ## [0.7.0] – 2026-05-29
 
 ### Hinzugefügt

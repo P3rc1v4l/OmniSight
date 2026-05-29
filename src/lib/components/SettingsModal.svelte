@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { settings } from '$lib/stores/settings';
+	import { settings, clockEditing, DEFAULT_SETTINGS } from '$lib/stores/settings';
 	import { resetProviders } from '$lib/stores/providers';
 	import {
 		profiles, activeProfileId, addProfile, renameProfile, deleteProfile,
@@ -7,6 +7,7 @@
 	} from '$lib/stores/profiles';
 	import { APP_VERSION, LINKS } from '$lib/version';
 	import { updateState, checkForUpdate } from '$lib/stores/updater';
+	import { pushToast } from '$lib/stores/toasts';
 
 	let { open = false, initialTab = 'appearance', close }: { open?: boolean; initialTab?: string; close: () => void } = $props();
 
@@ -20,6 +21,39 @@
 	];
 	let active = $state('appearance');
 	let tabSearch = $state('');
+
+	const PARTICLE_SHAPES = [
+		{ id: 'circle', label: '● Kreis' },
+		{ id: 'square', label: '■ Quadrat' },
+		{ id: 'triangle', label: '▲ Dreieck' },
+		{ id: 'star', label: '★ Stern' }
+	];
+	function toggleShape(id: string) {
+		settings.update((s) => {
+			const cur = s.appearance.particleShapes ?? ['circle'];
+			let next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+			if (next.length === 0) next = ['circle']; // mind. eine Form
+			return { ...s, appearance: { ...s.appearance, particleShapes: next } };
+		});
+	}
+
+	function onBgFile(e: Event) {
+		const f = (e.target as HTMLInputElement).files?.[0];
+		if (!f) return;
+		const reader = new FileReader();
+		reader.onload = () =>
+			settings.update((s) => ({ ...s, appearance: { ...s.appearance, backgroundImage: reader.result as string } }));
+		reader.readAsDataURL(f);
+	}
+	function clearBg() {
+		settings.update((s) => ({ ...s, appearance: { ...s.appearance, backgroundImage: null } }));
+	}
+
+	function resetAppearance() {
+		if (!confirm('Alle Design-Einstellungen auf Standard zurücksetzen?')) return;
+		settings.update((s) => ({ ...s, appearance: structuredClone(DEFAULT_SETTINGS.appearance) }));
+		pushToast('Design zurückgesetzt', 'Standard-Werte wiederhergestellt.', '↩️', 2500);
+	}
 
 	// Profilverwaltung – PIN-Bearbeitung mit Abfrage des alten PINs
 	let pinEditFor = $state<string | null>(null);
@@ -36,6 +70,8 @@
 
 	// Beim Öffnen den gewünschten Tab aktivieren.
 	$effect(() => { if (open) active = initialTab; });
+	// Uhr verschiebbar machen, solange der Uhr-Tab offen ist.
+	$effect(() => { clockEditing.set(open && active === 'clock'); });
 
 	const filteredTabs = $derived(
 		tabs.filter((t) => t.label.toLowerCase().includes(tabSearch.toLowerCase()))
@@ -53,7 +89,13 @@
 		closePinPanel();
 	}
 
-	function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
+	// Beim Schließen Hinweis zeigen (Einstellungen werden automatisch gespeichert).
+	function doClose() {
+		pushToast('Einstellungen gespeichert', undefined, '✅', 2200);
+		close();
+	}
+
+	function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) doClose(); }
 </script>
 
 {#if open}
@@ -79,7 +121,7 @@
 			<section class="main">
 				<div class="main-head">
 					<h3>{tabs.find((t) => t.id === active)?.icon} {tabs.find((t) => t.id === active)?.label}</h3>
-					<button class="x" onclick={close} aria-label="Schließen">×</button>
+					<button class="x" onclick={doClose} aria-label="Schließen">×</button>
 				</div>
 
 				<div class="content">
@@ -87,7 +129,19 @@
 						<div class="grid">
 							<div class="field">
 								<label>Hintergrundbild</label>
-								<button class="ghost" disabled>Bild wählen (folgt v0.3)</button>
+								<div class="row">
+									<label class="filebtn">
+										Bild wählen
+										<input type="file" accept="image/*" onchange={onBgFile} hidden />
+									</label>
+									{#if $settings.appearance.backgroundImage}
+										<button class="ghost" onclick={clearBg}>Entfernen</button>
+									{/if}
+								</div>
+								{#if $settings.appearance.backgroundImage}
+									<label style="margin-top:8px">Bild-Deckkraft: {$settings.appearance.backgroundOpacity}%</label>
+									<input type="range" min="10" max="100" bind:value={$settings.appearance.backgroundOpacity} />
+								{/if}
 							</div>
 							<div class="field">
 								<label>Akzentfarbe</label>
@@ -149,6 +203,11 @@
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.cardHoverZoom}/> Karten-Hover-Zoom</label>
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.animations}/> Animationen</label>
 							</div>
+							<p class="hint">
+								<b>Karten-Schatten:</b> legt einen weichen Schlagschatten unter die Anbieterkarten – sie wirken dadurch leicht „angehoben" über dem Hintergrund.
+								<b>Karten-Hover-Zoom:</b> die Karte wird beim Drüberfahren leicht vergrößert.
+								<b>Animationen:</b> sanfte Übergänge bei Hover/Verschieben (Karten gleiten/zoomen weich statt hart umzuspringen). Aus = alles sofort, ohne Bewegung.
+							</p>
 						</div>
 
 						{#if $settings.appearance.particles}
@@ -161,7 +220,11 @@
 									</div>
 									<div class="field">
 										<label>Geschwindigkeit: {$settings.appearance.particleSpeed.toFixed(1)}</label>
-										<input type="range" min="0.2" max="3" step="0.1" bind:value={$settings.appearance.particleSpeed} />
+										<input type="range" min="0" max="1" step="0.1" bind:value={$settings.appearance.particleSpeed} />
+									</div>
+									<div class="field">
+										<label>Größe: {$settings.appearance.particleSize}</label>
+										<input type="range" min="1" max="8" step="1" bind:value={$settings.appearance.particleSize} />
 									</div>
 									<div class="field">
 										<label>Partikel-Farbe</label>
@@ -171,8 +234,35 @@
 										</div>
 									</div>
 								</div>
+								<div class="field" style="margin-top:6px">
+									<label>Formen (mehrere möglich)</label>
+									<div class="row3">
+										{#each PARTICLE_SHAPES as sh}
+											<label class="toggle">
+												<input
+													type="checkbox"
+													checked={$settings.appearance.particleShapes?.includes(sh.id)}
+													onchange={() => toggleShape(sh.id)}
+												/> {sh.label}
+											</label>
+										{/each}
+									</div>
+								</div>
 							</div>
 						{/if}
+
+						<div class="block">
+							<div class="block-label">Anbieter öffnen als</div>
+							<div class="row">
+								<button class:active={$settings.appearance.streamMode === 'embedded'} onclick={() => ($settings.appearance.streamMode = 'embedded')}>Eingebettet (im Fenster)</button>
+								<button class:active={$settings.appearance.streamMode === 'window'} onclick={() => ($settings.appearance.streamMode = 'window')}>Eigenes Fenster</button>
+							</div>
+							<p class="hint">„Eingebettet" zeigt den Anbieter direkt in OmniHub. Falls dabei nichts erscheint, stelle auf „Eigenes Fenster" – das öffnet ein separates Browser-Fenster (funktioniert immer).</p>
+						</div>
+
+						<div class="block">
+							<button class="ghost danger" onclick={resetAppearance}>↩️ Design auf Standard zurücksetzen</button>
+						</div>
 					{:else if active === 'notifications'}
 						<div class="grid">
 							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.pauseReminder}/> Pause-Erinnerung (nach 2h)</label>
@@ -205,6 +295,8 @@
 								<input type="range" min="20" max="96" bind:value={$settings.clock.size}/>
 							</div>
 						</div>
+						<button class="ghost" onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, x: null, y: null } }))}>Position zurücksetzen (oben rechts)</button>
+						<p class="hint">Solange dieser Tab offen ist, wird die Uhr <b>ganz vorne</b> angezeigt und du kannst sie mit der Maus <b>verschieben</b> (gestrichelter Rahmen). Bei <b>100&nbsp;% Transparenz</b> wird die Uhr ausgeblendet.</p>
 					{:else if active === 'advanced'}
 						<div class="actions">
 							<button class="ghost" onclick={resetProviders}>Anbieterkarten zurücksetzen</button>
@@ -318,6 +410,14 @@
 	.ghost { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 10px; cursor: pointer; text-decoration: none; font-size: 13.5px; display: inline-block; }
 	.ghost:hover { border-color: var(--border-strong); }
 	.ghost.link { color: var(--accent); }
+	.ghost.danger { color: #f87171; border-color: color-mix(in srgb, #f87171 40%, var(--border)); }
+	.ghost.danger:hover { border-color: #f87171; }
+	.filebtn {
+		background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
+		padding: 10px 14px; border-radius: 10px; cursor: pointer; font-size: 13.5px;
+		display: inline-block; font-family: inherit;
+	}
+	.filebtn:hover { border-color: var(--border-strong); }
 	.hint { color: var(--text-muted); font-size: 13px; }
 
 	/* Profile-Tab */

@@ -124,3 +124,48 @@ input[type='checkbox']:checked::after { transform: translateX(17px); }
 	transition: none !important;
 	animation: none !important;
 }
+
+/* ============================================================
+   v0.8: Partikel & Hintergrundbild sichtbar machen, Optik
+   ============================================================ */
+
+/* Titelleiste über die Partikel-Ebene heben */
+.titlebar { position: relative; z-index: 1; }
+
+/* Optionales Hintergrundbild als feste Ebene hinter dem Inhalt */
+:root[data-bgimage='true'] body::before {
+	content: '';
+	position: fixed; inset: 0;
+	background-image: var(--bg-image);
+	background-size: cover; background-position: center;
+	opacity: var(--bg-image-opacity, 1);
+	z-index: -2;
+	pointer-events: none;
+}
+
+/* Wenn Partikel ODER Bild aktiv sind: Panels leicht durchscheinend,
+   damit der Hintergrund auch in Sidebar/Titelleiste sichtbar wird. */
+:root[data-particles='true'] .sidebar,
+:root[data-bgimage='true'] .sidebar {
+	background: color-mix(in srgb, var(--bg-elev) 78%, transparent);
+	backdrop-filter: blur(8px);
+}
+:root[data-particles='true'] .titlebar,
+:root[data-bgimage='true'] .titlebar {
+	background: color-mix(in srgb, var(--bg-elev) 82%, transparent);
+	backdrop-filter: blur(8px);
+}
+
+/* ---- v0.8: Animationen spürbarer machen (wenn aktiviert) ---- */
+:root[data-animations='true'] .card,
+:root[data-animations='true'] .lrow,
+:root[data-animations='true'] .tcard {
+	transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+:root[data-animations='true'][data-hover-zoom='true'] .card:hover { transform: translateY(-4px) scale(1.02); }
+:root[data-animations='true'] .lrow:hover { transform: translateX(3px); }
+
+/* Karten-Schatten deutlicher, damit der Unterschied sichtbar ist */
+:root[data-shadow='true'] .omni-card,
+:root[data-shadow='true'] .card { box-shadow: 0 10px 26px -10px rgba(0,0,0,0.6); }
+:root[data-shadow='false'] .card { box-shadow: none; }
