@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version aktualisiert**.
-Stand: v0.10.0
+Stand: v0.10.1
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -81,7 +81,17 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 
 ---
 
+## v0.10.1 (Bugfixes)
+- ✅ (2/8) F12-Konsole im Release aktiviert (devtools-Feature)
+- ✅ (4) Admin-Code ändern erfordert alten Admin-Code
+- ✅ (6) Haupt-Profil-Wechsel nur per Admin-Code
+- ✅ (5) „Profil hinzufügen" verschwindet bei 5 Profilen
+- ✅ (7) Uhr Digital/Analog-Umschalter funktioniert
+
+---
+
 ## Als Nächstes geplant (Reihenfolge laut Wunsch)
+- ⏳ (3) Eingebettete Anbieter öffnen nicht – mit F12-Konsole analysieren (Fehlertext nötig)
 - ⏳ (5) Streams starten nicht: Stream-Modus „Eigenes Fenster" als Notlösung; Ursache der Einbettung mit Konsolen-Ausgabe klären
 - ⏳ (9) Crunchyroll-Release-Kalender (benötigt Datenquelle – CR hat keine offene API)
 - ⏳ (18) Plugin-System (bitte konkretisieren, was die Plugins können sollen)

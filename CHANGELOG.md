@@ -4,6 +4,20 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.10.1] – 2026-05-29
+
+### Behoben / Geändert
+- **(2/8) F12-Konsole aktiviert:** Die DevTools sind jetzt auch im fertigen Build verfügbar (Cargo-Feature `devtools`). Nach dem Neubau öffnest du sie mit **F12** oder **Rechtsklick → „Untersuchen"**.
+- **(4) Admin-Code-Schutz:** Zum **Ändern/Entfernen** des Admin-Codes muss jetzt zuerst der **alte Admin-Code** eingegeben werden.
+- **(6) Haupt-Profil nur per Admin-Code:** Das Haupt-Profil lässt sich nur noch nach Eingabe des Admin-Codes wechseln (sofern einer gesetzt ist).
+- **(5) „Profil hinzufügen"** verschwindet jetzt komplett, sobald 5 Profile existieren (statt nur ausgegraut).
+- **(7) Uhr Digital/Analog** wechselt jetzt zuverlässig (Umschalter schreibt den Wert nun korrekt zurück).
+
+### Auf der Roadmap
+- **(3)** Eingebettete Anbieter öffnen nicht – wird mit der nun verfügbaren F12-Konsole gezielt analysiert.
+
+---
+
 ## [0.10.0] – 2026-05-29
 
 ### Hinzugefügt

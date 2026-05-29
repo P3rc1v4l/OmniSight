@@ -92,18 +92,39 @@
 
 	// --- Admin-Code (für PIN-Zurücksetzen) ---
 	let adminInput = $state('');
+	let oldAdminInput = $state('');
 	let adminMsg = $state('');
 	async function saveAdminCode() {
+		// Bestehenden Code nur mit Kenntnis des alten ändern.
+		if ($adminCodeHash && !(await verifyAdminCode(oldAdminInput.trim()))) { adminMsg = 'Alter Admin-Code ist falsch.'; return; }
 		if (adminInput.trim().length < 4) { adminMsg = 'Admin-Code braucht mindestens 4 Zeichen.'; return; }
 		await setAdminCode(adminInput.trim());
-		adminInput = '';
+		adminInput = ''; oldAdminInput = '';
 		adminMsg = 'Admin-Code gespeichert.';
 		pushToast('Admin-Code gespeichert', undefined, '🛡️', 2200);
 	}
-	function removeAdminCode() {
+	async function removeAdminCode() {
+		if ($adminCodeHash && !(await verifyAdminCode(oldAdminInput.trim()))) { adminMsg = 'Alter Admin-Code ist falsch.'; return; }
 		clearAdminCode();
+		oldAdminInput = '';
 		adminMsg = 'Admin-Code entfernt.';
 	}
+
+	// --- Haupt-Profil ändern (nur mit Admin-Code, sofern gesetzt) ---
+	let mainChangeFor = $state<string | null>(null);
+	let mainAdminInput = $state('');
+	let mainMsg = $state('');
+	function requestSetMain(id: string) {
+		if (!$adminCodeHash) { setMainProfile(id); pushToast('Haupt-Profil geändert', undefined, '★', 2000); return; }
+		mainChangeFor = id; mainAdminInput = ''; mainMsg = '';
+	}
+	async function confirmSetMain(id: string) {
+		if (!(await verifyAdminCode(mainAdminInput.trim()))) { mainMsg = 'Admin-Code ist falsch.'; return; }
+		setMainProfile(id);
+		pushToast('Haupt-Profil geändert', undefined, '★', 2000);
+		mainChangeFor = null; mainAdminInput = '';
+	}
+	function cancelSetMain() { mainChangeFor = null; mainAdminInput = ''; mainMsg = ''; }
 
 	// --- PIN per Admin-Code zurücksetzen ---
 	let resetPinFor = $state<string | null>(null);
@@ -304,7 +325,7 @@
 							<label class="toggle"><input type="checkbox" bind:checked={$settings.clock.enabled}/> Uhr anzeigen</label>
 							<div class="field">
 								<label>Typ</label>
-								<select bind:value={$settings.clock.type}>
+								<select value={$settings.clock.type} onchange={(e) => settings.update((s) => ({ ...s, clock: { ...s.clock, type: (e.currentTarget as HTMLSelectElement).value as 'digital' | 'analog' } }))}>
 									<option value="digital">Digital</option>
 									<option value="analog">Analog</option>
 								</select>
@@ -349,7 +370,7 @@
 									{#if p.id === $mainProfileId}<span class="pbadge main">★ Haupt</span>{/if}
 									{#if p.id === $activeProfileId}<span class="pbadge">aktiv</span>{/if}
 									{#if p.id !== $mainProfileId}
-										<button class="mini" onclick={() => setMainProfile(p.id)} title="Als Haupt-Profil festlegen">★ Haupt</button>
+										<button class="mini" onclick={() => requestSetMain(p.id)} title="Als Haupt-Profil festlegen (Admin-Code nötig)">★ Haupt</button>
 									{/if}
 									<button class="mini" onclick={() => openPinPanel(p.id)}>{p.pinHash ? '🔒 PIN ändern' : 'PIN setzen'}</button>
 									{#if p.pinHash}
@@ -384,18 +405,32 @@
 											{#if !$adminCodeHash}<span class="pin-err">Es ist noch kein Admin-Code gesetzt (siehe unten).</span>{/if}
 										</div>
 									{/if}
+
+									{#if mainChangeFor === p.id}
+										<div class="pin-panel">
+											<input class="pin-in" type="password" placeholder="Admin-Code" bind:value={mainAdminInput} onkeydown={(e) => e.key === 'Enter' && confirmSetMain(p.id)} />
+											<button class="mini primary" onclick={() => confirmSetMain(p.id)}>Als Haupt festlegen</button>
+											<button class="mini" onclick={cancelSetMain}>Abbrechen</button>
+											{#if mainMsg}<span class="pin-err">{mainMsg}</span>{/if}
+										</div>
+									{/if}
 								</div>
 							{/each}
 						</div>
-						<button class="ghost" disabled={$profiles.length >= MAX_PROFILES} onclick={() => addProfile(`Profil ${$profiles.length + 1}`)}>
-							＋ Profil hinzufügen {#if $profiles.length >= MAX_PROFILES}(max. {MAX_PROFILES}){/if}
-						</button>
+						{#if $profiles.length < MAX_PROFILES}
+							<button class="ghost" onclick={() => addProfile(`Profil ${$profiles.length + 1}`)}>
+								＋ Profil hinzufügen
+							</button>
+						{/if}
 
 						<div class="block" style="margin-top:18px">
 							<div class="block-label">🛡️ Admin-Code (für vergessene PINs)</div>
-							<p class="hint" style="margin-top:0">Ein separater, frei wählbarer Code – unabhängig von Profil-PINs. Damit kannst du oben einen vergessenen Profil-PIN zurücksetzen. Das Haupt-Profil (★) ist nicht löschbar.</p>
+							<p class="hint" style="margin-top:0">Ein separater, frei wählbarer Code – unabhängig von Profil-PINs. Damit kannst du oben einen vergessenen Profil-PIN zurücksetzen und das Haupt-Profil ändern. Das Haupt-Profil (★) ist nicht löschbar.</p>
 							<div class="admin-row">
-								<input class="pin-in wide" type="password" placeholder={$adminCodeHash ? 'Neuen Admin-Code setzen' : 'Admin-Code festlegen (min. 4)'} bind:value={adminInput} onkeydown={(e) => e.key === 'Enter' && saveAdminCode()} />
+								{#if $adminCodeHash}
+									<input class="pin-in wide" type="password" placeholder="Alter Admin-Code" bind:value={oldAdminInput} />
+								{/if}
+								<input class="pin-in wide" type="password" placeholder={$adminCodeHash ? 'Neuer Admin-Code' : 'Admin-Code festlegen (min. 4)'} bind:value={adminInput} onkeydown={(e) => e.key === 'Enter' && saveAdminCode()} />
 								<button class="mini primary" onclick={saveAdminCode}>{$adminCodeHash ? 'Ändern' : 'Setzen'}</button>
 								{#if $adminCodeHash}<button class="mini danger" onclick={removeAdminCode}>Entfernen</button>{/if}
 							</div>
