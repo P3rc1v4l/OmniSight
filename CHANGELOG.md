@@ -4,6 +4,15 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.9.1] – 2026-05-29
+
+### Behoben
+- **Build/Signatur-Fehler** („failed to decode secret key … Missing comment in secret key"): Der Updater-Schlüssel hatte ein **Passwort**, und ein falsch gesetztes/leeres Passwort-Secret ließ die Signatur fehlschlagen. Es wurde ein **neues, passwortloses Schlüsselpaar** erzeugt (Signatur wurde lokal erfolgreich getestet). Der öffentliche Schlüssel in der App ist aktualisiert; das Passwort-Secret wird nicht mehr benötigt.
+
+> Wichtig: Da bisher noch **kein** signierter Release veröffentlicht wurde, ist der Schlüsseltausch unkritisch – es gibt keine alten, anders signierten Installationen.
+
+---
+
 ## [0.9.0] – 2026-05-29
 
 ### Hinzugefügt
