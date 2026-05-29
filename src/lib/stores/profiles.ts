@@ -98,19 +98,44 @@ export async function switchProfile(profileId: string): Promise<void> {
 	await loadProfileData(profileId);
 }
 
+// Schneller, zuverlässiger Sofort-Cache (überlebt Reloads sicher, synchron).
+const LS_PROFILES = 'omnihub:profiles';
+const LS_ACTIVE = 'omnihub:activeProfileId';
+function lsGet<T>(key: string): T | null {
+	if (!browser) return null;
+	try {
+		const raw = window.localStorage.getItem(key);
+		return raw ? (JSON.parse(raw) as T) : null;
+	} catch { return null; }
+}
+function lsSet(key: string, value: unknown): void {
+	if (!browser) return;
+	try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+}
+
 let loaded = false;
 export async function hydrateProfiles(): Promise<void> {
 	if (loaded || !browser) return;
 	loaded = true;
-	let list = await loadState<Profile[]>('profiles', []);
-	if (!list.length) list = [defaultProfile()];
+	// Quelle: zuerst localStorage (sofort), sonst Plugin-Store.
+	let list = lsGet<Profile[]>(LS_PROFILES) ?? (await loadState<Profile[]>('profiles', []));
+	if (!Array.isArray(list) || !list.length) list = [defaultProfile()];
 	profiles.set(list);
-	const savedActive = await loadState<string | null>('activeProfileId', list[0].id);
+	const savedActive =
+		lsGet<string | null>(LS_ACTIVE) ?? (await loadState<string | null>('activeProfileId', list[0].id));
 	// Falls das gespeicherte aktive Profil nicht mehr existiert -> erstes nehmen.
-	activeProfileId.set(list.some((p) => p.id === savedActive) ? savedActive : list[0].id);
+	activeProfileId.set(list.some((p) => p.id === savedActive) ? (savedActive as string) : list[0].id);
 }
 
 if (browser) {
-	profiles.subscribe(($p) => { if (loaded) void saveState('profiles', $p); });
-	activeProfileId.subscribe(($a) => { if (loaded) void saveState('activeProfileId', $a); });
+	profiles.subscribe(($p) => {
+		if (!loaded) return;
+		lsSet(LS_PROFILES, $p);
+		void saveState('profiles', $p);
+	});
+	activeProfileId.subscribe(($a) => {
+		if (!loaded) return;
+		lsSet(LS_ACTIVE, $a);
+		void saveState('activeProfileId', $a);
+	});
 }

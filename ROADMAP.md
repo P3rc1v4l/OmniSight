@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version aktualisiert**.
-Stand: v0.8.0
+Stand: v0.8.1
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -57,6 +57,15 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - ✅ (5-Sicherheit) „Anbieter öffnen als" Eingebettet/Eigenes Fenster
 - ✅ (17) Hinweis „Einstellungen gespeichert" beim Schließen
 - ✅ (13) Erklärungen Karten-Schatten/Animationen + bessere Animationen
+
+---
+
+## v0.8.1 (Bugfixes)
+- ✅ (5) Update-Prüfung: createUpdaterArtifacts aktiviert (latest.json wird erzeugt)
+- ✅ (1/2) Profil bleibt beim Start & Seitenwechsel erhalten (zuverlässiger Sofort-Cache + abgesicherter Start)
+- ✅ (3-Klick) Klick auf Karte öffnet wieder; Sortieren nur noch über Greif-Punkt
+- ⏳ (3-Einbettung) Eingebetteter Stream zeigt evtl. nichts -> „Eigenes Fenster" testen / Konsole
+- ⏳ (4) Karteneditor (Name/Farbe/URL/Logo bearbeiten) – war bisher nur ein Platzhalter-Knopf
 
 ---
 

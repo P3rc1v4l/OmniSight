@@ -107,20 +107,26 @@
 		</div>
 	{/if}
 
-	<div class="section-label">Alle Anbieter <span class="hint-inline">· zum Sortieren ziehen</span></div>
+	<div class="section-label">Alle Anbieter <span class="hint-inline">· Griff oben links zum Sortieren ziehen</span></div>
 	{#if view === 'grid'}
 		<div class="grid all">
 			{#each sortedFiltered as p (p.id)}
 				<div
 					class="dragwrap"
 					class:dragging={dragId === p.id}
-					draggable="true"
 					role="listitem"
-					ondragstart={() => (dragId = p.id)}
-					ondragend={() => (dragId = null)}
 					ondragover={(e) => e.preventDefault()}
 					ondrop={(e) => { e.preventDefault(); onDrop(p.id); }}
 				>
+					<div
+						class="drag-handle"
+						draggable="true"
+						role="button"
+						tabindex="-1"
+						title="Zum Sortieren ziehen"
+						ondragstart={() => (dragId = p.id)}
+						ondragend={() => (dragId = null)}
+					>⠿</div>
 					<ProviderCard provider={p} size="large" />
 				</div>
 			{/each}
@@ -131,13 +137,19 @@
 				<div
 					class="lrow"
 					class:dragging={dragId === p.id}
-					draggable="true"
-					ondragstart={() => (dragId = p.id)}
-					ondragend={() => (dragId = null)}
 					ondragover={(e) => e.preventDefault()}
 					ondrop={(e) => { e.preventDefault(); onDrop(p.id); }}
 					style="--c1: {p.color}; --c2: {p.color2 ?? p.color}"
 				>
+					<span
+						class="lgrip"
+						draggable="true"
+						role="button"
+						tabindex="-1"
+						title="Zum Sortieren ziehen"
+						ondragstart={() => (dragId = p.id)}
+						ondragend={() => (dragId = null)}
+					>⠿</span>
 					<button class="lopen" onclick={() => openProvider(p)} title={`${p.name} öffnen`}>
 						<Logo provider={p} size={34} />
 						<span class="lname">{p.name}</span>
@@ -192,8 +204,18 @@
 <style>
 	.page { padding: 22px 28px 36px; max-width: none; width: 100%; box-sizing: border-box; }
 	.hint-inline { font-size: 11px; font-weight: 500; color: var(--text-dim); }
-	.dragwrap { cursor: grab; }
-	.dragwrap:active { cursor: grabbing; }
+	.dragwrap { position: relative; }
+	.drag-handle {
+		position: absolute; top: 8px; left: 8px; z-index: 6;
+		width: 26px; height: 22px; border-radius: 7px;
+		display: grid; place-items: center;
+		background: color-mix(in srgb, var(--bg-elev) 70%, transparent);
+		color: var(--text-muted); font-size: 13px; cursor: grab;
+		opacity: 0; transition: opacity 0.15s;
+		backdrop-filter: blur(4px);
+	}
+	.dragwrap:hover .drag-handle { opacity: 1; }
+	.drag-handle:active { cursor: grabbing; }
 	.dragwrap.dragging, .lrow.dragging { opacity: 0.45; }
 	.top { display: flex; gap: 14px; align-items: center; margin-bottom: 22px; }
 	.search { flex: 1; display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 16px; }
@@ -230,6 +252,8 @@
 		border-left: 3px solid var(--c1);
 	}
 	.lrow:hover { border-color: var(--border-strong); }
+	.lgrip { color: var(--text-dim); font-size: 14px; cursor: grab; padding: 0 2px; user-select: none; }
+	.lgrip:active { cursor: grabbing; }
 	.lopen {
 		display: flex; align-items: center; gap: 12px; flex: 1;
 		background: transparent; border: 0; color: var(--text); cursor: pointer;

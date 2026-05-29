@@ -32,19 +32,21 @@
 
 	onMount(async () => {
 		// Reihenfolge: Settings -> Profile (kennt aktives Profil) -> Katalog ->
-		// profilbezogene Daten (Favoriten, Watchlist, Streamzeit, Achievements).
-		await hydrateSettings();
-		applySettings(get(settings));
-		await hydrateProfiles();
-		await hydrateCatalog();
-		const pid = get(activeProfileId);
-		if (pid) await loadProfileData(pid);
+		// profilbezogene Daten. Jeder Schritt einzeln abgesichert, damit ein
+		// Fehler (z.B. Update-Prüfung) nicht den Rest abbricht.
+		try { await hydrateSettings(); applySettings(get(settings)); } catch (e) { console.error('[init] settings', e); }
+		try { await hydrateProfiles(); } catch (e) { console.error('[init] profiles', e); }
+		try { await hydrateCatalog(); } catch (e) { console.error('[init] catalog', e); }
+		try {
+			const pid = get(activeProfileId);
+			if (pid) await loadProfileData(pid);
+		} catch (e) { console.error('[init] profileData', e); }
 
 		if (!get(settings).onboardingDone) showOnboarding = true;
 		window.addEventListener('keydown', onKey);
 
-		// Automatisch beim Start nach einem Update suchen (still, ohne Meldung wenn nichts da ist).
-		void checkForUpdate(false);
+		// Automatisch beim Start nach einem Update suchen (still; Fehler werden geschluckt).
+		try { void checkForUpdate(false); } catch (e) { console.error('[init] update', e); }
 	});
 
 	// Neu freigeschaltete Achievements melden (nur einmal je Achievement).

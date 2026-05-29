@@ -4,6 +4,18 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.8.1] – 2026-05-29
+
+### Behoben
+- **Update-Prüfung („Could not fetch a valid release JSON"):** In der Konfiguration fehlte `createUpdaterArtifacts`. Dadurch hat der Build nie eine `latest.json` erzeugt, die die App abfragen kann. Jetzt aktiviert – der nächste signierte Build legt `latest.json` an, und die Update-Suche funktioniert.
+- **Profil bleibt erhalten (Start & Seitenwechsel):** Das aktive Profil und die Profilliste werden jetzt zusätzlich in einem zuverlässigen Sofort-Cache gespeichert und beim Start sicher wiederhergestellt. Der Start ist außerdem so abgesichert, dass ein Fehler in einem Schritt (z.B. Update-Prüfung) den Rest nicht mehr abbricht.
+- **Klick auf Anbieterkarte öffnet wieder:** Das Drag&Drop aus v0.8.0 hatte den Klick „verschluckt". Jetzt gibt es einen kleinen **Greif-Punkt** (⠿, oben links bzw. links in der Liste) – nur der zieht zum Sortieren, der Rest der Karte öffnet wieder normal den Anbieter.
+
+### Hinweis
+Ob der eingebettete Stream danach erscheint, hängt weiterhin von der WebView-Einbettung ab (siehe Antwort: bitte „Eigenes Fenster" testen / Konsole prüfen).
+
+---
+
 ## [0.8.0] – 2026-05-29
 
 ### Behoben
