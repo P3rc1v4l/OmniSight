@@ -3,11 +3,20 @@
 	import Logo from './Logo.svelte';
 	import { toggleFavorite, favorites, editingProvider } from '$lib/stores/providers';
 	import { openProvider } from '$lib/embedded';
+	import { faviconCache } from '$lib/stores/favicons';
+	import { faviconDomain } from '$lib/providerVisual';
 
 	export let provider: Provider;
 	export let size: 'large' | 'compact' = 'large';
 
 	$: fav = $favorites.includes(provider.id);
+
+	// Kartenfarbe: bei Favicon-Anbietern aus dem Logo abgeleitet (sofern nicht manuell gewählt).
+	$: dom = faviconDomain(provider);
+	$: derivedColor = dom ? ($faviconCache[dom]?.color ?? null) : null;
+	$: useDerived = !provider.colorManual && !!derivedColor;
+	$: c1 = useDerived ? (derivedColor as string) : provider.color;
+	$: c2 = useDerived ? (derivedColor as string) : (provider.color2 ?? provider.color);
 
 	function open() {
 		openProvider(provider);
@@ -35,7 +44,7 @@
 	class="card"
 	class:large={size === 'large'}
 	class:compact={size === 'compact'}
-	style="--c1: {provider.color}; --c2: {provider.color2 ?? provider.color};"
+	style="--c1: {c1}; --c2: {c2};"
 	role="button"
 	tabindex="0"
 	onclick={open}

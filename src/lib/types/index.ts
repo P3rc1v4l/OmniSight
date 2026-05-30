@@ -10,6 +10,7 @@ export interface Provider {
 	category: 'film-serien' | 'anime' | 'live-tv' | 'mediathek' | 'sport' | 'musik' | 'video' | 'eigene';
 	color: string;          // Markenfarbe, Basis der Karte
 	color2?: string;        // optionale 2. Farbe für Verlauf
+	colorManual?: boolean;  // true = Farbe vom Nutzer gewählt (nicht aus Logo ableiten)
 	quality: Quality;
 	icon?: string;          // ID aus icons.ts oder Daten-URL bei eigenen Anbietern
 	custom?: boolean;

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Provider } from '$lib/types';
 	import { brandIcons } from '$lib/data/brandIcons';
+	import { faviconCache, ensureFavicon } from '$lib/stores/favicons';
+	import { faviconDomain } from '$lib/providerVisual';
 
 	export let provider: Provider;
 	export let size: number = 64;
@@ -30,8 +32,12 @@
 	$: fontSize = Math.max(14, size * 0.45);
 	$: isImage = !!provider.icon && /^(data:|https?:)/i.test(provider.icon);
 	$: brandPath = !isImage ? (brandIcons[provider.id] ?? null) : null;
-	$: domain = !isImage && !brandPath ? hostOf(provider.url) : null;
-	$: faviconUrl = domain ? `https://www.google.com/s2/favicons?sz=128&domain=${domain}` : null;
+	$: domain = faviconDomain(provider);
+	// Favicon einmalig holen + offline zwischenspeichern.
+	$: if (domain) ensureFavicon(domain);
+	$: cached = domain ? $faviconCache[domain] : null;
+	// Bevorzugt die gespeicherte Daten-URL (offline), sonst live als Sofort-Anzeige.
+	$: faviconUrl = cached?.dataUrl ?? (domain ? `https://www.google.com/s2/favicons?sz=128&domain=${domain}` : null);
 	$: useFavicon = !!faviconUrl && !faviconFailed;
 </script>
 

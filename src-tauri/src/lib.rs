@@ -3,6 +3,7 @@
 mod tmdb;
 mod discord;
 mod anilist;
+mod favicon;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -27,6 +28,7 @@ pub fn run() {
             discord::discord_clear,
             discord::discord_disconnect,
             anilist::anilist_schedule,
+            favicon::fetch_favicon,
         ])
         .run(tauri::generate_context!())
         .expect("Fehler beim Start von OmniHub");

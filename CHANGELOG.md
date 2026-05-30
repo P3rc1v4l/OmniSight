@@ -4,6 +4,18 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.17.0] – 2026-05-30
+
+### Hinzugefügt
+- **Favicons werden offline zwischengespeichert.** Jedes Favicon wird einmal über das Backend geholt, als **Daten-URL** gespeichert (localStorage + App-Speicher) und danach **auch offline** angezeigt – kein erneuter Netzwerkabruf nötig.
+- **Kartenfarbe passt sich dem Logo an.** Aus dem zwischengespeicherten Favicon wird die **dominante Farbe** ausgelesen und als Kartenfarbe verwendet. So matcht die Karte das Logo. **Nie weiße Karten** – zu helle Farben werden automatisch abgedunkelt. Eine im Karteneditor **manuell gewählte Farbe** hat immer Vorrang und wird nie überschrieben.
+
+### Technik
+- Neuer Rust-Befehl `fetch_favicon` (holt das Favicon und liefert es als Base64-Daten-URL), neue Abhängigkeit `base64`.
+- Neuer Farb-Speicher `favicons.ts` (Cache + Canvas-Farbanalyse) und Helfer `providerVisual.ts`.
+
+---
+
 ## [0.16.1] – 2026-05-29
 
 ### Hinzugefügt

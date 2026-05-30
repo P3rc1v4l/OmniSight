@@ -65,6 +65,7 @@
 			url: u,
 			color: color || '#30c5bb',
 			color2: color2.trim() || undefined,
+			colorManual: true,
 			quality,
 			icon: icon || undefined
 		});

@@ -44,12 +44,13 @@ export function addCustomProvider(data: {
 	let url = data.url.trim();
 	if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
 	const color = data.color || '#30c5bb';
+	const colorManual = !!(data.color && data.color !== '#30c5bb');
 	providers.update(($p) => [
 		...$p,
 		{
 			id, name: data.name.trim() || 'Eigener Anbieter',
 			subtitle: (data.subtitle || 'Eigener Anbieter').trim(),
-			url, category: 'eigene', color, color2: color,
+			url, category: 'eigene', color, color2: color, colorManual,
 			quality: data.quality || 'HD', custom: true
 		}
 	]);
