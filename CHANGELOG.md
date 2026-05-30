@@ -4,6 +4,15 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.15.2] – 2026-05-29
+
+### Hinzugefügt
+- **Anbieter im Titel-Info-Fenster sind jetzt anklickbar.** Ein Klick auf ein Anbieter-Logo öffnet den Anbieter **in OmniHub** – bei großen Anbietern (Netflix, Prime, Disney+, Crunchyroll, Apple TV+, RTL+, Joyn, Paramount+, YouTube) direkt mit **dem Titel in der Suche**, sonst die JustWatch-Seite des Titels. Die Anmelde-Sitzung wird mit der jeweiligen Anbieter-Kachel geteilt, du bleibst also eingeloggt.
+
+> Hinweis: Einen garantierten Direkt-Link zur exakten Titelseite liefert TMDB nicht – daher die Anbieter-Suche bzw. JustWatch als bestmögliche Annäherung.
+
+---
+
 ## [0.15.1] – 2026-05-29
 
 ### Hinzugefügt

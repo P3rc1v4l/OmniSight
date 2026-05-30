@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { titleInfo, closeTitleInfo, tmdb } from '$lib/tmdb';
 	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist } from '$lib/stores/watchlist';
+	import { openUrlInApp } from '$lib/embedded';
 
 	let details = $state<Record<string, any> | null>(null);
 	let loading = $state(false);
@@ -29,17 +30,44 @@
 		return t?.key ?? null;
 	});
 
+	// Bekannte Anbieter -> Suche/Startseite (Login-Sitzung wird über die id geteilt,
+	// passend zu den Anbieter-Kacheln in OmniHub). Unbekannte -> JustWatch-Link des Titels.
+	const PROVIDER_MAP: Record<string, { id: string; url: (t: string) => string }> = {
+		'Netflix': { id: 'netflix', url: (t) => `https://www.netflix.com/search?q=${encodeURIComponent(t)}` },
+		'Amazon Prime Video': { id: 'prime', url: (t) => `https://www.amazon.de/s?k=${encodeURIComponent(t)}&i=instant-video` },
+		'Amazon Video': { id: 'prime', url: (t) => `https://www.amazon.de/s?k=${encodeURIComponent(t)}&i=instant-video` },
+		'Disney Plus': { id: 'disney', url: (t) => `https://www.disneyplus.com/search?q=${encodeURIComponent(t)}` },
+		'Crunchyroll': { id: 'crunchyroll', url: (t) => `https://www.crunchyroll.com/search?q=${encodeURIComponent(t)}` },
+		'WOW': { id: 'wow', url: () => 'https://www.wowtv.de/' },
+		'Apple TV Plus': { id: 'appletv', url: (t) => `https://tv.apple.com/search?term=${encodeURIComponent(t)}` },
+		'Apple TV': { id: 'appletv', url: (t) => `https://tv.apple.com/search?term=${encodeURIComponent(t)}` },
+		'RTL+': { id: 'rtlplus', url: (t) => `https://plus.rtl.de/suche?q=${encodeURIComponent(t)}` },
+		'Joyn': { id: 'joyn', url: (t) => `https://www.joyn.de/suche?q=${encodeURIComponent(t)}` },
+		'Joyn Plus': { id: 'joyn', url: (t) => `https://www.joyn.de/suche?q=${encodeURIComponent(t)}` },
+		'MagentaTV': { id: 'magenta', url: () => 'https://web.magentatv.de/' },
+		'Paramount Plus': { id: 'paramount', url: (t) => `https://www.paramountplus.com/search/?query=${encodeURIComponent(t)}` },
+		'YouTube': { id: 'youtube', url: (t) => `https://www.youtube.com/results?search_query=${encodeURIComponent(t)}` }
+	};
+	function resolveTarget(name: string, title: string, fallback: string | null): { url: string; id: string } {
+		const m = PROVIDER_MAP[name];
+		if (m) return { url: m.url(title), id: m.id };
+		return { url: fallback || `https://www.google.com/search?q=${encodeURIComponent(`${title} ${name} stream`)}`, id: 'web-info' };
+	}
+
 	const providers = $derived.by(() => {
 		const wp = details?.['watch/providers']?.results ?? {};
 		const region = wp['DE'] ?? wp['US'] ?? null;
-		if (!region) return [] as { name: string; logo: string }[];
+		if (!region) return [] as { name: string; logo: string; url: string; id: string }[];
+		const link: string | null = region.link ?? null;
+		const title = $titleInfo?.title ?? '';
 		const seen = new Set<number>();
-		const out: { name: string; logo: string }[] = [];
+		const out: { name: string; logo: string; url: string; id: string }[] = [];
 		for (const key of ['flatrate', 'free', 'ads', 'rent', 'buy']) {
 			for (const p of region[key] ?? []) {
 				if (seen.has(p.provider_id)) continue;
 				seen.add(p.provider_id);
-				out.push({ name: p.provider_name, logo: `https://image.tmdb.org/t/p/w92${p.logo_path}` });
+				const t = resolveTarget(p.provider_name, title, link);
+				out.push({ name: p.provider_name, logo: `https://image.tmdb.org/t/p/w92${p.logo_path}`, url: t.url, id: t.id });
 			}
 		}
 		return out;
@@ -63,6 +91,12 @@
 		else addToWatchlist(item);
 	}
 	function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeTitleInfo(); }
+
+	function openProviderLink(p: { name: string; url: string; id: string }) {
+		const title = $titleInfo?.title ?? '';
+		closeTitleInfo();
+		openUrlInApp(title, p.url, p.id, p.name);
+	}
 </script>
 
 <svelte:window onkeydown={onKey} />
@@ -124,10 +158,12 @@
 						<div class="block-label">Wo streamen (DE)</div>
 						<div class="provs">
 							{#each providers as p (p.name)}
-								<div class="prov" title={p.name}><img src={p.logo} alt={p.name} loading="lazy" /></div>
+								<button class="prov" title={`${p.name} öffnen`} onclick={() => openProviderLink(p)}>
+									<img src={p.logo} alt={p.name} loading="lazy" />
+								</button>
 							{/each}
 						</div>
-						<p class="src">Anbieterdaten: JustWatch · via TMDB</p>
+						<p class="src">Klick öffnet den Anbieter in OmniHub (sofern angemeldet) · Anbieterdaten: JustWatch via TMDB</p>
 					</div>
 				{:else if !loading}
 					<p class="muted small">Keine Streaming-Info für Deutschland gefunden.</p>
@@ -175,7 +211,10 @@
 	.video { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid var(--border); }
 	.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 	.provs { display: flex; flex-wrap: wrap; gap: 10px; }
-	.prov img { width: 46px; height: 46px; border-radius: 11px; object-fit: cover; border: 1px solid var(--border); display: block; }
+	.prov { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 11px; transition: transform 0.15s ease; }
+	.prov:hover { transform: translateY(-2px); }
+	.prov img { width: 46px; height: 46px; border-radius: 11px; object-fit: cover; border: 1px solid var(--border); display: block; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+	.prov:hover img { border-color: color-mix(in srgb, var(--accent) 60%, transparent); box-shadow: 0 6px 16px -6px rgba(0,0,0,0.6); }
 	.src { font-size: 11px; color: var(--text-muted); margin-top: 10px; }
 	.footer { margin-top: 24px; display: flex; gap: 10px; }
 	.wl { background: var(--accent); color: #00110f; border: none; border-radius: 10px; padding: 11px 20px; font-family: inherit; font-weight: 700; font-size: 14px; cursor: pointer; transition: filter 0.15s ease; }
