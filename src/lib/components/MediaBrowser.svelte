@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tmdb, openTitleInfo, titleInfo } from '$lib/tmdb';
 	import { hiddenTitles, isHidden, hideTitle, showHidden } from '$lib/stores/hidden';
+	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist } from '$lib/stores/watchlist';
 	import type { TmdbItem } from '$lib/types';
 
 	let { kind = 'news' }: { kind?: 'news' | 'upcoming' } = $props();
@@ -15,6 +16,7 @@
 	let error = $state<string | null>(null);
 	let focused = $state(0);
 	let paused = $state(false);
+	let resumeTimer: ReturnType<typeof setTimeout> | null = null;
 	let stripEl = $state<HTMLDivElement | null>(null);
 
 	const cache = new Map<string, TmdbItem[]>();
@@ -103,24 +105,47 @@
 		return () => clearInterval(id);
 	});
 
-	function go(d: number) {
+	// Pausiert den Auto-Wechsel und startet ihn nach 10 s automatisch wieder.
+	// (Der Guard oben verhindert das Weiterblättern, solange ein Fenster offen ist.)
+	function pauseTemporarily() {
 		paused = true;
+		if (resumeTimer) clearTimeout(resumeTimer);
+		resumeTimer = setTimeout(() => {
+			resumeTimer = null;
+			paused = false;
+		}, 10000);
+	}
+	// Timer beim Verlassen aufräumen.
+	$effect(() => () => {
+		if (resumeTimer) clearTimeout(resumeTimer);
+	});
+
+	function go(d: number) {
+		pauseTemporarily();
 		const n = visible.length;
 		if (!n) return;
 		focused = (clamped + d + n) % n;
 	}
 	function pick(i: number) {
-		paused = true;
+		pauseTemporarily();
 		focused = i;
 	}
 	function openHero() {
-		paused = true;
+		pauseTemporarily();
 		if (hero) openTitleInfo(hero);
 	}
 	function hide(e: Event, t: TmdbItem) {
 		e.stopPropagation();
-		paused = true;
+		pauseTemporarily();
 		hideTitle(t);
+	}
+
+	const inList = $derived(hero ? isInWatchlist($watchlist, hero.id, hero.media_type) : false);
+	function toggleWatch() {
+		if (!hero) return;
+		pauseTemporarily();
+		if (inList) removeFromWatchlist(hero.id, hero.media_type);
+		else addToWatchlist(hero);
 	}
 
 	const cats: { id: Cat; label: string }[] = [
@@ -181,7 +206,12 @@
 						<span>{hero.media_type === 'tv' ? 'Serie' : 'Film'}</span>
 					</div>
 					{#if hero.overview}<p class="desc">{hero.overview}</p>{/if}
-					<button class="details" onclick={openHero}>Details ansehen</button>
+					<div class="actions">
+						<button class="details" onclick={openHero}>Details ansehen</button>
+						<button class="watch" class:on={inList} onclick={toggleWatch}>
+							{inList ? '✓ Gemerkt' : '+ Merken'}
+						</button>
+					</div>
 				</div>
 			{/key}
 		{/if}
@@ -251,9 +281,14 @@
 	.desc { margin: 0 0 14px; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.88); display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55); }
 	.details { background: var(--accent); color: #00110f; border: 0; border-radius: 9px; padding: 9px 18px; font-family: inherit; font-weight: 700; font-size: 13.5px; cursor: pointer; }
 	.details:hover { filter: brightness(1.08); }
+	.actions { display: flex; gap: 10px; align-items: center; }
+	.watch { background: rgba(255, 255, 255, 0.14); color: #fff; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 9px; padding: 9px 16px; font-family: inherit; font-weight: 700; font-size: 13.5px; cursor: pointer; backdrop-filter: blur(4px); transition: background 0.15s, border-color 0.15s, color 0.15s; }
+	.watch:hover { background: rgba(255, 255, 255, 0.24); }
+	.watch.on { background: color-mix(in srgb, var(--accent) 22%, transparent); border-color: var(--accent); color: var(--accent); }
 	@keyframes heroFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-	.strip { display: flex; gap: 14px; overflow-x: auto; padding: 14px 20px 4px; }
+	.strip { display: flex; gap: 14px; overflow-x: auto; padding: 14px 20px 4px; scrollbar-width: none; -ms-overflow-style: none; }
+	.strip::-webkit-scrollbar { width: 0; height: 0; display: none; }
 	.cell { flex: 0 0 132px; width: 132px; }
 	.thumb { position: relative; width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; overflow: hidden; border: 2px solid transparent; box-sizing: border-box; background: var(--bg-card-2); transition: border-color 0.15s, transform 0.15s; }
 	.thumb:hover { transform: translateY(-2px); }

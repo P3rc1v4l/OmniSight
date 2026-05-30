@@ -4,6 +4,17 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.18.3] – 2026-05-30
+
+### Hinzugefügt
+- **„Merken"-Knopf direkt im Hero:** Neben „Details ansehen" lässt sich der aktuelle Titel mit einem Klick zur Watchlist hinzufügen bzw. wieder entfernen (zeigt „✓ Gemerkt").
+
+### Geändert
+- **Auto-Wechsel startet nach Klick automatisch wieder:** Nach einem Klick (Pfeile, Poster, Punkte, Hero, Merken) pausiert der Wechsel und läuft **nach 10 Sekunden** von selbst weiter – aber nur, wenn **kein Titel-Info-Fenster** offen ist.
+- **Scrollbalken unter dem Poster-Streifen entfernt** (das Blättern per Pfeilen/Punkten/Auto-Wechsel bleibt erhalten).
+
+---
+
 ## [0.18.2] – 2026-05-30
 
 ### Hinzugefügt
