@@ -4,6 +4,14 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.13.1] – 2026-05-29
+
+### Geändert
+- **CR-Kalender optisch überarbeitet:** Poster-Karten in einem Raster, deutlich klarere Tages-Überschriften (mit Hervorhebung von „Heute"), Crunchyroll-orange Akzente, Hover-Effekte, gestaffeltes Einblenden und Skeleton-Ladeanzeige.
+- **„Auf Crunchyroll" öffnet jetzt IN-APP** statt im externen Browser: Der Titel wird über dieselbe Stream-Mechanik wie Anbieter geöffnet und nutzt die bestehende Crunchyroll-Anmeldung mit. (Eingebettet bzw. – je nach Einstellung unter Design → „Anbieter öffnen als" – im eigenen Fenster.)
+
+---
+
 ## [0.13.0] – 2026-05-29
 
 ### Hinzugefügt

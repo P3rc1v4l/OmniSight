@@ -32,6 +32,35 @@ export function openProvider(p: Provider): void {
 	goto('/stream');
 }
 
+// Öffnet eine beliebige URL IM Programm (nicht im externen Browser) – z.B. einen
+// Crunchyroll-Titel aus dem Kalender. Nutzt dieselbe Stream-Mechanik wie Anbieter
+// (eingebettet bzw. – je nach Einstellung – eigenes Fenster). Bei id 'crunchyroll'
+// wird die bestehende Crunchyroll-Anmeldung mitbenutzt.
+export async function openUrlInApp(
+	name: string,
+	url: string,
+	id = 'web-view-cal',
+	subtitle = '',
+	color = '#30c5bb',
+	color2 = '#1f6f6a'
+): Promise<void> {
+	// Bestehende Einbettung schließen, damit die neue URL frisch geladen wird
+	// (die Anmeldedaten je Label bleiben erhalten).
+	await closeEmbedded();
+	if (id === 'crunchyroll') markOpened('crunchyroll');
+	activeStream.set({
+		id,
+		name,
+		subtitle,
+		url,
+		category: 'anime',
+		color,
+		color2,
+		quality: '1080p'
+	});
+	goto('/stream');
+}
+
 async function getWebviewApi() {
 	const webview = await import('@tauri-apps/api/webview');
 	const dpi = await import('@tauri-apps/api/dpi');
