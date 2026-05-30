@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { tmdb } from '$lib/tmdb';
-	import { addToWatchlist, watchlist, isInWatchlist } from '$lib/stores/watchlist';
+	import { tmdb, openTitleInfo } from '$lib/tmdb';
+	import { watchlist, isInWatchlist } from '$lib/stores/watchlist';
 	import type { TmdbItem } from '$lib/types';
 
 	let items = $state<TmdbItem[]>([]);
@@ -40,7 +40,7 @@
 		{:else}
 			<div class="rail">
 				{#each items as t, i (t.media_type + '-' + t.id)}
-					<button class="tcard" class:active={i === bgIndex} onmouseenter={() => (bgIndex = i)} onclick={() => addToWatchlist(t)}>
+					<button class="tcard" class:active={i === bgIndex} onmouseenter={() => (bgIndex = i)} onclick={() => openTitleInfo(t)}>
 						{#if t.poster}<img src={t.poster} alt={t.title} loading="lazy"/>
 						{:else}<div class="noimg">?</div>{/if}
 						<div class="tt">{t.title}</div>

@@ -4,6 +4,14 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.14.0] – 2026-05-29
+
+### Hinzugefügt
+- **Titel-Info-Fenster (TMDB):** Klick auf einen Titel in **Suche**, **Neuigkeiten** oder **Upcoming** öffnet ein Info-Fenster mit **Poster/Backdrop, Beschreibung, Genre, Bewertung, Laufzeit/Jahr**, eingebettetem **Trailer** (YouTube) und **„Wo streamen" (DE)** mit Anbieter-Logos (Daten: JustWatch via TMDB). Direkt im Fenster lässt sich der Titel **merken/entfernen**.
+  - Nutzt das vorhandene `tmdb_details` (mit `videos` + `watch/providers`). Klick auf Karten öffnet nun das Fenster statt sofort zu merken; das Merken passiert im Fenster.
+
+---
+
 ## [0.13.1] – 2026-05-29
 
 ### Geändert

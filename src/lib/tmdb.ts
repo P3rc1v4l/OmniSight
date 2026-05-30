@@ -1,6 +1,16 @@
 // Frontend-Wrapper für die Rust-Commands aus src-tauri/src/tmdb.rs.
 import { browser } from '$app/environment';
+import { writable } from 'svelte/store';
 import type { TmdbItem } from '$lib/types';
+
+// Aktuell im Titel-Info-Fenster geöffneter Titel (oder null).
+export const titleInfo = writable<TmdbItem | null>(null);
+export function openTitleInfo(item: TmdbItem): void {
+	titleInfo.set(item);
+}
+export function closeTitleInfo(): void {
+	titleInfo.set(null);
+}
 
 async function call<T>(name: string, args: Record<string, unknown> = {}): Promise<T | null> {
 	if (!browser) return null;

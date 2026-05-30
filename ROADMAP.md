@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version aktualisiert**.
-Stand: v0.13.0
+Stand: v0.14.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -104,6 +104,11 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 
 ## v0.13.0
 - ✅ (9) Crunchyroll-Kalender: 7-Tage-Anime-Plan via AniList, Crunchyroll markiert/verlinkt, Filter „Nur Crunchyroll"
+
+---
+
+## v0.14.0
+- ✅ Titel-Info-Fenster (TMDB): Beschreibung, Trailer, Genre, Bewertung, „Wo streamen" (DE), Merken im Fenster
 
 ---
 

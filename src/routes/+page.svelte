@@ -4,7 +4,7 @@
 	import ProviderCard from '$lib/components/ProviderCard.svelte';
 	import Logo from '$lib/components/Logo.svelte';
 	import AddProviderModal from '$lib/components/AddProviderModal.svelte';
-	import { tmdb } from '$lib/tmdb';
+	import { tmdb, openTitleInfo } from '$lib/tmdb';
 	import { addToWatchlist, watchlist, isInWatchlist } from '$lib/stores/watchlist';
 	import type { TmdbItem } from '$lib/types';
 	import { openProvider } from '$lib/embedded';
@@ -179,13 +179,15 @@
 			<div class="tmdb">
 				{#each tmdbResults as t (t.media_type + '-' + t.id)}
 					<div class="tcard omni-card">
-						{#if t.poster}
-							<img src={t.poster} alt={t.title} loading="lazy" />
-						{:else}
-							<div class="noimg">?</div>
-						{/if}
+						<button class="thumb" onclick={() => openTitleInfo(t)} aria-label={`Infos zu ${t.title}`}>
+							{#if t.poster}
+								<img src={t.poster} alt={t.title} loading="lazy" />
+							{:else}
+								<div class="noimg">?</div>
+							{/if}
+						</button>
 						<div class="tmeta">
-							<div class="tt">{t.title}</div>
+							<button class="tt tt-btn" onclick={() => openTitleInfo(t)}>{t.title}</button>
 							<div class="ts">{t.media_type === 'tv' ? 'Serie' : 'Film'}{t.release_date ? ' · ' + t.release_date.slice(0, 4) : ''}</div>
 							<button
 								class="add"
@@ -268,10 +270,14 @@
 
 	.tmdb { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
 	.tcard { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
-	.tcard img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+	.thumb { padding: 0; border: 0; background: none; cursor: pointer; display: block; width: 100%; }
+	.tcard img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; transition: transform 0.25s ease, filter 0.25s ease; }
+	.thumb:hover img { transform: scale(1.04); filter: brightness(1.06); }
 	.noimg { aspect-ratio: 2/3; display: grid; place-items: center; background: var(--bg-card-2); color: var(--text-dim); font-size: 32px; }
 	.tmeta { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
 	.tt { font-weight: 600; font-size: 13px; line-height: 1.25; }
+	.tt-btn { padding: 0; border: 0; background: none; color: var(--text); text-align: left; cursor: pointer; font-family: inherit; }
+	.tt-btn:hover { color: var(--accent); }
 	.ts { color: var(--text-muted); font-size: 11.5px; }
 	.add {
 		margin-top: 6px; background: var(--accent-soft); color: var(--accent);

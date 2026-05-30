@@ -9,6 +9,7 @@
 	import CardEditorModal from '$lib/components/CardEditorModal.svelte';
 	import SleepTimer from '$lib/components/SleepTimer.svelte';
 	import DiscordPresence from '$lib/components/DiscordPresence.svelte';
+	import TitleInfoModal from '$lib/components/TitleInfoModal.svelte';
 	import Toasts from '$lib/components/Toasts.svelte';
 	import Clock from '$lib/components/Clock.svelte';
 	import Particles from '$lib/components/Particles.svelte';
@@ -94,6 +95,7 @@
 <CardEditorModal />
 <SleepTimer />
 <DiscordPresence />
+<TitleInfoModal />
 
 <style>
 	.root { display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
