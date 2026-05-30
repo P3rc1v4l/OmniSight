@@ -4,6 +4,17 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.15.1] – 2026-05-29
+
+### Hinzugefügt
+- **Watchlist: Sortieren & Filtern.** Auf der „Gemerkt"-Seite gibt es jetzt:
+  - **Typ-Filter** (Alle / Filme / Serien),
+  - **Sortierung** (zuletzt/zuerst hinzugefügt, Titel A–Z / Z–A, Erscheinungsdatum neu→alt / alt→neu),
+  - eine **Suche** innerhalb der Watchlist.
+  Bei leerem Ergebnis gibt es einen „Filter zurücksetzen"-Knopf.
+
+---
+
 ## [0.15.0] – 2026-05-29
 
 ### Hinzugefügt

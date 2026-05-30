@@ -8,6 +8,27 @@
 	$: today = new Date().toISOString().slice(0, 10);
 	$: releasesToday = $watchlist.filter((x) => x.releaseDate === today);
 
+	let sortBy = 'added-desc';
+	let typeFilter: 'all' | 'movie' | 'tv' = 'all';
+	let q = '';
+
+	function sortList(list: WatchlistItem[], by: string): WatchlistItem[] {
+		const arr = [...list];
+		switch (by) {
+			case 'added-asc': return arr.sort((a, b) => a.addedAt - b.addedAt);
+			case 'title-asc': return arr.sort((a, b) => a.title.localeCompare(b.title, 'de'));
+			case 'title-desc': return arr.sort((a, b) => b.title.localeCompare(a.title, 'de'));
+			case 'date-desc': return arr.sort((a, b) => (b.releaseDate ?? '').localeCompare(a.releaseDate ?? ''));
+			case 'date-asc': return arr.sort((a, b) => (a.releaseDate ?? '').localeCompare(b.releaseDate ?? ''));
+			default: return arr.sort((a, b) => b.addedAt - a.addedAt);
+		}
+	}
+	$: filtered = $watchlist
+		.filter((w) => typeFilter === 'all' || w.mediaType === typeFilter)
+		.filter((w) => !q.trim() || w.title.toLowerCase().includes(q.trim().toLowerCase()));
+	$: shown = sortList(filtered, sortBy);
+	function resetFilters() { sortBy = 'added-desc'; typeFilter = 'all'; q = ''; }
+
 	let fileInput: HTMLInputElement;
 
 	function openInfo(w: WatchlistItem) {
@@ -120,22 +141,47 @@
 			<small>Suche oben auf der Übersicht nach einem Titel, öffne das Info-Fenster und klicke „＋ Merken". Oder importiere eine Watchlist-Datei.</small>
 		</div>
 	{:else}
-		<div class="grid">
-			{#each $watchlist as w (w.mediaType + '-' + w.tmdbId)}
-				<div class="card omni-card">
-					<button class="thumb" onclick={() => openInfo(w)} aria-label={`Infos zu ${w.title}`}>
-						{#if w.poster}<img src={w.poster} alt={w.title} loading="lazy" />
-						{:else}<div class="noimg">?</div>{/if}
-					</button>
-					<div class="meta">
-						<button class="t t-btn" onclick={() => openInfo(w)}>{w.title}</button>
-						<div class="s">{w.mediaType === 'tv' ? 'Serie' : 'Film'}{w.releaseDate ? ' · ' + w.releaseDate.slice(0, 4) : ''}</div>
-						<p class="o">{w.overview ? w.overview.slice(0, 110) + (w.overview.length > 110 ? '…' : '') : ''}</p>
-						<button class="rm" onclick={() => removeFromWatchlist(w.tmdbId, w.mediaType)}>Entfernen</button>
-					</div>
-				</div>
-			{/each}
+		<div class="bar">
+			<div class="seg-group">
+				<button class="seg" class:on={typeFilter === 'all'} onclick={() => (typeFilter = 'all')}>Alle</button>
+				<button class="seg" class:on={typeFilter === 'movie'} onclick={() => (typeFilter = 'movie')}>Filme</button>
+				<button class="seg" class:on={typeFilter === 'tv'} onclick={() => (typeFilter = 'tv')}>Serien</button>
+			</div>
+			<select class="sort" bind:value={sortBy} aria-label="Sortierung">
+				<option value="added-desc">Zuletzt hinzugefügt</option>
+				<option value="added-asc">Zuerst hinzugefügt</option>
+				<option value="title-asc">Titel A–Z</option>
+				<option value="title-desc">Titel Z–A</option>
+				<option value="date-desc">Erscheinung: neu → alt</option>
+				<option value="date-asc">Erscheinung: alt → neu</option>
+			</select>
+			<input class="search" type="text" placeholder="In Watchlist suchen…" bind:value={q} />
 		</div>
+
+		{#if shown.length === 0}
+			<div class="empty omni-card">
+				<span class="emoji">🔍</span>
+				<p>Keine Treffer für deine Auswahl.</p>
+				<button class="reset" onclick={resetFilters}>Filter zurücksetzen</button>
+			</div>
+		{:else}
+			<div class="grid">
+				{#each shown as w (w.mediaType + '-' + w.tmdbId)}
+					<div class="card omni-card">
+						<button class="thumb" onclick={() => openInfo(w)} aria-label={`Infos zu ${w.title}`}>
+							{#if w.poster}<img src={w.poster} alt={w.title} loading="lazy" />
+							{:else}<div class="noimg">?</div>{/if}
+						</button>
+						<div class="meta">
+							<button class="t t-btn" onclick={() => openInfo(w)}>{w.title}</button>
+							<div class="s">{w.mediaType === 'tv' ? 'Serie' : 'Film'}{w.releaseDate ? ' · ' + w.releaseDate.slice(0, 4) : ''}</div>
+							<p class="o">{w.overview ? w.overview.slice(0, 110) + (w.overview.length > 110 ? '…' : '') : ''}</p>
+							<button class="rm" onclick={() => removeFromWatchlist(w.tmdbId, w.mediaType)}>Entfernen</button>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
 	{/if}
 </div>
 
@@ -147,6 +193,14 @@
 	.tools { display: flex; gap: 10px; }
 	.tool { background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 9px; padding: 9px 14px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
 	.tool:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+	.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+	.seg-group { display: inline-flex; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
+	.seg { border: 0; background: none; color: var(--text-muted); font-family: inherit; font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 7px; cursor: pointer; transition: all 0.15s ease; }
+	.seg.on { background: var(--accent); color: #00110f; }
+	.sort { background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 8px 12px; font-family: inherit; font-size: 13px; cursor: pointer; }
+	.search { flex: 1; min-width: 160px; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 8px 13px; font-family: inherit; font-size: 13px; }
+	.search:focus { outline: none; border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+	.reset { margin-top: 12px; background: var(--accent); color: #00110f; border: none; border-radius: 9px; padding: 9px 18px; font-family: inherit; font-weight: 700; cursor: pointer; }
 	.banner { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); padding: 12px 16px; border-radius: 12px; margin-bottom: 18px; font-size: 14px; }
 	.empty { padding: 56px; text-align: center; color: var(--text-muted); }
 	.emoji { font-size: 40px; display: block; margin-bottom: 10px; }
