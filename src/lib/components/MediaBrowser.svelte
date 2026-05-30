@@ -186,7 +186,7 @@
 	function openProv(e: Event, p: WatchProvider) {
 		e.stopPropagation();
 		pauseTemporarily();
-		openUrlInApp(hero?.title ?? '', p.url, p.id, p.name);
+		openUrlInApp(hero?.title ?? '', p.url, p.id, p.name, '#30c5bb', '#1f6f6a', hero?.poster ?? null);
 	}
 
 	const cats: { id: Cat; label: string }[] = [

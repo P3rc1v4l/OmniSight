@@ -4,6 +4,17 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.21.0] – 2026-05-30
+
+### Hinzugefügt
+- **„Weiterschauen" auf der Startseite:** Zuletzt geöffnete Titel und Anbieter erscheinen oben als Poster-Kacheln. Ein Klick öffnet **genau dort wieder** (gleiche Anbieter-URL, geteilte Anmeldung). Titel zeigen ihr Poster, Einträge lassen sich per × entfernen. Wird über „Einstellungen → Plugins → Weiterschauen" ein-/ausgeschaltet.
+- Beim Öffnen eines Titels (Hero-Anbieterlogo oder Info-Fenster) wird jetzt sein **Poster** mitgespeichert, damit „Weiterschauen" hübsch aussieht.
+
+### Geändert
+- Die bisherige einfache „Zuletzt geöffnet"-Leiste wurde durch „Weiterschauen" ersetzt (merkt sich jetzt auch einzelne Titel, nicht nur Anbieter).
+
+---
+
 ## [0.20.0] – 2026-05-30
 
 ### Hinzugefügt

@@ -9,6 +9,7 @@ import { get, writable } from 'svelte/store';
 import { goto } from '$app/navigation';
 import type { Provider } from '$lib/types';
 import { activeStream, markOpened } from '$lib/stores/providers';
+import { recordOpen } from '$lib/stores/continue';
 import { activeProfileId } from '$lib/stores/profiles';
 import { settings } from '$lib/stores/settings';
 import { startSession, endSession, incrementOpenCount } from '$lib/stores/tracking';
@@ -28,6 +29,7 @@ let creatingLabel: string | null = null;
 // die das Einbetten übernimmt.
 export function openProvider(p: Provider): void {
 	markOpened(p.id);
+	recordOpen({ label: p.name, subtitle: p.subtitle ?? '', url: p.url, id: p.id, color: p.color, color2: p.color2 ?? p.color, poster: null });
 	activeStream.set(p);
 	goto('/stream');
 }
@@ -42,12 +44,14 @@ export async function openUrlInApp(
 	id = 'web-view-cal',
 	subtitle = '',
 	color = '#30c5bb',
-	color2 = '#1f6f6a'
+	color2 = '#1f6f6a',
+	poster: string | null = null
 ): Promise<void> {
 	// Bestehende Einbettung schließen, damit die neue URL frisch geladen wird
 	// (die Anmeldedaten je Label bleiben erhalten).
 	await closeEmbedded();
 	if (id === 'crunchyroll') markOpened('crunchyroll');
+	recordOpen({ label: name, subtitle, url, id, color, color2, poster });
 	activeStream.set({
 		id,
 		name,

@@ -56,8 +56,9 @@
 
 	function openProviderLink(p: { name: string; url: string; id: string }) {
 		const title = $titleInfo?.title ?? '';
+		const art = poster;
 		closeTitleInfo();
-		openUrlInApp(title, p.url, p.id, p.name);
+		openUrlInApp(title, p.url, p.id, p.name, '#30c5bb', '#1f6f6a', art);
 	}
 </script>
 

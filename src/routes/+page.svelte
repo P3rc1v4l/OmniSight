@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { visibleProviders, favoriteProviders, recentProviders, favorites, toggleFavorite, providerOrder, setProviderOrder } from '$lib/stores/providers';
+	import { visibleProviders, favoriteProviders, favorites, toggleFavorite, providerOrder, setProviderOrder } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import ProviderCard from '$lib/components/ProviderCard.svelte';
 	import Logo from '$lib/components/Logo.svelte';
@@ -7,7 +7,8 @@
 	import { tmdb, openTitleInfo } from '$lib/tmdb';
 	import { addToWatchlist, watchlist, isInWatchlist } from '$lib/stores/watchlist';
 	import type { TmdbItem } from '$lib/types';
-	import { openProvider } from '$lib/embedded';
+	import { openProvider, openUrlInApp } from '$lib/embedded';
+	import { continueList, removeContinue, type ContinueEntry } from '$lib/stores/continue';
 
 	let search = $state('');
 	let view: 'grid' | 'list' = $state('grid');
@@ -16,6 +17,10 @@
 	let searching = $state(false);
 	let searchToken = 0;
 	let dragId = $state<string | null>(null);
+
+	function reopenContinue(c: ContinueEntry) {
+		openUrlInApp(c.label, c.url, c.id, c.subtitle, c.color, c.color2, c.poster);
+	}
 
 	// "Alle Anbieter": ohne Suche werden Favoriten ausgeblendet (sie stehen oben in
 	// der Favoriten-Reihe). Reihenfolge: eigene (Drag&Drop) sonst alphabetisch.
@@ -87,14 +92,19 @@
 		</div>
 	</header>
 
-	{#if $recentProviders.length && !search && $settings.plugins.continueWatching}
-		<div class="section-label">Zuletzt geöffnet</div>
-		<div class="chips">
-			{#each $recentProviders as p (p.id)}
-				<button class="chip" onclick={() => openProvider(p)} style="--c1: {p.color}; --c2: {p.color2 ?? p.color}">
-					<Logo provider={p} size={24} />
-					<span>{p.name}</span>
-				</button>
+	{#if $continueList.length && !search && $settings.plugins.continueWatching}
+		<div class="section-label">▶ Weiterschauen</div>
+		<div class="cont-row">
+			{#each $continueList as c (c.key)}
+				<div class="cont">
+					<button class="cont-tile" style="--c1: {c.color}; --c2: {c.color2}" onclick={() => reopenContinue(c)} title={`„${c.label}" wieder öffnen`}>
+						{#if c.poster}<img src={c.poster} alt={c.label} loading="lazy" />{:else}<span class="cont-letter">{c.label.slice(0, 1)}</span>{/if}
+						<span class="cont-play">▶</span>
+					</button>
+					<button class="cont-x" onclick={() => removeContinue(c.key)} title="Entfernen" aria-label="Aus Weiterschauen entfernen">×</button>
+					<div class="cont-t">{c.label}</div>
+					{#if c.subtitle}<div class="cont-s">{c.subtitle}</div>{/if}
+				</div>
 			{/each}
 		</div>
 	{/if}
@@ -235,14 +245,19 @@
 	.view button { padding: 8px 12px; }
 	.view button.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 
-	.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-	.chip {
-		display: inline-flex; align-items: center; gap: 8px;
-		padding: 5px 12px 5px 5px;
-		background: var(--bg-card); border: 1px solid var(--border);
-		border-radius: 999px; cursor: pointer; color: var(--text); font-size: 13px;
-	}
-	.chip:hover { border-color: var(--border-strong); }
+	.cont-row { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 22px; scrollbar-width: none; -ms-overflow-style: none; }
+	.cont-row::-webkit-scrollbar { width: 0; height: 0; display: none; }
+	.cont { position: relative; flex: 0 0 104px; width: 104px; }
+	.cont-tile { position: relative; width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; overflow: hidden; border: 0; cursor: pointer; padding: 0; background: radial-gradient(circle at 30% 30%, var(--c1), var(--c2)); display: grid; place-items: center; }
+	.cont-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+	.cont-letter { font-size: 34px; font-weight: 800; color: #fff; }
+	.cont-play { position: absolute; inset: 0; display: grid; place-items: center; font-size: 26px; color: #fff; background: rgba(0, 0, 0, 0.32); opacity: 0; transition: opacity 0.15s; }
+	.cont-tile:hover .cont-play { opacity: 1; }
+	.cont-x { position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; border-radius: 6px; background: rgba(0, 0, 0, 0.55); border: 0; color: #fff; font-size: 15px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity 0.15s, background 0.15s; display: grid; place-items: center; z-index: 2; }
+	.cont:hover .cont-x { opacity: 1; }
+	.cont-x:hover { background: rgba(220, 45, 45, 0.85); }
+	.cont-t { margin-top: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.cont-s { font-size: 10.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 	.grid.favs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 22px; }
 	.grid.all { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
