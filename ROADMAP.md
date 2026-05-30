@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version aktualisiert**.
-Stand: v0.14.0
+Stand: v0.15.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -112,6 +112,11 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 
 ---
 
+## v0.15.0
+- ✅ (19) Watchlist Import/Export (JSON-Datei) + Info-Fenster auch bei „Gemerkt"
+- ℹ️ VPN: nicht sinnvoll in-app machbar (separate App nutzen) · WideVine/DRM: in WebView2 nicht enthalten
+
+---
+
 ## Als Nächstes geplant (Reihenfolge laut Wunsch)
 - ⏳ (5) Streams starten nicht: Stream-Modus „Eigenes Fenster" als Notlösung; Ursache der Einbettung mit Konsolen-Ausgabe klären
-- ⏳ (19) „Mehr"-Menü-Redesign + VPN / Watchlist-Import-Export / WideVine-Status (Machbarkeit – siehe Antwort)

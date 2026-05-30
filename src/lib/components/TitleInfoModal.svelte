@@ -45,10 +45,15 @@
 		return out;
 	});
 
-	const year = $derived($titleInfo?.release_date ? $titleInfo.release_date.slice(0, 4) : '');
+	const IMG = 'https://image.tmdb.org/t/p';
+	const poster = $derived($titleInfo?.poster || (details?.poster_path ? `${IMG}/w342${details.poster_path}` : null));
+	const backdrop = $derived($titleInfo?.backdrop || (details?.backdrop_path ? `${IMG}/w780${details.backdrop_path}` : null));
+	const overview = $derived($titleInfo?.overview || details?.overview || '');
+	const year = $derived(($titleInfo?.release_date || details?.release_date || details?.first_air_date || '').slice(0, 4));
 	const genres = $derived(((details?.genres ?? []) as any[]).map((g) => g.name).slice(0, 4));
 	const runtime = $derived(details?.runtime || details?.episode_run_time?.[0] || null);
-	const rating = $derived($titleInfo?.vote_average ? Math.round($titleInfo.vote_average * 10) / 10 : null);
+	const ratingRaw = $derived($titleInfo?.vote_average ?? details?.vote_average ?? null);
+	const rating = $derived(ratingRaw ? Math.round(ratingRaw * 10) / 10 : null);
 
 	function toggleWatchlist() {
 		const item = $titleInfo;
@@ -69,10 +74,10 @@
 			<button class="close" onclick={closeTitleInfo} aria-label="Schließen">✕</button>
 
 			<div class="hero">
-				{#if item.backdrop}<img class="backdrop" src={item.backdrop} alt="" />{/if}
+				{#if backdrop}<img class="backdrop" src={backdrop} alt="" />{/if}
 				<div class="hero-fade"></div>
 				<div class="hero-row">
-					{#if item.poster}<img class="poster" src={item.poster} alt="" />{/if}
+					{#if poster}<img class="poster" src={poster} alt="" />{/if}
 					<div class="hero-meta">
 						<h2>{item.title}</h2>
 						<div class="chips">
@@ -93,8 +98,8 @@
 					<p class="muted">Lade Details …</p>
 				{/if}
 
-				{#if item.overview}
-					<p class="overview">{item.overview}</p>
+				{#if overview}
+					<p class="overview">{overview}</p>
 				{:else if !loading}
 					<p class="muted">Keine Beschreibung verfügbar.</p>
 				{/if}

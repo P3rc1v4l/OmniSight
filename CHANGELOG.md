@@ -4,6 +4,18 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.15.0] – 2026-05-29
+
+### Hinzugefügt
+- **Titel-Info-Fenster jetzt auch bei „Gemerkt":** Klick auf Poster oder Titel in der Watchlist öffnet das Info-Fenster (Beschreibung, Trailer, „Wo streamen", Merken/Entfernen). Fehlende Felder (Backdrop, Bewertung, Laufzeit) werden automatisch aus den TMDB-Details nachgeladen.
+- **Watchlist Import/Export (Punkt 19):** Auf der „Gemerkt"-Seite zwei Knöpfe – **Export** speichert die Liste als `omnihub-watchlist.json`, **Import** lädt eine solche Datei und fügt neue Titel hinzu (Duplikate werden übersprungen). Läuft komplett im Programm, ohne Zusatzrechte.
+
+### Hinweis zu VPN & WideVine (Punkt 19)
+- **VPN:** Ein echtes VPN lässt sich nicht sinnvoll/sicher in die App einbauen (Systemebene, Treiber, erhöhte Rechte). Empfehlung: separate VPN-App nutzen.
+- **WideVine/DRM:** Die System-WebView (WebView2) enthält **kein WideVine** – DRM-geschützte Inhalte (z.B. Netflix in HD, Disney+) spielen daher in der App ggf. nicht ab. Das gilt eingebettet wie im Fenster-Modus. Im normalen Browser/den offiziellen Apps ist WideVine vorhanden; WideVine lässt sich nicht in die App integrieren.
+
+---
+
 ## [0.14.0] – 2026-05-29
 
 ### Hinzugefügt
