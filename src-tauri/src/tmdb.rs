@@ -145,6 +145,25 @@ pub async fn tmdb_upcoming() -> Result<Vec<TmdbItem>, String> {
 }
 
 #[tauri::command]
+pub async fn tmdb_list(
+    path: String,
+    params: Vec<(String, String)>,
+    media_fallback: String,
+) -> Result<Vec<TmdbItem>, String> {
+    let refs: Vec<(&str, &str)> = params.iter().map(|(k, v)| (k.as_str(), v.as_str())).collect();
+    let v = get_json(&path, &refs).await?;
+    let arr = v
+        .get("results")
+        .and_then(|x| x.as_array())
+        .cloned()
+        .unwrap_or_default();
+    Ok(arr
+        .iter()
+        .map(|x| item_from_value(x, &media_fallback))
+        .collect())
+}
+
+#[tauri::command]
 pub async fn tmdb_details(media_type: String, id: i64) -> Result<Value, String> {
     let path = format!("/{}/{}", media_type, id);
     get_json(&path, &[("append_to_response", "videos,watch/providers")]).await

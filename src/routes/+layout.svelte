@@ -10,6 +10,7 @@
 	import SleepTimer from '$lib/components/SleepTimer.svelte';
 	import DiscordPresence from '$lib/components/DiscordPresence.svelte';
 	import TitleInfoModal from '$lib/components/TitleInfoModal.svelte';
+	import HiddenTitlesModal from '$lib/components/HiddenTitlesModal.svelte';
 	import Toasts from '$lib/components/Toasts.svelte';
 	import Clock from '$lib/components/Clock.svelte';
 	import Particles from '$lib/components/Particles.svelte';
@@ -96,6 +97,7 @@
 <SleepTimer />
 <DiscordPresence />
 <TitleInfoModal />
+<HiddenTitlesModal />
 
 <style>
 	.root { display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; position: relative; }

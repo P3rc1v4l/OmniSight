@@ -27,6 +27,8 @@ export const tmdb = {
 	search: (query: string) => call<TmdbItem[]>('tmdb_search', { query }),
 	trending: () => call<TmdbItem[]>('tmdb_trending'),
 	upcoming: () => call<TmdbItem[]>('tmdb_upcoming'),
+	list: (path: string, params: [string, string][], mediaFallback: 'movie' | 'tv') =>
+		call<TmdbItem[]>('tmdb_list', { path, params, mediaFallback }),
 	details: (mediaType: 'movie' | 'tv', id: number) =>
 		call<Record<string, unknown>>('tmdb_details', { mediaType, id })
 };

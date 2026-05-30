@@ -4,6 +4,21 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.18.0] – 2026-05-30
+
+### Geändert
+- **Neuigkeiten & Upcoming komplett neu gestaltet** (im Stil der Vorlage): großer **Hero** mit dem Backdrop des aktuellen Titels, Titel mittig in der Kopfzeile, **‹ ›-Pfeile** zum Blättern, darunter ein **Poster-Streifen** mit Titel + Jahr und **Punkten** zur Navigation. Klick auf den Hero öffnet die Titel-Infos.
+- **Tabs Filme / Serien / Anime** und (bei Neuigkeiten) Umschalter **Trending / Neu**. „Anime" nutzt japanische Animationsserien von TMDB.
+
+### Hinzugefügt
+- **Titel ausblenden:** Über das durchgestrichene Auge auf einer Poster-Karte verschwindet ein Titel aus der Liste.
+- **Auge-Button oben rechts** öffnet ein Fenster mit allen ausgeblendeten Filmen/Serien/Anime – dort lässt sich jeder Titel wieder **einblenden** (oder per Klick die Infos öffnen). Die Auswahl wird gespeichert.
+
+### Technik
+- Neuer flexibler Rust-Befehl `tmdb_list(path, params, mediaFallback)` für beliebige TMDB-Listen (Trending/Neu/Discover je Kategorie), neuer Speicher `hidden.ts`, neue Komponenten `MediaBrowser.svelte` und `HiddenTitlesModal.svelte`.
+
+---
+
 ## [0.17.0] – 2026-05-30
 
 ### Hinzugefügt

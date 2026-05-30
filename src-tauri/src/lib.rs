@@ -22,6 +22,7 @@ pub fn run() {
             tmdb::tmdb_search,
             tmdb::tmdb_trending,
             tmdb::tmdb_upcoming,
+            tmdb::tmdb_list,
             tmdb::tmdb_details,
             discord::discord_connect,
             discord::discord_set_activity,
