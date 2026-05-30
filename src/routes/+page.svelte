@@ -93,7 +93,11 @@
 	</header>
 
 	{#if $continueList.length && !search && $settings.plugins.continueWatching}
-		<div class="section-label">▶ Weiterschauen</div>
+		<button class="cont-resume" onclick={() => reopenContinue($continueList[0])} title={`„${$continueList[0].label}" fortsetzen`}>
+			<span class="cr-play">▶</span>
+			<span class="cr-label">Weiterschauen</span>
+			<span class="cr-title">{$continueList[0].label}</span>
+		</button>
 		<div class="cont-row">
 			{#each $continueList as c (c.key)}
 				<div class="cont">
@@ -245,19 +249,24 @@
 	.view button { padding: 8px 12px; }
 	.view button.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 
-	.cont-row { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 22px; scrollbar-width: none; -ms-overflow-style: none; }
+	.cont-resume { display: inline-flex; align-items: center; gap: 9px; background: none; border: 0; padding: 0; margin: 4px 0 12px; cursor: pointer; font-family: inherit; font-size: 13px; }
+	.cr-play { width: 24px; height: 24px; border-radius: 999px; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-size: 10px; flex-shrink: 0; }
+	.cr-label { color: var(--text); font-weight: 700; }
+	.cr-title { color: var(--text-muted); max-width: 340px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.cont-resume:hover .cr-label, .cont-resume:hover .cr-title { color: var(--accent); }
+	.cont-row { display: flex; gap: 11px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 22px; scrollbar-width: none; -ms-overflow-style: none; }
 	.cont-row::-webkit-scrollbar { width: 0; height: 0; display: none; }
-	.cont { position: relative; flex: 0 0 104px; width: 104px; }
-	.cont-tile { position: relative; width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; overflow: hidden; border: 0; cursor: pointer; padding: 0; background: radial-gradient(circle at 30% 30%, var(--c1), var(--c2)); display: grid; place-items: center; }
+	.cont { position: relative; flex: 0 0 68px; width: 68px; }
+	.cont-tile { position: relative; width: 100%; aspect-ratio: 2 / 3; border-radius: 8px; overflow: hidden; border: 0; cursor: pointer; padding: 0; background: radial-gradient(circle at 30% 30%, var(--c1), var(--c2)); display: grid; place-items: center; }
 	.cont-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
-	.cont-letter { font-size: 34px; font-weight: 800; color: #fff; }
-	.cont-play { position: absolute; inset: 0; display: grid; place-items: center; font-size: 26px; color: #fff; background: rgba(0, 0, 0, 0.32); opacity: 0; transition: opacity 0.15s; }
+	.cont-letter { font-size: 22px; font-weight: 800; color: #fff; }
+	.cont-play { position: absolute; inset: 0; display: grid; place-items: center; font-size: 17px; color: #fff; background: rgba(0, 0, 0, 0.32); opacity: 0; transition: opacity 0.15s; }
 	.cont-tile:hover .cont-play { opacity: 1; }
-	.cont-x { position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; border-radius: 6px; background: rgba(0, 0, 0, 0.55); border: 0; color: #fff; font-size: 15px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity 0.15s, background 0.15s; display: grid; place-items: center; z-index: 2; }
+	.cont-x { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 5px; background: rgba(0, 0, 0, 0.55); border: 0; color: #fff; font-size: 13px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity 0.15s, background 0.15s; display: grid; place-items: center; z-index: 2; }
 	.cont:hover .cont-x { opacity: 1; }
 	.cont-x:hover { background: rgba(220, 45, 45, 0.85); }
-	.cont-t { margin-top: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-	.cont-s { font-size: 10.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.cont-t { margin-top: 5px; font-size: 10.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.cont-s { font-size: 9.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 	.grid.favs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 22px; }
 	.grid.all { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }

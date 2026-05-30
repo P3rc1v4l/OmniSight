@@ -4,6 +4,15 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.21.1] – 2026-05-30
+
+### Geändert
+- **„Weiterschauen" jetzt pro Profil:** Jedes Profil hat seine eigene Liste (wie die Watchlist).
+- **Kacheln deutlich kleiner**, damit die Reihe kompakter ist.
+- **„Weiterschauen"-Kopf ist jetzt ein Knopf:** Ein Klick öffnet sofort den **zuletzt gesehenen Titel** (zeigt dessen Namen). Die Kacheln darunter bleiben für ältere Einträge.
+
+---
+
 ## [0.21.0] – 2026-05-30
 
 ### Hinzugefügt

@@ -1,6 +1,6 @@
 // "Weiterschauen": merkt sich zuletzt geöffnete Titel/Anbieter inkl. der echten
 // Anbieter-URL, damit man per Klick wieder genau dort landet (gleiche Anmeldung).
-// Persistiert (localStorage + tauri-store).
+// Pro Profil eine eigene Liste (wie die Watchlist).
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { loadState, saveState } from '$lib/persistence';
@@ -19,38 +19,19 @@ export interface ContinueEntry {
 
 export const continueList = writable<ContinueEntry[]>([]);
 
-const LS = 'omnihub:continue';
 const MAX = 12;
-let loaded = false;
+let pid: string | null = null;
+let ready = false;
+
+export async function loadContinueForProfile(profileId: string): Promise<void> {
+	pid = profileId;
+	continueList.set(await loadState<ContinueEntry[]>(`continue:${profileId}`, []));
+	ready = true;
+}
 
 if (browser) {
-	(async () => {
-		let init: ContinueEntry[] = [];
-		try {
-			const raw = window.localStorage.getItem(LS);
-			if (raw) init = JSON.parse(raw);
-		} catch {
-			/* ignore */
-		}
-		if (init.length === 0) {
-			try {
-				init = (await loadState<ContinueEntry[]>('continue', [])) || [];
-			} catch {
-				/* ignore */
-			}
-		}
-		continueList.set(init);
-		loaded = true;
-	})();
-
-	continueList.subscribe((v) => {
-		if (!loaded) return;
-		try {
-			window.localStorage.setItem(LS, JSON.stringify(v));
-		} catch {
-			/* ignore */
-		}
-		void saveState('continue', v);
+	continueList.subscribe(($c) => {
+		if (ready && pid) void saveState(`continue:${pid}`, $c);
 	});
 }
 

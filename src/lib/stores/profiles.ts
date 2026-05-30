@@ -4,6 +4,7 @@ import type { Profile } from '$lib/types';
 import { loadState, saveState } from '$lib/persistence';
 import { loadProviderProfileData } from './providers';
 import { loadWatchlistForProfile } from './watchlist';
+import { loadContinueForProfile } from './continue';
 import { loadTrackingForProfile, resetSessions } from './tracking';
 import { loadCelebratedForProfile, achievements } from './achievements';
 
@@ -97,6 +98,7 @@ export function clearPin(id: string): void {
 export async function loadProfileData(profileId: string): Promise<void> {
 	await loadProviderProfileData(profileId);
 	await loadWatchlistForProfile(profileId);
+	await loadContinueForProfile(profileId);
 	await loadTrackingForProfile(profileId);
 	// Achievement-Baseline NACH dem Laden von Favoriten/Watchlist/Streamzeit.
 	await loadCelebratedForProfile(
