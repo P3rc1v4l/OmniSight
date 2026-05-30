@@ -2,6 +2,8 @@
 	import { tmdb, openTitleInfo, titleInfo } from '$lib/tmdb';
 	import { hiddenTitles, isHidden, hideTitle, showHidden } from '$lib/stores/hidden';
 	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist } from '$lib/stores/watchlist';
+	import { openUrlInApp } from '$lib/embedded';
+	import { extractWatchProviders, type WatchProvider } from '$lib/watchProviders';
 	import type { TmdbItem } from '$lib/types';
 
 	let { kind = 'news' }: { kind?: 'news' | 'upcoming' } = $props();
@@ -18,6 +20,9 @@
 	let paused = $state(false);
 	let resumeTimer: ReturnType<typeof setTimeout> | null = null;
 	let stripEl = $state<HTMLDivElement | null>(null);
+	let heroProviders = $state<WatchProvider[]>([]);
+	const detailsCache = new Map<string, WatchProvider[]>();
+	let providerReqId = 0;
 
 	const cache = new Map<string, TmdbItem[]>();
 	const today = new Date().toISOString().slice(0, 10);
@@ -98,6 +103,30 @@
 		el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 	});
 
+	// Anbieter ("wo läuft das") für den aktuellen Hero-Titel nachladen (mit Cache).
+	$effect(() => {
+		const h = hero;
+		heroProviders = [];
+		if (!h) return;
+		const key = `${h.media_type}-${h.id}`;
+		const cached = detailsCache.get(key);
+		if (cached) {
+			heroProviders = cached;
+			return;
+		}
+		const reqId = ++providerReqId;
+		(async () => {
+			try {
+				const d = await tmdb.details(h.media_type === 'tv' ? 'tv' : 'movie', h.id);
+				const provs = extractWatchProviders(d, h.title);
+				detailsCache.set(key, provs);
+				if (reqId === providerReqId) heroProviders = provs;
+			} catch {
+				/* ignore */
+			}
+		})();
+	});
+
 	// Automatischer Wechsel alle 7 s – pausiert bei Klick, bei offenem Fenster
 	// und wenn es nur einen Titel gibt.
 	$effect(() => {
@@ -152,6 +181,12 @@
 		pauseTemporarily();
 		if (inList) removeFromWatchlist(hero.id, hero.media_type);
 		else addToWatchlist(hero);
+	}
+
+	function openProv(e: Event, p: WatchProvider) {
+		e.stopPropagation();
+		pauseTemporarily();
+		openUrlInApp(hero?.title ?? '', p.url, p.id, p.name);
 	}
 
 	const cats: { id: Cat; label: string }[] = [
@@ -212,6 +247,16 @@
 						<span>{hero.media_type === 'tv' ? 'Serie' : 'Film'}</span>
 					</div>
 					{#if hero.overview}<p class="desc">{hero.overview}</p>{/if}
+					{#if heroProviders.length}
+						<div class="provs">
+							<span class="provs-label">Ansehen bei</span>
+							{#each heroProviders.slice(0, 6) as p (p.name)}
+								<button class="provlogo" title={`${p.name} öffnen`} onclick={(e) => openProv(e, p)}>
+									<img src={p.logo} alt={p.name} loading="lazy" />
+								</button>
+							{/each}
+						</div>
+					{/if}
 					<div class="actions">
 						<button class="details" onclick={openHero}>Details ansehen</button>
 						<button class="watch" class:on={inList} onclick={toggleWatch}>
@@ -291,6 +336,11 @@
 	.watch { background: rgba(255, 255, 255, 0.14); color: #fff; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 9px; padding: 9px 16px; font-family: inherit; font-weight: 700; font-size: 13.5px; cursor: pointer; backdrop-filter: blur(4px); transition: background 0.15s, border-color 0.15s, color 0.15s; }
 	.watch:hover { background: rgba(255, 255, 255, 0.24); }
 	.watch.on { background: color-mix(in srgb, var(--accent) 22%, transparent); border-color: var(--accent); color: var(--accent); }
+	.provs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+	.provs-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255, 255, 255, 0.7); margin-right: 2px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); }
+	.provlogo { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 8px; transition: transform 0.15s; }
+	.provlogo:hover { transform: translateY(-2px); }
+	.provlogo img { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255, 255, 255, 0.3); display: block; box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.6); }
 	@keyframes heroFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 	.strip { display: flex; gap: 14px; overflow-x: auto; padding: 14px 20px 4px; scrollbar-width: none; -ms-overflow-style: none; }

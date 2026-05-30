@@ -4,6 +4,16 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.20.0] – 2026-05-30
+
+### Hinzugefügt
+- **Anbieter-Logos im Hero:** Neuigkeiten/Upcoming zeigen jetzt unter der Beschreibung, **wo der Titel läuft** (bis zu 6 Logos). Ein Klick öffnet den Anbieter direkt in OmniHub (Titel-Suche, geteilte Anmeldung – wie im Info-Fenster). Die Anbieter werden pro Titel nachgeladen und zwischengespeichert.
+
+### Intern
+- Die „Wo läuft das"-Logik liegt jetzt in einem gemeinsamen Modul `watchProviders.ts`, das Hero und Titel-Info-Fenster gemeinsam nutzen (eine Quelle statt doppeltem Code).
+
+---
+
 ## [0.19.1] – 2026-05-30
 
 ### Geändert
