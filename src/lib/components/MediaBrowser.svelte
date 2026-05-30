@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tmdb, openTitleInfo } from '$lib/tmdb';
+	import { tmdb, openTitleInfo, titleInfo } from '$lib/tmdb';
 	import { hiddenTitles, isHidden, hideTitle, showHidden } from '$lib/stores/hidden';
 	import type { TmdbItem } from '$lib/types';
 
@@ -14,6 +14,7 @@
 	let loading = $state(true);
 	let error = $state<string | null>(null);
 	let focused = $state(0);
+	let paused = $state(false);
 	let stripEl = $state<HTMLDivElement | null>(null);
 
 	const cache = new Map<string, TmdbItem[]>();
@@ -48,6 +49,7 @@
 		if (cache.has(key)) {
 			items = cache.get(key)!;
 			focused = 0;
+			paused = false;
 			loading = false;
 			error = null;
 			return;
@@ -64,6 +66,7 @@
 			items = res;
 		}
 		focused = 0;
+		paused = false;
 		loading = false;
 	}
 
@@ -86,19 +89,36 @@
 		el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 	});
 
+	// Automatischer Wechsel alle 7 s – pausiert bei Klick, bei offenem Fenster
+	// und wenn es nur einen Titel gibt.
+	$effect(() => {
+		if (paused || $showHidden || $titleInfo) return;
+		const n = visible.length;
+		if (n <= 1) return;
+		const id = setInterval(() => {
+			const m = visible.length;
+			if (m > 1) focused = (clamped + 1) % m;
+		}, 7000);
+		return () => clearInterval(id);
+	});
+
 	function go(d: number) {
+		paused = true;
 		const n = visible.length;
 		if (!n) return;
 		focused = (clamped + d + n) % n;
 	}
 	function pick(i: number) {
+		paused = true;
 		focused = i;
 	}
 	function openHero() {
+		paused = true;
 		if (hero) openTitleInfo(hero);
 	}
 	function hide(e: Event, t: TmdbItem) {
 		e.stopPropagation();
+		paused = true;
 		hideTitle(t);
 	}
 
@@ -211,13 +231,13 @@
 	.state.err { color: #fca5a5; max-width: 640px; margin: 0 auto; }
 
 	.strip { display: flex; gap: 14px; overflow-x: auto; padding: 14px 20px 4px; }
-	.cell { flex: 0 0 132px; }
-	.thumb { position: relative; border-radius: 10px; }
-	.pbtn { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 10px; }
-	.pbtn img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; border-radius: 10px; border: 2px solid transparent; transition: border-color 0.15s, transform 0.15s; }
-	.pbtn:hover img { transform: translateY(-2px); }
-	.thumb.on .pbtn img { border-color: var(--accent); }
-	.noimg { width: 100%; aspect-ratio: 2/3; display: grid; place-items: center; background: var(--bg-card-2); font-size: 28px; color: var(--text-dim); border-radius: 10px; }
+	.cell { flex: 0 0 132px; width: 132px; }
+	.thumb { position: relative; width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; overflow: hidden; border: 2px solid transparent; box-sizing: border-box; background: var(--bg-card-2); transition: border-color 0.15s, transform 0.15s; }
+	.thumb:hover { transform: translateY(-2px); }
+	.thumb.on { border-color: var(--accent); }
+	.pbtn { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: pointer; }
+	.pbtn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+	.noimg { width: 100%; height: 100%; display: grid; place-items: center; background: var(--bg-card-2); font-size: 28px; color: var(--text-dim); }
 	.hidebtn { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 7px; background: rgba(0,0,0,0.55); border: 0; color: #fff; display: grid; place-items: center; cursor: pointer; opacity: 0; transition: opacity 0.15s, background 0.15s; }
 	.thumb:hover .hidebtn { opacity: 1; }
 	.hidebtn:hover { background: rgba(220,45,45,0.85); }

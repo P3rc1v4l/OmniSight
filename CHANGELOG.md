@@ -4,6 +4,16 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.18.1] – 2026-05-30
+
+### Hinzugefügt
+- **Automatischer Wechsel im Hero:** Neuigkeiten/Upcoming blättern alle 7 Sekunden von selbst zum nächsten Titel. **Sobald du klickst** (Pfeile, Poster, Punkte oder Hero) oder ein Fenster offen ist, **pausiert** der Wechsel. Beim Wechsel der Tabs/Modi startet er wieder.
+
+### Behoben
+- **Alle Poster-Karten sind jetzt exakt gleich groß.** Die Kachel ist eine feste 2:3-Box, in die das Poster gefüllt wird – unterschiedliche Bildgrößen wirken sich nicht mehr aus.
+
+---
+
 ## [0.18.0] – 2026-05-30
 
 ### Geändert
