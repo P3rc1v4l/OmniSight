@@ -22,13 +22,14 @@ async function callPage(start: number, end: number, page: number): Promise<any |
 	}
 }
 
-// Holt den Ausstrahlungsplan der nächsten 7 Tage (ab jetzt), über mehrere Seiten.
-export async function fetchWeekSchedule(): Promise<AiringItem[]> {
+// Holt den Ausstrahlungsplan der nächsten ODER letzten 7 Tage, über mehrere Seiten.
+export async function fetchWeekSchedule(direction: 'next' | 'last' = 'next'): Promise<AiringItem[]> {
 	const now = Math.floor(Date.now() / 1000);
-	const end = now + 7 * 24 * 3600;
+	const start = direction === 'last' ? now - 7 * 24 * 3600 : now;
+	const end = direction === 'last' ? now : now + 7 * 24 * 3600;
 	const items: AiringItem[] = [];
 	for (let page = 1; page <= 6; page++) {
-		const data = await callPage(now, end, page);
+		const data = await callPage(start, end, page);
 		const p = data?.data?.Page;
 		if (!p) break;
 		for (const s of p.airingSchedules ?? []) {

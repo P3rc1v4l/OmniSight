@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.31.0
+Stand: v0.32.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -54,7 +54,6 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - 💡 **Kinderprofil**: Anbieter-Whitelist + Tageszeit-/Zeitlimit pro Profil.
 - 💡 **App-Sperre beim Start** per PIN (optional).
 - 💡 Hell/Dunkel automatisch nach Tageszeit; mehr Akzent-Presets.
-- 💡 Drag&Drop auch für die „Weiterschauen"-Reihe.
 
 ### Technisch / Sicherheit
 - 💡 PINs verschlüsselt ablegen (OS-Schlüsselspeicher/keyring) statt Klartext.
@@ -84,6 +83,9 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - ✅ HTML5-Drag&Drop repariert (`dragDropEnabled: false`)
 - ✅ Einstellungen erscheinen vor dem Stream; Vollbild + GPU-Schalter
 - ✅ Versteckte Wiederherstellung für den Admin-PIN
+- ✅ Suchverlauf in der Übersicht (nur bei fokussierter Suche)
+- ✅ „Weiterschauen" als reiner Button (ohne Kachelreihe)
+- ✅ CR-Kalender: volle Breite + Auswahl „letzte/nächste 7 Tage"
 
 ---
 

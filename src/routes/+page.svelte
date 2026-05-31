@@ -8,10 +8,11 @@
 	import { addToWatchlist, watchlist, isInWatchlist } from '$lib/stores/watchlist';
 	import type { TmdbItem } from '$lib/types';
 	import { openProvider, openUrlInApp } from '$lib/embedded';
-	import { continueList, removeContinue, type ContinueEntry } from '$lib/stores/continue';
+	import { continueList, type ContinueEntry } from '$lib/stores/continue';
 	import { searchHistory, addSearch, removeSearch, clearSearchHistory } from '$lib/stores/searchHistory';
 
 	let search = $state('');
+	let searchFocused = $state(false);
 	let view: 'grid' | 'list' = $state('grid');
 	let categoryFilter = $state('all');
 	let showAdd = $state(false);
@@ -150,6 +151,8 @@
 				type="text"
 				placeholder="Anbieter, Film, Serie, YouTube-URL…"
 				bind:value={search}
+				onfocus={() => (searchFocused = true)}
+				onblur={() => setTimeout(() => (searchFocused = false), 150)}
 				onkeydown={(e) => { if (e.key === 'Enter') addSearch(search); }}
 			/>
 		</div>
@@ -163,7 +166,7 @@
 		</div>
 	</header>
 
-	{#if !search.trim() && $searchHistory.length}
+	{#if searchFocused && !search.trim() && $searchHistory.length}
 		<div class="searchhist">
 			<span class="sh-label">Zuletzt gesucht</span>
 			{#each $searchHistory as term (term)}
@@ -182,19 +185,6 @@
 			<span class="cr-label">Weiterschauen</span>
 			<span class="cr-title">{$continueList[0].label}</span>
 		</button>
-		<div class="cont-row">
-			{#each $continueList as c (c.key)}
-				<div class="cont">
-					<button class="cont-tile" style="--c1: {c.color}; --c2: {c.color2}" onclick={() => reopenContinue(c)} title={`„${c.label}" wieder öffnen`}>
-						{#if c.poster}<img src={c.poster} alt={c.label} loading="lazy" />{:else}<span class="cont-letter">{c.label.slice(0, 1)}</span>{/if}
-						<span class="cont-play">▶</span>
-					</button>
-					<button class="cont-x" onclick={() => removeContinue(c.key)} title="Entfernen" aria-label="Aus Weiterschauen entfernen">×</button>
-					<div class="cont-t">{c.label}</div>
-					{#if c.subtitle}<div class="cont-s">{c.subtitle}</div>{/if}
-				</div>
-			{/each}
-		</div>
 	{/if}
 
 	{#if $favoriteProviders.length && !search}
@@ -357,19 +347,6 @@
 	.cr-label { color: var(--text); font-weight: 700; }
 	.cr-title { color: var(--text-muted); max-width: 340px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.cont-resume:hover .cr-label, .cont-resume:hover .cr-title { color: var(--accent); }
-	.cont-row { display: flex; gap: 11px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 22px; scrollbar-width: none; -ms-overflow-style: none; }
-	.cont-row::-webkit-scrollbar { width: 0; height: 0; display: none; }
-	.cont { position: relative; flex: 0 0 68px; width: 68px; }
-	.cont-tile { position: relative; width: 100%; aspect-ratio: 2 / 3; border-radius: 8px; overflow: hidden; border: 0; cursor: pointer; padding: 0; background: radial-gradient(circle at 30% 30%, var(--c1), var(--c2)); display: grid; place-items: center; }
-	.cont-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
-	.cont-letter { font-size: 22px; font-weight: 800; color: #fff; }
-	.cont-play { position: absolute; inset: 0; display: grid; place-items: center; font-size: 17px; color: #fff; background: rgba(0, 0, 0, 0.32); opacity: 0; transition: opacity 0.15s; }
-	.cont-tile:hover .cont-play { opacity: 1; }
-	.cont-x { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 5px; background: rgba(0, 0, 0, 0.55); border: 0; color: #fff; font-size: 13px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity 0.15s, background 0.15s; display: grid; place-items: center; z-index: 2; }
-	.cont:hover .cont-x { opacity: 1; }
-	.cont-x:hover { background: rgba(220, 45, 45, 0.85); }
-	.cont-t { margin-top: 5px; font-size: 10.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-	.cont-s { font-size: 9.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.catbar { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 16px; }
 	.cat { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 13px; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
 	.cat:hover { border-color: var(--border-strong); color: var(--text); }

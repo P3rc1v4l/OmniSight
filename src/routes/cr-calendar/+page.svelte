@@ -7,18 +7,25 @@
 	let loading = $state(true);
 	let failed = $state(false);
 	let onlyCrunchyroll = $state(true);
+	let range = $state<'next' | 'last'>('next');
 
 	async function load() {
 		loading = true;
 		failed = false;
 		try {
-			items = await fetchWeekSchedule();
+			items = await fetchWeekSchedule(range);
 		} catch {
 			failed = true;
 		}
 		loading = false;
 	}
 	onMount(load);
+
+	function setRange(r: 'next' | 'last') {
+		if (range === r) return;
+		range = r;
+		void load();
+	}
 
 	const filtered = $derived(onlyCrunchyroll ? items.filter((i) => i.crunchyrollUrl) : items);
 	const crCount = $derived(items.filter((i) => i.crunchyrollUrl).length);
@@ -31,6 +38,7 @@
 		const diff = Math.round((dd.getTime() - today.getTime()) / 86400000);
 		if (diff === 0) return 'Heute';
 		if (diff === 1) return 'Morgen';
+		if (diff === -1) return 'Gestern';
 		return dd.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
 	}
 	function timeLabel(ts: number): string {
@@ -51,7 +59,7 @@
 			}
 			m.get(key)!.items.push(it);
 		}
-		const arr = [...m.values()].sort((a, b) => a.sort - b.sort);
+		const arr = [...m.values()].sort((a, b) => (range === 'last' ? b.sort - a.sort : a.sort - b.sort));
 		for (const g of arr) g.items.sort((a, b) => a.airingAt - b.airingAt);
 		return arr;
 	});
@@ -70,10 +78,14 @@
 			<span class="ico">⛩️</span>
 			<div>
 				<h1>CR&nbsp;Kalender</h1>
-				<p class="sub">Anime-Ausstrahlung der nächsten 7 Tage · Quelle: AniList</p>
+				<p class="sub">Anime-Ausstrahlung der {range === 'last' ? 'letzten' : 'nächsten'} 7&nbsp;Tage · Quelle: AniList</p>
 			</div>
 		</div>
 		<div class="controls">
+			<div class="range">
+				<button class:on={range === 'next'} onclick={() => setRange('next')}>Nächste 7 Tage</button>
+				<button class:on={range === 'last'} onclick={() => setRange('last')}>Letzte 7 Tage</button>
+			</div>
 			<button class="seg" class:on={onlyCrunchyroll} onclick={() => (onlyCrunchyroll = !onlyCrunchyroll)} title="Nur Crunchyroll-Titel zeigen">
 				<span class="dot"></span>Nur Crunchyroll
 			</button>
@@ -142,7 +154,7 @@
 </div>
 
 <style>
-	.page { padding: 24px 30px 44px; max-width: 1180px; }
+	.page { padding: 24px 30px 44px; }
 
 	/* Kopf */
 	.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 26px; }
@@ -154,7 +166,10 @@
 	}
 	h1 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
 	.sub { color: var(--text-muted); margin: 3px 0 0; font-size: 13.5px; }
-	.controls { display: flex; align-items: center; gap: 10px; }
+	.controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+	.range { display: inline-flex; background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px; padding: 3px; }
+	.range button { background: transparent; border: 0; color: var(--text-muted); font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer; transition: background 0.15s, color 0.15s; }
+	.range button.on { background: var(--accent); color: var(--accent-text); }
 	.seg {
 		display: inline-flex; align-items: center; gap: 9px; cursor: pointer; font-family: inherit;
 		font-size: 13px; font-weight: 600; color: var(--text-muted);

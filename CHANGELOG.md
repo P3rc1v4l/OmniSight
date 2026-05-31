@@ -4,6 +4,15 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.32.0] – 2026-05-31
+
+### Geändert
+- **Suchverlauf nur bei aktiver Suche:** Die Chips „Zuletzt gesucht" erscheinen jetzt nur, wenn das Suchfeld den Fokus hat – sonst sind sie ausgeblendet.
+- **„Weiterschauen" nur noch als Button:** Die Kachelreihe der zuletzt geöffneten Anbieter wurde entfernt; es bleibt der eine Fortsetzen-Button.
+- **CR-Kalender nutzt die volle Breite** und hat eine Umschaltung **„Nächste 7 Tage" / „Letzte 7 Tage"** (zeigt auch bereits ausgestrahlte Folgen, neueste zuerst).
+
+---
+
 ## [0.31.0] – 2026-05-31
 
 ### Geändert
