@@ -18,7 +18,7 @@ export function setProviderOrder(ids: string[]): void {
 
 export const visibleProviders = derived(providers, ($p) => $p.filter((x) => !x.hidden));
 export const favoriteProviders = derived([providers, favorites], ([$p, $f]) =>
-	$p.filter((x) => $f.includes(x.id) && !x.hidden)
+	$f.map((id) => $p.find((x) => x.id === id)).filter((x): x is Provider => !!x && !x.hidden)
 );
 export const recentProviders = derived([providers, recentProviderIds], ([$p, $ids]) =>
 	($ids.map((id) => $p.find((x) => x.id === id)).filter(Boolean) as Provider[])
@@ -30,6 +30,10 @@ export function resetProviders(): void {
 
 export function toggleFavorite(id: string): void {
 	favorites.update(($f) => ($f.includes(id) ? $f.filter((x) => x !== id) : [...$f, id]));
+}
+
+export function setFavoritesOrder(ids: string[]): void {
+	favorites.set(ids);
 }
 
 export function markOpened(id: string): void {

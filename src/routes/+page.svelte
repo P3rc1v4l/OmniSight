@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { visibleProviders, favoriteProviders, favorites, toggleFavorite, providerOrder, setProviderOrder } from '$lib/stores/providers';
+	import { visibleProviders, favoriteProviders, favorites, toggleFavorite, providerOrder, setProviderOrder, setFavoritesOrder } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import ProviderCard from '$lib/components/ProviderCard.svelte';
 	import Logo from '$lib/components/Logo.svelte';
@@ -12,6 +12,7 @@
 
 	let search = $state('');
 	let view: 'grid' | 'list' = $state('grid');
+	let categoryFilter = $state('all');
 	let showAdd = $state(false);
 	let tmdbResults = $state<TmdbItem[]>([]);
 	let searching = $state(false);
@@ -45,7 +46,43 @@
 		return list;
 	});
 
+	const CAT_LABELS: Record<string, string> = {
+		'film-serien': 'Filme & Serien',
+		anime: 'Anime',
+		'live-tv': 'Live-TV',
+		mediathek: 'Mediatheken',
+		sport: 'Sport',
+		musik: 'Musik',
+		video: 'Video',
+		eigene: 'Eigene'
+	};
+	const CAT_ORDER = ['film-serien', 'anime', 'live-tv', 'mediathek', 'sport', 'musik', 'video', 'eigene'];
+	const availableCats = $derived(CAT_ORDER.filter((c) => $visibleProviders.some((p) => p.category === c)));
+	// Anzeige = volle (sortierte) Liste, danach nach Kategorie gefiltert. Das Drag&Drop
+	// arbeitet weiter auf der vollen Liste (sortedFiltered), damit die globale
+	// Reihenfolge auch bei aktivem Filter nicht durcheinanderkommt.
+	const displayed = $derived(
+		sortedFiltered.filter((p) => categoryFilter === 'all' || p.category === categoryFilter)
+	);
+
+	let dragOverId = $state<string | null>(null);
+	function startDrag(e: DragEvent, id: string) {
+		dragId = id;
+		if (e.dataTransfer) {
+			e.dataTransfer.effectAllowed = 'move';
+			try {
+				e.dataTransfer.setData('text/plain', id);
+			} catch {
+				/* ignore */
+			}
+		}
+	}
+	function endDrag() {
+		dragId = null;
+		dragOverId = null;
+	}
 	function onDrop(targetId: string) {
+		dragOverId = null;
 		if (!dragId || dragId === targetId) { dragId = null; return; }
 		const ids = sortedFiltered.map((p) => p.id);
 		const from = ids.indexOf(dragId), to = ids.indexOf(targetId);
@@ -53,6 +90,38 @@
 		ids.splice(to, 0, ids.splice(from, 1)[0]);
 		setProviderOrder(ids);
 		dragId = null;
+	}
+
+	// Eigene Drag-Zustände für die Favoriten-Reihe (nicht mit „Alle Anbieter" vermischen).
+	let favDragId = $state<string | null>(null);
+	let favDragOverId = $state<string | null>(null);
+	function favStart(e: DragEvent, id: string) {
+		favDragId = id;
+		if (e.dataTransfer) {
+			e.dataTransfer.effectAllowed = 'move';
+			try {
+				e.dataTransfer.setData('text/plain', id);
+			} catch {
+				/* ignore */
+			}
+		}
+	}
+	function favEnd() {
+		favDragId = null;
+		favDragOverId = null;
+	}
+	function onFavDrop(targetId: string) {
+		favDragOverId = null;
+		const dId = favDragId;
+		favDragId = null;
+		if (!dId || dId === targetId) return;
+		const visible = $favoriteProviders.map((p) => p.id);
+		const from = visible.indexOf(dId), to = visible.indexOf(targetId);
+		if (from === -1 || to === -1) return;
+		visible.splice(to, 0, visible.splice(from, 1)[0]);
+		// evtl. ausgeblendete Favoriten (nicht in der Reihe sichtbar) hinten anhängen.
+		const others = $favorites.filter((id) => !visible.includes(id));
+		setFavoritesOrder([...visible, ...others]);
 	}
 
 	// Wenn die Suche keine Anbieter findet -> TMDB anfragen (mit Debounce)
@@ -114,57 +183,73 @@
 	{/if}
 
 	{#if $favoriteProviders.length && !search}
-		<div class="section-label">⭐ Favoriten</div>
+		<div class="section-label">⭐ Favoriten <span class="hint-inline">· ziehen zum Sortieren</span></div>
 		<div class="grid favs">
 			{#each $favoriteProviders as p (p.id)}
-				<ProviderCard provider={p} />
+				<div
+					class="dragwrap"
+					class:dragging={favDragId === p.id}
+					class:dragover={favDragOverId === p.id && favDragId !== p.id}
+					role="listitem"
+					draggable="true"
+					ondragstart={(e) => favStart(e, p.id)}
+					ondragend={favEnd}
+					ondragover={(e) => e.preventDefault()}
+					ondragenter={() => (favDragOverId = p.id)}
+					ondrop={(e) => { e.preventDefault(); onFavDrop(p.id); }}
+				>
+					<ProviderCard provider={p} />
+				</div>
 			{/each}
 		</div>
 	{/if}
 
-	<div class="section-label">Alle Anbieter <span class="hint-inline">· Griff oben links zum Sortieren ziehen</span></div>
-	{#if view === 'grid'}
+	<div class="section-label">Alle Anbieter <span class="hint-inline">· Karten zum Sortieren ziehen</span></div>
+	{#if availableCats.length > 1}
+		<div class="catbar">
+			<button class="cat" class:on={categoryFilter === 'all'} onclick={() => (categoryFilter = 'all')}>Alle</button>
+			{#each availableCats as c (c)}
+				<button class="cat" class:on={categoryFilter === c} onclick={() => (categoryFilter = c)}>{CAT_LABELS[c] ?? c}</button>
+			{/each}
+		</div>
+	{/if}
+	{#if displayed.length === 0}
+		<p class="empty-cat">Keine Anbieter in dieser Kategorie.</p>
+	{:else if view === 'grid'}
 		<div class="grid all">
-			{#each sortedFiltered as p (p.id)}
+			{#each displayed as p (p.id)}
 				<div
 					class="dragwrap"
 					class:dragging={dragId === p.id}
+					class:dragover={dragOverId === p.id && dragId !== p.id}
 					role="listitem"
+					draggable="true"
+					ondragstart={(e) => startDrag(e, p.id)}
+					ondragend={endDrag}
 					ondragover={(e) => e.preventDefault()}
+					ondragenter={() => (dragOverId = p.id)}
 					ondrop={(e) => { e.preventDefault(); onDrop(p.id); }}
 				>
-					<div
-						class="drag-handle"
-						draggable="true"
-						role="button"
-						tabindex="-1"
-						title="Zum Sortieren ziehen"
-						ondragstart={() => (dragId = p.id)}
-						ondragend={() => (dragId = null)}
-					>⠿</div>
 					<ProviderCard provider={p} size="large" />
 				</div>
 			{/each}
 		</div>
 	{:else}
 		<div class="list">
-			{#each sortedFiltered as p (p.id)}
+			{#each displayed as p (p.id)}
 				<div
 					class="lrow"
 					class:dragging={dragId === p.id}
+					class:dragover={dragOverId === p.id && dragId !== p.id}
+					draggable="true"
+					ondragstart={(e) => startDrag(e, p.id)}
+					ondragend={endDrag}
 					ondragover={(e) => e.preventDefault()}
+					ondragenter={() => (dragOverId = p.id)}
 					ondrop={(e) => { e.preventDefault(); onDrop(p.id); }}
 					style="--c1: {p.color}; --c2: {p.color2 ?? p.color}"
 				>
-					<span
-						class="lgrip"
-						draggable="true"
-						role="button"
-						tabindex="-1"
-						title="Zum Sortieren ziehen"
-						ondragstart={() => (dragId = p.id)}
-						ondragend={() => (dragId = null)}
-					>⠿</span>
+					<span class="lgrip" title="Zum Sortieren ziehen">⠿</span>
 					<button class="lopen" onclick={() => openProvider(p)} title={`${p.name} öffnen`}>
 						<Logo provider={p} size={34} />
 						<span class="lname">{p.name}</span>
@@ -221,19 +306,13 @@
 <style>
 	.page { padding: 22px 28px 36px; max-width: none; width: 100%; box-sizing: border-box; }
 	.hint-inline { font-size: 11px; font-weight: 500; color: var(--text-dim); }
-	.dragwrap { position: relative; }
-	.drag-handle {
-		position: absolute; top: 8px; left: 8px; z-index: 6;
-		width: 26px; height: 22px; border-radius: 7px;
-		display: grid; place-items: center;
-		background: color-mix(in srgb, var(--bg-elev) 70%, transparent);
-		color: var(--text-muted); font-size: 13px; cursor: grab;
-		opacity: 0; transition: opacity 0.15s;
-		backdrop-filter: blur(4px);
-	}
-	.dragwrap:hover .drag-handle { opacity: 1; }
-	.drag-handle:active { cursor: grabbing; }
-	.dragwrap.dragging, .lrow.dragging { opacity: 0.45; }
+	.dragwrap { position: relative; cursor: grab; }
+	.dragwrap:active { cursor: grabbing; }
+	.dragwrap.dragging, .lrow.dragging { opacity: 0.4; }
+	.dragwrap.dragover { outline: 2px dashed var(--accent); outline-offset: 3px; border-radius: 18px; }
+	.lrow.dragover { outline: 2px dashed var(--accent); outline-offset: -2px; }
+	/* Bilder/Logos nicht einzeln ziehbar – so wird die ganze Karte gezogen. */
+	.dragwrap :global(img), .dragwrap :global(svg), .lrow :global(img), .lrow :global(svg) { -webkit-user-drag: none; }
 	.top { display: flex; gap: 14px; align-items: center; margin-bottom: 22px; }
 	.search { flex: 1; display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 16px; }
 	.search input { flex: 1; background: transparent; border: 0; outline: 0; color: var(--text); font-size: 14px; font-family: inherit; }
@@ -267,6 +346,11 @@
 	.cont-x:hover { background: rgba(220, 45, 45, 0.85); }
 	.cont-t { margin-top: 5px; font-size: 10.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.cont-s { font-size: 9.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.catbar { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 16px; }
+	.cat { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 13px; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+	.cat:hover { border-color: var(--border-strong); color: var(--text); }
+	.cat.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+	.empty-cat { color: var(--text-muted); padding: 8px 2px 20px; }
 
 	.grid.favs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 22px; }
 	.grid.all { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }

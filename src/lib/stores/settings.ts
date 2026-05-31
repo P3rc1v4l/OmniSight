@@ -6,6 +6,9 @@ import { loadState, saveState } from '$lib/persistence';
 // Steuert, ob das Onboarding-Fenster offen ist (kann von überall ausgelöst werden).
 export const onboardingOpen = writable(false);
 
+// Zeitpunkt (ms), zu dem der Sleep-Timer abläuft – für den sichtbaren Countdown. null = aus.
+export const sleepTimerEndsAt = writable<number | null>(null);
+
 export const DEFAULT_SETTINGS: Settings = {
 	appearance: {
 		backgroundImage: null,

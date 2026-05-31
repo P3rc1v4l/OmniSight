@@ -4,6 +4,34 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.23.0] – 2026-05-30
+
+### Hinzugefügt
+- **Sichtbarer Sleep-Timer-Countdown:** Läuft der Sleep-Timer, erscheint unten rechts eine Anzeige (😴 mm:ss bzw. h:mm:ss), die jede Sekunde herunterzählt. Ein Klick darauf bricht den Timer ab. Funktioniert unabhängig davon, ob die Uhr eingeblendet ist.
+
+---
+
+## [0.22.0] – 2026-05-30
+
+### Hinzugefügt
+- **Kategorie-Filter in der Übersicht:** Über der Anbieter-Liste gibt es jetzt Filter-Chips (Alle · Filme & Serien · Anime · Live-TV · Mediatheken · Sport · Musik · Video · Eigene). Ein Klick zeigt nur die passende Kategorie. Es erscheinen nur Kategorien, die auch Anbieter haben. Drag & Drop bleibt dabei korrekt – die globale Reihenfolge wird durch das Filtern nicht durcheinandergebracht.
+
+---
+
+## [0.21.3] – 2026-05-30
+
+### Hinzugefügt
+- **Favoriten-Reihe per Drag & Drop sortierbar:** Die ⭐-Favoriten lassen sich jetzt genauso per Ziehen umsortieren wie die Übersicht. Die Reihenfolge wird pro Profil gespeichert. (Favoriten folgen jetzt deiner eigenen Reihenfolge statt der Katalog-Reihenfolge.)
+
+---
+
+## [0.21.2] – 2026-05-30
+
+### Geändert
+- **Anbieterkarten per Drag & Drop verschieben:** In der Übersicht lässt sich jetzt die **ganze Karte** ziehen (statt nur ein kleiner Griff) – in Raster- und Listenansicht. Das Ziel wird beim Ziehen mit einem gestrichelten Rahmen hervorgehoben. Klicken zum Öffnen funktioniert weiterhin.
+
+---
+
 ## [0.21.1] – 2026-05-30
 
 ### Geändert
