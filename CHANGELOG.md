@@ -4,6 +4,14 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.27.0] – 2026-05-31
+
+### Geändert
+- **Einstellungen optisch überarbeitet (#6).** Durchgängiger Feinschliff in allen Tabs: echte **Schalter** (statt Häkchen), **Slider** mit eigenem Regler, eigene **Auswahl-Pfeile**, Fokus-Ringe in Akzentfarbe, sanftes Einblenden des Fensters, Akzent-Logo + leichter Verlauf in der Seitenleiste und ein runder Schließen-Knopf.
+- **Vollbild unten randlos (#1).** Der Streifen am unteren Rand (wo die Taskleiste wäre) ist weg – das Webview wird nach dem Vollbild-Übergang mehrfach nachpositioniert, bis die Fenstergröße final ist.
+
+---
+
 ## [0.26.0] – 2026-05-31
 
 ### Geändert / Hinzugefügt

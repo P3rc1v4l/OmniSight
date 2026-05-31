@@ -563,7 +563,8 @@
 {/if}
 
 <style>
-	.backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: grid; place-items: center; z-index: 90; backdrop-filter: blur(4px); }
+	.backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: grid; place-items: center; z-index: 90; backdrop-filter: blur(4px); animation: bd-in 0.18s ease; }
+	@keyframes bd-in { from { opacity: 0; } to { opacity: 1; } }
 	.dialog {
 		width: min(1080px, 92vw);
 		height: min(680px, 86vh);
@@ -572,15 +573,20 @@
 		border: 1px solid var(--border);
 		display: flex;
 		overflow: hidden;
+		box-shadow: 0 30px 80px -24px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.02) inset;
+		animation: dlg-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 	}
+	@keyframes dlg-in { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: none; } }
 	.side {
 		width: 240px; flex-shrink: 0;
 		border-right: 1px solid var(--border);
 		display: flex; flex-direction: column;
 		padding: 18px 14px;
+		background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 220px);
 	}
-	.head { display: flex; align-items: center; gap: 8px; padding: 0 6px 14px; }
-	.head h2 { margin: 0; font-size: 16px; font-weight: 700; }
+	.head { display: flex; align-items: center; gap: 10px; padding: 0 4px 14px; }
+	.head .emoji { width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px; display: grid; place-items: center; font-size: 17px; background: radial-gradient(circle at 30% 30%, var(--accent), color-mix(in srgb, var(--accent) 45%, #000)); box-shadow: 0 5px 14px -5px var(--accent); }
+	.head h2 { margin: 0; font-size: 16px; font-weight: 800; }
 	.search input {
 		width: 100%; padding: 8px 12px;
 		background: var(--bg-card); border: 1px solid var(--border);
@@ -591,26 +597,65 @@
 		background: transparent; border: 0; color: var(--text-muted);
 		display: flex; align-items: center; gap: 10px; padding: 9px 10px;
 		border-radius: 10px; cursor: pointer; text-align: left; font-size: 13.5px;
+		transition: background 0.13s, color 0.13s;
 	}
 	nav button:hover { background: var(--bg-card); color: var(--text); }
 	nav button.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
-	nav button .i { width: 18px; text-align: center; }
+	nav button .i { width: 18px; text-align: center; font-size: 15px; }
 	.version { color: var(--text-dim); font-size: 11px; text-align: center; padding-top: 8px; }
 
 	.main { flex: 1; display: flex; flex-direction: column; }
 	.main-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border); }
 	.main-head h3 { margin: 0; font-weight: 700; font-size: 17px; }
-	.x { background: transparent; border: 0; color: var(--text-muted); font-size: 26px; cursor: pointer; line-height: 1; }
+	.x { background: transparent; border: 0; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; transition: background 0.13s, color 0.13s; }
+	.x:hover { background: var(--bg-card); color: var(--text); }
 	.content { padding: 20px 24px; overflow: auto; }
 	.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 18px; }
 	.field { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s; }
 	.field:hover { border-color: var(--border-strong); }
 	.field > label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
 	.field input[type='range'] { width: 100%; }
-	input[type='range'], input[type='checkbox'] { accent-color: var(--accent); }
+	/* Custom Slider – einheitlicher Look in allen Tabs */
+	input[type='range'] {
+		-webkit-appearance: none; appearance: none;
+		height: 6px; border-radius: 999px; cursor: pointer;
+		background: color-mix(in srgb, var(--text-muted) 30%, transparent);
+		accent-color: var(--accent);
+	}
+	input[type='range']::-webkit-slider-thumb {
+		-webkit-appearance: none; appearance: none;
+		width: 16px; height: 16px; border-radius: 50%;
+		background: var(--accent); border: 2px solid var(--bg-elev);
+		box-shadow: 0 1px 5px rgba(0,0,0,0.45); transition: transform 0.1s;
+	}
+	input[type='range']::-webkit-slider-thumb:hover { transform: scale(1.15); }
+	/* Custom Schalter (Toggle) */
+	input[type='checkbox'] { accent-color: var(--accent); }
+	.toggle { gap: 10px; }
+	.toggle input[type='checkbox'] {
+		-webkit-appearance: none; appearance: none;
+		width: 40px; height: 22px; margin: 0; flex-shrink: 0;
+		border-radius: 999px; cursor: pointer;
+		background-color: color-mix(in srgb, var(--text-muted) 38%, transparent);
+		background-image: radial-gradient(circle 8px at 13px 50%, #fff 99%, transparent 100%);
+		background-repeat: no-repeat; background-position: 0 0;
+		transition: background-color 0.18s ease, background-position 0.18s ease;
+	}
+	.toggle input[type='checkbox']:checked { background-color: var(--accent); background-position: 17px 0; }
+	.toggle input[type='checkbox']:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 	.field select, .field .hex {
 		width: 100%; background: var(--bg-elev); color: var(--text);
 		border: 1px solid var(--border); padding: 7px 10px; border-radius: 8px; font-size: 13px;
+		transition: border-color 0.14s, box-shadow 0.14s;
+	}
+	.field select {
+		-webkit-appearance: none; appearance: none; padding-right: 30px;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+		background-repeat: no-repeat; background-position: right 10px center;
+	}
+	.field select:focus, .field .hex:focus, .search input:focus, .pname-in:focus, .pin-in:focus,
+	.plugin-opts select:focus, .content input[type='text']:focus {
+		outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
 	}
 	.field input[type='color'] { width: 32px; height: 32px; padding: 0; border: 1px solid var(--border); border-radius: 8px; background: transparent; }
 	.row { display: flex; gap: 8px; align-items: center; }

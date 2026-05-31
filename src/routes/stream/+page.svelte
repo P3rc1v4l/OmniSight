@@ -68,10 +68,18 @@
 	// Immersiv-/Reveal-Wechsel: Oberfläche bzw. Leiste ändert sich -> Webview an die
 	// neue Fläche anpassen, sobald das Layout neu gezeichnet ist.
 	$effect(() => {
-		$immersive;
+		const imm = $immersive;
 		barRevealed;
 		if (!$activeStream) return;
 		tick().then(() => requestAnimationFrame(() => onResize()));
+		// Der Vollbild-Übergang (maximiert -> Vollbild) braucht einen Moment, bis die
+		// Fenstergröße final ist. Mehrfach nachpositionieren, sonst bleibt unten ein
+		// Streifen (≈ Taskleistenhöhe) frei.
+		if (imm) {
+			setTimeout(onResize, 120);
+			setTimeout(onResize, 350);
+			setTimeout(onResize, 700);
+		}
 	});
 
 	// Verlässt man den Vollbildmodus, die Leiste wieder „normal" zeigen.
