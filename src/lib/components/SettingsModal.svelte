@@ -12,6 +12,16 @@
 
 	let { open = false, initialTab = 'appearance', close }: { open?: boolean; initialTab?: string; close: () => void } = $props();
 
+	async function restartApp() {
+		try {
+			const { relaunch } = await import('@tauri-apps/plugin-process');
+			await relaunch();
+		} catch (e) {
+			console.error('[restart]', e);
+			pushToast('Neustart nicht möglich', 'Bitte schließe und öffne OmniHub manuell.', '⚠️', 6000);
+		}
+	}
+
 	const tabs = [
 		{ id: 'appearance', label: 'Design', icon: '🎨' },
 		{ id: 'account', label: 'Profile', icon: '🔑' },
@@ -525,6 +535,16 @@
 									</details>
 								</div>
 							{/if}
+						</div>
+
+						<div class="plugin">
+							<div class="plugin-head">
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.hardwareAcceleration}/> <b>Hardware-Beschleunigung</b></label>
+							</div>
+							<p class="hint">Nutzt die Grafikkarte (GPU) für flüssigeres Abspielen. Ausschalten kann bei Grafikfehlern, Flackern oder schwarzem Bild helfen, kostet aber Leistung. <b>Wirkt erst nach einem Neustart der App.</b></p>
+							<div class="plugin-opts">
+								<button onclick={restartApp} style="background:var(--accent-soft); border:1px solid color-mix(in srgb, var(--accent) 40%, transparent); color:var(--text); padding:8px 14px; border-radius:9px; cursor:pointer; font-family:inherit; font-size:13px; font-weight:600;">App jetzt neu starten</button>
+							</div>
 						</div>
 
 						<div class="block" style="margin-top:16px">

@@ -75,6 +75,7 @@ export interface PluginSettings {
 	continueWatching: boolean;
 	discordEnabled: boolean;
 	discordClientId: string;
+	hardwareAcceleration: boolean;
 }
 
 export interface Settings {

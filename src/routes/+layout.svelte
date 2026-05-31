@@ -17,7 +17,7 @@
 	import UpdateBanner from '$lib/components/UpdateBanner.svelte';
 	import NotificationCenter from '$lib/components/NotificationCenter.svelte';
 	import { checkForUpdate } from '$lib/stores/updater';
-	import { hideEmbedded, unhideEmbedded } from '$lib/embedded';
+	import { hideEmbedded, unhideEmbedded, immersive } from '$lib/embedded';
 	import { settings, hydrateSettings, applySettings, onboardingOpen } from '$lib/stores/settings';
 	import { hydrateCatalog } from '$lib/stores/providers';
 	import { hydrateProfiles, loadProfileData, activeProfileId } from '$lib/stores/profiles';
@@ -85,10 +85,14 @@
 
 <div class="root">
 	<Particles />
-	<Titlebar onHelp={() => (showShortcuts = true)} />
-	<UpdateBanner />
+	{#if !$immersive}
+		<Titlebar onHelp={() => (showShortcuts = true)} />
+		<UpdateBanner />
+	{/if}
 	<div class="below">
-		<Sidebar openSettings={() => openSettings()} openProfiles={() => openSettings('account')} />
+		{#if !$immersive}
+			<Sidebar openSettings={() => openSettings()} openProfiles={() => openSettings('account')} />
+		{/if}
 		<main>{@render children()}</main>
 	</div>
 </div>

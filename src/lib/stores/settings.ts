@@ -44,7 +44,8 @@ export const DEFAULT_SETTINGS: Settings = {
 		sleepTimerCloseStream: true,
 		continueWatching: true,
 		discordEnabled: false,
-		discordClientId: ''
+		discordClientId: '',
+		hardwareAcceleration: true
 	},
 	onboardingDone: false
 };

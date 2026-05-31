@@ -4,6 +4,19 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.25.0] – 2026-05-31
+
+### Hinzugefügt
+- **Vollbild für Streams (#3).** Neuer „⛶ Vollbild"-Knopf in der Stream-Leiste: blendet Titelleiste + Seitenleiste aus, zieht das eingebettete Webview auf die ganze Fläche und setzt das Fenster in den OS-Vollbild. Beenden über „⤡ Vollbild beenden" in der schmalen oberen Leiste, die sichtbar/anklickbar bleibt (sie liegt über dem Webview). Beim Schließen des Streams wird der Vollbildmodus automatisch verlassen.
+- **Hardware-Beschleunigung an/aus (#4).** Neuer Schalter unter Einstellungen → Plugins. Schaltet die GPU-Nutzung der gesamten App. Greift beim **nächsten Start** (WebView2 liest das Startargument beim Anlegen); ein „App jetzt neu starten"-Knopf ist direkt dabei.
+
+### Technisch
+- `dragDropEnabled: false` bleibt aktiv (HTML5-DnD).
+- Neue Fenster-Berechtigungen: `set-fullscreen`, `is-fullscreen`.
+- Rust liest die GPU-Einstellung vor dem Fensterstart aus `omnihub.json` und setzt bei Bedarf `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--disable-gpu` (sicherer Standard: bei Lesefehler bleibt GPU an).
+
+---
+
 ## [0.24.0] – 2026-05-31
 
 ### Behoben

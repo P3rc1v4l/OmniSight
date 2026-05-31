@@ -20,6 +20,10 @@ export interface Rect { x: number; y: number; width: number; height: number; }
 // Zeigt der Stream-Seite, ob der Anbieter eingebettet läuft oder (Fallback) als Fenster.
 export const streamMode = writable<'embedded' | 'window' | null>(null);
 
+// Vollbild-/Immersiv-Modus: blendet die OmniHub-Oberfläche (Titelleiste, Seitenleiste)
+// aus, sodass der Stream das ganze Fenster füllt.
+export const immersive = writable(false);
+
 let currentLabel: string | null = null;
 let currentProviderId: string | null = null;
 let usingFallback = false;
@@ -182,8 +186,22 @@ export async function unhideEmbedded(): Promise<void> {
 	}
 }
 
+// Vollbild umschalten: OmniHub-Oberfläche ausblenden (über den Store) und das
+// Fenster in den OS-Vollbild setzen, damit der Stream alles ausfüllt.
+export async function setImmersive(on: boolean): Promise<void> {
+	immersive.set(on);
+	if (!browser) return;
+	try {
+		const { win } = await getWebviewApi();
+		await win.getCurrentWindow().setFullscreen(on);
+	} catch {
+		/* ignore */
+	}
+}
+
 export async function closeEmbedded(): Promise<void> {
 	if (!browser) return;
+	void setImmersive(false);
 	if (currentLabel && !usingFallback) {
 		try {
 			const { webview } = await getWebviewApi();

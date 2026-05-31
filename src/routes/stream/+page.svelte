@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { activeStream } from '$lib/stores/providers';
 	import { watchTime, sessionStart, formatDuration } from '$lib/stores/tracking';
-	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, type Rect } from '$lib/embedded';
+	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, immersive, setImmersive, type Rect } from '$lib/embedded';
 	import { openInWindow } from '$lib/streamWindow';
 	import Logo from '$lib/components/Logo.svelte';
 
@@ -41,11 +41,20 @@
 
 	onDestroy(() => {
 		hideEmbedded();
+		void setImmersive(false);
 	});
 
 	// Beim Mounten und bei Anbieterwechsel einbetten (läuft nur, solange die Seite offen ist).
 	$effect(() => {
 		if ($activeStream) refresh();
+	});
+
+	// Immersiv-Wechsel: Oberfläche blendet sich aus/ein -> Webview an die neue
+	// (größere/kleinere) Fläche anpassen, sobald das Layout neu gezeichnet ist.
+	$effect(() => {
+		$immersive;
+		if (!$activeStream) return;
+		tick().then(() => requestAnimationFrame(() => onResize()));
 	});
 
 	const liveMs = $derived.by(() => {
@@ -79,6 +88,10 @@
 			<span class="timer">⏱ {formatDuration(liveMs)}</span>
 			{#if $streamMode === 'window'}
 				<button class="btn" onclick={() => $activeStream && openInWindow($activeStream)}>Fenster zeigen</button>
+			{:else}
+				<button class="btn" onclick={() => setImmersive(!$immersive)} title={$immersive ? 'Vollbild beenden (Esc-Knopf hier)' : 'Stream auf Vollbild'}>
+					{$immersive ? '⤡ Vollbild beenden' : '⛶ Vollbild'}
+				</button>
 			{/if}
 			<button class="btn danger" onclick={close}>Schließen</button>
 		</div>
