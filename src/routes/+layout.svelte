@@ -8,6 +8,7 @@
 	import OnboardingModal from '$lib/components/OnboardingModal.svelte';
 	import CardEditorModal from '$lib/components/CardEditorModal.svelte';
 	import SleepTimer from '$lib/components/SleepTimer.svelte';
+	import MiniPlayer from '$lib/components/MiniPlayer.svelte';
 	import DiscordPresence from '$lib/components/DiscordPresence.svelte';
 	import TitleInfoModal from '$lib/components/TitleInfoModal.svelte';
 	import HiddenTitlesModal from '$lib/components/HiddenTitlesModal.svelte';
@@ -106,6 +107,7 @@
 <OnboardingModal open={$onboardingOpen} close={() => onboardingOpen.set(false)} />
 <CardEditorModal />
 <SleepTimer />
+<MiniPlayer />
 <DiscordPresence />
 <TitleInfoModal />
 <HiddenTitlesModal />

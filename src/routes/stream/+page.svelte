@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { activeStream } from '$lib/stores/providers';
 	import { watchTime, sessionStart, formatDuration } from '$lib/stores/tracking';
-	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, immersive, setImmersive, type Rect } from '$lib/embedded';
+	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, immersive, setImmersive, miniPlayer, goMini, type Rect } from '$lib/embedded';
 	import { openInWindow } from '$lib/streamWindow';
 	import Logo from '$lib/components/Logo.svelte';
 
@@ -47,6 +47,7 @@
 	}
 
 	onMount(() => {
+		miniPlayer.set(false); // Vollansicht – kein Mini-Player auf dieser Seite.
 		const timer = setInterval(() => (now = Date.now()), 1000);
 		window.addEventListener('resize', onResize);
 		return () => {
@@ -56,8 +57,11 @@
 	});
 
 	onDestroy(() => {
-		hideEmbedded();
 		void setImmersive(false);
+		// Verlässt man die Seite, ohne den Stream zu schließen, läuft er als
+		// Mini-Player weiter; sonst Webview ausblenden.
+		if (get(activeStream) && get(streamMode) === 'embedded') goMini();
+		else hideEmbedded();
 	});
 
 	// Beim Mounten und bei Anbieterwechsel einbetten (läuft nur, solange die Seite offen ist).
@@ -96,6 +100,7 @@
 	});
 
 	async function close() {
+		miniPlayer.set(false);
 		await closeEmbedded();
 		activeStream.set(null);
 		goto('/');

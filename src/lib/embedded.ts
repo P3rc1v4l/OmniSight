@@ -24,6 +24,21 @@ export const streamMode = writable<'embedded' | 'window' | null>(null);
 // aus, sodass der Stream das ganze Fenster füllt.
 export const immersive = writable(false);
 
+// Mini-Player: kleiner, angedockter Stream (Bild-in-Bild) beim Verlassen der Stream-Seite.
+export const miniPlayer = writable(false);
+export const MINI = { w: 340, vidH: 191, bar: 28, margin: 16 };
+export function miniVideoRect(): Rect {
+	const W = browser ? window.innerWidth : 1280;
+	const H = browser ? window.innerHeight : 720;
+	const x = W - MINI.w - MINI.margin;
+	const y = H - (MINI.bar + MINI.vidH) - MINI.margin;
+	return { x, y: y + MINI.bar, width: MINI.w, height: MINI.vidH };
+}
+export function goMini(): void {
+	miniPlayer.set(true);
+	void repositionEmbedded(miniVideoRect());
+}
+
 let currentLabel: string | null = null;
 let currentProviderId: string | null = null;
 let usingFallback = false;
@@ -229,6 +244,7 @@ export async function setImmersive(on: boolean): Promise<void> {
 export async function closeEmbedded(): Promise<void> {
 	if (!browser) return;
 	void setImmersive(false);
+	miniPlayer.set(false);
 	if (currentLabel && !usingFallback) {
 		try {
 			const { webview } = await getWebviewApi();

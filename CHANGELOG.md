@@ -4,6 +4,17 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.30.0] – 2026-05-31
+
+### Hinzugefügt
+- **Mini-Player (Bild-in-Bild).** Verlässt man die Stream-Seite, ohne zu schließen (z.B. zurück zur Übersicht), läuft der Stream als kleines angedocktes Fenster unten rechts weiter. Oben dran eine schmale Leiste mit Anbietername, **Großansicht** (zurück zum Vollbild-Stream) und **Schließen**. „Schaut gerade" in der Seitenleiste bringt ebenfalls zurück.
+- **Verlauf-Seite.** Neuer Eintrag „Verlauf" in der Seitenleiste: zeigt zuletzt geöffnete Titel/Anbieter mit Zeitangabe („vor 5 Min"), zum Wiederöffnen anklicken, einzeln entfernen oder den ganzen Verlauf leeren.
+
+### Hinweis
+- Der Mini-Player nutzt das native Stream-Webview (wird nur verschoben/verkleinert, nicht neu geladen) – bitte im Build prüfen, ob er beim Tab-Wechsel sauber unten rechts andockt.
+
+---
+
 ## [0.29.0] – 2026-05-31
 
 ### Geändert
