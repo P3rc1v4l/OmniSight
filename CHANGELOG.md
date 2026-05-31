@@ -4,6 +4,13 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.28.0] – 2026-05-31
+
+### Hinzugefügt
+- **Versteckte Wiederherstellung für den Admin-PIN.** Tippt man im Einstellungen-Tab „Profile" eine geheime Zeichenfolge, wird der Admin-Code sofort zurückgesetzt (Notfall, falls vergessen). Während des Tippens ist nichts sichtbar; die Kombination wirkt nur in diesem Tab. Danach lässt sich unten ein neuer Admin-Code setzen.
+
+---
+
 ## [0.27.0] – 2026-05-31
 
 ### Geändert

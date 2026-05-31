@@ -148,6 +148,28 @@
 		else resetMsg = 'Admin-Code ist falsch.';
 	}
 
+	// Versteckte Wiederherstellungs-Kombination: Tippt man im Profile-Tab exakt diese
+	// Zeichenfolge, wird der Admin-Code sofort zurückgesetzt (für den Fall, dass er
+	// vergessen wurde). Während des Tippens ist nichts sichtbar.
+	const SECRET_RESET = 'p34o%+wn9/';
+	let secretBuf = '';
+	async function onSecretKey(e: KeyboardEvent) {
+		if (!open || active !== 'account') { secretBuf = ''; return; }
+		if (e.key.length !== 1) return; // nur druckbare Einzelzeichen sammeln
+		secretBuf = (secretBuf + e.key).slice(-SECRET_RESET.length);
+		if (secretBuf === SECRET_RESET) {
+			secretBuf = '';
+			await clearAdminCode();
+			adminMsg = 'Admin-Code wurde zurückgesetzt.';
+			pushToast('Admin-PIN zurückgesetzt', 'Du kannst jetzt unten einen neuen Admin-Code setzen.', '🔑', 4000);
+		}
+	}
+	$effect(() => {
+		if (!open) { secretBuf = ''; return; }
+		window.addEventListener('keydown', onSecretKey);
+		return () => window.removeEventListener('keydown', onSecretKey);
+	});
+
 	// Beim Schließen Hinweis zeigen (Einstellungen werden automatisch gespeichert).
 	function doClose() {
 		pushToast('Einstellungen gespeichert', undefined, '✅', 2200);
