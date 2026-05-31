@@ -4,6 +4,13 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.32.1] – 2026-05-31
+
+### Behoben
+- **Einstellungen laufen wieder flüssig.** Der `backdrop-filter`-Weichzeichner hinter dem Fenster wurde entfernt (er wurde bei jedem Schalter-Klick und beim Scrollen neu berechnet → Ruckeln). Zusätzlich ist der Inhaltsbereich jetzt als eigene Render-Ebene isoliert (`contain`), sodass Scrollen und Umschalten sauber sind.
+
+---
+
 ## [0.32.0] – 2026-05-31
 
 ### Geändert

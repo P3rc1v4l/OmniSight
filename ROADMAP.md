@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.32.0
+Stand: v0.32.1
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -42,6 +42,7 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 ## 🆕 Weitere Vorschläge (Stand v0.28.0)
 
 ### Funktionen
+- ⏳ **Twitch: mehrere Streams gleichzeitig in-app** (mehrere Webviews) + **Hintergrund-Wiedergabe** (läuft beim Anbieterwechsel weiter) + **einzelne Streams stummschalten** (über Rust-`eval`, da Tauri kein direktes Audio-Mute bietet). Größere Mehr-Webview-Umstellung – wird phasenweise umgesetzt.
 - 💡 **Globale Suche** (Anbieter + TMDB) in einem Feld, Tastenkürzel Strg/Cmd+K.
 - ✅ **Suchverlauf in der Übersicht** (v0.31) – zuletzt gesuchte Begriffe als Chips unter der Suche. (Die separate „Verlauf"-Seite wurde auf Wunsch wieder entfernt.)
 - ✅ **Mini-Player (Bild-in-Bild)** beim Verlassen der Stream-Seite (v0.30) – angedockt unten rechts mit Großansicht/Schließen; **per Einstellung an-/abschaltbar** (v0.31).
@@ -86,6 +87,7 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - ✅ Suchverlauf in der Übersicht (nur bei fokussierter Suche)
 - ✅ „Weiterschauen" als reiner Button (ohne Kachelreihe)
 - ✅ CR-Kalender: volle Breite + Auswahl „letzte/nächste 7 Tage"
+- ✅ Einstellungen-Performance: flüssigere Schalter & Scrollen (Backdrop-Blur entfernt)
 
 ---
 

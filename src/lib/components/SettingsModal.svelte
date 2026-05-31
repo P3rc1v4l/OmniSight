@@ -592,7 +592,7 @@
 {/if}
 
 <style>
-	.backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: grid; place-items: center; z-index: 90; backdrop-filter: blur(4px); animation: bd-in 0.18s ease; }
+	.backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.62); display: grid; place-items: center; z-index: 90; animation: bd-in 0.18s ease; }
 	@keyframes bd-in { from { opacity: 0; } to { opacity: 1; } }
 	.dialog {
 		width: min(1180px, 94vw);
@@ -638,7 +638,7 @@
 	.main-head h3 { margin: 0; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
 	.x { background: transparent; border: 0; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; transition: background 0.13s, color 0.13s; }
 	.x:hover { background: var(--bg-card); color: var(--text); }
-	.content { padding: 24px 28px; overflow: auto; }
+	.content { padding: 24px 28px; overflow: auto; contain: paint; transform: translateZ(0); }
 	.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 20px; }
 	.field { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s, box-shadow 0.15s; }
 	.field:hover { border-color: var(--border-strong); }
