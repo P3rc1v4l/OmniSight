@@ -45,7 +45,8 @@ export const DEFAULT_SETTINGS: Settings = {
 		continueWatching: true,
 		discordEnabled: false,
 		discordClientId: '',
-		hardwareAcceleration: true
+		hardwareAcceleration: true,
+		miniPlayerEnabled: true
 	},
 	onboardingDone: false
 };

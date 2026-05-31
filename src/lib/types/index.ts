@@ -76,6 +76,7 @@ export interface PluginSettings {
 	discordEnabled: boolean;
 	discordClientId: string;
 	hardwareAcceleration: boolean;
+	miniPlayerEnabled: boolean;
 }
 
 export interface Settings {

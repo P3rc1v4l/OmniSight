@@ -4,6 +4,15 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.31.0] – 2026-05-31
+
+### Geändert
+- **„Verlauf"-Seite entfernt** (war unter Upcoming) – auf Wunsch wieder raus, Route gelöscht.
+- **Suchverlauf in der Übersicht:** Unter der Suche erscheinen die zuletzt gesuchten Begriffe als Chips (Enter speichert einen Suchbegriff). Anklicken sucht erneut, einzeln entfernbar oder ganz leeren.
+- **Mini-Player ist jetzt abschaltbar:** Schalter unter Einstellungen → Plugins. Aus = der Stream wird beim Verlassen der Stream-Seite ausgeblendet (kein Mini-Fenster).
+
+---
+
 ## [0.30.0] – 2026-05-31
 
 ### Hinzugefügt

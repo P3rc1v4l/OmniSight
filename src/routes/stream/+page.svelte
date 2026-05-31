@@ -3,6 +3,7 @@
 	import { get } from 'svelte/store';
 	import { goto } from '$app/navigation';
 	import { activeStream } from '$lib/stores/providers';
+	import { settings } from '$lib/stores/settings';
 	import { watchTime, sessionStart, formatDuration } from '$lib/stores/tracking';
 	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, immersive, setImmersive, miniPlayer, goMini, type Rect } from '$lib/embedded';
 	import { openInWindow } from '$lib/streamWindow';
@@ -59,8 +60,8 @@
 	onDestroy(() => {
 		void setImmersive(false);
 		// Verlässt man die Seite, ohne den Stream zu schließen, läuft er als
-		// Mini-Player weiter; sonst Webview ausblenden.
-		if (get(activeStream) && get(streamMode) === 'embedded') goMini();
+		// Mini-Player weiter – sofern in den Einstellungen aktiviert; sonst ausblenden.
+		if (get(activeStream) && get(streamMode) === 'embedded' && get(settings).plugins.miniPlayerEnabled) goMini();
 		else hideEmbedded();
 	});
 

@@ -9,6 +9,7 @@
 	import type { TmdbItem } from '$lib/types';
 	import { openProvider, openUrlInApp } from '$lib/embedded';
 	import { continueList, removeContinue, type ContinueEntry } from '$lib/stores/continue';
+	import { searchHistory, addSearch, removeSearch, clearSearchHistory } from '$lib/stores/searchHistory';
 
 	let search = $state('');
 	let view: 'grid' | 'list' = $state('grid');
@@ -149,6 +150,7 @@
 				type="text"
 				placeholder="Anbieter, Film, Serie, YouTube-URL…"
 				bind:value={search}
+				onkeydown={(e) => { if (e.key === 'Enter') addSearch(search); }}
 			/>
 		</div>
 		<div class="tools">
@@ -160,6 +162,19 @@
 			</div>
 		</div>
 	</header>
+
+	{#if !search.trim() && $searchHistory.length}
+		<div class="searchhist">
+			<span class="sh-label">Zuletzt gesucht</span>
+			{#each $searchHistory as term (term)}
+				<span class="sh-chip">
+					<button class="sh-term" onclick={() => (search = term)} title={`Erneut nach „${term}" suchen`}>{term}</button>
+					<button class="sh-x" onclick={() => removeSearch(term)} title="Entfernen" aria-label="Aus Suchverlauf entfernen">✕</button>
+				</span>
+			{/each}
+			<button class="sh-clear" onclick={() => clearSearchHistory()}>leeren</button>
+		</div>
+	{/if}
 
 	{#if $continueList.length && !search && $settings.plugins.continueWatching}
 		<button class="cont-resume" onclick={() => reopenContinue($continueList[0])} title={`„${$continueList[0].label}" fortsetzen`}>
@@ -314,6 +329,15 @@
 	/* Bilder/Logos nicht einzeln ziehbar – so wird die ganze Karte gezogen. */
 	.dragwrap :global(img), .dragwrap :global(svg), .lrow :global(img), .lrow :global(svg) { -webkit-user-drag: none; }
 	.top { display: flex; gap: 14px; align-items: center; margin-bottom: 22px; }
+	.searchhist { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: -8px 0 20px; }
+	.sh-label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-right: 2px; }
+	.sh-chip { display: inline-flex; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; transition: border-color 0.14s; }
+	.sh-chip:hover { border-color: var(--border-strong); }
+	.sh-term { background: transparent; border: 0; color: var(--text); font-family: inherit; font-size: 12.5px; font-weight: 500; padding: 5px 4px 5px 12px; cursor: pointer; }
+	.sh-x { background: transparent; border: 0; color: var(--text-muted); cursor: pointer; font-size: 10px; padding: 5px 9px 5px 5px; }
+	.sh-x:hover { color: var(--text); }
+	.sh-clear { background: transparent; border: 0; color: var(--text-muted); font-family: inherit; font-size: 12px; cursor: pointer; padding: 4px 6px; text-decoration: underline; }
+	.sh-clear:hover { color: var(--text); }
 	.search { flex: 1; display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 16px; }
 	.search input { flex: 1; background: transparent; border: 0; outline: 0; color: var(--text); font-size: 14px; font-family: inherit; }
 	.ic { color: var(--text-muted); font-size: 14px; }

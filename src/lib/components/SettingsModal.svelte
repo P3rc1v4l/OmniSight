@@ -519,6 +519,13 @@
 
 						<div class="plugin">
 							<div class="plugin-head">
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.miniPlayerEnabled}/> <b>Mini-Player</b></label>
+							</div>
+							<p class="hint">Wechselst du während eines Streams die Ansicht, läuft er als kleines Fenster unten rechts weiter. Aus = der Stream wird beim Verlassen der Stream-Seite ausgeblendet.</p>
+						</div>
+
+						<div class="plugin">
+							<div class="plugin-head">
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.sleepTimerEnabled}/> <b>Sleep-Timer</b></label>
 							</div>
 							<p class="hint">Nach Ablauf der Zeit wird ein Hinweis gezeigt – optional wird der laufende Stream geschlossen. Der Timer startet, sobald du ihn einschaltest.</p>

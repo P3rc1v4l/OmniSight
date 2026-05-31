@@ -13,8 +13,7 @@
 		{ href: '/', label: 'Übersicht', icon: '🏠' },
 		{ href: '/watchlist', label: 'Gemerkt', icon: '🔖' },
 		{ href: '/news', label: 'Neuigkeiten', icon: '📡' },
-		{ href: '/upcoming', label: 'Upcoming', icon: '📅' },
-		{ href: '/history', label: 'Verlauf', icon: '🕓' }
+		{ href: '/upcoming', label: 'Upcoming', icon: '📅' }
 	];
 
 	$: path = $page.url.pathname;

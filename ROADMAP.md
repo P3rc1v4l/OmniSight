@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.30.0
+Stand: v0.31.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -43,8 +43,8 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 
 ### Funktionen
 - 💡 **Globale Suche** (Anbieter + TMDB) in einem Feld, Tastenkürzel Strg/Cmd+K.
-- ✅ **Verlauf/History** der zuletzt geschauten Titel (v0.30) – eigene Seite „Verlauf".
-- ✅ **Mini-Player (Bild-in-Bild)** beim Verlassen der Stream-Seite (v0.30) – angedockt unten rechts mit Großansicht/Schließen.
+- ✅ **Suchverlauf in der Übersicht** (v0.31) – zuletzt gesuchte Begriffe als Chips unter der Suche. (Die separate „Verlauf"-Seite wurde auf Wunsch wieder entfernt.)
+- ✅ **Mini-Player (Bild-in-Bild)** beim Verlassen der Stream-Seite (v0.30) – angedockt unten rechts mit Großansicht/Schließen; **per Einstellung an-/abschaltbar** (v0.31).
 - 💡 **Split-View**: zwei Streams nebeneinander (z.B. für Sport).
 - 💡 **Release-Benachrichtigungen**: neue Folgen/Filme aus der Watchlist (mit CR-Kalender verknüpft).
 - 💡 **„Überrasch mich"** – zufälliger Titel/Anbieter.
