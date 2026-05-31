@@ -588,8 +588,8 @@
 	.backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: grid; place-items: center; z-index: 90; backdrop-filter: blur(4px); animation: bd-in 0.18s ease; }
 	@keyframes bd-in { from { opacity: 0; } to { opacity: 1; } }
 	.dialog {
-		width: min(1080px, 92vw);
-		height: min(680px, 86vh);
+		width: min(1180px, 94vw);
+		height: min(800px, 92vh);
 		background: var(--bg-elev);
 		border-radius: calc(var(--radius) + 4px);
 		border: 1px solid var(--border);
@@ -627,13 +627,14 @@
 	.version { color: var(--text-dim); font-size: 11px; text-align: center; padding-top: 8px; }
 
 	.main { flex: 1; display: flex; flex-direction: column; }
-	.main-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--border); }
-	.main-head h3 { margin: 0; font-weight: 700; font-size: 17px; }
+	.main-head { display: flex; justify-content: space-between; align-items: center; padding: 20px 28px; border-bottom: 1px solid var(--border); }
+	.main-head h3 { margin: 0; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
 	.x { background: transparent; border: 0; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; transition: background 0.13s, color 0.13s; }
 	.x:hover { background: var(--bg-card); color: var(--text); }
-	.content { padding: 20px 24px; overflow: auto; }
-	.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 18px; }
-	.field { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s; }
+	.content { padding: 24px 28px; overflow: auto; }
+	.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 20px; }
+	.field { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s, box-shadow 0.15s; }
+	.field:hover { border-color: var(--border-strong); }
 	.field:hover { border-color: var(--border-strong); }
 	.field > label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
 	.field input[type='range'] { width: 100%; }

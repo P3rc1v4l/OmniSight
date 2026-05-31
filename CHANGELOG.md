@@ -4,6 +4,14 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.29.0] – 2026-05-31
+
+### Geändert
+- **Einstellungsfenster größer** (bis 1180×800) und weiter aufgehübscht: luftigere Abstände, größere Überschrift, dezenter Hover auf den Karten.
+- **Roadmap wird ab jetzt automatisch gepflegt:** erledigte Punkte werden markiert und neue Vorschläge pro Version eingetragen. `ROADMAP.md` auf Stand v0.28.0 gebracht (Vollbild, GPU-Schalter, Einstellungen u.a. als erledigt) + neue Ideenliste ergänzt.
+
+---
+
 ## [0.28.0] – 2026-05-31
 
 ### Hinzugefügt

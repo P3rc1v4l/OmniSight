@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
-Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version aktualisiert**.
-Stand: v0.24.0
+Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
+Stand: v0.28.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -10,8 +10,8 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 ## 🆕 Neue Vorschläge (Stand v0.24.0)
 
 ### Technisch
-- ⏳ **Echtes Vollbild für eingebettete Streams.** Das eingebettete Anbieter-Fenster ist ein natives Webview – sein Vollbild ist auf sein Rechteck begrenzt. Lösung: Fullscreen-Anfrage der Seite per Rust-Event abfangen **oder** ein OmniHub-Vollbild-Schalter, der das Webview auf Fenstergröße zieht und das Fenster in den OS-Vollbild setzt. Beenden über globales Tastenkürzel (Esc/F11), da das Webview den Fokus hat.
-- ⏳ **Hardware-Beschleunigung (GPU) umschaltbar.** Über das WebView2-Startargument `--disable-gpu`, gesteuert durch eine gespeicherte Einstellung beim App-Start (erfordert Neustart, da Browser-Argumente nur beim Erzeugen greifen).
+- ✅ **Echtes Vollbild für eingebettete Streams** (v0.25–0.27): OmniHub-Vollbild-Schalter, randlos, Leiste per Maus oben einblendbar, Esc beendet (globales Tastenkürzel).
+- ✅ **Hardware-Beschleunigung (GPU) umschaltbar** (v0.25): Schalter unter Plugins, greift beim Neustart über WebView2-Startargument.
 - 💡 Webview-Pooling: Anbieter-Webviews vorhalten statt neu erzeugen → schnelleres Umschalten.
 - 💡 Datei-Logging mit Rotation (optional aktivierbar) zur leichteren Fehlersuche bei Builds.
 - 💡 Update-Kanäle (stabil/beta) + Changelog direkt im Update-Banner.
@@ -31,11 +31,37 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - 💡 Zifferntasten 1–9 als Schnellstart für Anbieter.
 
 ### UI
-- ⏳ **Einstellungen optisch überarbeiten** (klarere Gruppen, Icons, einheitliche Schalter/Slider) – in Arbeit.
+- ✅ **Einstellungen optisch überarbeitet** (v0.27–0.28): einheitliche Schalter/Slider, eigene Auswahl-Pfeile, Fokus-Ringe, Einblende-Animation, Akzent-Logo, größeres Fenster.
 - 💡 Anzahl je Kategorie als kleine Zahl am Filter-Chip.
 - 💡 Position des Sleep-Countdowns wählbar (Sidebar/oben/unten).
 - 💡 Kompakter Modus + einstellbare Kartengröße.
 - 💡 Akzentfarbe automatisch aus dem Logo des aktiven Anbieters.
+
+---
+
+## 🆕 Weitere Vorschläge (Stand v0.28.0)
+
+### Funktionen
+- 💡 **Globale Suche** (Anbieter + TMDB) in einem Feld, Tastenkürzel Strg/Cmd+K.
+- 💡 **Verlauf/History** der zuletzt geschauten Titel + „Zuletzt geöffnet"-Reihe.
+- 💡 **Mini-Player / Picture-in-Picture**, wenn man während des Streams in andere Tabs wechselt.
+- 💡 **Split-View**: zwei Streams nebeneinander (z.B. für Sport).
+- 💡 **Release-Benachrichtigungen**: neue Folgen/Filme aus der Watchlist (mit CR-Kalender verknüpft).
+- 💡 **„Überrasch mich"** – zufälliger Titel/Anbieter.
+- 💡 **Anbieter-Gruppen/Ordner** (eigene Sammlungen) + Zifferntasten 1–9 als Schnellstart.
+
+### UX / Kinderschutz
+- 💡 **Kinderprofil**: Anbieter-Whitelist + Tageszeit-/Zeitlimit pro Profil.
+- 💡 **App-Sperre beim Start** per PIN (optional).
+- 💡 Hell/Dunkel automatisch nach Tageszeit; mehr Akzent-Presets.
+- 💡 Drag&Drop auch für die „Weiterschauen"-Reihe.
+
+### Technisch / Sicherheit
+- 💡 PINs verschlüsselt ablegen (OS-Schlüsselspeicher/keyring) statt Klartext.
+- 💡 Strikte CSP nur für die OmniHub-Oberfläche (Anbieter-Webviews bleiben frei).
+- 💡 Auto-Update-Signatur verifizieren + Hinweis, falls Schlüssel fehlt.
+- 💡 Lazy-Loading von Postern/Logos für schnelleren Seitenaufbau.
+- 💡 Konfig-Backup (Export/Import) + Geräte-Sync.
 
 ---
 
@@ -51,6 +77,13 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - ✅ Profil-Wechsler mit PIN + Profilverwaltung (anlegen/umbenennen/löschen/PIN)
 - ✅ Eigenes Logo als App-/Desktop-Symbol; Installer mit Lizenz-Zustimmung
 - ✅ Dependabot (npm/Cargo/Actions)
+- ✅ News/Upcoming als Hero+Filmstrip, Titel ausblenden, Anbieter-Logos am Titel
+- ✅ „Weiterschauen"-Reihe (pro Profil) + Drag&Drop für Übersicht und Favoriten
+- ✅ Kategorie-Filter in der Übersicht (DnD-sicher)
+- ✅ Sichtbarer Sleep-Timer-Countdown (in der Seitenleiste)
+- ✅ HTML5-Drag&Drop repariert (`dragDropEnabled: false`)
+- ✅ Einstellungen erscheinen vor dem Stream; Vollbild + GPU-Schalter
+- ✅ Versteckte Wiederherstellung für den Admin-PIN
 
 ---
 
