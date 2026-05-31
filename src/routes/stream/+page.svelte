@@ -5,7 +5,7 @@
 	import { activeStream } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import { watchTime, sessionStart, formatDuration } from '$lib/stores/tracking';
-	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, immersive, setImmersive, miniPlayer, goMini, type Rect } from '$lib/embedded';
+	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, immersive, setImmersive, miniPlayer, goMini, pushForegroundToBackground, type Rect } from '$lib/embedded';
 	import { openInWindow } from '$lib/streamWindow';
 	import Logo from '$lib/components/Logo.svelte';
 
@@ -106,6 +106,13 @@
 		activeStream.set(null);
 		goto('/');
 	}
+
+	// Stream in den Hintergrund schieben (läuft weiter, Ton bleibt) und zur Übersicht.
+	function toBackground() {
+		void setImmersive(false);
+		pushForegroundToBackground();
+		goto('/');
+	}
 </script>
 
 <div class="page">
@@ -142,6 +149,9 @@
 				<button class="btn" onclick={() => setImmersive(!$immersive)} title={$immersive ? 'Vollbild beenden (Esc-Knopf hier)' : 'Stream auf Vollbild'}>
 					{$immersive ? '⤡ Vollbild beenden' : '⛶ Vollbild'}
 				</button>
+			{/if}
+			{#if $streamMode === 'embedded'}
+				<button class="btn" onclick={toBackground} title="Stream läuft im Hintergrund weiter – Ton bleibt, bis du ihn stummschaltest">⤓ Hintergrund</button>
 			{/if}
 			<button class="btn danger" onclick={close}>Schließen</button>
 		</div>

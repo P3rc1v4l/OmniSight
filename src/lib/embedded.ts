@@ -1,9 +1,13 @@
-// Punkt 8: Anbieter IM Hauptfenster anzeigen, als echtes eingebettetes Webview
-// (kein iframe -> keine "Verbindung verweigert"-Sperre). Pro Profil+Anbieter ein
-// eigenes Label -> getrennte, dauerhafte Logins je Profil.
+// Anbieter IM Hauptfenster als echtes eingebettetes Webview (kein iframe).
 //
-// Defensiv: Klappt das Einbetten zur Laufzeit nicht (z.B. Plattform ohne
-// Unterstützung), wird automatisch wieder ein separates Fenster geöffnet.
+// Mehr-Stream-Modell:
+// - EIN Vordergrund-Stream (wird auf /stream bzw. als Mini-Player gezeigt).
+// - BELIEBIG VIELE Hintergrund-Streams (laufen weiter, versteckt; in der Streams-Leiste
+//   gelistet; einzeln stummschaltbar). Über "In den Hintergrund" wandert der aktuelle
+//   Vordergrund-Stream dorthin.
+// - Anbieter in MULTI_PROVIDERS (z.B. Twitch) dürfen mehrfach laufen (eigene Webviews).
+//
+// Defensiv: Klappt das Einbetten nicht, wird ein separates Fenster geöffnet.
 import { browser } from '$app/environment';
 import { get, writable } from 'svelte/store';
 import { goto } from '$app/navigation';
@@ -17,14 +21,16 @@ import { openInWindow } from '$lib/streamWindow';
 
 export interface Rect { x: number; y: number; width: number; height: number; }
 
+// Anbieter, die mehrfach gleichzeitig laufen dürfen.
+const MULTI_PROVIDERS = ['twitch'];
+
 // Zeigt der Stream-Seite, ob der Anbieter eingebettet läuft oder (Fallback) als Fenster.
 export const streamMode = writable<'embedded' | 'window' | null>(null);
 
-// Vollbild-/Immersiv-Modus: blendet die OmniHub-Oberfläche (Titelleiste, Seitenleiste)
-// aus, sodass der Stream das ganze Fenster füllt.
+// Vollbild-/Immersiv-Modus.
 export const immersive = writable(false);
 
-// Mini-Player: kleiner, angedockter Stream (Bild-in-Bild) beim Verlassen der Stream-Seite.
+// Mini-Player (Bild-in-Bild) beim Verlassen der Stream-Seite.
 export const miniPlayer = writable(false);
 export const MINI = { w: 340, vidH: 191, bar: 28, margin: 16 };
 export function miniVideoRect(): Rect {
@@ -39,24 +45,48 @@ export function goMini(): void {
 	void repositionEmbedded(miniVideoRect());
 }
 
-let currentLabel: string | null = null;
+// Hintergrund-Streams (laufen weiter, versteckt).
+export interface BgStream {
+	streamId: string;
+	label: string;
+	provider: Provider;
+	muted: boolean;
+}
+export const backgroundStreams = writable<BgStream[]>([]);
+
+let currentLabel: string | null = null;     // Label des Vordergrund-Webviews
 let currentProviderId: string | null = null;
+let foregroundLabel: string | null = null;  // gewünschtes Vordergrund-Label (beim Öffnen vergeben)
 let usingFallback = false;
 let creatingLabel: string | null = null;
+let streamCounter = 0;
 
-// Vom Nutzer ausgelöstes Öffnen: aktiven Stream setzen und zur Stream-Seite,
-// die das Einbetten übernimmt.
+function makeLabel(providerId: string): string {
+	const pid = get(activeProfileId) ?? 'default';
+	return `embed-${pid}-${providerId}-${++streamCounter}`;
+}
+
+// Vom Nutzer ausgelöstes Öffnen.
 export function openProvider(p: Provider): void {
 	markOpened(p.id);
 	recordOpen({ label: p.name, subtitle: p.subtitle ?? '', url: p.url, id: p.id, color: p.color, color2: p.color2 ?? p.color, poster: null });
+
+	// Schon im Vordergrund? -> nur hinschalten.
+	if (currentProviderId === p.id && foregroundLabel && !usingFallback) {
+		goto('/stream');
+		return;
+	}
+	// Gleicher Anbieter im Hintergrund (außer Multi-Anbieter)? -> nach vorne holen.
+	if (!MULTI_PROVIDERS.includes(p.id)) {
+		const bg = get(backgroundStreams).find((b) => b.provider.id === p.id);
+		if (bg) { bringToForeground(bg.streamId); return; }
+	}
 	activeStream.set(p);
+	foregroundLabel = makeLabel(p.id);
 	goto('/stream');
 }
 
-// Öffnet eine beliebige URL IM Programm (nicht im externen Browser) – z.B. einen
-// Crunchyroll-Titel aus dem Kalender. Nutzt dieselbe Stream-Mechanik wie Anbieter
-// (eingebettet bzw. – je nach Einstellung – eigenes Fenster). Bei id 'crunchyroll'
-// wird die bestehende Crunchyroll-Anmeldung mitbenutzt.
+// Beliebige URL im Programm öffnen (z.B. Kalender-Titel). Ersetzt den Vordergrund.
 export async function openUrlInApp(
 	name: string,
 	url: string,
@@ -66,21 +96,11 @@ export async function openUrlInApp(
 	color2 = '#1f6f6a',
 	poster: string | null = null
 ): Promise<void> {
-	// Bestehende Einbettung schließen, damit die neue URL frisch geladen wird
-	// (die Anmeldedaten je Label bleiben erhalten).
-	await closeEmbedded();
+	await closeEmbedded(); // vorherigen Vordergrund schließen (Hintergrund bleibt)
 	if (id === 'crunchyroll') markOpened('crunchyroll');
 	recordOpen({ label: name, subtitle, url, id, color, color2, poster });
-	activeStream.set({
-		id,
-		name,
-		subtitle,
-		url,
-		category: 'anime',
-		color,
-		color2,
-		quality: '1080p'
-	});
+	activeStream.set({ id, name, subtitle, url, category: 'anime', color, color2, quality: '1080p' });
+	foregroundLabel = makeLabel(id);
 	goto('/stream');
 }
 
@@ -91,25 +111,46 @@ async function getWebviewApi() {
 	return { webview, dpi, win };
 }
 
+async function closeLabel(label: string): Promise<void> {
+	try {
+		const { webview } = await getWebviewApi();
+		const wv = await webview.Webview.getByLabel(label);
+		if (wv) await wv.close();
+	} catch {
+		/* ignore */
+	}
+}
+async function hideLabel(label: string): Promise<void> {
+	try {
+		const { webview } = await getWebviewApi();
+		const wv = await webview.Webview.getByLabel(label);
+		if (wv) await wv.hide();
+	} catch {
+		/* ignore */
+	}
+}
+
 export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 	if (!browser) return;
-	// Nutzer-Einstellung: explizit "Eigenes Fenster" -> gar nicht erst einbetten.
 	if (get(settings).appearance.streamMode === 'window') {
 		usingFallback = true;
 		streamMode.set('window');
 		await openInWindow(p);
 		return;
 	}
-	const pid = get(activeProfileId) ?? 'default';
-	const label = `embed-${pid}-${p.id}`;
+	const label = foregroundLabel ?? makeLabel(p.id);
+	foregroundLabel = label;
 	try {
 		const { webview, dpi, win } = await getWebviewApi();
 		const { Webview } = webview;
 		const { LogicalPosition, LogicalSize } = dpi;
 
-		// Anderen Anbieter offen? -> schließen (eine Einbettung gleichzeitig).
+		// Anderer Vordergrund offen? -> schließen (Hintergrund-Streams bleiben unberührt).
 		if (currentLabel && currentLabel !== label) {
-			await closeEmbedded();
+			await closeLabel(currentLabel);
+			if (currentProviderId) endSession(currentProviderId);
+			currentLabel = null;
+			currentProviderId = null;
 		}
 
 		const existing = await Webview.getByLabel(label);
@@ -125,7 +166,6 @@ export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 			return;
 		}
 
-		// Schutz gegen gleichzeitiges Erzeugen desselben Webviews
 		if (creatingLabel === label) return;
 		creatingLabel = label;
 
@@ -151,7 +191,6 @@ export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 		usingFallback = false;
 		streamMode.set('embedded');
 	} catch (e) {
-		// Einbetten nicht möglich -> Fallback auf separates Fenster.
 		console.warn('[embed] Einbetten fehlgeschlagen, öffne Fenster:', e);
 		usingFallback = true;
 		creatingLabel = null;
@@ -176,17 +215,9 @@ export async function repositionEmbedded(rect: Rect): Promise<void> {
 
 export async function hideEmbedded(): Promise<void> {
 	if (!browser || !currentLabel || usingFallback) return;
-	try {
-		const { webview } = await getWebviewApi();
-		const wv = await webview.Webview.getByLabel(currentLabel);
-		if (wv) await wv.hide();
-	} catch {
-		/* ignore */
-	}
+	await hideLabel(currentLabel);
 }
 
-// Zeigt das aktuell eingebettete Webview wieder an (z.B. nachdem die
-// Einstellungen geschlossen wurden, die es vorübergehend verdeckt hätten).
 export async function unhideEmbedded(): Promise<void> {
 	if (!browser || !currentLabel || usingFallback) return;
 	try {
@@ -201,8 +232,6 @@ export async function unhideEmbedded(): Promise<void> {
 	}
 }
 
-// Esc als globalen Shortcut, um den Vollbildmodus zu verlassen – nötig, weil der
-// Stream (natives Webview) den Tastatur-Fokus hat und OmniHub sonst kein Esc bekäme.
 async function registerEscExit(): Promise<void> {
 	if (!browser) return;
 	try {
@@ -226,8 +255,6 @@ async function unregisterEscExit(): Promise<void> {
 	}
 }
 
-// Vollbild umschalten: OmniHub-Oberfläche ausblenden (über den Store) und das
-// Fenster in den OS-Vollbild setzen, damit der Stream alles ausfüllt.
 export async function setImmersive(on: boolean): Promise<void> {
 	immersive.set(on);
 	if (!browser) return;
@@ -241,23 +268,69 @@ export async function setImmersive(on: boolean): Promise<void> {
 	else await unregisterEscExit();
 }
 
+// Schließt NUR den Vordergrund-Stream. Hintergrund-Streams bleiben erhalten.
 export async function closeEmbedded(): Promise<void> {
 	if (!browser) return;
 	void setImmersive(false);
 	miniPlayer.set(false);
-	if (currentLabel && !usingFallback) {
-		try {
-			const { webview } = await getWebviewApi();
-			const wv = await webview.Webview.getByLabel(currentLabel);
-			if (wv) await wv.close();
-		} catch {
-			/* ignore */
-		}
-	}
+	if (currentLabel && !usingFallback) await closeLabel(currentLabel);
 	if (currentProviderId) endSession(currentProviderId);
 	currentLabel = null;
 	currentProviderId = null;
+	foregroundLabel = null;
 	usingFallback = false;
 	creatingLabel = null;
 	streamMode.set(null);
+}
+
+// Schiebt den aktuellen Vordergrund-Stream in den Hintergrund (läuft weiter, versteckt).
+export function pushForegroundToBackground(): void {
+	const p = get(activeStream);
+	if (!p || !foregroundLabel || usingFallback) return;
+	const label = foregroundLabel;
+	void hideLabel(label);
+	backgroundStreams.update((l) => [...l, { streamId: `s${++streamCounter}`, label, provider: p, muted: false }]);
+	currentLabel = null;
+	currentProviderId = null;
+	foregroundLabel = null;
+	miniPlayer.set(false);
+	streamMode.set(null);
+	activeStream.set(null);
+}
+
+// Holt einen Hintergrund-Stream in den Vordergrund.
+export function bringToForeground(streamId: string): void {
+	const bg = get(backgroundStreams).find((b) => b.streamId === streamId);
+	if (!bg) return;
+	pushForegroundToBackground(); // ggf. aktuellen Vordergrund sichern
+	backgroundStreams.update((l) => l.filter((b) => b.streamId !== streamId));
+	foregroundLabel = bg.label;
+	currentLabel = bg.label;
+	currentProviderId = bg.provider.id;
+	usingFallback = false;
+	streamMode.set('embedded');
+	activeStream.set(bg.provider);
+	goto('/stream');
+}
+
+export async function closeBackgroundStream(streamId: string): Promise<void> {
+	const bg = get(backgroundStreams).find((b) => b.streamId === streamId);
+	if (!bg) return;
+	backgroundStreams.update((l) => l.filter((b) => b.streamId !== streamId));
+	if (bg.provider.id) endSession(bg.provider.id);
+	await closeLabel(bg.label);
+}
+
+// Stummschalten/Aktivieren eines Hintergrund-Streams (per Rust-eval im jeweiligen Webview).
+export async function setBackgroundMuted(streamId: string, muted: boolean): Promise<void> {
+	const bg = get(backgroundStreams).find((b) => b.streamId === streamId);
+	if (!bg) return;
+	backgroundStreams.update((l) => l.map((b) => (b.streamId === streamId ? { ...b, muted } : b)));
+	if (!browser) return;
+	try {
+		const { invoke } = await import('@tauri-apps/api/core');
+		await invoke('webview_set_muted', { label: bg.label, muted });
+	} catch (e) {
+		console.warn('[mute] fehlgeschlagen:', e);
+	}
 }

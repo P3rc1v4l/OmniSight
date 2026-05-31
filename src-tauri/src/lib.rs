@@ -25,6 +25,24 @@ fn hw_accel_disabled() -> bool {
     )
 }
 
+/// Schaltet einen eingebetteten Stream (per Webview-Label) stumm bzw. wieder laut.
+/// Tauri bietet kein direktes Audio-Mute, daher setzen wir im Webview alle
+/// <video>/<audio>-Elemente auf muted und beobachten DOM-Änderungen mit, weil
+/// Player (z.B. Twitch) das Video-Element zur Laufzeit austauschen.
+#[tauri::command]
+fn webview_set_muted(app: tauri::AppHandle, label: String, muted: bool) -> Result<(), String> {
+    use tauri::Manager;
+    let wv = app
+        .get_webview(&label)
+        .ok_or_else(|| format!("Webview '{}' nicht gefunden", label))?;
+    let val = if muted { "true" } else { "false" };
+    let js = String::from(
+        "(function(){window.__omniMuted=__M__;var a=function(){document.querySelectorAll('video,audio').forEach(function(e){try{e.muted=window.__omniMuted;}catch(_){}})};a();if(!window.__omniMuteObs){window.__omniMuteObs=new MutationObserver(a);try{window.__omniMuteObs.observe(document.documentElement,{childList:true,subtree:true});}catch(_){}}})();",
+    )
+    .replace("__M__", val);
+    wv.eval(&js).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Hardware-Beschleunigung ggf. abschalten. WebView2 liest dieses Env-Var beim
@@ -58,6 +76,7 @@ pub fn run() {
             discord::discord_disconnect,
             anilist::anilist_schedule,
             favicon::fetch_favicon,
+            webview_set_muted,
         ])
         .run(tauri::generate_context!())
         .expect("Fehler beim Start von OmniHub");

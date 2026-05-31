@@ -4,6 +4,19 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.33.0] – 2026-05-31
+
+### Neu – Mehrere Streams gleichzeitig (v.a. Twitch)
+- **Mehrere Streams parallel:** Twitch (und andere) dürfen jetzt mehrfach laufen. Jeder Stream ist ein eigenes eingebettetes Webview.
+- **„⤓ Hintergrund"-Knopf** auf der Stream-Seite: schiebt den laufenden Stream in den Hintergrund – er **läuft weiter** (Ton bleibt), während du einen anderen Anbieter startest.
+- **Streams-Leiste** unten links: listet alle Hintergrund-Streams. Pro Stream: **stummschalten 🔊/🔇**, **in den Vordergrund ▶**, **schließen ✕**.
+- **Einzeln stummschalten** über einen neuen Rust-Befehl, der im jeweiligen Webview die Video-/Audio-Elemente stummschaltet (inkl. Beobachter, falls der Player sein Video-Element austauscht).
+
+### Wichtig
+- Diese Funktion ist **nativ** und konnte nicht vorab getestet werden. Bitte im Build prüfen – besonders, ob versteckte Streams im Hintergrund **hörbar weiterlaufen** und ob das Stummschalten greift.
+
+---
+
 ## [0.32.1] – 2026-05-31
 
 ### Behoben
