@@ -4,13 +4,42 @@
 	import {
 		profiles, activeProfileId, addProfile, renameProfile, deleteProfile,
 		setPin, clearPin, verifyPin, MAX_PROFILES, MIN_PROFILES,
-		mainProfileId, setMainProfile, adminCodeHash, setAdminCode, verifyAdminCode, clearAdminCode, resetPinWithAdmin
+		mainProfileId, setMainProfile, adminCodeHash, setAdminCode, verifyAdminCode, clearAdminCode, resetPinWithAdmin,
+		profileSeparationEnabled, setProfileSeparation
 	} from '$lib/stores/profiles';
 	import { APP_VERSION, APP_NAME, LINKS, DEFAULT_DISCORD_CLIENT_ID } from '$lib/version';
 	import { updateState, checkForUpdate } from '$lib/stores/updater';
 	import { pushToast } from '$lib/stores/toasts';
 
 	let { open = false, initialTab = 'appearance', close }: { open?: boolean; initialTab?: string; close: () => void } = $props();
+
+	// WebView2-Diagnose: Version einmalig holen, sobald die Einstellungen offen sind.
+	let wv2Ver = $state<string | null>(null);
+	let wv2Failed = $state(false);
+	$effect(() => {
+		if (open && wv2Ver === null && !wv2Failed) {
+			void (async () => {
+				try {
+					const { invoke } = await import('@tauri-apps/api/core');
+					wv2Ver = await invoke<string>('webview2_version');
+				} catch {
+					wv2Failed = true;
+				}
+			})();
+		}
+	});
+
+	// Experimentelle Profiltrennung (eigene Logins je Profil).
+	let profileSep = $state(profileSeparationEnabled());
+	async function toggleProfileSep() {
+		profileSep = !profileSep;
+		await setProfileSeparation(profileSep, $activeProfileId);
+		pushToast(
+			profileSep ? 'Getrennte Logins aktiviert' : 'Getrennte Logins deaktiviert',
+			'Wird beim nächsten Neustart wirksam. Beim Profilwechsel startet die App dann neu.',
+			profileSep ? '🔒' : '🔓'
+		);
+	}
 
 	async function restartApp() {
 		try {
@@ -389,6 +418,27 @@
 						</div>
 
 						<div class="opt-group">
+							<div class="opt-group-title">System / WebView2</div>
+							{#if wv2Failed}
+								<div class="opt">
+									<div class="opt-ic">⚠️</div>
+									<div class="opt-tx2"><div class="opt-t">WebView2 nicht erkannt</div><div class="opt-d">Streams und Anzeige brauchen die WebView2-Runtime. Bitte installieren und die App neu starten.</div></div>
+								</div>
+								<a class="opt" href="https://developer.microsoft.com/en-us/microsoft-edge/webview2/" target="_blank" rel="noreferrer">
+									<div class="opt-ic">⬇️</div>
+									<div class="opt-tx2"><div class="opt-t">WebView2 herunterladen</div><div class="opt-d">Offizieller Microsoft-Download.</div></div>
+									<span class="opt-btn ghosty">Öffnen ↗</span>
+								</a>
+							{:else}
+								<div class="opt">
+									<div class="opt-ic">🧩</div>
+									<div class="opt-tx2"><div class="opt-t">WebView2-Runtime</div><div class="opt-d">Grundlage für die eingebetteten Streams.</div></div>
+									<span class="opt-btn ghosty">{wv2Ver ?? 'Prüfe…'}</span>
+								</div>
+							{/if}
+						</div>
+
+						<div class="opt-group">
 							<div class="opt-group-title">Updates</div>
 							<div class="opt">
 								<div class="opt-ic">⬆️</div>
@@ -430,7 +480,11 @@
 
 						<p class="copyright">© 2026 Luka Kalinka · {APP_NAME}</p>
 					{:else if active === 'account'}
-						<p class="acc-intro">Jedes Profil hat eigene Favoriten, Watchlist, Streamzeit und – beim Streamen – getrennte Logins.</p>
+						<p class="acc-intro">Jedes Profil hat eigene Favoriten, Watchlist und Streamzeit. Logins/Cookies sind standardmäßig geteilt – mit der Option unten lassen sie sich pro Profil trennen.</p>
+						<div class="sep-box">
+							<label class="toggle"><input type="checkbox" checked={profileSep} onchange={toggleProfileSep}/> <b>Getrennte Logins je Profil (experimentell)</b></label>
+							<p class="hint">Jedes Profil bekommt einen eigenen WebView2-Datenspeicher. <b>Beim Profilwechsel startet die App neu.</b> Wirkt erst nach einem Neustart – und nur, falls dein System es unterstützt; andernfalls bleiben die Logins geteilt.</p>
+						</div>
 						<div class="plist">
 							{#each $profiles as p (p.id)}
 								<div class="prow">
@@ -729,6 +783,8 @@
 	.plugin-head { display: flex; align-items: center; justify-content: space-between; }
 	.plugin .hint { margin: 6px 0 0; }
 	.plugin-opts { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+	.sep-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 4px 0 16px; }
+	.sep-box .hint { margin: 8px 0 0; }
 	.quick { display: inline-flex; gap: 6px; }
 	.qbtn { background: var(--bg-elev); border: 1px solid var(--border); color: var(--text-muted); border-radius: 999px; padding: 6px 12px; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background 0.14s, color 0.14s, border-color 0.14s; }
 	.qbtn:hover { border-color: var(--border-strong); color: var(--text); }

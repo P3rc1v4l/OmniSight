@@ -32,6 +32,9 @@ export const immersive = writable(false);
 
 // Mini-Player (Bild-in-Bild) beim Verlassen der Stream-Seite.
 export const miniPlayer = writable(false);
+
+// Fehlerzustand des Vordergrund-Streams (z.B. Webview-Erstellung fehlgeschlagen / abgestürzt).
+export const streamError = writable(false);
 export const MINI = { w: 340, vidH: 191, bar: 28, margin: 16 };
 export function miniVideoRect(): Rect {
 	const W = browser ? window.innerWidth : 1280;
@@ -51,6 +54,7 @@ export interface BgStream {
 	label: string;
 	provider: Provider;
 	muted: boolean;
+	volume: number; // 0–100
 }
 export const backgroundStreams = writable<BgStream[]>([]);
 
@@ -162,12 +166,14 @@ export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 			currentLabel = label;
 			currentProviderId = p.id;
 			usingFallback = false;
+			streamError.set(false);
 			streamMode.set('embedded');
 			return;
 		}
 
 		if (creatingLabel === label) return;
 		creatingLabel = label;
+		streamError.set(false);
 
 		const appWindow = win.getCurrentWindow();
 		const wv = new Webview(appWindow, label, {
@@ -185,6 +191,7 @@ export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 		wv.once('tauri://error', (e: unknown) => {
 			console.error('[embed]', e);
 			creatingLabel = null;
+			streamError.set(true);
 		});
 		currentLabel = label;
 		currentProviderId = p.id;
@@ -289,7 +296,7 @@ export function pushForegroundToBackground(): void {
 	if (!p || !foregroundLabel || usingFallback) return;
 	const label = foregroundLabel;
 	void hideLabel(label);
-	backgroundStreams.update((l) => [...l, { streamId: `s${++streamCounter}`, label, provider: p, muted: false }]);
+	backgroundStreams.update((l) => [...l, { streamId: `s${++streamCounter}`, label, provider: p, muted: false, volume: 100 }]);
 	currentLabel = null;
 	currentProviderId = null;
 	foregroundLabel = null;
@@ -333,4 +340,49 @@ export async function setBackgroundMuted(streamId: string, muted: boolean): Prom
 	} catch (e) {
 		console.warn('[mute] fehlgeschlagen:', e);
 	}
+}
+
+// Lautstärke (0–100) eines Hintergrund-Streams setzen.
+export async function setBackgroundVolume(streamId: string, volume: number): Promise<void> {
+	const bg = get(backgroundStreams).find((b) => b.streamId === streamId);
+	if (!bg) return;
+	const v = Math.max(0, Math.min(100, Math.round(volume)));
+	backgroundStreams.update((l) => l.map((b) => (b.streamId === streamId ? { ...b, volume: v } : b)));
+	if (!browser) return;
+	try {
+		const { invoke } = await import('@tauri-apps/api/core');
+		await invoke('webview_set_volume', { label: bg.label, volume: v / 100 });
+	} catch (e) {
+		console.warn('[volume] fehlgeschlagen:', e);
+	}
+}
+
+// Sammelaktionen für alle Hintergrund-Streams.
+export async function setAllBackgroundMuted(muted: boolean): Promise<void> {
+	const ids = get(backgroundStreams).map((b) => b.streamId);
+	for (const id of ids) await setBackgroundMuted(id, muted);
+}
+export async function closeAllBackgroundStreams(): Promise<void> {
+	const ids = get(backgroundStreams).map((b) => b.streamId);
+	for (const id of ids) await closeBackgroundStream(id);
+}
+
+// Vordergrund-Stream neu laden (Webview schließen + frisch erzeugen). Für Crash-Recovery.
+export async function reloadEmbedded(rect: Rect): Promise<void> {
+	const p = get(activeStream);
+	if (!browser || !p || usingFallback) return;
+	streamError.set(false);
+	if (foregroundLabel) await closeLabel(foregroundLabel);
+	currentLabel = null; // erzwingt Neuerstellung mit demselben Label
+	await showEmbedded(p, rect);
+}
+
+// Aktuellen Stream als eigenes Fenster öffnen (Notlösung, falls Einbetten klemmt).
+export async function openCurrentInWindow(): Promise<void> {
+	const p = get(activeStream);
+	if (!browser || !p) return;
+	await closeEmbedded();
+	usingFallback = true;
+	streamMode.set('window');
+	await openInWindow(p);
 }

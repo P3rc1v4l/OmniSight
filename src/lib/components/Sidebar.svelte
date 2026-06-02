@@ -3,7 +3,7 @@
 	import { activeStream } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import { notifCenterOpen } from '$lib/stores/toasts';
-	import { backgroundStreams, bringToForeground, closeBackgroundStream, setBackgroundMuted } from '$lib/embedded';
+	import { backgroundStreams, bringToForeground, closeBackgroundStream, setBackgroundMuted, setBackgroundVolume, setAllBackgroundMuted, closeAllBackgroundStreams } from '$lib/embedded';
 	import Logo from './Logo.svelte';
 	import ProfileSwitcher from './ProfileSwitcher.svelte';
 	import SleepCountdown from './SleepCountdown.svelte';
@@ -12,6 +12,7 @@
 	export let openProfiles: () => void;
 
 	let bgOpen = true;
+	$: allMuted = $backgroundStreams.length > 0 && $backgroundStreams.every((s) => s.muted);
 
 	const nav = [
 		{ href: '/', label: 'Übersicht', icon: '🏠' },
@@ -56,14 +57,33 @@
 				<div class="bg-list">
 					{#each $backgroundStreams as s (s.streamId)}
 						<div class="bg-row" class:muted={s.muted}>
-							<Logo provider={s.provider} size={18} />
-							<span class="bg-name" title={s.provider.name}>{s.provider.name}</span>
-							<button class="bg-ic" onclick={() => setBackgroundMuted(s.streamId, !s.muted)} title={s.muted ? 'Ton einschalten' : 'Stummschalten'} aria-label={s.muted ? 'Ton einschalten' : 'Stummschalten'}>{s.muted ? '🔇' : '🔊'}</button>
-							<button class="bg-ic" onclick={() => bringToForeground(s.streamId)} title="In den Vordergrund holen" aria-label="In den Vordergrund holen">▶</button>
-							<button class="bg-ic close" onclick={() => closeBackgroundStream(s.streamId)} title="Stream schließen" aria-label="Stream schließen">✕</button>
+							<div class="bg-top">
+								<Logo provider={s.provider} size={18} />
+								<span class="bg-name" title={s.provider.name}>{s.provider.name}</span>
+								<button class="bg-ic" onclick={() => setBackgroundMuted(s.streamId, !s.muted)} title={s.muted ? 'Ton einschalten' : 'Stummschalten'} aria-label={s.muted ? 'Ton einschalten' : 'Stummschalten'}>{s.muted ? '🔇' : '🔊'}</button>
+								<button class="bg-ic" onclick={() => bringToForeground(s.streamId)} title="In den Vordergrund holen" aria-label="In den Vordergrund holen">▶</button>
+								<button class="bg-ic close" onclick={() => closeBackgroundStream(s.streamId)} title="Stream schließen" aria-label="Stream schließen">✕</button>
+							</div>
+							<input
+								class="bg-vol"
+								type="range"
+								min="0"
+								max="100"
+								value={s.volume}
+								disabled={s.muted}
+								oninput={(e) => setBackgroundVolume(s.streamId, +(e.currentTarget as HTMLInputElement).value)}
+								title={`Lautstärke: ${s.volume}%`}
+								aria-label="Lautstärke"
+							/>
 						</div>
 					{/each}
 				</div>
+				{#if $backgroundStreams.length > 1}
+					<div class="bg-actions">
+						<button onclick={() => setAllBackgroundMuted(!allMuted)}>{allMuted ? 'Alle laut' : 'Alle stumm'}</button>
+						<button class="warn" onclick={() => closeAllBackgroundStreams()}>Alle schließen</button>
+					</div>
+				{/if}
 			{/if}
 		</div>
 	{/if}
@@ -130,12 +150,19 @@
 	.bg-count { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 7px; }
 	.bg-chev { font-size: 11px; color: var(--text-muted); transition: transform 0.15s; }
 	.bg-chev.open { transform: rotate(180deg); }
-	.bg-list { display: flex; flex-direction: column; gap: 2px; padding: 0 6px 6px; max-height: 230px; overflow-y: auto; }
-	.bg-row { display: flex; align-items: center; gap: 7px; padding: 4px 4px; border-radius: 8px; }
+	.bg-list { display: flex; flex-direction: column; gap: 2px; padding: 0 6px 6px; max-height: 260px; overflow-y: auto; }
+	.bg-row { display: flex; flex-direction: column; gap: 5px; padding: 6px 4px; border-radius: 8px; }
 	.bg-row:hover { background: var(--bg-elev); }
 	.bg-row.muted { opacity: 0.62; }
+	.bg-top { display: flex; align-items: center; gap: 7px; }
 	.bg-name { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.bg-vol { width: 100%; height: 4px; accent-color: var(--accent); cursor: pointer; margin: 0; }
+	.bg-vol:disabled { opacity: 0.4; cursor: default; }
 	.bg-ic { width: 22px; height: 22px; flex-shrink: 0; display: grid; place-items: center; background: transparent; border: 1px solid transparent; border-radius: 6px; cursor: pointer; font-size: 11.5px; line-height: 1; color: var(--text-muted); transition: background 0.12s, color 0.12s, border-color 0.12s; }
 	.bg-ic:hover { background: var(--bg-card); color: var(--text); border-color: var(--border); }
 	.bg-ic.close:hover { background: rgba(220, 45, 45, 0.85); color: #fff; border-color: transparent; }
+	.bg-actions { display: flex; gap: 6px; padding: 6px 6px 7px; }
+	.bg-actions button { flex: 1; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; padding: 6px 4px; font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+	.bg-actions button:hover { color: var(--text); border-color: var(--border-strong); }
+	.bg-actions button.warn:hover { background: rgba(220, 45, 45, 0.85); color: #fff; border-color: transparent; }
 </style>

@@ -18,9 +18,9 @@
 	import UpdateBanner from '$lib/components/UpdateBanner.svelte';
 	import NotificationCenter from '$lib/components/NotificationCenter.svelte';
 	import { checkForUpdate } from '$lib/stores/updater';
-	import { hideEmbedded, unhideEmbedded, immersive } from '$lib/embedded';
+	import { hideEmbedded, unhideEmbedded, immersive, openProvider } from '$lib/embedded';
 	import { settings, hydrateSettings, applySettings, onboardingOpen } from '$lib/stores/settings';
-	import { hydrateCatalog } from '$lib/stores/providers';
+	import { hydrateCatalog, favoriteProviders, visibleProviders } from '$lib/stores/providers';
 	import { hydrateProfiles, loadProfileData, activeProfileId } from '$lib/stores/profiles';
 	import { achievements, maybeNotify } from '$lib/stores/achievements';
 	import { get } from 'svelte/store';
@@ -72,7 +72,7 @@
 		const inField = (e.target as HTMLElement)?.matches?.('input,textarea,select');
 		if (e.key === 'Escape') { if (showSettings) closeSettings(); showShortcuts = false; return; }
 		if (inField) return;
-		if (e.key === 'F1') { e.preventDefault(); showShortcuts = true; }
+		if (e.key === 'F1' || e.key === '?') { e.preventDefault(); showShortcuts = true; }
 		else if (e.key === ',' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); openSettings(); }
 		else if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
 			e.preventDefault();
@@ -80,6 +80,12 @@
 		} else if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
 			e.preventDefault();
 			settings.update(($s) => ({ ...$s, appearance: { ...$s.appearance, theme: $s.appearance.theme === 'dark' ? 'light' : 'dark' } }));
+		} else if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+			// Zifferntasten: Favorit (sonst sichtbaren Anbieter) Nr. n direkt starten.
+			if (showSettings || showShortcuts || get(onboardingOpen)) return;
+			const list = get(favoriteProviders).length ? get(favoriteProviders) : get(visibleProviders);
+			const p = list[Number(e.key) - 1];
+			if (p) { e.preventDefault(); openProvider(p); }
 		}
 	}
 </script>

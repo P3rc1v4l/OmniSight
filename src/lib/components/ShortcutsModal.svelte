@@ -4,10 +4,12 @@
 
 	const shortcuts = [
 		{ keys: ['F1'], desc: 'Diese Tastenkürzel-Übersicht öffnen' },
+		{ keys: ['?'], desc: 'Diese Übersicht öffnen (alternativ)' },
+		{ keys: ['1–9'], desc: 'Favorit 1–9 direkt starten' },
 		{ keys: ['Strg', 'K'], desc: 'Suche fokussieren' },
 		{ keys: ['Strg', ','], desc: 'Einstellungen öffnen' },
 		{ keys: ['Strg', 'D'], desc: 'Hell-/Dunkel-Modus wechseln' },
-		{ keys: ['Esc'], desc: 'Dialog/Modal schließen' },
+		{ keys: ['Esc'], desc: 'Vollbild verlassen / Dialog schließen' },
 		{ keys: ['Enter'], desc: 'Markierten Anbieter / Treffer öffnen' }
 	];
 
@@ -41,9 +43,8 @@
 
 <style>
 	.backdrop {
-		position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+		position: fixed; inset: 0; background: rgba(0,0,0,0.6);
 		display: grid; place-items: center; z-index: 100;
-		backdrop-filter: blur(4px);
 	}
 	.dialog {
 		width: min(520px, 92vw);

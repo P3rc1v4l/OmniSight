@@ -1,9 +1,41 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.35.0
+Stand: v0.39.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
+
+---
+
+## 🆕 Neue Vorschläge (Stand v0.36.0)
+
+### Erledigt in dieser Version
+- ✅ **Anzahl je Kategorie** als Zahl am Filter-Chip.
+- ✅ **„Überrasch mich"** – zufälliger Anbieter (🎲 in der Übersicht).
+- ✅ **Zifferntasten 1–9** starten Favorit (sonst sichtbaren Anbieter) Nr. n direkt.
+- ✅ **Sammelaktionen** für Hintergrund-Streams: „Alle stumm/laut" + „Alle schließen" (ab 2 Streams).
+- ✅ **Tastenkürzel-Übersicht** zusätzlich per **?** (neben F1); Liste um 1–9 ergänzt.
+
+### Neue Ideen
+**Funktionen**
+- ✅ **Lautstärke je Hintergrund-Stream** (v0.39): Regler in der Sidebar (Rust-eval setzt video.volume).
+- 💡 **Hintergrund-Streams nach Neustart wiederherstellen** (optional).
+- 💡 **Timer je Hintergrund-Stream** (einzelnen Stream nach X Min schließen).
+- 💡 **Zwischenablage-Erkennung:** Liegt eine Stream-/Video-URL in der Zwischenablage, Schnellvorschlag zum Öffnen.
+
+**UI**
+- 💡 **Spitzname je Hintergrund-Stream** (Klick auf den Namen zum Umbenennen, z.B. Kanalname).
+- 💡 **Streamanzahl im Fenstertitel / Tray-Icon** anzeigen.
+- 💡 Hintergrund-Bereich merkt seinen **Ein-/Ausklapp-Zustand**.
+
+**Verbesserungen / UX**
+- 💡 **Sicherheitsabfrage** vor „Alle schließen".
+- 💡 **Auto-Reconnect:** Bei Netzwerkfehler im Stream automatisch neu laden.
+- 💡 Konfig-**Migration** beim Update (Versionierung der gespeicherten Daten).
+
+**Sicherheit**
+- 💡 **Auto-Lock nach Inaktivität** (PIN/Sperrbildschirm).
+- 💡 **Eltern-Bericht:** Nutzungszeit pro (Kinder-)Profil.
 
 ---
 
@@ -15,31 +47,31 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 ### Funktionen (bauen auf der neuen Mehr-Webview-Technik auf)
 - ⏳ **Split-/Multi-View:** 2–4 Streams **gleichzeitig sichtbar** in einem Raster (z.B. Sport/Twitch). Nutzt dieselbe Mehr-Webview-Basis wie die Hintergrund-Streams.
 - 💡 **Audio-Only-Modus** je (Hintergrund-)Stream: nur Ton, Video pausiert/versteckt → spart Leistung. Passt ideal zur Hintergrund-Funktion.
-- 💡 **Sammelaktionen** für Hintergrund-Streams: „Alle stummschalten" / „Alle schließen" + Anzeige, welcher Stream gerade tönt.
+- 🟡 Sammelaktionen Hintergrund: „Alle stumm/schließen" ✅ (v0.36); offen: Anzeige, welcher Stream gerade tönt.
 - 💡 **Globale Suche** (Anbieter + TMDB) in einem Feld, Tastenkürzel Strg/Cmd+K.
-- 💡 **„Überrasch mich"** – zufälliger Anbieter/Titel.
-- 💡 **Anbieter-Gruppen/Ordner** + Zifferntasten 1–9 als Schnellstart.
+- ✅ „Überrasch mich" (v0.36) – siehe oben.
+- 🟡 Zifferntasten 1–9 ✅ (v0.36); offen: Anbieter-Gruppen/Ordner.
 
 ### UI
 - 💡 **Audio-Indikator** am tönenden Hintergrund-Stream (kleine Pegel-Animation).
 - 💡 **Sidebar ein-/ausklappbar** (schmaler Icon-Modus) für mehr Platz auf kleinen Bildschirmen.
-- 💡 Anzahl je Kategorie als kleine Zahl am Filter-Chip.
+- ✅ Anzahl je Kategorie am Filter-Chip (v0.36).
 - 💡 Kompakter Modus + einstellbare Kartengröße; Akzentfarbe automatisch aus dem aktiven Anbieter-Logo.
 
 ### Verbesserungen / UX
 - 💡 **Tastenkürzel-Übersicht** (?-Taste) + frei belegbare Shortcuts.
-- 💡 **Crash-Recovery:** Stürzt ein eingebettetes Webview ab, statt schwarzer Fläche ein Hinweis + „Neu laden"-Knopf.
+- ✅ **Crash-Recovery** (v0.37): „Neu laden"-Knopf immer in der Stream-Leiste; bei Fehler ein Hinweis-Panel mit „Erneut versuchen" / „In eigenem Fenster öffnen".
 - 💡 Drag&Drop-Reihenfolge auch für die Hintergrund-Liste.
 
 ### Technisch
 - 💡 **Webview-Warmhalten/Pooling** der zuletzt genutzten Anbieter für schnelleres Umschalten.
 - 💡 **RAM-Schutz:** Hintergrund-Streams nach X Min Inaktivität automatisch entladen (mit Vorwarnung).
-- 💡 **WebView2-Health-Check** beim Start: fehlt die Runtime, klarer Hinweis + Link statt leerer Anzeige.
+- ✅ **WebView2-Health-Check** (v0.37): Version in Einstellungen → Mehr; bei Fehler Warnung + Download-Link; Installer bringt WebView2 mit (downloadBootstrapper).
 - 💡 Optionales lokales Debug-Log mit Rotation; Auto-Update mit Fortschrittsanzeige.
 
 ### Sicherheit
 - ⏳ **App-Sperre beim Start** per PIN (optional, nicht nur beim Profilwechsel).
-- 💡 **Echte Profiltrennung:** eigenes WebView2-Datenverzeichnis je Profil (getrennte Logins/Cookies) statt geteilter Sitzung.
+- 🟡 **Profiltrennung (experimentell, v0.38):** Opt-in unter Einstellungen → Konto. Eigenes WebView2-Datenverzeichnis je Profil (Neustart beim Wechsel). Wirkt nur, falls Tauri/WebView2 die Umgebungsvariable beachtet – im Build zu prüfen.
 - 💡 **Privater Stream** (Inkognito-Webview ohne Verlauf/Cookies) für geteilte Geräte.
 - 💡 PINs per OS-Schlüsselspeicher (keyring) verschlüsseln; Auto-Update-Signatur verifizieren.
 
@@ -131,6 +163,10 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - ✅ Sleep-Timer-Schnellauswahl (30/60/90) + Kategorie-Filter wird gemerkt
 - ✅ Lazy-Loading für Poster & Logos (schnellerer Seitenaufbau)
 - ✅ Hintergrund-Streams in der Sidebar (ausklappbar) statt schwebender Leiste
+- ✅ Kategorie-Anzahl am Chip · „Überrasch mich" · Zifferntasten 1–9 · Hintergrund-Sammelaktionen · „?"-Kürzel
+- ✅ Crash-Recovery (Neu-laden + Fehler-Panel) + WebView2-Health-Check
+- 🟡 Profiltrennung experimentell (eigene Logins je Profil, Opt-in + Neustart)
+- ✅ Lautstärke je Hintergrund-Stream (Regler in der Sidebar)
 
 ---
 

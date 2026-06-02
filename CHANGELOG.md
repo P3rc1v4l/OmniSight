@@ -4,6 +4,58 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.39.0] – 2026-05-31
+
+### Neu
+- **Lautstärke je Hintergrund-Stream:** In der Sidebar hat jeder Hintergrund-Stream jetzt einen eigenen **Lautstärke-Regler** (0–100 %). So kannst du z.B. einen Stream leise im Hintergrund laufen lassen und einen anderen lauter. Bei stummgeschaltetem Stream ist der Regler ausgegraut (Stummschaltung hat Vorrang).
+- Technisch über einen neuen Rust-Befehl, der `video.volume` im jeweiligen Webview setzt (analog zum Stummschalten, inkl. Beobachter).
+
+### Wichtig
+- Wie beim Stummschalten ist das ein **nativer** Eingriff (Rust + eval), hier nicht kompilierbar – bitte im Build prüfen, dass der Regler die Lautstärke wirklich ändert.
+
+---
+
+## [0.38.0] – 2026-05-31
+
+### Neu – Profiltrennung (experimentell)
+- **Getrennte Logins je Profil** als **Opt-in** unter **Einstellungen → Konto**. Ist es aktiv, bekommt jedes Profil einen **eigenen WebView2-Datenspeicher** – die Logins/Cookies sind dann pro Profil getrennt.
+- Technisch: Beim Start setzt die App (falls aktiviert) ein profilspezifisches WebView2-Datenverzeichnis über eine Umgebungsvariable. Da WebView2 das nur **beim Start** liest, **startet die App beim Profilwechsel neu**.
+- Standardmäßig ist die Option **aus** – für alle, die sie nicht aktivieren, ändert sich nichts (geteilter Login wie bisher).
+
+### Wichtig (bitte testen)
+- Das ist ein **nativer** Eingriff (neuer Rust-Befehl + Start-Logik), hier nicht kompilierbar. Bitte prüfen: Option aktivieren → neu starten → in Profil A einloggen → zu Profil B wechseln (App startet neu) → B sollte **ausgeloggt** sein. Klappt das nicht, beachtet dein WebView2 die Umgebungsvariable nicht – dann sag Bescheid, ich kläre einen anderen Weg.
+
+---
+
+## [0.37.0] – 2026-05-31
+
+### Neu
+- **Crash-Recovery für Streams:**
+  - In der Stream-Leiste gibt es jetzt immer einen **„↻ Neu laden"**-Knopf (hilft bei schwarzem Bild, Hängern oder Abstürzen – lädt das eingebettete Fenster frisch).
+  - Schlägt das Einbetten fehl, erscheint statt einer schwarzen Fläche ein **Hinweis-Panel** mit „Erneut versuchen" und „In eigenem Fenster öffnen".
+- **WebView2-Health-Check:**
+  - Unter **Einstellungen → Mehr** wird die installierte **WebView2-Version** angezeigt. Lässt sie sich nicht ermitteln, kommt eine Warnung samt **Download-Link**.
+  - Der Installer ist explizit auf `downloadBootstrapper` gesetzt – fehlt WebView2, holt es der Installer automatisch nach.
+
+### Wichtig
+- Die WebView2-Versionsabfrage ist ein neuer **Rust-Befehl** (nativ) und konnte hier nicht kompiliert werden. Bitte im Build kurz prüfen, dass unter „Mehr" eine Version steht.
+
+---
+
+## [0.36.0] – 2026-05-31
+
+### Neu (Schwung sicherer Frontend-Punkte)
+- **Anzahl je Kategorie:** Jeder Filter-Chip in der Übersicht zeigt jetzt, wie viele Anbieter er enthält.
+- **„Überrasch mich" 🎲:** Knopf in der Übersicht öffnet einen zufälligen Anbieter.
+- **Zifferntasten 1–9:** Starten direkt den Favoriten (sonst sichtbaren Anbieter) Nr. n – sofern man nicht gerade in einem Eingabefeld/Dialog ist.
+- **Hintergrund-Sammelaktionen:** In der Sidebar (ab 2 Hintergrund-Streams) „Alle stumm/laut" und „Alle schließen".
+- **Tastenkürzel-Übersicht** öffnet jetzt auch mit **?** (neben F1); die Liste enthält die neuen Kürzel.
+
+### Hinweis
+- Die übrigen Vorschläge (Split-/Multi-View, echte Profiltrennung, OS-Keyring, Crash-Recovery, WebView2-Health-Check, RAM-Management, App-Sperre) sind größere **native** Eingriffe und folgen einzeln in eigenen, testbaren Schritten – bewusst nicht ungetestet im Bündel. Neue Ideen wurden in die Roadmap aufgenommen.
+
+---
+
 ## [0.35.0] – 2026-05-31
 
 ### Geändert

@@ -68,6 +68,18 @@
 	};
 	const CAT_ORDER = ['film-serien', 'anime', 'live-tv', 'mediathek', 'sport', 'musik', 'video', 'eigene'];
 	const availableCats = $derived(CAT_ORDER.filter((c) => $visibleProviders.some((p) => p.category === c)));
+	// Anzahl Anbieter je Kategorie (für die Zahl am Filter-Chip).
+	const catCounts = $derived.by(() => {
+		const m: Record<string, number> = {};
+		for (const p of $visibleProviders) m[p.category] = (m[p.category] ?? 0) + 1;
+		return m;
+	});
+	// „Überrasch mich" – zufälligen sichtbaren Anbieter öffnen.
+	function surprise() {
+		const list = $visibleProviders;
+		if (!list.length) return;
+		openProvider(list[Math.floor(Math.random() * list.length)]);
+	}
 	// Gemerkte Kategorie ohne Anbieter? -> zurück auf „Alle" (sonst leere Ansicht).
 	$effect(() => {
 		if (categoryFilter !== 'all' && availableCats.length > 0 && !availableCats.includes(categoryFilter)) {
@@ -171,6 +183,7 @@
 			/>
 		</div>
 		<div class="tools">
+			<button class="tool" title="Überrasch mich – zufälligen Anbieter öffnen" onclick={surprise} aria-label="Zufälligen Anbieter öffnen">🎲</button>
 			<button class="tool" title="Wieder alphabetisch sortieren (eigene Reihenfolge verwerfen)" onclick={() => setProviderOrder([])}>A↓Z</button>
 			<button class="primary" onclick={() => (showAdd = true)}><span>＋</span> Anbieter</button>
 			<div class="view">
@@ -226,9 +239,9 @@
 	<div class="section-label">Alle Anbieter <span class="hint-inline">· Karten zum Sortieren ziehen</span></div>
 	{#if availableCats.length > 1}
 		<div class="catbar">
-			<button class="cat" class:on={categoryFilter === 'all'} onclick={() => (categoryFilter = 'all')}>Alle</button>
+			<button class="cat" class:on={categoryFilter === 'all'} onclick={() => (categoryFilter = 'all')}>Alle <span class="cnt">{$visibleProviders.length}</span></button>
 			{#each availableCats as c (c)}
-				<button class="cat" class:on={categoryFilter === c} onclick={() => (categoryFilter = c)}>{CAT_LABELS[c] ?? c}</button>
+				<button class="cat" class:on={categoryFilter === c} onclick={() => (categoryFilter = c)}>{CAT_LABELS[c] ?? c} <span class="cnt">{catCounts[c] ?? 0}</span></button>
 			{/each}
 		</div>
 	{/if}
@@ -365,6 +378,8 @@
 	.cat { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 13px; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
 	.cat:hover { border-color: var(--border-strong); color: var(--text); }
 	.cat.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+	.cat .cnt { font-size: 11px; font-weight: 700; opacity: 0.7; margin-left: 2px; }
+	.cat.on .cnt { opacity: 0.85; }
 	.empty-cat { color: var(--text-muted); padding: 8px 2px 20px; }
 
 	.grid.favs { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 22px; }

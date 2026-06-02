@@ -5,7 +5,7 @@
 	import { activeStream } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import { watchTime, sessionStart, formatDuration } from '$lib/stores/tracking';
-	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, immersive, setImmersive, miniPlayer, goMini, pushForegroundToBackground, type Rect } from '$lib/embedded';
+	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, immersive, setImmersive, miniPlayer, goMini, pushForegroundToBackground, streamError, reloadEmbedded, openCurrentInWindow, type Rect } from '$lib/embedded';
 	import { openInWindow } from '$lib/streamWindow';
 	import Logo from '$lib/components/Logo.svelte';
 
@@ -149,6 +149,12 @@
 		pushForegroundToBackground();
 		goto('/');
 	}
+
+	// Eingebetteten Stream neu laden (Crash-Recovery).
+	async function reload() {
+		const r = get(immersive) ? await fullscreenRect() : rectOf();
+		if (r) await reloadEmbedded(r);
+	}
 </script>
 
 <div class="page">
@@ -187,6 +193,7 @@
 				</button>
 			{/if}
 			{#if $streamMode === 'embedded'}
+				<button class="btn" onclick={reload} title="Stream neu laden (bei schwarzem Bild / Hängern)">↻ Neu laden</button>
 				<button class="btn" onclick={toBackground} title="Stream läuft im Hintergrund weiter – Ton bleibt, bis du ihn stummschaltest">⤓ Hintergrund</button>
 			{/if}
 			<button class="btn danger" onclick={close}>Schließen</button>
@@ -199,6 +206,17 @@
 		{:else}
 			<div class="host" bind:this={host}>
 				<span class="loading">Anbieter wird geladen…</span>
+				{#if $streamError}
+					<div class="recovery">
+						<span class="rec-ic">⚠️</span>
+						<h2>Der Stream konnte nicht geladen werden</h2>
+						<p>Das eingebettete Fenster hat nicht reagiert oder wurde unerwartet beendet. Du kannst es neu laden oder den Anbieter in einem eigenen Fenster öffnen.</p>
+						<div class="rec-actions">
+							<button class="btn primary" onclick={reload}>↻ Erneut versuchen</button>
+							<button class="btn" onclick={() => openCurrentInWindow()}>In eigenem Fenster öffnen</button>
+						</div>
+					</div>
+				{/if}
 			</div>
 		{/if}
 	{/if}
@@ -235,6 +253,12 @@
 	.btn.danger:hover { color: #f87171; border-color: #f87171; }
 	.host { flex: 1; position: relative; display: grid; place-items: center; background: var(--bg); }
 	.loading { color: var(--text-dim); font-size: 13px; }
+	.recovery { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; background: var(--bg); padding: 32px; text-align: center; z-index: 5; }
+	.rec-ic { font-size: 40px; }
+	.recovery h2 { margin: 14px 0 8px; font-size: 20px; font-weight: 800; }
+	.recovery p { color: var(--text-muted); max-width: 440px; margin: 0 0 18px; line-height: 1.5; }
+	.rec-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+	.btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
 	.hostnote { flex: 1; display: grid; place-items: center; padding: 40px; }
 	.hostnote p { color: var(--text-muted); max-width: 420px; text-align: center; }
 </style>
