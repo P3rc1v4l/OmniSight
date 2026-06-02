@@ -3,11 +3,15 @@
 	import { activeStream } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import { notifCenterOpen } from '$lib/stores/toasts';
+	import { backgroundStreams, bringToForeground, closeBackgroundStream, setBackgroundMuted } from '$lib/embedded';
+	import Logo from './Logo.svelte';
 	import ProfileSwitcher from './ProfileSwitcher.svelte';
 	import SleepCountdown from './SleepCountdown.svelte';
 
 	export let openSettings: () => void;
 	export let openProfiles: () => void;
+
+	let bgOpen = true;
 
 	const nav = [
 		{ href: '/', label: 'Übersicht', icon: '🏠' },
@@ -39,6 +43,30 @@
 			</a>
 		{/if}
 	</nav>
+
+	{#if $backgroundStreams.length}
+		<div class="bg-streams">
+			<button class="bg-head" onclick={() => (bgOpen = !bgOpen)} aria-expanded={bgOpen}>
+				<span class="bg-dot" aria-hidden="true"></span>
+				<span class="bg-title">Im Hintergrund</span>
+				<span class="bg-count">{$backgroundStreams.length}</span>
+				<span class="bg-chev" class:open={bgOpen} aria-hidden="true">▾</span>
+			</button>
+			{#if bgOpen}
+				<div class="bg-list">
+					{#each $backgroundStreams as s (s.streamId)}
+						<div class="bg-row" class:muted={s.muted}>
+							<Logo provider={s.provider} size={18} />
+							<span class="bg-name" title={s.provider.name}>{s.provider.name}</span>
+							<button class="bg-ic" onclick={() => setBackgroundMuted(s.streamId, !s.muted)} title={s.muted ? 'Ton einschalten' : 'Stummschalten'} aria-label={s.muted ? 'Ton einschalten' : 'Stummschalten'}>{s.muted ? '🔇' : '🔊'}</button>
+							<button class="bg-ic" onclick={() => bringToForeground(s.streamId)} title="In den Vordergrund holen" aria-label="In den Vordergrund holen">▶</button>
+							<button class="bg-ic close" onclick={() => closeBackgroundStream(s.streamId)} title="Stream schließen" aria-label="Stream schließen">✕</button>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/if}
 
 	<div class="bottom">
 		<SleepCountdown />
@@ -94,4 +122,20 @@
 		padding: 7px 8px; cursor: pointer; font-size: 14px;
 	}
 	.ctrl:hover { color: var(--text); border-color: var(--border-strong); }
+
+	.bg-streams { margin: 6px 0; border: 1px solid var(--border); border-radius: 11px; background: var(--bg-card); overflow: hidden; }
+	.bg-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: transparent; border: 0; cursor: pointer; font-family: inherit; color: var(--text); }
+	.bg-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); flex-shrink: 0; }
+	.bg-title { font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); }
+	.bg-count { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 7px; }
+	.bg-chev { font-size: 11px; color: var(--text-muted); transition: transform 0.15s; }
+	.bg-chev.open { transform: rotate(180deg); }
+	.bg-list { display: flex; flex-direction: column; gap: 2px; padding: 0 6px 6px; max-height: 230px; overflow-y: auto; }
+	.bg-row { display: flex; align-items: center; gap: 7px; padding: 4px 4px; border-radius: 8px; }
+	.bg-row:hover { background: var(--bg-elev); }
+	.bg-row.muted { opacity: 0.62; }
+	.bg-name { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.bg-ic { width: 22px; height: 22px; flex-shrink: 0; display: grid; place-items: center; background: transparent; border: 1px solid transparent; border-radius: 6px; cursor: pointer; font-size: 11.5px; line-height: 1; color: var(--text-muted); transition: background 0.12s, color 0.12s, border-color 0.12s; }
+	.bg-ic:hover { background: var(--bg-card); color: var(--text); border-color: var(--border); }
+	.bg-ic.close:hover { background: rgba(220, 45, 45, 0.85); color: #fff; border-color: transparent; }
 </style>

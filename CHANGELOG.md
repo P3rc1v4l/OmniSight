@@ -4,6 +4,16 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.35.0] – 2026-05-31
+
+### Geändert
+- **Hintergrund-Streams jetzt in der Sidebar.** Die schwebende Leiste ist weg; stattdessen gibt es in der Sidebar einen **ausklappbaren Bereich „Im Hintergrund"** mit Anzahl-Zähler. Pro Stream: stummschalten 🔊/🔇, in den Vordergrund ▶, schließen ✕. Vorteil: Die Sidebar wird – anders als ein schwebendes Overlay – **nie vom eingebetteten Video überdeckt**, ist also auch auf der Stream-Seite erreichbar.
+
+### Roadmap
+- Frische Vorschläge ergänzt (u.a. Split-/Multi-View, Audio-Only-Modus, echte Profiltrennung, WebView2-Health-Check, App-Sperre beim Start).
+
+---
+
 ## [0.34.1] – 2026-05-31
 
 ### Verbessert (Performance)

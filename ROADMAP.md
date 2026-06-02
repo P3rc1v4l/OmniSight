@@ -1,9 +1,47 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.34.1
+Stand: v0.35.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
+
+---
+
+## 🆕 Neue Vorschläge (Stand v0.35.0)
+
+### Erledigt in dieser Version
+- ✅ **Hintergrund-Streams in der Sidebar** statt schwebender Leiste – ausklappbar, mit Anzahl, einzeln stummschalten/▶/✕. Bewusst in der Sidebar, weil diese nie vom eingebetteten Video überdeckt wird (anders als ein schwebendes Overlay).
+
+### Funktionen (bauen auf der neuen Mehr-Webview-Technik auf)
+- ⏳ **Split-/Multi-View:** 2–4 Streams **gleichzeitig sichtbar** in einem Raster (z.B. Sport/Twitch). Nutzt dieselbe Mehr-Webview-Basis wie die Hintergrund-Streams.
+- 💡 **Audio-Only-Modus** je (Hintergrund-)Stream: nur Ton, Video pausiert/versteckt → spart Leistung. Passt ideal zur Hintergrund-Funktion.
+- 💡 **Sammelaktionen** für Hintergrund-Streams: „Alle stummschalten" / „Alle schließen" + Anzeige, welcher Stream gerade tönt.
+- 💡 **Globale Suche** (Anbieter + TMDB) in einem Feld, Tastenkürzel Strg/Cmd+K.
+- 💡 **„Überrasch mich"** – zufälliger Anbieter/Titel.
+- 💡 **Anbieter-Gruppen/Ordner** + Zifferntasten 1–9 als Schnellstart.
+
+### UI
+- 💡 **Audio-Indikator** am tönenden Hintergrund-Stream (kleine Pegel-Animation).
+- 💡 **Sidebar ein-/ausklappbar** (schmaler Icon-Modus) für mehr Platz auf kleinen Bildschirmen.
+- 💡 Anzahl je Kategorie als kleine Zahl am Filter-Chip.
+- 💡 Kompakter Modus + einstellbare Kartengröße; Akzentfarbe automatisch aus dem aktiven Anbieter-Logo.
+
+### Verbesserungen / UX
+- 💡 **Tastenkürzel-Übersicht** (?-Taste) + frei belegbare Shortcuts.
+- 💡 **Crash-Recovery:** Stürzt ein eingebettetes Webview ab, statt schwarzer Fläche ein Hinweis + „Neu laden"-Knopf.
+- 💡 Drag&Drop-Reihenfolge auch für die Hintergrund-Liste.
+
+### Technisch
+- 💡 **Webview-Warmhalten/Pooling** der zuletzt genutzten Anbieter für schnelleres Umschalten.
+- 💡 **RAM-Schutz:** Hintergrund-Streams nach X Min Inaktivität automatisch entladen (mit Vorwarnung).
+- 💡 **WebView2-Health-Check** beim Start: fehlt die Runtime, klarer Hinweis + Link statt leerer Anzeige.
+- 💡 Optionales lokales Debug-Log mit Rotation; Auto-Update mit Fortschrittsanzeige.
+
+### Sicherheit
+- ⏳ **App-Sperre beim Start** per PIN (optional, nicht nur beim Profilwechsel).
+- 💡 **Echte Profiltrennung:** eigenes WebView2-Datenverzeichnis je Profil (getrennte Logins/Cookies) statt geteilter Sitzung.
+- 💡 **Privater Stream** (Inkognito-Webview ohne Verlauf/Cookies) für geteilte Geräte.
+- 💡 PINs per OS-Schlüsselspeicher (keyring) verschlüsseln; Auto-Update-Signatur verifizieren.
 
 ---
 
@@ -92,6 +130,7 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - ✅ Echtes Vollbild (Webview misst echte Fenstergröße)
 - ✅ Sleep-Timer-Schnellauswahl (30/60/90) + Kategorie-Filter wird gemerkt
 - ✅ Lazy-Loading für Poster & Logos (schnellerer Seitenaufbau)
+- ✅ Hintergrund-Streams in der Sidebar (ausklappbar) statt schwebender Leiste
 
 ---
 
