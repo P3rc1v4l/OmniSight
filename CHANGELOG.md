@@ -4,6 +4,24 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.34.1] – 2026-05-31
+
+### Verbessert (Performance)
+- **Lazy-Loading für Poster & Logos:** Bilder werden erst geladen, wenn sie ins Bild scrollen (`loading="lazy"`), und asynchron dekodiert (`decoding="async"`). Vor allem die **Anbieter-Logos** (auf jeder Karte) wurden bisher alle sofort geladen – jetzt baut sich die Übersicht spürbar schneller auf, besonders bei vielen Anbietern. *(Favicons werden wie bisher offline zwischengespeichert, sind also nach dem ersten Laden ohnehin sofort da.)*
+
+---
+
+## [0.34.0] – 2026-05-31
+
+### Neu (aus der Roadmap)
+- **Kategorie-Filter wird gemerkt:** Der zuletzt gewählte Filter in der Übersicht ist beim nächsten Start wieder aktiv. Hat die gemerkte Kategorie keine Anbieter, wird automatisch auf „Alle" zurückgesetzt.
+- **Sleep-Timer-Schnellauswahl:** Knöpfe für **30 / 60 / 90 Minuten** direkt in den Einstellungen (zusätzlich zum Dropdown) – ein Klick statt Aufklappen.
+
+### Hinweis
+- Die Roadmap-Idee „Sleep-Timer bis Episodenende" wurde gestrichen: Über die eingebetteten Anbieter-Webviews lässt sich ein Episodenende technisch nicht zuverlässig erkennen.
+
+---
+
 ## [0.33.1] – 2026-05-31
 
 ### Behoben

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { visibleProviders, favoriteProviders, favorites, toggleFavorite, providerOrder, setProviderOrder, setFavoritesOrder } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import ProviderCard from '$lib/components/ProviderCard.svelte';
@@ -14,7 +15,14 @@
 	let search = $state('');
 	let searchFocused = $state(false);
 	let view: 'grid' | 'list' = $state('grid');
-	let categoryFilter = $state('all');
+	const CAT_KEY = 'omnihub:categoryFilter';
+	let categoryFilter = $state(browser ? localStorage.getItem(CAT_KEY) || 'all' : 'all');
+	// Zuletzt gewählten Kategorie-Filter merken.
+	$effect(() => {
+		if (browser) {
+			try { localStorage.setItem(CAT_KEY, categoryFilter); } catch { /* ignore */ }
+		}
+	});
 	let showAdd = $state(false);
 	let tmdbResults = $state<TmdbItem[]>([]);
 	let searching = $state(false);
@@ -60,6 +68,12 @@
 	};
 	const CAT_ORDER = ['film-serien', 'anime', 'live-tv', 'mediathek', 'sport', 'musik', 'video', 'eigene'];
 	const availableCats = $derived(CAT_ORDER.filter((c) => $visibleProviders.some((p) => p.category === c)));
+	// Gemerkte Kategorie ohne Anbieter? -> zurück auf „Alle" (sonst leere Ansicht).
+	$effect(() => {
+		if (categoryFilter !== 'all' && availableCats.length > 0 && !availableCats.includes(categoryFilter)) {
+			categoryFilter = 'all';
+		}
+	});
 	// Anzeige = volle (sortierte) Liste, danach nach Kategorie gefiltert. Das Drag&Drop
 	// arbeitet weiter auf der vollen Liste (sortedFiltered), damit die globale
 	// Reihenfolge auch bei aktivem Filter nicht durcheinanderkommt.
@@ -285,7 +299,7 @@
 					<div class="tcard omni-card">
 						<button class="thumb" onclick={() => openTitleInfo(t)} aria-label={`Infos zu ${t.title}`}>
 							{#if t.poster}
-								<img src={t.poster} alt={t.title} loading="lazy" />
+								<img src={t.poster} alt={t.title} loading="lazy" decoding="async" />
 							{:else}
 								<div class="noimg">?</div>
 							{/if}

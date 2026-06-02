@@ -531,6 +531,11 @@
 							<p class="hint">Nach Ablauf der Zeit wird ein Hinweis gezeigt – optional wird der laufende Stream geschlossen. Der Timer startet, sobald du ihn einschaltest.</p>
 							{#if $settings.plugins.sleepTimerEnabled}
 								<div class="plugin-opts">
+									<div class="quick">
+										{#each [30, 60, 90] as m (m)}
+											<button class="qbtn" class:on={$settings.plugins.sleepTimerMinutes === m} onclick={() => ($settings.plugins.sleepTimerMinutes = m)}>{m} Min</button>
+										{/each}
+									</div>
 									<label>Dauer:
 										<select bind:value={$settings.plugins.sleepTimerMinutes}>
 											<option value={15}>15 Minuten</option>
@@ -724,6 +729,10 @@
 	.plugin-head { display: flex; align-items: center; justify-content: space-between; }
 	.plugin .hint { margin: 6px 0 0; }
 	.plugin-opts { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+	.quick { display: inline-flex; gap: 6px; }
+	.qbtn { background: var(--bg-elev); border: 1px solid var(--border); color: var(--text-muted); border-radius: 999px; padding: 6px 12px; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background 0.14s, color 0.14s, border-color 0.14s; }
+	.qbtn:hover { border-color: var(--border-strong); color: var(--text); }
+	.qbtn.on { background: var(--accent); border-color: transparent; color: var(--accent-text); }
 	.plugin-opts select { background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; font-family: inherit; }
 	.pin-err { color: #f87171; font-size: 12px; }
 	.mini { background: var(--bg-elev); border: 1px solid var(--border); color: var(--text-muted); padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 12.5px; font-family: inherit; }

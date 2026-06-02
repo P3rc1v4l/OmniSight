@@ -169,7 +169,7 @@
 				{#each shown as w (w.mediaType + '-' + w.tmdbId)}
 					<div class="card omni-card">
 						<button class="thumb" onclick={() => openInfo(w)} aria-label={`Infos zu ${w.title}`}>
-							{#if w.poster}<img src={w.poster} alt={w.title} loading="lazy" />
+							{#if w.poster}<img src={w.poster} alt={w.title} loading="lazy" decoding="async" />
 							{:else}<div class="noimg">?</div>{/if}
 						</button>
 						<div class="meta">

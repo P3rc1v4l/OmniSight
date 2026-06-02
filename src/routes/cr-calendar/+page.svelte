@@ -127,7 +127,7 @@
 						<article class="card" class:cr={it.crunchyrollUrl} style="--i:{i}">
 							<div class="cover-wrap">
 								{#if it.cover}
-									<img class="cover" src={it.cover} alt="" loading="lazy" />
+									<img class="cover" src={it.cover} alt="" loading="lazy" decoding="async" />
 								{:else}
 									<div class="cover ph">{it.title.slice(0, 1)}</div>
 								{/if}

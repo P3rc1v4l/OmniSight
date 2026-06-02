@@ -42,13 +42,15 @@
 </script>
 
 {#if isImage}
-	<img class="logo logo-img" src={provider.icon} alt={provider.name} style="width: {size}px; height: {size}px;" />
+	<img class="logo logo-img" src={provider.icon} alt={provider.name} loading="lazy" decoding="async" style="width: {size}px; height: {size}px;" />
 {:else if useFavicon}
 	<div class="logo fav" style="width: {size}px; height: {size}px;" aria-hidden="true">
 		<img
 			class="fav-img"
 			src={faviconUrl}
 			alt={provider.name}
+			loading="lazy"
+			decoding="async"
 			style="width: {size * 0.62}px; height: {size * 0.62}px;"
 			onerror={() => (faviconFailed = true)}
 		/>

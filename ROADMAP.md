@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.33.1
+Stand: v0.34.1
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -23,8 +23,8 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - 💡 Signatur der Auto-Updates verifizieren + deutlicher Hinweis, falls der Schlüssel fehlt.
 
 ### Funktionen
-- ⏳ Sleep-Timer: Schnellauswahl (30/60/90 Min) + Variante „bis Episodenende".
-- ⏳ Zuletzt gewählten **Kategorie-Filter merken** (beim Start wieder aktiv).
+- ✅ Sleep-Timer: **Schnellauswahl (30/60/90 Min)** (v0.34). Variante „bis Episodenende" entfällt – über die eingebetteten Anbieter-Webviews lässt sich ein Episodenende nicht zuverlässig erkennen.
+- ✅ Zuletzt gewählten **Kategorie-Filter merken** (v0.34) – beim Start wieder aktiv (Rückfall auf „Alle", falls leer).
 - 💡 Globale Suche über alle Anbieter **und** TMDB in einem Feld.
 - 💡 „Weiterschauen" mit Fortschritts-/Position (soweit der Anbieter es zulässt).
 - 💡 Konfiguration importieren/exportieren (Backup) + Profil-Umzug zwischen Geräten.
@@ -60,7 +60,7 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - 💡 PINs verschlüsselt ablegen (OS-Schlüsselspeicher/keyring) statt Klartext.
 - 💡 Strikte CSP nur für die OmniHub-Oberfläche (Anbieter-Webviews bleiben frei).
 - 💡 Auto-Update-Signatur verifizieren + Hinweis, falls Schlüssel fehlt.
-- 💡 Lazy-Loading von Postern/Logos für schnelleren Seitenaufbau.
+- ✅ **Lazy-Loading von Postern/Logos** (v0.34.1) – Bilder laden erst beim Heranscrollen (`loading="lazy"` + `decoding="async"`), schnellerer Seitenaufbau.
 - 💡 Konfig-Backup (Export/Import) + Geräte-Sync.
 
 ---
@@ -88,6 +88,10 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 - ✅ „Weiterschauen" als reiner Button (ohne Kachelreihe)
 - ✅ CR-Kalender: volle Breite + Auswahl „letzte/nächste 7 Tage"
 - ✅ Einstellungen-Performance: flüssigere Schalter & Scrollen (Backdrop-Blur entfernt)
+- ✅ Twitch: mehrere Streams gleichzeitig + Hintergrund-Wiedergabe + Einzel-Mute
+- ✅ Echtes Vollbild (Webview misst echte Fenstergröße)
+- ✅ Sleep-Timer-Schnellauswahl (30/60/90) + Kategorie-Filter wird gemerkt
+- ✅ Lazy-Loading für Poster & Logos (schnellerer Seitenaufbau)
 
 ---
 
