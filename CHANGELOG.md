@@ -4,6 +4,13 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.33.1] – 2026-05-31
+
+### Behoben
+- **Vollbild ist jetzt echtes Vollbild.** Unten blieb ein Streifen (≈ Taskleistenhöhe) frei, weil das Stream-Webview mit `window.innerHeight` bemessen wurde – das stimmt während des Vollbild-Übergangs noch nicht. Jetzt wird die **echte Fenster-Innengröße von Tauri** verwendet und beim **tatsächlichen** Resize-Event des Fensters exakt nachpositioniert.
+
+---
+
 ## [0.33.0] – 2026-05-31
 
 ### Neu – Mehrere Streams gleichzeitig (v.a. Twitch)

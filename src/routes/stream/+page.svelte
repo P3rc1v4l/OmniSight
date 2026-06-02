@@ -42,18 +42,54 @@
 		});
 	}
 
-	function onResize() {
+	// Im Vollbild die ECHTE Fenster-Innengröße von Tauri verwenden (physische Pixel ->
+	// logische über den Skalierungsfaktor). window.innerHeight stimmt während des
+	// Vollbild-Übergangs noch nicht, daher hier direkt am Fenster messen.
+	async function fullscreenRect(): Promise<Rect> {
+		const { getCurrentWindow } = await import('@tauri-apps/api/window');
+		const w = getCurrentWindow();
+		const sz = await w.innerSize();
+		const sf = await w.scaleFactor();
+		const W = Math.round(sz.width / sf);
+		const H = Math.round(sz.height / sf);
+		const top = barRevealed ? BAR_H : REVEAL_STRIP;
+		return { x: 0, y: top, width: W, height: H - top };
+	}
+
+	async function onResize() {
+		if (!$activeStream) return;
+		if (get(immersive)) {
+			try {
+				repositionEmbedded(await fullscreenRect());
+				return;
+			} catch {
+				/* Fallback unten */
+			}
+		}
 		const r = rectOf();
 		if (r) repositionEmbedded(r);
 	}
+
+	let unlistenResized: (() => void) | null = null;
 
 	onMount(() => {
 		miniPlayer.set(false); // Vollansicht – kein Mini-Player auf dieser Seite.
 		const timer = setInterval(() => (now = Date.now()), 1000);
 		window.addEventListener('resize', onResize);
+		// Echtes Fenster-Resize-Event von Tauri abonnieren: feuert, wenn der
+		// Vollbild-Übergang final ist -> dann exakt nachpositionieren.
+		void (async () => {
+			try {
+				const { getCurrentWindow } = await import('@tauri-apps/api/window');
+				unlistenResized = await getCurrentWindow().onResized(() => { void onResize(); });
+			} catch {
+				/* ignore */
+			}
+		})();
 		return () => {
 			clearInterval(timer);
 			window.removeEventListener('resize', onResize);
+			unlistenResized?.();
 		};
 	});
 
