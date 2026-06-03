@@ -4,6 +4,43 @@ Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [0.41.0] – 2026-05-31
+
+### Neu
+- **Akzentfarbe je Profil:** Jedes Profil kann jetzt eine **eigene Akzentfarbe** haben. Sie wird angewendet, sobald das Profil aktiv ist, und überschreibt die globale Akzentfarbe – ohne sie zu ändern. Auswahl im **Profil-Editor** (farbiger Punkt neben dem Avatar): Presets, eigene Farbe oder „Standard" (globale Farbe). Technisch sauber umgesetzt: die abgeleitete Variable `--accent-soft` wird automatisch passend zur gewählten Farbe gesetzt.
+
+---
+
+## [0.41.0] – 2026-06-03
+
+### Mehrsprachigkeit (Phase 1)
+- **Neues Übersetzungssystem** (`src/lib/i18n.ts`): zentrales Wörterbuch (Deutsch/Englisch), reaktiv – ein Sprachwechsel übersetzt sofort und live.
+- **Der Sprach-Schalter (DE/EN) funktioniert jetzt wirklich** und ist zusätzlich **im Onboarding** als eigener Schritt (mit den anderen Grundeinstellungen).
+- **Übersetzt in dieser Phase:** Seitenleiste/Navigation (inkl. Hintergrund-Streams), Onboarding, **Startseite** und **alle Kategorien** (die Anbieter-Einordnung wie „Filme & Serien", „Live-TV" usw.).
+- Anbieter-**Markennamen** (Netflix, Spotify …) bleiben unverändert – das sind Eigennamen.
+
+### Hinweis (folgt in der nächsten Phase)
+- Der **Einstellungs-Dialog** und die weiteren Seiten (Statistiken, Neuigkeiten, Upcoming, CR-Kalender, Gemerkt) sowie einzelne Dialoge werden als **Phase 2** übersetzt. Bis dahin erscheinen dort noch deutsche Texte.
+
+---
+
+## [0.40.0] – 2026-05-31
+
+### Neu & behoben
+- **Auto-Update:** Beim Start und zusätzlich **automatisch einmal pro Stunde** wird (still) nach Updates gesucht.
+- **Profil-Logins bleiben erhalten – pro Profil getrennt:** Ursache des Ausloggens war ein hochzählender Zähler im Webview-Label, wodurch jedes Öffnen ein leeres Datenverzeichnis bekam. Jetzt **stabile Labels je (Profil, Anbieter)** → Logins bleiben dauerhaft und sind automatisch pro Profil getrennt. **Kein Neustart mehr beim Profilwechsel** (der experimentelle v0.38-Umweg wurde entfernt).
+- **Spotify stummschalten/Lautstärke:** Die Mute-/Lautstärke-Steuerung durchsucht jetzt zusätzlich **Shadow-DOM und gleichorigin-iframes** – das erreicht mehr Player. *Hinweis: Spielt Spotify über reines Web-Audio ohne erreichbares Medien-Element, kann es trotzdem unerreichbar bleiben.*
+
+### Design-Überarbeitung
+- **Design-Menü:** **Hell/Dunkel-Umschalter** und **Akzentfarben-Presets** (klickbare Farbkreise + eigene Farbe) ganz oben.
+- **Uhr-Menü:** aufgeräumtes Layout, **Typ als Umschalter** (Digital/Analog), neues **12-/24-Stunden-Format**, Farb-Presets.
+- **Profil-Editor:** **Avatar je Profil** (Emoji-Auswahl), optisch aufgewertet; der Avatar erscheint auch im Profilumschalter.
+
+### Wichtig
+- Mehrere Punkte betreffen **nativen** Code (Logins/Labels, Spotify-eval) und konnten hier nicht kompiliert werden – bitte im Build prüfen.
+
+---
+
 ## [0.39.0] – 2026-05-31
 
 ### Neu

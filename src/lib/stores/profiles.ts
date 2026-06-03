@@ -22,25 +22,6 @@ export async function verifyPin(pin: string, hash: string | null): Promise<boole
 export const MAX_PROFILES = 5;
 export const MIN_PROFILES = 1;
 
-// --- Experimentelle Profiltrennung (eigene Logins/Cookies je Profil) ---
-// Hinweis: WebView2 teilt sich normalerweise einen Datenspeicher. Diese Option setzt
-// beim Start ein eigenes Datenverzeichnis je Profil – das erfordert einen Neustart beim
-// Profilwechsel und wirkt nur, wenn Tauri/WebView2 die Umgebungsvariable beachtet.
-const LS_PROFILE_SEP = 'omnihub:profileSeparation';
-export function profileSeparationEnabled(): boolean {
-	return browser ? localStorage.getItem(LS_PROFILE_SEP) === 'true' : false;
-}
-export async function setProfileSeparation(enabled: boolean, profileId: string | null): Promise<void> {
-	if (!browser) return;
-	localStorage.setItem(LS_PROFILE_SEP, enabled ? 'true' : 'false');
-	try {
-		const { invoke } = await import('@tauri-apps/api/core');
-		await invoke('set_profile_separation', { enabled, profileId: profileId ?? '' });
-	} catch (e) {
-		console.warn('[profilesep] Datei konnte nicht geschrieben werden:', e);
-	}
-}
-
 function newId(): string {
 	return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `p-${Date.now()}`;
 }
@@ -66,6 +47,15 @@ export function addProfile(name: string): string | null {
 
 export function renameProfile(id: string, name: string): void {
 	profiles.update(($p) => $p.map((x) => (x.id === id ? { ...x, name: name.trim() || x.name } : x)));
+}
+
+export function setProfileAvatar(id: string, avatar: string): void {
+	profiles.update(($p) => $p.map((x) => (x.id === id ? { ...x, avatar } : x)));
+}
+
+// Akzentfarbe je Profil. Leerer String -> globale Akzentfarbe verwenden.
+export function setProfileAccent(id: string, accent: string): void {
+	profiles.update(($p) => $p.map((x) => (x.id === id ? { ...x, accent: accent || undefined } : x)));
 }
 
 // Haupt-Profil festlegen (vom Nutzer wählbar).
@@ -141,20 +131,6 @@ async function closeProfileWindows(profileId: string): Promise<void> {
 
 export async function switchProfile(profileId: string): Promise<void> {
 	if (profileId === get(activeProfileId)) return;
-	// Bei aktiver Profiltrennung: neues Profil persistieren, Datenverzeichnis umstellen
-	// und neu starten (WebView2 liest das Verzeichnis nur beim Start).
-	if (profileSeparationEnabled()) {
-		activeProfileId.set(profileId); // schreibt LS sofort -> nach Neustart aktiv
-		try {
-			const { invoke } = await import('@tauri-apps/api/core');
-			await invoke('set_profile_separation', { enabled: true, profileId });
-			const { relaunch } = await import('@tauri-apps/plugin-process');
-			await relaunch();
-			return;
-		} catch (e) {
-			console.warn('[profilesep] Neustart fehlgeschlagen, normaler Wechsel:', e);
-		}
-	}
 	const oldPid = get(activeProfileId);
 	// Laufende Streamzeit dem ALTEN Profil gutschreiben (pid noch alt).
 	resetSessions();

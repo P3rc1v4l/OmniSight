@@ -11,6 +11,7 @@
 	import { openProvider, openUrlInApp } from '$lib/embedded';
 	import { continueList, type ContinueEntry } from '$lib/stores/continue';
 	import { searchHistory, addSearch, removeSearch, clearSearchHistory } from '$lib/stores/searchHistory';
+	import { t } from '$lib/i18n';
 
 	let search = $state('');
 	let searchFocused = $state(false);
@@ -56,16 +57,6 @@
 		return list;
 	});
 
-	const CAT_LABELS: Record<string, string> = {
-		'film-serien': 'Filme & Serien',
-		anime: 'Anime',
-		'live-tv': 'Live-TV',
-		mediathek: 'Mediatheken',
-		sport: 'Sport',
-		musik: 'Musik',
-		video: 'Video',
-		eigene: 'Eigene'
-	};
 	const CAT_ORDER = ['film-serien', 'anime', 'live-tv', 'mediathek', 'sport', 'musik', 'video', 'eigene'];
 	const availableCats = $derived(CAT_ORDER.filter((c) => $visibleProviders.some((p) => p.category === c)));
 	// Anzahl Anbieter je Kategorie (für die Zahl am Filter-Chip).
@@ -175,7 +166,7 @@
 			<input
 				data-omni-search
 				type="text"
-				placeholder="Anbieter, Film, Serie, YouTube-URL…"
+				placeholder={$t('home.searchPh')}
 				bind:value={search}
 				onfocus={() => (searchFocused = true)}
 				onblur={() => setTimeout(() => (searchFocused = false), 150)}
@@ -183,23 +174,23 @@
 			/>
 		</div>
 		<div class="tools">
-			<button class="tool" title="Überrasch mich – zufälligen Anbieter öffnen" onclick={surprise} aria-label="Zufälligen Anbieter öffnen">🎲</button>
-			<button class="tool" title="Wieder alphabetisch sortieren (eigene Reihenfolge verwerfen)" onclick={() => setProviderOrder([])}>A↓Z</button>
-			<button class="primary" onclick={() => (showAdd = true)}><span>＋</span> Anbieter</button>
+			<button class="tool" title={$t('home.surprise')} onclick={surprise} aria-label={$t('home.surpriseAria')}>🎲</button>
+			<button class="tool" title={$t('home.sortAZ')} onclick={() => setProviderOrder([])}>A↓Z</button>
+			<button class="primary" onclick={() => (showAdd = true)}><span>＋</span> {$t('home.addProvider')}</button>
 			<div class="view">
-				<button class:active={view === 'grid'} onclick={() => (view = 'grid')} aria-label="Rasteransicht" title="Raster">▦</button>
-				<button class:active={view === 'list'} onclick={() => (view = 'list')} aria-label="Listenansicht" title="Liste">≡</button>
+				<button class:active={view === 'grid'} onclick={() => (view = 'grid')} aria-label={$t('home.gridAria')} title={$t('home.grid')}>▦</button>
+				<button class:active={view === 'list'} onclick={() => (view = 'list')} aria-label={$t('home.listAria')} title={$t('home.list')}>≡</button>
 			</div>
 		</div>
 	</header>
 
 	{#if searchFocused && !search.trim() && $searchHistory.length}
 		<div class="searchhist">
-			<span class="sh-label">Zuletzt gesucht</span>
+			<span class="sh-label">{$t('home.recentSearch')}</span>
 			{#each $searchHistory as term (term)}
 				<span class="sh-chip">
-					<button class="sh-term" onclick={() => (search = term)} title={`Erneut nach „${term}" suchen`}>{term}</button>
-					<button class="sh-x" onclick={() => removeSearch(term)} title="Entfernen" aria-label="Aus Suchverlauf entfernen">✕</button>
+					<button class="sh-term" onclick={() => (search = term)} title={$t('home.searchAgain', { term })}>{term}</button>
+					<button class="sh-x" onclick={() => removeSearch(term)} title={$t('common.remove')} aria-label={$t('home.removeFromHistory')}>✕</button>
 				</span>
 			{/each}
 			<button class="sh-clear" onclick={() => clearSearchHistory()}>leeren</button>
@@ -207,15 +198,15 @@
 	{/if}
 
 	{#if $continueList.length && !search && $settings.plugins.continueWatching}
-		<button class="cont-resume" onclick={() => reopenContinue($continueList[0])} title={`„${$continueList[0].label}" fortsetzen`}>
+		<button class="cont-resume" onclick={() => reopenContinue($continueList[0])} title={$t('home.resumeTitle', { label: $continueList[0].label })}>
 			<span class="cr-play">▶</span>
-			<span class="cr-label">Weiterschauen</span>
+			<span class="cr-label">{$t('home.resume')}</span>
 			<span class="cr-title">{$continueList[0].label}</span>
 		</button>
 	{/if}
 
 	{#if $favoriteProviders.length && !search}
-		<div class="section-label">⭐ Favoriten <span class="hint-inline">· ziehen zum Sortieren</span></div>
+		<div class="section-label">⭐ {$t('home.favorites')} <span class="hint-inline">· {$t('home.dragToSort')}</span></div>
 		<div class="grid favs">
 			{#each $favoriteProviders as p (p.id)}
 				<div
@@ -236,12 +227,12 @@
 		</div>
 	{/if}
 
-	<div class="section-label">Alle Anbieter <span class="hint-inline">· Karten zum Sortieren ziehen</span></div>
+	<div class="section-label">{$t('home.allProviders')} <span class="hint-inline">· {$t('home.dragCards')}</span></div>
 	{#if availableCats.length > 1}
 		<div class="catbar">
-			<button class="cat" class:on={categoryFilter === 'all'} onclick={() => (categoryFilter = 'all')}>Alle <span class="cnt">{$visibleProviders.length}</span></button>
+			<button class="cat" class:on={categoryFilter === 'all'} onclick={() => (categoryFilter = 'all')}>{$t('cat.all')} <span class="cnt">{$visibleProviders.length}</span></button>
 			{#each availableCats as c (c)}
-				<button class="cat" class:on={categoryFilter === c} onclick={() => (categoryFilter = c)}>{CAT_LABELS[c] ?? c} <span class="cnt">{catCounts[c] ?? 0}</span></button>
+				<button class="cat" class:on={categoryFilter === c} onclick={() => (categoryFilter = c)}>{$t('cat.' + c)} <span class="cnt">{catCounts[c] ?? 0}</span></button>
 			{/each}
 		</div>
 	{/if}
@@ -281,8 +272,8 @@
 					ondrop={(e) => { e.preventDefault(); onDrop(p.id); }}
 					style="--c1: {p.color}; --c2: {p.color2 ?? p.color}"
 				>
-					<span class="lgrip" title="Zum Sortieren ziehen">⠿</span>
-					<button class="lopen" onclick={() => openProvider(p)} title={`${p.name} öffnen`}>
+					<span class="lgrip" title={$t('common.dragSort')}>⠿</span>
+					<button class="lopen" onclick={() => openProvider(p)} title={$t('home.openTitle', { name: p.name })}>
 						<Logo provider={p} size={34} />
 						<span class="lname">{p.name}</span>
 						<span class="lsub">{p.subtitle}</span>
@@ -292,8 +283,8 @@
 						class="lfav"
 						class:on={$favorites.includes(p.id)}
 						onclick={() => toggleFavorite(p.id)}
-						aria-label="Favorit umschalten"
-						title={$favorites.includes(p.id) ? 'Favorit' : 'Zu Favoriten'}
+						aria-label={$t('home.toggleFavorite')}
+						title={$favorites.includes(p.id) ? $t('home.favorite') : $t('home.toFavorites')}
 					>{$favorites.includes(p.id) ? '★' : '☆'}</button>
 				</div>
 			{/each}

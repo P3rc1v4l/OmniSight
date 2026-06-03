@@ -22,12 +22,14 @@ export interface Profile {
 	id: string;
 	name: string;
 	avatar?: string;
+	accent?: string;
 	pinHash: string | null;
 }
 
 export interface ClockSettings {
 	enabled: boolean;
 	type: 'digital' | 'analog';
+	hour12?: boolean;
 	showSeconds: boolean;
 	color: string;
 	transparency: number;

@@ -2,10 +2,12 @@
 	import { settings } from '$lib/stores/settings';
 	import { profiles } from '$lib/stores/profiles';
 	import { providers } from '$lib/stores/providers';
+	import { t } from '$lib/i18n';
 	import type { Provider } from '$lib/types';
 
 	let { open = false, close }: { open?: boolean; close: () => void } = $props();
 
+	const LAST_STEP = 4;
 	let step = $state(0);
 	let profileName = $state('Profil 1');
 	let providersList = $state<Provider[]>([]);
@@ -38,23 +40,34 @@
 	<div class="backdrop" role="presentation">
 		<div class="dialog omni-card" role="dialog" aria-modal="true">
 			<header>
-				<h2>Willkommen bei OmniHub</h2>
+				<h2>{$t('ob.welcomeTitle')}</h2>
 				<div class="dots">
-					{#each Array(4) as _, i}<span class:on={i <= step}></span>{/each}
+					{#each Array(LAST_STEP + 1) as _, i}<span class:on={i <= step}></span>{/each}
 				</div>
 			</header>
 
 			<div class="body">
 				{#if step === 0}
 					<img class="welcome-logo" src="/logo.png" alt="OmniHub" />
-					<p class="big">OmniHub bündelt deine Streaming-Dienste in einem Fenster.</p>
-					<p>In den nächsten Schritten richten wir kurz dein Profil, dein Design und die sichtbaren Anbieter ein. Du kannst alles später jederzeit in den Einstellungen ändern.</p>
+					<p class="big">{$t('ob.tagline')}</p>
+					<p>{$t('ob.intro')}</p>
 				{:else if step === 1}
-					<p class="big">Wie soll dein erstes Profil heißen?</p>
-					<input class="text" type="text" bind:value={profileName} placeholder="Profil 1" />
-					<small>Du kannst später bis zu 5 Profile mit eigener Watchlist und Statistik anlegen.</small>
+					<p class="big">{$t('ob.langTitle')}</p>
+					<div class="langs">
+						<button class="lang" class:on={$settings.appearance.language === 'de'} onclick={() => ($settings.appearance.language = 'de')}>
+							<span class="flag">🇩🇪</span> Deutsch
+						</button>
+						<button class="lang" class:on={$settings.appearance.language === 'en'} onclick={() => ($settings.appearance.language = 'en')}>
+							<span class="flag">🇬🇧</span> English
+						</button>
+					</div>
+					<small>{$t('ob.langHint')}</small>
 				{:else if step === 2}
-					<p class="big">Wähle deine Akzentfarbe</p>
+					<p class="big">{$t('ob.profileTitle')}</p>
+					<input class="text" type="text" bind:value={profileName} placeholder={$t('ob.profilePh')} />
+					<small>{$t('ob.profileHint')}</small>
+				{:else if step === 3}
+					<p class="big">{$t('ob.accentTitle')}</p>
 					<div class="swatches">
 						{#each accents as c}
 							<button
@@ -66,9 +79,9 @@
 							></button>
 						{/each}
 					</div>
-					<small>Beeinflusst Buttons, Hervorhebungen und die aktive Sidebar-Auswahl.</small>
-				{:else if step === 3}
-					<p class="big">Welche Anbieter sollen in der Übersicht erscheinen?</p>
+					<small>{$t('ob.accentHint')}</small>
+				{:else if step === 4}
+					<p class="big">{$t('ob.provTitle')}</p>
 					<div class="provs">
 						{#each providersList as p (p.id)}
 							<label class:off={p.hidden}>
@@ -81,11 +94,11 @@
 			</div>
 
 			<footer>
-				<button class="ghost" onclick={back} disabled={step === 0}>Zurück</button>
-				{#if step < 3}
-					<button class="primary" onclick={next}>Weiter</button>
+				<button class="ghost" onclick={back} disabled={step === 0}>{$t('common.back')}</button>
+				{#if step < LAST_STEP}
+					<button class="primary" onclick={next}>{$t('common.next')}</button>
 				{:else}
-					<button class="primary" onclick={finish}>Fertig</button>
+					<button class="primary" onclick={finish}>{$t('common.done')}</button>
 				{/if}
 			</footer>
 		</div>
@@ -111,6 +124,11 @@
 		border-radius: 10px; font-size: 15px; margin-top: 10px;
 	}
 	.swatches { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+	.langs { display: flex; gap: 12px; flex-wrap: wrap; margin: 14px 0 4px; }
+	.lang { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-radius: 12px; background: var(--bg-card); border: 2px solid var(--border); color: var(--text); font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+	.lang:hover { border-color: var(--border-strong); }
+	.lang.on { border-color: var(--accent); background: var(--accent-soft); }
+	.lang .flag { font-size: 22px; line-height: 1; }
 	.sw { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
 	.sw.on { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
 	.provs { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; margin-top: 10px; max-height: 280px; overflow: auto; padding-right: 4px; }

@@ -1,9 +1,27 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.39.0
+Stand: v0.41.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
+
+---
+
+## 🆕 v0.41.0
+- 🟡 **Mehrsprachigkeit (DE/EN) – Phase 1:** Übersetzungssystem + Sprache im Onboarding; Navigation, Onboarding, Startseite und alle Kategorien übersetzt. **Phase 2:** Einstellungs-Dialog + restliche Seiten/Dialoge.
+
+## 🆕 Erledigt in v0.41.0
+- ✅ **Akzentfarbe je Profil** – jedes Profil kann eine eigene Akzentfarbe haben (überschreibt die globale, sobald das Profil aktiv ist). Auswahl im Profil-Editor.
+
+---
+
+## 🆕 Erledigt in v0.40.0
+- ✅ **Auto-Update:** beim Start **und automatisch 1×/Stunde**.
+- ✅ **Profil-Logins dauerhaft & getrennt** (stabile Webview-Labels; v0.38-Umweg entfernt).
+- 🟡 **Spotify stummen/Lautstärke:** Mute/Volume durchsuchen jetzt Shadow-DOM + gleichorigin-iframes. Nutzt Spotify reines Web-Audio (kein Media-Element), bleibt es evtl. unerreichbar – im Build zu prüfen.
+- ✅ **Design-Menü modernisiert:** Hell/Dunkel-Umschalter + Akzentfarben-Presets (Swatches).
+- ✅ **Uhr-Menü modernisiert:** Typ als Umschalter, **12/24-Stunden-Format**, Farb-Swatches, aufgeräumtes Layout.
+- ✅ **Profil-Editor erweitert:** **Avatar je Profil** (Emoji-Auswahl) + Politur; Avatar erscheint im Profilumschalter.
 
 ---
 
@@ -71,7 +89,7 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 
 ### Sicherheit
 - ⏳ **App-Sperre beim Start** per PIN (optional, nicht nur beim Profilwechsel).
-- 🟡 **Profiltrennung (experimentell, v0.38):** Opt-in unter Einstellungen → Konto. Eigenes WebView2-Datenverzeichnis je Profil (Neustart beim Wechsel). Wirkt nur, falls Tauri/WebView2 die Umgebungsvariable beachtet – im Build zu prüfen.
+- ✅ **Profiltrennung (v0.40):** Logins sind pro Profil getrennt UND dauerhaft – ohne Neustart. Ursache war ein Zähler im Webview-Label (jedes Öffnen = leeres Verzeichnis); jetzt stabile Labels je (Profil, Anbieter). Der v0.38-Umweg (Env-Var/Relaunch) wurde entfernt.
 - 💡 **Privater Stream** (Inkognito-Webview ohne Verlauf/Cookies) für geteilte Geräte.
 - 💡 PINs per OS-Schlüsselspeicher (keyring) verschlüsseln; Auto-Update-Signatur verifizieren.
 

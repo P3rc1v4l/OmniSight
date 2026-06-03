@@ -33,7 +33,7 @@ export const DEFAULT_SETTINGS: Settings = {
 		language: 'de',
 		backgroundOpacity: 100
 	},
-	clock: { enabled: false, type: 'digital', showSeconds: true, color: '#ffffff', transparency: 50, size: 36, x: null, y: null },
+	clock: { enabled: false, type: 'digital', hour12: false, showSeconds: true, color: '#ffffff', transparency: 50, size: 36, x: null, y: null },
 	notifications: {
 		pauseReminder: true, sound: true, updateHint: true,
 		achievementUnlocked: true, watchlistReminder: true
@@ -60,8 +60,6 @@ export function applySettings(s: Settings): void {
 	if (!browser) return;
 	const root = document.documentElement;
 	const a = s.appearance;
-	root.style.setProperty('--accent', a.accentColor);
-	root.style.setProperty('--accent-text', a.accentText);
 	root.style.setProperty('--radius', `${a.radius}px`);
 	root.style.setProperty('--font-size', `${a.fontSize}px`);
 	root.style.setProperty('--sidebar-width', `${a.sidebarWidth}px`);

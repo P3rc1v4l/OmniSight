@@ -25,43 +25,6 @@ fn hw_accel_disabled() -> bool {
     )
 }
 
-/// Pfad zum App-Datenordner (Windows: %APPDATA%\com.p3rc1v4l.omnihub).
-fn omni_appdata() -> Option<std::path::PathBuf> {
-    std::env::var("APPDATA").ok().map(|v| std::path::PathBuf::from(v).join("com.p3rc1v4l.omnihub"))
-}
-
-/// Experimentell: getrennte Logins je Profil über ein eigenes WebView2-Datenverzeichnis.
-/// Wird NUR aktiv, wenn die Datei <appdata>/profile-sep existiert und einen (sicheren)
-/// Profilnamen enthält. Greift nur, falls Tauri/WebView2 die Umgebungsvariable beachtet.
-/// Muss vor der Fenster-/Webview-Erzeugung laufen.
-fn apply_profile_separation_env() {
-    let Some(base) = omni_appdata() else { return };
-    let sep_file = base.join("profile-sep");
-    let Ok(pid) = std::fs::read_to_string(&sep_file) else { return };
-    let pid = pid.trim();
-    if pid.is_empty() || !pid.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
-        return;
-    }
-    let dir = base.join("webview2").join(pid);
-    let _ = std::fs::create_dir_all(&dir);
-    std::env::set_var("WEBVIEW2_USER_DATA_FOLDER", dir);
-}
-
-/// Schreibt/löscht die Profiltrennungs-Datei. Beim nächsten Start nutzt die App dann
-/// ein eigenes WebView2-Datenverzeichnis für dieses Profil.
-#[tauri::command]
-fn set_profile_separation(enabled: bool, profile_id: String) -> Result<(), String> {
-    let base = omni_appdata().ok_or_else(|| "APPDATA nicht gefunden".to_string())?;
-    std::fs::create_dir_all(&base).map_err(|e| e.to_string())?;
-    let sep_file = base.join("profile-sep");
-    if enabled && !profile_id.is_empty() {
-        std::fs::write(&sep_file, profile_id).map_err(|e| e.to_string())?;
-    } else {
-        let _ = std::fs::remove_file(&sep_file);
-    }
-    Ok(())
-}
-
 /// Gibt die installierte WebView2-Laufzeit-Version zurück (für die Diagnose in den
 /// Einstellungen). Schlägt der Aufruf fehl, fehlt die WebView2-Runtime vermutlich.
 #[tauri::command]
@@ -81,7 +44,7 @@ fn webview_set_muted(app: tauri::AppHandle, label: String, muted: bool) -> Resul
         .ok_or_else(|| format!("Webview '{}' nicht gefunden", label))?;
     let val = if muted { "true" } else { "false" };
     let js = String::from(
-        "(function(){window.__omniMuted=__M__;var a=function(){document.querySelectorAll('video,audio').forEach(function(e){try{e.muted=window.__omniMuted;}catch(_){}})};a();if(!window.__omniMuteObs){window.__omniMuteObs=new MutationObserver(a);try{window.__omniMuteObs.observe(document.documentElement,{childList:true,subtree:true});}catch(_){}}})();",
+        "(function(){window.__omniMuted=__M__;function c(r,o){try{if(!r||!r.querySelectorAll)return;r.querySelectorAll('video,audio').forEach(function(e){o.push(e)});r.querySelectorAll('*').forEach(function(e){if(e.shadowRoot)c(e.shadowRoot,o)});r.querySelectorAll('iframe').forEach(function(f){try{if(f.contentDocument)c(f.contentDocument,o)}catch(_){}})}catch(_){}}function a(){var o=[];c(document,o);o.forEach(function(e){try{e.muted=window.__omniMuted}catch(_){}})}a();if(!window.__omniMuteObs){var t;window.__omniMuteObs=new MutationObserver(function(){clearTimeout(t);t=setTimeout(a,400)});try{window.__omniMuteObs.observe(document.documentElement,{childList:true,subtree:true})}catch(_){}}})();",
     )
     .replace("__M__", val);
     wv.eval(&js).map_err(|e| e.to_string())
@@ -97,7 +60,7 @@ fn webview_set_volume(app: tauri::AppHandle, label: String, volume: f64) -> Resu
         .ok_or_else(|| format!("Webview '{}' nicht gefunden", label))?;
     let v = if volume < 0.0 { 0.0 } else if volume > 1.0 { 1.0 } else { volume };
     let js = String::from(
-        "(function(){window.__omniVol=__V__;var a=function(){document.querySelectorAll('video,audio').forEach(function(e){try{e.volume=window.__omniVol;}catch(_){}})};a();if(!window.__omniVolObs){window.__omniVolObs=new MutationObserver(a);try{window.__omniVolObs.observe(document.documentElement,{childList:true,subtree:true});}catch(_){}}})();",
+        "(function(){window.__omniVol=__V__;function c(r,o){try{if(!r||!r.querySelectorAll)return;r.querySelectorAll('video,audio').forEach(function(e){o.push(e)});r.querySelectorAll('*').forEach(function(e){if(e.shadowRoot)c(e.shadowRoot,o)});r.querySelectorAll('iframe').forEach(function(f){try{if(f.contentDocument)c(f.contentDocument,o)}catch(_){}})}catch(_){}}function a(){var o=[];c(document,o);o.forEach(function(e){try{e.volume=window.__omniVol}catch(_){}})}a();if(!window.__omniVolObs){var t;window.__omniVolObs=new MutationObserver(function(){clearTimeout(t);t=setTimeout(a,400)});try{window.__omniVolObs.observe(document.documentElement,{childList:true,subtree:true})}catch(_){}}})();",
     )
     .replace("__V__", &format!("{:.3}", v));
     wv.eval(&js).map_err(|e| e.to_string())
@@ -112,9 +75,6 @@ pub fn run() {
         let combined = format!("{} --disable-gpu --disable-gpu-compositing", prev);
         std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", combined.trim());
     }
-    // Experimentelle Profiltrennung: ggf. eigenes WebView2-Datenverzeichnis setzen
-    // (ebenfalls VOR dem Fenster, da WebView2 die Variable beim Start liest).
-    apply_profile_separation_env();
     tauri::Builder::default()
         // window-state speichert Position/Größe automatisch und stellt sie beim
         // nächsten Start wieder her. Erststart läuft maximiert (siehe tauri.conf.json).
@@ -142,7 +102,6 @@ pub fn run() {
             webview_set_muted,
             webview_set_volume,
             webview2_version,
-            set_profile_separation,
         ])
         .run(tauri::generate_context!())
         .expect("Fehler beim Start von OmniHub");

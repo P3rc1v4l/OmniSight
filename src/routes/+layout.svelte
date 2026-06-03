@@ -21,7 +21,7 @@
 	import { hideEmbedded, unhideEmbedded, immersive, openProvider } from '$lib/embedded';
 	import { settings, hydrateSettings, applySettings, onboardingOpen } from '$lib/stores/settings';
 	import { hydrateCatalog, favoriteProviders, visibleProviders } from '$lib/stores/providers';
-	import { hydrateProfiles, loadProfileData, activeProfileId } from '$lib/stores/profiles';
+	import { hydrateProfiles, loadProfileData, activeProfileId, profiles } from '$lib/stores/profiles';
 	import { achievements, maybeNotify } from '$lib/stores/achievements';
 	import { get } from 'svelte/store';
 
@@ -30,6 +30,19 @@
 	let showSettings = $state(false);
 	let settingsTab = $state('appearance');
 	let showShortcuts = $state(false);
+	let updateTimer: ReturnType<typeof setInterval>;
+
+	// Akzentfarbe: aktives Profil überschreibt die globale Farbe (ohne sie zu ändern).
+	// Setzt --accent, --accent-text und das abgeleitete --accent-soft.
+	$effect(() => {
+		const prof = $profiles.find((p) => p.id === $activeProfileId);
+		const color = prof?.accent || $settings.appearance.accentColor;
+		const text = $settings.appearance.accentText;
+		const root = document.documentElement;
+		root.style.setProperty('--accent', color);
+		root.style.setProperty('--accent-text', text);
+		root.style.setProperty('--accent-soft', `color-mix(in srgb, ${color} 16%, transparent)`);
+	});
 
 	function openSettings(tab = 'appearance') {
 		settingsTab = tab;
@@ -58,8 +71,9 @@
 		if (!get(settings).onboardingDone) onboardingOpen.set(true);
 		window.addEventListener('keydown', onKey);
 
-		// Automatisch beim Start nach einem Update suchen (still; Fehler werden geschluckt).
+		// Beim Start nach Updates suchen – und danach automatisch einmal pro Stunde.
 		try { void checkForUpdate(false); } catch (e) { console.error('[init] update', e); }
+		updateTimer = setInterval(() => { void checkForUpdate(false); }, 60 * 60 * 1000);
 	});
 
 	// Neu freigeschaltete Achievements melden (nur einmal je Achievement).

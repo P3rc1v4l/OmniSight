@@ -2,10 +2,9 @@
 	import { settings, clockEditing, DEFAULT_SETTINGS, onboardingOpen } from '$lib/stores/settings';
 	import { resetProviders } from '$lib/stores/providers';
 	import {
-		profiles, activeProfileId, addProfile, renameProfile, deleteProfile,
+		profiles, activeProfileId, addProfile, renameProfile, setProfileAvatar, setProfileAccent, deleteProfile,
 		setPin, clearPin, verifyPin, MAX_PROFILES, MIN_PROFILES,
-		mainProfileId, setMainProfile, adminCodeHash, setAdminCode, verifyAdminCode, clearAdminCode, resetPinWithAdmin,
-		profileSeparationEnabled, setProfileSeparation
+		mainProfileId, setMainProfile, adminCodeHash, setAdminCode, verifyAdminCode, clearAdminCode, resetPinWithAdmin
 	} from '$lib/stores/profiles';
 	import { APP_VERSION, APP_NAME, LINKS, DEFAULT_DISCORD_CLIENT_ID } from '$lib/version';
 	import { updateState, checkForUpdate } from '$lib/stores/updater';
@@ -28,18 +27,6 @@
 			})();
 		}
 	});
-
-	// Experimentelle Profiltrennung (eigene Logins je Profil).
-	let profileSep = $state(profileSeparationEnabled());
-	async function toggleProfileSep() {
-		profileSep = !profileSep;
-		await setProfileSeparation(profileSep, $activeProfileId);
-		pushToast(
-			profileSep ? 'Getrennte Logins aktiviert' : 'Getrennte Logins deaktiviert',
-			'Wird beim nächsten Neustart wirksam. Beim Profilwechsel startet die App dann neu.',
-			profileSep ? '🔒' : '🔓'
-		);
-	}
 
 	async function restartApp() {
 		try {
@@ -68,6 +55,10 @@
 		{ id: 'triangle', label: '▲ Dreieck' },
 		{ id: 'star', label: '★ Stern' }
 	];
+	// Schnellauswahl-Akzentfarben.
+	const ACCENT_PRESETS = ['#30c5bb', '#6c8cff', '#f0a020', '#e0556b', '#9b6cff', '#28c76f', '#ff7a45', '#22d3ee'];
+	// Avatar-Auswahl je Profil.
+	const PROFILE_AVATARS = ['👤', '🦊', '🐼', '🐱', '🐯', '🐸', '🦉', '🦁', '🐲', '👾', '🤖', '🎮', '🍿', '⭐', '🔥', '🌙'];
 	function toggleShape(id: string) {
 		settings.update((s) => {
 			const cur = s.appearance.particleShapes ?? ['circle'];
@@ -97,6 +88,8 @@
 
 	// Profilverwaltung – PIN-Bearbeitung mit Abfrage des alten PINs
 	let pinEditFor = $state<string | null>(null);
+	let avatarPickFor = $state<string | null>(null);
+	let accentPickFor = $state<string | null>(null);
 	let oldPinInput = $state('');
 	let newPinInput = $state('');
 	let pinError = $state('');
@@ -236,6 +229,35 @@
 
 				<div class="content">
 					{#if active === 'appearance'}
+						<div class="look-head">
+							<div class="look-card">
+								<div class="look-label">Modus</div>
+								<div class="seg2">
+									<button class:on={$settings.appearance.theme === 'light'} onclick={() => ($settings.appearance.theme = 'light')}>☀️ Hell</button>
+									<button class:on={$settings.appearance.theme === 'dark'} onclick={() => ($settings.appearance.theme = 'dark')}>🌙 Dunkel</button>
+								</div>
+							</div>
+							<div class="look-card">
+								<div class="look-label">Akzentfarbe</div>
+								<div class="swatches">
+									{#each ACCENT_PRESETS as c (c)}
+										<button
+											class="swatch"
+											class:on={$settings.appearance.accentColor?.toLowerCase() === c}
+											style="--sw: {c}"
+											onclick={() => ($settings.appearance.accentColor = c)}
+											title={c}
+											aria-label={`Akzentfarbe ${c}`}
+										></button>
+									{/each}
+									<label class="swatch custom" title="Eigene Farbe">
+										<input type="color" bind:value={$settings.appearance.accentColor} />
+										<span>+</span>
+									</label>
+								</div>
+							</div>
+						</div>
+
 						<div class="grid">
 							<div class="field">
 								<label>Hintergrundbild</label>
@@ -252,13 +274,6 @@
 									<label style="margin-top:8px">Bild-Deckkraft: {$settings.appearance.backgroundOpacity}%</label>
 									<input type="range" min="10" max="100" bind:value={$settings.appearance.backgroundOpacity} />
 								{/if}
-							</div>
-							<div class="field">
-								<label>Akzentfarbe</label>
-								<div class="row">
-									<input type="color" bind:value={$settings.appearance.accentColor} />
-									<input type="text" class="hex" bind:value={$settings.appearance.accentColor} />
-								</div>
 							</div>
 							<div class="field">
 								<label>Schriftart</label>
@@ -382,31 +397,57 @@
 							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.watchlistReminder}/> Watchlist-Erinnerung</label>
 						</div>
 					{:else if active === 'clock'}
-						<div class="grid">
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.clock.enabled}/> Uhr anzeigen</label>
-							<div class="field">
-								<label>Typ</label>
-								<select value={$settings.clock.type} onchange={(e) => settings.update((s) => ({ ...s, clock: { ...s.clock, type: (e.currentTarget as HTMLSelectElement).value as 'digital' | 'analog' } }))}>
-									<option value="digital">Digital</option>
-									<option value="analog">Analog</option>
-								</select>
-							</div>
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.clock.showSeconds}/> Sekunden anzeigen</label>
-							<div class="field">
-								<label>Farbe</label>
-								<input type="color" bind:value={$settings.clock.color}/>
-							</div>
-							<div class="field">
-								<label>Transparenz: {$settings.clock.transparency}%</label>
-								<input type="range" min="0" max="100" bind:value={$settings.clock.transparency}/>
-							</div>
-							<div class="field">
-								<label>Größe: {$settings.clock.size}px</label>
-								<input type="range" min="20" max="96" bind:value={$settings.clock.size}/>
-							</div>
+						<div class="look-card" style="margin-bottom:16px">
+							<label class="toggle big"><input type="checkbox" bind:checked={$settings.clock.enabled}/> <b>Uhr auf dem Bildschirm anzeigen</b></label>
 						</div>
-						<button class="ghost" onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, x: null, y: null } }))}>Position zurücksetzen (oben rechts)</button>
-						<p class="hint">Solange dieser Tab offen ist, wird die Uhr <b>ganz vorne</b> angezeigt und du kannst sie mit der Maus <b>verschieben</b> (gestrichelter Rahmen). Bei <b>100&nbsp;% Transparenz</b> wird die Uhr ausgeblendet.</p>
+						{#if $settings.clock.enabled}
+							<div class="look-head">
+								<div class="look-card">
+									<div class="look-label">Typ</div>
+									<div class="seg2">
+										<button class:on={$settings.clock.type === 'digital'} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, type: 'digital' } }))}>🔢 Digital</button>
+										<button class:on={$settings.clock.type === 'analog'} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, type: 'analog' } }))}>🕐 Analog</button>
+									</div>
+								</div>
+								{#if $settings.clock.type === 'digital'}
+									<div class="look-card">
+										<div class="look-label">Format</div>
+										<div class="seg2">
+											<button class:on={!$settings.clock.hour12} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, hour12: false } }))}>24 Stunden</button>
+											<button class:on={$settings.clock.hour12} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, hour12: true } }))}>12 Stunden</button>
+										</div>
+									</div>
+								{/if}
+								<div class="look-card">
+									<div class="look-label">Farbe</div>
+									<div class="swatches">
+										{#each ['#ffffff', '#30c5bb', '#6c8cff', '#f0a020', '#e0556b', '#000000'] as cc (cc)}
+											<button class="swatch" class:on={$settings.clock.color?.toLowerCase() === cc} style="--sw: {cc}" onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, color: cc } }))} title={cc} aria-label={`Uhrfarbe ${cc}`}></button>
+										{/each}
+										<label class="swatch custom" title="Eigene Farbe"><input type="color" bind:value={$settings.clock.color}/><span>+</span></label>
+									</div>
+								</div>
+							</div>
+
+							<div class="grid">
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.clock.showSeconds}/> Sekunden anzeigen</label>
+								<div class="field">
+									<label>Transparenz: {$settings.clock.transparency}%</label>
+									<input type="range" min="0" max="100" bind:value={$settings.clock.transparency}/>
+								</div>
+								<div class="field">
+									<label>Größe: {$settings.clock.size}px</label>
+									<input type="range" min="20" max="96" bind:value={$settings.clock.size}/>
+								</div>
+							</div>
+
+							<div class="block">
+								<button class="ghost" onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, x: null, y: null } }))}>↺ Position zurücksetzen (oben rechts)</button>
+								<p class="hint">Solange dieser Tab offen ist, wird die Uhr <b>ganz vorne</b> angezeigt und du kannst sie mit der Maus <b>verschieben</b> (gestrichelter Rahmen). Bei <b>100&nbsp;% Transparenz</b> wird die Uhr ausgeblendet.</p>
+							</div>
+						{:else}
+							<p class="hint">Schalte die Uhr oben ein, um Typ, Format, Farbe, Größe und Position festzulegen.</p>
+						{/if}
 					{:else if active === 'advanced'}
 						<div class="about">
 							<div class="about-logo">👁️</div>
@@ -480,15 +521,12 @@
 
 						<p class="copyright">© 2026 Luka Kalinka · {APP_NAME}</p>
 					{:else if active === 'account'}
-						<p class="acc-intro">Jedes Profil hat eigene Favoriten, Watchlist und Streamzeit. Logins/Cookies sind standardmäßig geteilt – mit der Option unten lassen sie sich pro Profil trennen.</p>
-						<div class="sep-box">
-							<label class="toggle"><input type="checkbox" checked={profileSep} onchange={toggleProfileSep}/> <b>Getrennte Logins je Profil (experimentell)</b></label>
-							<p class="hint">Jedes Profil bekommt einen eigenen WebView2-Datenspeicher. <b>Beim Profilwechsel startet die App neu.</b> Wirkt erst nach einem Neustart – und nur, falls dein System es unterstützt; andernfalls bleiben die Logins geteilt.</p>
-						</div>
+						<p class="acc-intro">Jedes Profil hat eigene Favoriten, Watchlist, Streamzeit – und beim Streamen <b>eigene, dauerhafte Logins</b> (pro Profil getrennt).</p>
 						<div class="plist">
 							{#each $profiles as p (p.id)}
 								<div class="prow">
-									<span class="pav">👤</span>
+									<button class="pav" onclick={() => { avatarPickFor = avatarPickFor === p.id ? null : p.id; accentPickFor = null; }} title="Avatar wählen" aria-label="Avatar wählen">{p.avatar ?? '👤'}</button>
+									<button class="pacc" style="--pc: {p.accent || 'var(--accent)'}" onclick={() => { accentPickFor = accentPickFor === p.id ? null : p.id; avatarPickFor = null; }} title="Akzentfarbe dieses Profils" aria-label="Akzentfarbe wählen"></button>
 									<input class="pname-in" value={p.name} oninput={(e) => renameProfile(p.id, (e.currentTarget as HTMLInputElement).value)} />
 									{#if p.id === $mainProfileId}<span class="pbadge main">★ Haupt</span>{/if}
 									{#if p.id === $activeProfileId}<span class="pbadge">aktiv</span>{/if}
@@ -505,6 +543,24 @@
 										onclick={() => deleteProfile(p.id)}
 										title={p.id === $mainProfileId ? 'Haupt-Profil ist nicht löschbar' : ($profiles.length <= MIN_PROFILES ? 'Mindestens ein Profil nötig' : 'Profil löschen')}
 									>🗑</button>
+
+									{#if avatarPickFor === p.id}
+										<div class="avatar-panel">
+											{#each PROFILE_AVATARS as em (em)}
+												<button class="av-opt" class:on={(p.avatar ?? '👤') === em} onclick={() => { setProfileAvatar(p.id, em); avatarPickFor = null; }} aria-label={`Avatar ${em}`}>{em}</button>
+											{/each}
+										</div>
+									{/if}
+
+									{#if accentPickFor === p.id}
+										<div class="avatar-panel accent">
+											{#each ACCENT_PRESETS as c (c)}
+												<button class="swatch" class:on={p.accent?.toLowerCase() === c} style="--sw: {c}" onclick={() => { setProfileAccent(p.id, c); accentPickFor = null; }} title={c} aria-label={`Akzent ${c}`}></button>
+											{/each}
+											<label class="swatch custom" title="Eigene Farbe"><input type="color" value={p.accent || '#30c5bb'} oninput={(e) => setProfileAccent(p.id, (e.currentTarget as HTMLInputElement).value)} /><span>+</span></label>
+											<button class="mini" onclick={() => { setProfileAccent(p.id, ''); accentPickFor = null; }} title="Globale Akzentfarbe verwenden">Standard</button>
+										</div>
+									{/if}
 
 									{#if pinEditFor === p.id}
 										<div class="pin-panel">
@@ -699,6 +755,20 @@
 	.x:hover { background: var(--bg-card); color: var(--text); }
 	.content { padding: 24px 28px; overflow: auto; contain: paint; transform: translateZ(0); }
 	.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 20px; }
+	.look-head { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 16px; }
+	.look-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+	.look-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 11px; }
+	.seg2 { display: flex; gap: 6px; }
+	.seg2 button { flex: 1; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text-muted); border-radius: 10px; padding: 9px 10px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+	.seg2 button:hover { border-color: var(--border-strong); color: var(--text); }
+	.seg2 button.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+	.swatches { display: flex; flex-wrap: wrap; gap: 9px; }
+	.swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; background: var(--sw); cursor: pointer; padding: 0; position: relative; transition: transform 0.12s, box-shadow 0.12s; box-shadow: 0 0 0 1px var(--border) inset; }
+	.swatch:hover { transform: scale(1.12); }
+	.swatch.on { border-color: var(--text); box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--sw); }
+	.swatch.custom { display: grid; place-items: center; background: var(--bg-elev); border: 1px dashed var(--border-strong); color: var(--text-muted); overflow: hidden; }
+	.swatch.custom input[type='color'] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+	.swatch.custom span { font-size: 18px; line-height: 1; }
 	.field { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s, box-shadow 0.15s; }
 	.field:hover { border-color: var(--border-strong); }
 	.field:hover { border-color: var(--border-strong); }
@@ -721,6 +791,7 @@
 	/* Custom Schalter (Toggle) */
 	input[type='checkbox'] { accent-color: var(--accent); }
 	.toggle { gap: 10px; }
+	.toggle.big { font-size: 14px; }
 	.toggle input[type='checkbox'] {
 		-webkit-appearance: none; appearance: none;
 		width: 40px; height: 22px; margin: 0; flex-shrink: 0;
@@ -770,7 +841,15 @@
 	.acc-intro { color: var(--text-muted); font-size: 13px; margin: 0 0 14px; }
 	.plist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 	.prow { display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; flex-wrap: wrap; }
-	.pav { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-card-2); display: grid; place-items: center; font-size: 13px; flex-shrink: 0; }
+	.pav { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-soft); border: 1px solid var(--border); display: grid; place-items: center; font-size: 15px; flex-shrink: 0; cursor: pointer; transition: transform 0.12s, border-color 0.12s; padding: 0; }
+	.pav:hover { transform: scale(1.08); border-color: var(--accent); }
+	.avatar-panel { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; padding: 10px; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; }
+	.av-opt { width: 34px; height: 34px; border-radius: 9px; background: var(--bg-card); border: 1px solid var(--border); font-size: 17px; cursor: pointer; display: grid; place-items: center; transition: transform 0.1s, border-color 0.12s, background 0.12s; }
+	.av-opt:hover { transform: scale(1.1); border-color: var(--border-strong); }
+	.av-opt.on { border-color: var(--accent); background: var(--accent-soft); }
+	.pacc { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; cursor: pointer; padding: 0; background: var(--pc); border: 2px solid var(--bg-card); box-shadow: 0 0 0 1px var(--border); transition: transform 0.12s; }
+	.pacc:hover { transform: scale(1.12); }
+	.avatar-panel.accent { align-items: center; }
 	.pname-in { flex: 1; min-width: 120px; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13.5px; font-family: inherit; }
 	.pbadge { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 3px 8px; border-radius: 999px; }
 	.pin-in { width: 150px; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13px; letter-spacing: 3px; font-family: inherit; }
@@ -783,8 +862,6 @@
 	.plugin-head { display: flex; align-items: center; justify-content: space-between; }
 	.plugin .hint { margin: 6px 0 0; }
 	.plugin-opts { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
-	.sep-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 4px 0 16px; }
-	.sep-box .hint { margin: 8px 0 0; }
 	.quick { display: inline-flex; gap: 6px; }
 	.qbtn { background: var(--bg-elev); border: 1px solid var(--border); color: var(--text-muted); border-radius: 999px; padding: 6px 12px; font-family: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background 0.14s, color 0.14s, border-color 0.14s; }
 	.qbtn:hover { border-color: var(--border-strong); color: var(--text); }

@@ -65,9 +65,18 @@ let usingFallback = false;
 let creatingLabel: string | null = null;
 let streamCounter = 0;
 
-function makeLabel(providerId: string): string {
+// Stabiles Label je (Profil, Anbieter) -> WebView2-Datenverzeichnis bleibt erhalten
+// (dauerhafte Logins) UND ist pro Profil getrennt (Profil-ID steckt im Label).
+// Ist das stabile Label gerade belegt (z.B. zweiter Twitch-Stream), wird ein
+// eindeutiges Instanz-Label vergeben.
+function chooseLabel(providerId: string): string {
 	const pid = get(activeProfileId) ?? 'default';
-	return `embed-${pid}-${providerId}-${++streamCounter}`;
+	const stable = `embed-${pid}-${providerId}`;
+	const taken =
+		currentLabel === stable ||
+		foregroundLabel === stable ||
+		get(backgroundStreams).some((b) => b.label === stable);
+	return taken ? `embed-${pid}-${providerId}-${++streamCounter}` : stable;
 }
 
 // Vom Nutzer ausgelöstes Öffnen.
@@ -86,7 +95,7 @@ export function openProvider(p: Provider): void {
 		if (bg) { bringToForeground(bg.streamId); return; }
 	}
 	activeStream.set(p);
-	foregroundLabel = makeLabel(p.id);
+	foregroundLabel = chooseLabel(p.id);
 	goto('/stream');
 }
 
@@ -104,7 +113,7 @@ export async function openUrlInApp(
 	if (id === 'crunchyroll') markOpened('crunchyroll');
 	recordOpen({ label: name, subtitle, url, id, color, color2, poster });
 	activeStream.set({ id, name, subtitle, url, category: 'anime', color, color2, quality: '1080p' });
-	foregroundLabel = makeLabel(id);
+	foregroundLabel = chooseLabel(id);
 	goto('/stream');
 }
 
@@ -142,7 +151,7 @@ export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 		await openInWindow(p);
 		return;
 	}
-	const label = foregroundLabel ?? makeLabel(p.id);
+	const label = foregroundLabel ?? chooseLabel(p.id);
 	foregroundLabel = label;
 	try {
 		const { webview, dpi, win } = await getWebviewApi();

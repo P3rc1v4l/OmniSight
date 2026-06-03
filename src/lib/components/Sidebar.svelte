@@ -4,6 +4,7 @@
 	import { settings } from '$lib/stores/settings';
 	import { notifCenterOpen } from '$lib/stores/toasts';
 	import { backgroundStreams, bringToForeground, closeBackgroundStream, setBackgroundMuted, setBackgroundVolume, setAllBackgroundMuted, closeAllBackgroundStreams } from '$lib/embedded';
+	import { t } from '$lib/i18n';
 	import Logo from './Logo.svelte';
 	import ProfileSwitcher from './ProfileSwitcher.svelte';
 	import SleepCountdown from './SleepCountdown.svelte';
@@ -15,10 +16,10 @@
 	$: allMuted = $backgroundStreams.length > 0 && $backgroundStreams.every((s) => s.muted);
 
 	const nav = [
-		{ href: '/', label: 'Übersicht', icon: '🏠' },
-		{ href: '/watchlist', label: 'Gemerkt', icon: '🔖' },
-		{ href: '/news', label: 'Neuigkeiten', icon: '📡' },
-		{ href: '/upcoming', label: 'Upcoming', icon: '📅' }
+		{ href: '/', key: 'nav.home', icon: '🏠' },
+		{ href: '/watchlist', key: 'nav.watchlist', icon: '🔖' },
+		{ href: '/news', key: 'nav.news', icon: '📡' },
+		{ href: '/upcoming', key: 'nav.upcoming', icon: '📅' }
 	];
 
 	$: path = $page.url.pathname;
@@ -35,12 +36,12 @@
 	<nav>
 		{#each nav as item}
 			<a href={item.href} class="nav-item" class:active={path === item.href}>
-				<span class="icon">{item.icon}</span><span>{item.label}</span>
+				<span class="icon">{item.icon}</span><span>{$t(item.key)}</span>
 			</a>
 		{/each}
 		{#if $activeStream}
 			<a href="/stream" class="nav-item" class:active={path === '/stream'}>
-				<span class="icon">▶️</span><span>Schaut gerade</span>
+				<span class="icon">▶️</span><span>{$t('nav.watchingNow')}</span>
 			</a>
 		{/if}
 	</nav>
@@ -49,7 +50,7 @@
 		<div class="bg-streams">
 			<button class="bg-head" onclick={() => (bgOpen = !bgOpen)} aria-expanded={bgOpen}>
 				<span class="bg-dot" aria-hidden="true"></span>
-				<span class="bg-title">Im Hintergrund</span>
+				<span class="bg-title">{$t('sidebar.background')}</span>
 				<span class="bg-count">{$backgroundStreams.length}</span>
 				<span class="bg-chev" class:open={bgOpen} aria-hidden="true">▾</span>
 			</button>
@@ -60,9 +61,9 @@
 							<div class="bg-top">
 								<Logo provider={s.provider} size={18} />
 								<span class="bg-name" title={s.provider.name}>{s.provider.name}</span>
-								<button class="bg-ic" onclick={() => setBackgroundMuted(s.streamId, !s.muted)} title={s.muted ? 'Ton einschalten' : 'Stummschalten'} aria-label={s.muted ? 'Ton einschalten' : 'Stummschalten'}>{s.muted ? '🔇' : '🔊'}</button>
-								<button class="bg-ic" onclick={() => bringToForeground(s.streamId)} title="In den Vordergrund holen" aria-label="In den Vordergrund holen">▶</button>
-								<button class="bg-ic close" onclick={() => closeBackgroundStream(s.streamId)} title="Stream schließen" aria-label="Stream schließen">✕</button>
+								<button class="bg-ic" onclick={() => setBackgroundMuted(s.streamId, !s.muted)} title={s.muted ? $t('common.unmute') : $t('common.mute')} aria-label={s.muted ? $t('common.unmute') : $t('common.mute')}>{s.muted ? '🔇' : '🔊'}</button>
+								<button class="bg-ic" onclick={() => bringToForeground(s.streamId)} title={$t('bg.toForeground')} aria-label={$t('bg.toForeground')}>▶</button>
+								<button class="bg-ic close" onclick={() => closeBackgroundStream(s.streamId)} title={$t('bg.closeStream')} aria-label={$t('bg.closeStream')}>✕</button>
 							</div>
 							<input
 								class="bg-vol"
@@ -72,16 +73,16 @@
 								value={s.volume}
 								disabled={s.muted}
 								oninput={(e) => setBackgroundVolume(s.streamId, +(e.currentTarget as HTMLInputElement).value)}
-								title={`Lautstärke: ${s.volume}%`}
-								aria-label="Lautstärke"
+								title={`${$t('bg.volume')}: ${s.volume}%`}
+								aria-label={$t('bg.volume')}
 							/>
 						</div>
 					{/each}
 				</div>
 				{#if $backgroundStreams.length > 1}
 					<div class="bg-actions">
-						<button onclick={() => setAllBackgroundMuted(!allMuted)}>{allMuted ? 'Alle laut' : 'Alle stumm'}</button>
-						<button class="warn" onclick={() => closeAllBackgroundStreams()}>Alle schließen</button>
+						<button onclick={() => setAllBackgroundMuted(!allMuted)}>{allMuted ? $t('bg.allLoud') : $t('bg.allMute')}</button>
+						<button class="warn" onclick={() => closeAllBackgroundStreams()}>{$t('bg.closeAll')}</button>
 					</div>
 				{/if}
 			{/if}
@@ -91,23 +92,23 @@
 	<div class="bottom">
 		<SleepCountdown />
 		<a href="/cr-calendar" class="nav-item" class:active={path === '/cr-calendar'}>
-			<span class="icon">⛩️</span><span>CR Kalender</span>
+			<span class="icon">⛩️</span><span>{$t('nav.crCalendar')}</span>
 		</a>
 
 		<div class="controls">
-			<button class="ctrl" onclick={toggleTheme} title="Hell/Dunkel" aria-label="Theme">
+			<button class="ctrl" onclick={toggleTheme} title={$t('common.themeToggle')} aria-label={$t('common.themeToggle')}>
 				{$settings.appearance.theme === 'dark' ? '🌙' : '☀️'}
 			</button>
-			<button class="ctrl" onclick={() => notifCenterOpen.update((v) => !v)} title="Benachrichtigungen" aria-label="Benachrichtigungen">🔔</button>
+			<button class="ctrl" onclick={() => notifCenterOpen.update((v) => !v)} title={$t('common.notifications')} aria-label={$t('common.notifications')}>🔔</button>
 		</div>
 
 		<ProfileSwitcher {openProfiles} />
 
 		<a href="/stats" class="nav-item" class:active={path === '/stats'}>
-			<span class="icon">📊</span><span>Statistiken</span>
+			<span class="icon">📊</span><span>{$t('nav.stats')}</span>
 		</a>
 		<button class="nav-item as-link" onclick={openSettings}>
-			<span class="icon">⚙️</span><span>Einstellungen</span>
+			<span class="icon">⚙️</span><span>{$t('nav.settings')}</span>
 		</button>
 	</div>
 </aside>

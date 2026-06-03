@@ -58,7 +58,7 @@
 				<div class="list">
 					{#each $profiles as p (p.id)}
 						<button class="row" class:active={p.id === $activeProfileId} onclick={() => select(p)}>
-							<span class="av">👤</span>
+							<span class="av">{p.avatar ?? '👤'}</span>
 							<span class="nm">{p.name}</span>
 							{#if p.pinHash}<span class="lock">🔒</span>{/if}
 							{#if p.id === $activeProfileId}<span class="check">✓</span>{/if}
@@ -75,7 +75,7 @@
 	{/if}
 
 	<button class="profile" onclick={toggle}>
-		<span class="avatar">👤</span>
+		<span class="avatar">{active?.avatar ?? '👤'}</span>
 		<span class="pname">{active?.name ?? $profiles[0]?.name ?? 'Profil'}</span>
 		<span class="chev">{open ? '▴' : '▾'}</span>
 	</button>

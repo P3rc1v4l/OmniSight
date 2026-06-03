@@ -14,9 +14,15 @@
 	const editing = $derived($clockEditing);
 
 	const timeStr = $derived.by(() => {
-		const h = String(now.getHours()).padStart(2, '0');
+		const h24 = now.getHours();
 		const m = String(now.getMinutes()).padStart(2, '0');
 		const s = String(now.getSeconds()).padStart(2, '0');
+		if (c.hour12) {
+			const ampm = h24 < 12 ? 'AM' : 'PM';
+			const h12 = String(((h24 + 11) % 12) + 1).padStart(2, '0');
+			return c.showSeconds ? `${h12}:${m}:${s} ${ampm}` : `${h12}:${m} ${ampm}`;
+		}
+		const h = String(h24).padStart(2, '0');
 		return c.showSeconds ? `${h}:${m}:${s}` : `${h}:${m}`;
 	});
 
