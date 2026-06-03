@@ -24,7 +24,10 @@
 		const mt = (item.mediaType === 'tv' ? 'tv' : 'movie') as 'movie' | 'tv';
 		const d = await tmdb.details(mt, item.tmdbId);
 		const myIds = new Set(get(visibleProviders).map((p) => p.id));
-		const provs = extractWatchProviders(d as Record<string, unknown>, item.title).filter((w) => myIds.has(w.id));
+		const seen = new Set<string>();
+		const provs = extractWatchProviders(d as Record<string, unknown>, item.title)
+			.filter((w) => myIds.has(w.id))
+			.filter((w) => (seen.has(w.id) ? false : (seen.add(w.id), true)));
 		availability.update((a) => ({ ...a, [key]: provs }));
 	}
 
@@ -39,30 +42,34 @@
 		openUrlInApp(w.title, pv.url, pv.id, pv.name, prov?.color ?? '#30c5bb', prov?.color2 ?? '#1f6f6a', w.poster ?? null);
 	}
 
-	// Empfehlungen „Weil du … gemerkt hast": Seeds (bewertet, dann zuletzt) -> TMDB-Empfehlungen.
-	const recCache = writable<Record<string, TmdbItem[]>>({});
-	const recFetching = new Set<string>();
+	// Empfehlungen: EINE Reihe mit bis zu 10 zufälligen Titeln, gezogen aus den
+	// TMDB-Empfehlungen zu (zufällig gewählten) Titeln der eigenen Liste.
+	// Wird nur neu berechnet, wenn sich die Titel-Menge ändert (nicht bei Bewertung/Gesehen).
+	const recs10 = writable<TmdbItem[]>([]);
+	let recsSig = '';
 
-	$: seeds = [...$watchlist]
-		.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || b.addedAt - a.addedAt)
-		.slice(0, 3);
-
-	async function ensureRecs(seed: WatchlistItem): Promise<void> {
-		const key = seed.mediaType + '-' + seed.tmdbId;
-		if (recFetching.has(key)) return;
-		recFetching.add(key);
-		const mt = (seed.mediaType === 'tv' ? 'tv' : 'movie') as 'movie' | 'tv';
-		const res = (await tmdb.list(`/${mt}/${seed.tmdbId}/recommendations`, [], mt)) ?? [];
-		const have = new Set(get(watchlist).map((w) => w.mediaType + '-' + w.tmdbId));
-		const items = res
-			.filter((r) => r.poster && !have.has((r.media_type === 'tv' ? 'tv' : 'movie') + '-' + r.id))
-			.slice(0, 14);
-		recCache.update((c) => ({ ...c, [key]: items }));
+	async function buildRecs(items: WatchlistItem[]): Promise<void> {
+		const have = new Set(items.map((w) => w.mediaType + '-' + w.tmdbId));
+		const seedTitles = [...items].sort(() => Math.random() - 0.5).slice(0, 8);
+		const pool = new Map<string, TmdbItem>();
+		for (const s of seedTitles) {
+			const mt = (s.mediaType === 'tv' ? 'tv' : 'movie') as 'movie' | 'tv';
+			const res = (await tmdb.list(`/${mt}/${s.tmdbId}/recommendations`, [], mt)) ?? [];
+			for (const r of res) {
+				const k = (r.media_type === 'tv' ? 'tv' : 'movie') + '-' + r.id;
+				if (r.poster && !have.has(k) && !pool.has(k)) pool.set(k, r);
+			}
+		}
+		recs10.set([...pool.values()].sort(() => Math.random() - 0.5).slice(0, 10));
 	}
 
-	$: for (const s of seeds) {
-		const k = s.mediaType + '-' + s.tmdbId;
-		if (!recFetching.has(k)) ensureRecs(s);
+	$: {
+		const sig = $watchlist.map((w) => w.mediaType + '-' + w.tmdbId).sort().join(',');
+		if (sig !== recsSig) {
+			recsSig = sig;
+			if ($watchlist.length) void buildRecs($watchlist);
+			else recs10.set([]);
+		}
 	}
 
 	// Lokales Datum als YYYY-MM-DD (vermeidet Zeitzonen-Versatz von toISOString).
@@ -74,17 +81,30 @@
 		const t0 = new Date();
 		t0.setHours(0, 0, 0, 0);
 		const diff = Math.round((date.getTime() - t0.getTime()) / 86400000);
-		if (diff <= 0) return tr(lg, 'cal.today');
+		if (diff === 0) return tr(lg, 'cal.today');
 		if (diff === 1) return tr(lg, 'cal.tomorrow');
-		return date.toLocaleDateString(loc, { weekday: 'long' });
+		if (diff === -1) return tr(lg, 'cal.yesterday');
+		return date.toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'short' });
 	}
 
 	$: lang = ($settings.appearance.language === 'en' ? 'en' : 'de') as 'de' | 'en';
 	$: locale = lang === 'en' ? 'en-US' : 'de-DE';
 	$: today = ymd(new Date());
-	$: weekEnd = (() => { const d = new Date(); d.setDate(d.getDate() + 6); return ymd(d); })();
+	// Aktuelle Kalenderwoche (Montag–Sonntag), inkl. bereits erschienener Tage dieser Woche.
+	$: weekStart = (() => {
+		const d = new Date();
+		const dow = (d.getDay() + 6) % 7; // Mo=0 … So=6
+		d.setDate(d.getDate() - dow);
+		return ymd(d);
+	})();
+	$: weekEnd = (() => {
+		const d = new Date();
+		const dow = (d.getDay() + 6) % 7;
+		d.setDate(d.getDate() + (6 - dow));
+		return ymd(d);
+	})();
 	$: releasesWeek = $watchlist
-		.filter((x) => x.releaseDate && x.releaseDate >= today && x.releaseDate <= weekEnd)
+		.filter((x) => x.releaseDate && x.releaseDate >= weekStart && x.releaseDate <= weekEnd)
 		.sort((a, b) => (a.releaseDate ?? '').localeCompare(b.releaseDate ?? ''));
 
 	let sortBy = 'added-desc';
@@ -308,24 +328,19 @@
 		{/if}
 	{/if}
 
-	{#if seeds.length}
+	{#if $recs10.length}
 		<div class="recs">
-			{#each seeds as seed (seed.mediaType + '-' + seed.tmdbId)}
-				{@const list = $recCache[seed.mediaType + '-' + seed.tmdbId] ?? []}
-				{#if list.length}
-					<div class="rec-row">
-						<div class="rec-head">{$t('wl.becauseSaved', { title: seed.title })}</div>
-						<div class="rec-scroller">
-							{#each list as rec (rec.media_type + '-' + rec.id)}
-								<button class="rec-card" onclick={() => openTitleInfo(rec)} title={rec.title}>
-									{#if rec.poster}<img src={rec.poster} alt={rec.title} loading="lazy" decoding="async" />{:else}<div class="rec-noimg">?</div>{/if}
-									<span class="rec-name">{rec.title}</span>
-								</button>
-							{/each}
-						</div>
-					</div>
-				{/if}
-			{/each}
+			<div class="rec-row">
+				<div class="rec-head">{$t('wl.recsTitle')}</div>
+				<div class="rec-scroller">
+					{#each $recs10 as rec (rec.media_type + '-' + rec.id)}
+						<button class="rec-card" onclick={() => openTitleInfo(rec)} title={rec.title}>
+							{#if rec.poster}<img src={rec.poster} alt={rec.title} loading="lazy" decoding="async" />{:else}<div class="rec-noimg">?</div>{/if}
+							<span class="rec-name">{rec.title}</span>
+						</button>
+					{/each}
+				</div>
+			</div>
 		</div>
 	{/if}
 </div>

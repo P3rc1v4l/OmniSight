@@ -156,6 +156,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'wl.rate': { de: 'Bewerten', en: 'Rate' },
 	'wl.rateN': { de: 'Mit {n} bewerten', en: 'Rate {n}' },
 	'wl.becauseSaved': { de: 'Weil du „{title}" gemerkt hast', en: 'Because you saved “{title}”' },
+	'wl.recsTitle': { de: 'Empfehlungen für dich', en: 'Recommended for you' },
 	'wl.toastNothingTitle': { de: 'Nichts zu exportieren', en: 'Nothing to export' },
 	'wl.toastNothingBody': { de: 'Deine Watchlist ist leer.', en: 'Your watchlist is empty.' },
 	'wl.toastExportedTitle': { de: 'Watchlist exportiert', en: 'Watchlist exported' },
