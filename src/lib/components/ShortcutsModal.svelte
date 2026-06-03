@@ -1,16 +1,17 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	export let open: boolean = false;
 	export let close: () => void;
 
 	const shortcuts = [
-		{ keys: ['F1'], desc: 'Diese Tastenkürzel-Übersicht öffnen' },
-		{ keys: ['?'], desc: 'Diese Übersicht öffnen (alternativ)' },
-		{ keys: ['1–9'], desc: 'Favorit 1–9 direkt starten' },
-		{ keys: ['Strg', 'K'], desc: 'Suche fokussieren' },
-		{ keys: ['Strg', ','], desc: 'Einstellungen öffnen' },
-		{ keys: ['Strg', 'D'], desc: 'Hell-/Dunkel-Modus wechseln' },
-		{ keys: ['Esc'], desc: 'Vollbild verlassen / Dialog schließen' },
-		{ keys: ['Enter'], desc: 'Markierten Anbieter / Treffer öffnen' }
+		{ keys: ['F1'], key: 'sc.f1' },
+		{ keys: ['?'], key: 'sc.q' },
+		{ keys: ['1–9'], key: 'sc.fav' },
+		{ keys: ['Strg', 'K'], key: 'sc.search' },
+		{ keys: ['Strg', ','], key: 'sc.settings' },
+		{ keys: ['Strg', 'D'], key: 'sc.theme' },
+		{ keys: ['Esc'], key: 'sc.esc' },
+		{ keys: ['Enter'], key: 'sc.enter' }
 	];
 
 	function onBackdrop(e: MouseEvent) {
@@ -22,13 +23,13 @@
 	<div class="backdrop" onclick={onBackdrop} role="presentation">
 		<div class="dialog omni-card" role="dialog" aria-modal="true" aria-label="Tastenkürzel">
 			<header>
-				<h2>Tastenkürzel</h2>
-				<button class="x" onclick={close} aria-label="Schließen">×</button>
+				<h2>{$t('sc.title')}</h2>
+				<button class="x" onclick={close} aria-label={$t('common.close')}>×</button>
 			</header>
 			<ul>
 				{#each shortcuts as s}
 					<li>
-						<span class="desc">{s.desc}</span>
+						<span class="desc">{$t(s.key)}</span>
 						<span class="keys">
 							{#each s.keys as k, i}
 								<kbd>{k}</kbd>{#if i < s.keys.length - 1}<span class="plus">+</span>{/if}

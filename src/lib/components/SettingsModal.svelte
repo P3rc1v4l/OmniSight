@@ -9,6 +9,9 @@
 	import { APP_VERSION, APP_NAME, LINKS, DEFAULT_DISCORD_CLIENT_ID } from '$lib/version';
 	import { updateState, checkForUpdate } from '$lib/stores/updater';
 	import { pushToast } from '$lib/stores/toasts';
+	import { t } from '$lib/i18n';
+	import { THEME_PRESETS } from '$lib/themes';
+	import { get } from 'svelte/store';
 
 	let { open = false, initialTab = 'appearance', close }: { open?: boolean; initialTab?: string; close: () => void } = $props();
 
@@ -34,27 +37,46 @@
 			await relaunch();
 		} catch (e) {
 			console.error('[restart]', e);
-			pushToast('Neustart nicht möglich', 'Bitte schließe und öffne OmniHub manuell.', '⚠️', 6000);
+			pushToast(get(t)('set.toast.restartFailTitle'), get(t)('set.toast.restartFailBody'), '⚠️', 6000);
 		}
 	}
 
 	const tabs = [
-		{ id: 'appearance', label: 'Design', icon: '🎨' },
-		{ id: 'account', label: 'Profile', icon: '🔑' },
-		{ id: 'clock', label: 'Uhr', icon: '🕐' },
-		{ id: 'notifications', label: 'Benachrichtigungen', icon: '🔔' },
-		{ id: 'plugins', label: 'Plugins', icon: '🧩' },
-		{ id: 'advanced', label: 'Mehr', icon: '⚙️' }
+		{ id: 'appearance', key: 'set.tab.appearance', icon: '🎨' },
+		{ id: 'account', key: 'set.tab.account', icon: '🔑' },
+		{ id: 'clock', key: 'set.tab.clock', icon: '🕐' },
+		{ id: 'notifications', key: 'set.tab.notifications', icon: '🔔' },
+		{ id: 'plugins', key: 'set.tab.plugins', icon: '🧩' },
+		{ id: 'advanced', key: 'set.tab.advanced', icon: '⚙️' }
 	];
 	let active = $state('appearance');
 	let tabSearch = $state('');
 
 	const PARTICLE_SHAPES = [
-		{ id: 'circle', label: '● Kreis' },
-		{ id: 'square', label: '■ Quadrat' },
-		{ id: 'triangle', label: '▲ Dreieck' },
-		{ id: 'star', label: '★ Stern' }
+		{ id: 'circle', key: 'set.shape.circle' },
+		{ id: 'square', key: 'set.shape.square' },
+		{ id: 'triangle', key: 'set.shape.triangle' },
+		{ id: 'star', key: 'set.shape.star' }
 	];
+
+	// Theme-Vorlagen (fertige Farbschemata).
+	function pickPreset(p: (typeof THEME_PRESETS)[number]) {
+		settings.update((s) => {
+			const ap = { ...s.appearance, themePreset: p.id };
+			if (p.id !== 'default') {
+				ap.theme = p.mode;
+				if (p.accent) {
+					ap.accentColor = p.accent;
+					ap.accentText = p.accentText ?? ap.accentText;
+				}
+			}
+			return { ...s, appearance: ap };
+		});
+	}
+	function pickMode(m: 'light' | 'dark') {
+		settings.update((s) => ({ ...s, appearance: { ...s.appearance, theme: m, themePreset: 'default' } }));
+	}
+
 	// Schnellauswahl-Akzentfarben.
 	const ACCENT_PRESETS = ['#30c5bb', '#6c8cff', '#f0a020', '#e0556b', '#9b6cff', '#28c76f', '#ff7a45', '#22d3ee'];
 	// Avatar-Auswahl je Profil.
@@ -83,7 +105,7 @@
 	function resetAppearance() {
 		if (!confirm('Alle Design-Einstellungen auf Standard zurücksetzen?')) return;
 		settings.update((s) => ({ ...s, appearance: structuredClone(DEFAULT_SETTINGS.appearance) }));
-		pushToast('Design zurückgesetzt', 'Standard-Werte wiederhergestellt.', '↩️', 2500);
+		pushToast(get(t)('set.toast.designResetTitle'), get(t)('set.toast.designResetBody'), '↩️', 2500);
 	}
 
 	// Profilverwaltung – PIN-Bearbeitung mit Abfrage des alten PINs
@@ -107,7 +129,7 @@
 	$effect(() => { clockEditing.set(open && active === 'clock'); });
 
 	const filteredTabs = $derived(
-		tabs.filter((t) => t.label.toLowerCase().includes(tabSearch.toLowerCase()))
+		tabs.filter((tab) => $t(tab.key).toLowerCase().includes(tabSearch.toLowerCase()))
 	);
 
 	async function savePin(p: { id: string; pinHash: string | null }) {
@@ -133,7 +155,7 @@
 		await setAdminCode(adminInput.trim());
 		adminInput = ''; oldAdminInput = '';
 		adminMsg = 'Admin-Code gespeichert.';
-		pushToast('Admin-Code gespeichert', undefined, '🛡️', 2200);
+		pushToast(get(t)('set.toast.adminSaved'), undefined, '🛡️', 2200);
 	}
 	async function removeAdminCode() {
 		if ($adminCodeHash && !(await verifyAdminCode(oldAdminInput.trim()))) { adminMsg = 'Alter Admin-Code ist falsch.'; return; }
@@ -147,13 +169,13 @@
 	let mainAdminInput = $state('');
 	let mainMsg = $state('');
 	function requestSetMain(id: string) {
-		if (!$adminCodeHash) { setMainProfile(id); pushToast('Haupt-Profil geändert', undefined, '★', 2000); return; }
+		if (!$adminCodeHash) { setMainProfile(id); pushToast(get(t)('set.toast.mainChanged'), undefined, '★', 2000); return; }
 		mainChangeFor = id; mainAdminInput = ''; mainMsg = '';
 	}
 	async function confirmSetMain(id: string) {
 		if (!(await verifyAdminCode(mainAdminInput.trim()))) { mainMsg = 'Admin-Code ist falsch.'; return; }
 		setMainProfile(id);
-		pushToast('Haupt-Profil geändert', undefined, '★', 2000);
+		pushToast(get(t)('set.toast.mainChanged'), undefined, '★', 2000);
 		mainChangeFor = null; mainAdminInput = '';
 	}
 	function cancelSetMain() { mainChangeFor = null; mainAdminInput = ''; mainMsg = ''; }
@@ -166,7 +188,7 @@
 	function closeResetPanel() { resetPinFor = null; resetAdminInput = ''; resetMsg = ''; }
 	async function doResetPin(id: string) {
 		const ok = await resetPinWithAdmin(id, resetAdminInput.trim());
-		if (ok) { pushToast('PIN zurückgesetzt', 'Du kannst jetzt einen neuen PIN setzen.', '🔓', 2600); closeResetPanel(); }
+		if (ok) { pushToast(get(t)('set.toast.pinResetTitle'), get(t)('set.toast.pinResetBody'), '🔓', 2600); closeResetPanel(); }
 		else resetMsg = 'Admin-Code ist falsch.';
 	}
 
@@ -183,7 +205,7 @@
 			secretBuf = '';
 			await clearAdminCode();
 			adminMsg = 'Admin-Code wurde zurückgesetzt.';
-			pushToast('Admin-PIN zurückgesetzt', 'Du kannst jetzt unten einen neuen Admin-Code setzen.', '🔑', 4000);
+			pushToast(get(t)('set.toast.adminPinResetTitle'), get(t)('set.toast.adminPinResetBody'), '🔑', 4000);
 		}
 	}
 	$effect(() => {
@@ -194,7 +216,7 @@
 
 	// Beim Schließen Hinweis zeigen (Einstellungen werden automatisch gespeichert).
 	function doClose() {
-		pushToast('Einstellungen gespeichert', undefined, '✅', 2200);
+		pushToast(get(t)('set.toast.settingsSaved'), undefined, '✅', 2200);
 		close();
 	}
 
@@ -209,12 +231,12 @@
 					<span class="emoji">⚙️</span><h2>Einstellungen</h2>
 				</div>
 				<div class="search">
-					<input type="text" placeholder="Suchen…" bind:value={tabSearch} />
+					<input type="text" placeholder={$t('set.searchPh')} bind:value={tabSearch} />
 				</div>
 				<nav>
-					{#each filteredTabs as t}
-						<button class:active={active === t.id} onclick={() => (active = t.id)}>
-							<span class="i">{t.icon}</span><span>{t.label}</span>
+					{#each filteredTabs as tab}
+						<button class:active={active === tab.id} onclick={() => (active = tab.id)}>
+							<span class="i">{tab.icon}</span><span>{$t(tab.key)}</span>
 						</button>
 					{/each}
 				</nav>
@@ -223,22 +245,22 @@
 
 			<section class="main">
 				<div class="main-head">
-					<h3>{tabs.find((t) => t.id === active)?.icon} {tabs.find((t) => t.id === active)?.label}</h3>
-					<button class="x" onclick={doClose} aria-label="Schließen">×</button>
+					<h3>{tabs.find((tab) => tab.id === active)?.icon} {$t(tabs.find((tab) => tab.id === active)?.key ?? '')}</h3>
+					<button class="x" onclick={doClose} aria-label={$t('common.close')}>×</button>
 				</div>
 
 				<div class="content">
 					{#if active === 'appearance'}
 						<div class="look-head">
 							<div class="look-card">
-								<div class="look-label">Modus</div>
+								<div class="look-label">{$t('set.mode')}</div>
 								<div class="seg2">
-									<button class:on={$settings.appearance.theme === 'light'} onclick={() => ($settings.appearance.theme = 'light')}>☀️ Hell</button>
-									<button class:on={$settings.appearance.theme === 'dark'} onclick={() => ($settings.appearance.theme = 'dark')}>🌙 Dunkel</button>
+									<button class:on={$settings.appearance.theme === 'light' && $settings.appearance.themePreset === 'default'} onclick={() => pickMode('light')}>{$t('set.light')}</button>
+									<button class:on={$settings.appearance.theme === 'dark' && $settings.appearance.themePreset === 'default'} onclick={() => pickMode('dark')}>{$t('set.dark')}</button>
 								</div>
 							</div>
 							<div class="look-card">
-								<div class="look-label">Akzentfarbe</div>
+								<div class="look-label">{$t('set.accent')}</div>
 								<div class="swatches">
 									{#each ACCENT_PRESETS as c (c)}
 										<button
@@ -250,7 +272,7 @@
 											aria-label={`Akzentfarbe ${c}`}
 										></button>
 									{/each}
-									<label class="swatch custom" title="Eigene Farbe">
+									<label class="swatch custom" title={$t('set.customColor')}>
 										<input type="color" bind:value={$settings.appearance.accentColor} />
 										<span>+</span>
 									</label>
@@ -258,25 +280,44 @@
 							</div>
 						</div>
 
+						<div class="block">
+							<div class="block-label">{$t('set.themePreset')}</div>
+							<div class="theme-presets">
+								{#each THEME_PRESETS as p (p.id)}
+									<button
+										class="tp"
+										class:on={$settings.appearance.themePreset === p.id}
+										onclick={() => pickPreset(p)}
+										style="--c1: {p.vars ? p.vars.bg : '#0b0c10'}; --c2: {p.vars ? p.vars.bgCard2 : '#1a1d26'}; --ca: {p.accent ?? $settings.appearance.accentColor}; --cb: {p.vars ? p.vars.border : '#1f222b'}"
+										title={$settings.appearance.language === 'en' ? p.name.en : p.name.de}
+									>
+										<span class="tp-prev"><span class="tp-dot"></span></span>
+										<span class="tp-name">{$settings.appearance.language === 'en' ? p.name.en : p.name.de}</span>
+									</button>
+								{/each}
+							</div>
+							<p class="hint">{$t('set.themePresetHint')}</p>
+						</div>
+
 						<div class="grid">
 							<div class="field">
-								<label>Hintergrundbild</label>
+								<label>{$t('set.bgImage')}</label>
 								<div class="row">
 									<label class="filebtn">
 										Bild wählen
 										<input type="file" accept="image/*" onchange={onBgFile} hidden />
 									</label>
 									{#if $settings.appearance.backgroundImage}
-										<button class="ghost" onclick={clearBg}>Entfernen</button>
+										<button class="ghost" onclick={clearBg}>{$t('common.remove')}</button>
 									{/if}
 								</div>
 								{#if $settings.appearance.backgroundImage}
-									<label style="margin-top:8px">Bild-Deckkraft: {$settings.appearance.backgroundOpacity}%</label>
+									<label style="margin-top:8px">{$t('set.bgOpacity')}: {$settings.appearance.backgroundOpacity}%</label>
 									<input type="range" min="10" max="100" bind:value={$settings.appearance.backgroundOpacity} />
 								{/if}
 							</div>
 							<div class="field">
-								<label>Schriftart</label>
+								<label>{$t('set.font')}</label>
 								<select bind:value={$settings.appearance.fontFamily}>
 									<option value="'DM Sans', ui-sans-serif, system-ui, sans-serif">DM Sans</option>
 									<option value="ui-sans-serif, system-ui, sans-serif">System</option>
@@ -292,28 +333,28 @@
 							</div>
 
 							<div class="field">
-								<label>Schriftgröße: {$settings.appearance.fontSize}px</label>
+								<label>{$t('set.fontSize')}: {$settings.appearance.fontSize}px</label>
 								<input type="range" min="12" max="22" bind:value={$settings.appearance.fontSize} />
 							</div>
 							<div class="field">
-								<label>Eckenradius: {$settings.appearance.radius}px</label>
+								<label>{$t('set.radius')}: {$settings.appearance.radius}px</label>
 								<input type="range" min="0" max="28" bind:value={$settings.appearance.radius} />
 							</div>
 							<div class="field">
-								<label>Sidebar-Breite: {$settings.appearance.sidebarWidth}px</label>
+								<label>{$t('set.sidebarWidth')}: {$settings.appearance.sidebarWidth}px</label>
 								<input type="range" min="180" max="320" bind:value={$settings.appearance.sidebarWidth} />
 							</div>
 
 							<div class="field">
-								<label>Glassmorphismus</label>
+								<label>{$t('set.glass')}</label>
 								<input type="checkbox" bind:checked={$settings.appearance.glassmorphism} />
 							</div>
 							<div class="field">
-								<label>Partikel-Hintergrund</label>
+								<label>{$t('set.particles')}</label>
 								<input type="checkbox" bind:checked={$settings.appearance.particles} />
 							</div>
 							<div class="field">
-								<label>Sprache</label>
+								<label>{$t('set.language')}</label>
 								<div class="row">
 									<button class:active={$settings.appearance.language === 'de'} onclick={() => ($settings.appearance.language = 'de')}>DE</button>
 									<button class:active={$settings.appearance.language === 'en'} onclick={() => ($settings.appearance.language = 'en')}>EN</button>
@@ -322,37 +363,37 @@
 						</div>
 
 						<div class="block">
-							<div class="block-label">Weitere Optik-Optionen</div>
+							<div class="block-label">{$t('set.moreVisual')}</div>
 							<div class="row3">
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.cardShadow}/> Karten-Schatten</label>
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.cardHoverZoom}/> Karten-Hover-Zoom</label>
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.animations}/> Animationen</label>
 							</div>
 							<p class="hint">
-								<b>Karten-Schatten:</b> legt einen weichen Schlagschatten unter die Anbieterkarten – sie wirken dadurch leicht „angehoben" über dem Hintergrund.
-								<b>Karten-Hover-Zoom:</b> die Karte wird beim Drüberfahren leicht vergrößert.
-								<b>Animationen:</b> sanfte Übergänge bei Hover/Verschieben (Karten gleiten/zoomen weich statt hart umzuspringen). Aus = alles sofort, ohne Bewegung.
+								<b>{$t('set.shadowLabel')}</b> {$t('set.shadowDesc')}
+								<b>{$t('set.zoomLabel')}</b> {$t('set.zoomDesc')}
+								<b>{$t('set.animLabel')}</b> {$t('set.animDesc')}
 							</p>
 						</div>
 
 						{#if $settings.appearance.particles}
 							<div class="block">
-								<div class="block-label">Partikel-Optionen</div>
+								<div class="block-label">{$t('set.particleOpts')}</div>
 								<div class="grid">
 									<div class="field">
-										<label>Anzahl: {$settings.appearance.particleCount}</label>
+										<label>{$t('set.count')}: {$settings.appearance.particleCount}</label>
 										<input type="range" min="10" max="150" bind:value={$settings.appearance.particleCount} />
 									</div>
 									<div class="field">
-										<label>Geschwindigkeit: {$settings.appearance.particleSpeed.toFixed(1)}</label>
+										<label>{$t('set.speed')}: {$settings.appearance.particleSpeed.toFixed(1)}</label>
 										<input type="range" min="0" max="1" step="0.1" bind:value={$settings.appearance.particleSpeed} />
 									</div>
 									<div class="field">
-										<label>Größe: {$settings.appearance.particleSize}</label>
+										<label>{$t('set.size')}: {$settings.appearance.particleSize}</label>
 										<input type="range" min="1" max="8" step="1" bind:value={$settings.appearance.particleSize} />
 									</div>
 									<div class="field">
-										<label>Partikel-Farbe</label>
+										<label>{$t('set.particleColor')}</label>
 										<div class="row">
 											<input type="color" bind:value={$settings.appearance.particleColor} />
 											<input type="text" class="hex" bind:value={$settings.appearance.particleColor} />
@@ -360,7 +401,7 @@
 									</div>
 								</div>
 								<div class="field" style="margin-top:6px">
-									<label>Formen (mehrere möglich)</label>
+									<label>{$t('set.shapes')}</label>
 									<div class="row3">
 										{#each PARTICLE_SHAPES as sh}
 											<label class="toggle">
@@ -368,7 +409,7 @@
 													type="checkbox"
 													checked={$settings.appearance.particleShapes?.includes(sh.id)}
 													onchange={() => toggleShape(sh.id)}
-												/> {sh.label}
+												/> {$t(sh.key)}
 											</label>
 										{/each}
 									</div>
@@ -377,171 +418,171 @@
 						{/if}
 
 						<div class="block">
-							<div class="block-label">Anbieter öffnen als</div>
+							<div class="block-label">{$t('set.openAs')}</div>
 							<div class="row">
-								<button class:active={$settings.appearance.streamMode === 'embedded'} onclick={() => ($settings.appearance.streamMode = 'embedded')}>Eingebettet (im Fenster)</button>
-								<button class:active={$settings.appearance.streamMode === 'window'} onclick={() => ($settings.appearance.streamMode = 'window')}>Eigenes Fenster</button>
+								<button class:active={$settings.appearance.streamMode === 'embedded'} onclick={() => ($settings.appearance.streamMode = 'embedded')}>{$t('set.embedded')}</button>
+								<button class:active={$settings.appearance.streamMode === 'window'} onclick={() => ($settings.appearance.streamMode = 'window')}>{$t('set.ownWindow')}</button>
 							</div>
-							<p class="hint">„Eingebettet" zeigt den Anbieter direkt in OmniHub. Falls dabei nichts erscheint, stelle auf „Eigenes Fenster" – das öffnet ein separates Browser-Fenster (funktioniert immer).</p>
+							<p class="hint">{$t('set.openAsHint')}</p>
 						</div>
 
 						<div class="block">
-							<button class="ghost danger" onclick={resetAppearance}>↩️ Design auf Standard zurücksetzen</button>
+							<button class="ghost danger" onclick={resetAppearance}>{$t('set.resetDesign')}</button>
 						</div>
 					{:else if active === 'notifications'}
 						<div class="grid">
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.pauseReminder}/> Pause-Erinnerung (nach 2h)</label>
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.sound}/> Benachrichtigungston</label>
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.updateHint}/> Update-Hinweis</label>
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.achievementUnlocked}/> Achievement freigeschaltet</label>
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.watchlistReminder}/> Watchlist-Erinnerung</label>
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.pauseReminder}/> {$t('set.notif.pause')}</label>
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.sound}/> {$t('set.notif.sound')}</label>
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.updateHint}/> {$t('set.notif.update')}</label>
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.achievementUnlocked}/> {$t('set.notif.achievement')}</label>
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.watchlistReminder}/> {$t('set.notif.watchlist')}</label>
 						</div>
 					{:else if active === 'clock'}
 						<div class="look-card" style="margin-bottom:16px">
-							<label class="toggle big"><input type="checkbox" bind:checked={$settings.clock.enabled}/> <b>Uhr auf dem Bildschirm anzeigen</b></label>
+							<label class="toggle big"><input type="checkbox" bind:checked={$settings.clock.enabled}/> <b>{$t('set.clock.show')}</b></label>
 						</div>
 						{#if $settings.clock.enabled}
 							<div class="look-head">
 								<div class="look-card">
-									<div class="look-label">Typ</div>
+									<div class="look-label">{$t('set.clock.type')}</div>
 									<div class="seg2">
-										<button class:on={$settings.clock.type === 'digital'} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, type: 'digital' } }))}>🔢 Digital</button>
-										<button class:on={$settings.clock.type === 'analog'} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, type: 'analog' } }))}>🕐 Analog</button>
+										<button class:on={$settings.clock.type === 'digital'} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, type: 'digital' } }))}>{$t('set.clock.digital')}</button>
+										<button class:on={$settings.clock.type === 'analog'} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, type: 'analog' } }))}>{$t('set.clock.analog')}</button>
 									</div>
 								</div>
 								{#if $settings.clock.type === 'digital'}
 									<div class="look-card">
-										<div class="look-label">Format</div>
+										<div class="look-label">{$t('set.clock.format')}</div>
 										<div class="seg2">
-											<button class:on={!$settings.clock.hour12} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, hour12: false } }))}>24 Stunden</button>
-											<button class:on={$settings.clock.hour12} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, hour12: true } }))}>12 Stunden</button>
+											<button class:on={!$settings.clock.hour12} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, hour12: false } }))}>{$t('set.clock.24h')}</button>
+											<button class:on={$settings.clock.hour12} onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, hour12: true } }))}>{$t('set.clock.12h')}</button>
 										</div>
 									</div>
 								{/if}
 								<div class="look-card">
-									<div class="look-label">Farbe</div>
+									<div class="look-label">{$t('set.clock.color')}</div>
 									<div class="swatches">
 										{#each ['#ffffff', '#30c5bb', '#6c8cff', '#f0a020', '#e0556b', '#000000'] as cc (cc)}
 											<button class="swatch" class:on={$settings.clock.color?.toLowerCase() === cc} style="--sw: {cc}" onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, color: cc } }))} title={cc} aria-label={`Uhrfarbe ${cc}`}></button>
 										{/each}
-										<label class="swatch custom" title="Eigene Farbe"><input type="color" bind:value={$settings.clock.color}/><span>+</span></label>
+										<label class="swatch custom" title={$t('set.customColor')}><input type="color" bind:value={$settings.clock.color}/><span>+</span></label>
 									</div>
 								</div>
 							</div>
 
 							<div class="grid">
-								<label class="toggle"><input type="checkbox" bind:checked={$settings.clock.showSeconds}/> Sekunden anzeigen</label>
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.clock.showSeconds}/> {$t('set.clock.seconds')}</label>
 								<div class="field">
-									<label>Transparenz: {$settings.clock.transparency}%</label>
+									<label>{$t('set.clock.transparency')}: {$settings.clock.transparency}%</label>
 									<input type="range" min="0" max="100" bind:value={$settings.clock.transparency}/>
 								</div>
 								<div class="field">
-									<label>Größe: {$settings.clock.size}px</label>
+									<label>{$t('set.clock.size')}: {$settings.clock.size}px</label>
 									<input type="range" min="20" max="96" bind:value={$settings.clock.size}/>
 								</div>
 							</div>
 
 							<div class="block">
-								<button class="ghost" onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, x: null, y: null } }))}>↺ Position zurücksetzen (oben rechts)</button>
-								<p class="hint">Solange dieser Tab offen ist, wird die Uhr <b>ganz vorne</b> angezeigt und du kannst sie mit der Maus <b>verschieben</b> (gestrichelter Rahmen). Bei <b>100&nbsp;% Transparenz</b> wird die Uhr ausgeblendet.</p>
+								<button class="ghost" onclick={() => settings.update((s) => ({ ...s, clock: { ...s.clock, x: null, y: null } }))}>{$t('set.clock.resetPos')}</button>
+								<p class="hint">{$t('set.clock.hintEditing')}</p>
 							</div>
 						{:else}
-							<p class="hint">Schalte die Uhr oben ein, um Typ, Format, Farbe, Größe und Position festzulegen.</p>
+							<p class="hint">{$t('set.clock.hintOff')}</p>
 						{/if}
 					{:else if active === 'advanced'}
 						<div class="about">
 							<div class="about-logo">👁️</div>
 							<div class="about-tx">
 								<div class="about-name">{APP_NAME}</div>
-								<div class="about-ver">Version {APP_VERSION}</div>
+								<div class="about-ver">{$t('set.adv.version')} {APP_VERSION}</div>
 							</div>
 							{#if $updateState.available}<span class="up-pill">Update v{$updateState.version}</span>{/if}
 						</div>
 
 						<div class="opt-group">
-							<div class="opt-group-title">System / WebView2</div>
+							<div class="opt-group-title">{$t('set.adv.sysWebview')}</div>
 							{#if wv2Failed}
 								<div class="opt">
 									<div class="opt-ic">⚠️</div>
-									<div class="opt-tx2"><div class="opt-t">WebView2 nicht erkannt</div><div class="opt-d">Streams und Anzeige brauchen die WebView2-Runtime. Bitte installieren und die App neu starten.</div></div>
+									<div class="opt-tx2"><div class="opt-t">{$t('set.adv.wv2NotFound')}</div><div class="opt-d">{$t('set.adv.wv2NotFoundDesc')}</div></div>
 								</div>
 								<a class="opt" href="https://developer.microsoft.com/en-us/microsoft-edge/webview2/" target="_blank" rel="noreferrer">
 									<div class="opt-ic">⬇️</div>
-									<div class="opt-tx2"><div class="opt-t">WebView2 herunterladen</div><div class="opt-d">Offizieller Microsoft-Download.</div></div>
+									<div class="opt-tx2"><div class="opt-t">{$t('set.adv.wv2Download')}</div><div class="opt-d">{$t('set.adv.wv2DownloadDesc')}</div></div>
 									<span class="opt-btn ghosty">Öffnen ↗</span>
 								</a>
 							{:else}
 								<div class="opt">
 									<div class="opt-ic">🧩</div>
-									<div class="opt-tx2"><div class="opt-t">WebView2-Runtime</div><div class="opt-d">Grundlage für die eingebetteten Streams.</div></div>
+									<div class="opt-tx2"><div class="opt-t">{$t('set.adv.wv2Runtime')}</div><div class="opt-d">{$t('set.adv.wv2RuntimeDesc')}</div></div>
 									<span class="opt-btn ghosty">{wv2Ver ?? 'Prüfe…'}</span>
 								</div>
 							{/if}
 						</div>
 
 						<div class="opt-group">
-							<div class="opt-group-title">Updates</div>
+							<div class="opt-group-title">{$t('set.adv.updates')}</div>
 							<div class="opt">
 								<div class="opt-ic">⬆️</div>
-								<div class="opt-tx2"><div class="opt-t">Nach Updates suchen</div><div class="opt-d">Prüft GitHub auf eine neuere Version.</div></div>
+								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.checkUpdates')}</div><div class="opt-d">{$t('set.adv.checkUpdatesDesc')}</div></div>
 								<button class="opt-btn" disabled={$updateState.checking} onclick={() => checkForUpdate(true)}>{$updateState.checking ? 'Prüfe…' : 'Suchen'}</button>
 							</div>
 							<a class="opt" href={LINKS.githubReleases} target="_blank" rel="noreferrer">
 								<div class="opt-ic">🗒️</div>
-								<div class="opt-tx2"><div class="opt-t">Alle Versionen</div><div class="opt-d">Changelog & Downloads auf GitHub.</div></div>
+								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.allVersions')}</div><div class="opt-d">{$t('set.adv.allVersionsDesc')}</div></div>
 								<span class="opt-btn ghosty">Öffnen ↗</span>
 							</a>
 							{#if $updateState.available}
-								<p class="hint">Update auf v{$updateState.version} verfügbar – das Banner oben bietet „Herunterladen & installieren".</p>
+								<p class="hint">{$t('set.adv.updateAvail', { n: $updateState.version })}</p>
 							{/if}
 						</div>
 
 						<div class="opt-group">
-							<div class="opt-group-title">Daten & Ansicht</div>
+							<div class="opt-group-title">{$t('set.adv.dataView')}</div>
 							<div class="opt">
 								<div class="opt-ic">🎴</div>
-								<div class="opt-tx2"><div class="opt-t">Anbieterkarten zurücksetzen</div><div class="opt-d">Stellt die Standard-Anbieter wieder her.</div></div>
-								<button class="opt-btn" onclick={resetProviders}>Zurücksetzen</button>
+								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.resetCards')}</div><div class="opt-d">{$t('set.adv.resetCardsDesc')}</div></div>
+								<button class="opt-btn" onclick={resetProviders}>{$t('common.reset')}</button>
 							</div>
 							<div class="opt">
 								<div class="opt-ic">👋</div>
-								<div class="opt-tx2"><div class="opt-t">Onboarding erneut starten</div><div class="opt-d">Zeigt die Einführung beim nächsten Mal.</div></div>
-								<button class="opt-btn" onclick={() => { close(); onboardingOpen.set(true); }}>Starten</button>
+								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.redoOnboarding')}</div><div class="opt-d">{$t('set.adv.redoOnboardingDesc')}</div></div>
+								<button class="opt-btn" onclick={() => { close(); onboardingOpen.set(true); }}>{$t('set.adv.start')}</button>
 							</div>
 						</div>
 
 						<div class="opt-group">
-							<div class="opt-group-title">Hilfe & Feedback</div>
+							<div class="opt-group-title">{$t('set.adv.helpFeedback')}</div>
 							<a class="opt" href={LINKS.discord} target="_blank" rel="noreferrer">
 								<div class="opt-ic">💬</div>
-								<div class="opt-tx2"><div class="opt-t">Discord</div><div class="opt-d">Feedback, Hilfe und Neuigkeiten.</div></div>
-								<span class="opt-btn ghosty">Beitreten ↗</span>
+								<div class="opt-tx2"><div class="opt-t">Discord</div><div class="opt-d">{$t('set.adv.discordDesc')}</div></div>
+								<span class="opt-btn ghosty">{$t('set.adv.join')}</span>
 							</a>
 						</div>
 
 						<p class="copyright">© 2026 Luka Kalinka · {APP_NAME}</p>
 					{:else if active === 'account'}
-						<p class="acc-intro">Jedes Profil hat eigene Favoriten, Watchlist, Streamzeit – und beim Streamen <b>eigene, dauerhafte Logins</b> (pro Profil getrennt).</p>
+						<p class="acc-intro">{$t('set.acc.intro')}</p>
 						<div class="plist">
 							{#each $profiles as p (p.id)}
 								<div class="prow">
-									<button class="pav" onclick={() => { avatarPickFor = avatarPickFor === p.id ? null : p.id; accentPickFor = null; }} title="Avatar wählen" aria-label="Avatar wählen">{p.avatar ?? '👤'}</button>
+									<button class="pav" onclick={() => { avatarPickFor = avatarPickFor === p.id ? null : p.id; accentPickFor = null; }} title={$t('set.acc.avatarTitle')} aria-label={$t('set.acc.avatarTitle')}>{p.avatar ?? '👤'}</button>
 									<button class="pacc" style="--pc: {p.accent || 'var(--accent)'}" onclick={() => { accentPickFor = accentPickFor === p.id ? null : p.id; avatarPickFor = null; }} title="Akzentfarbe dieses Profils" aria-label="Akzentfarbe wählen"></button>
 									<input class="pname-in" value={p.name} oninput={(e) => renameProfile(p.id, (e.currentTarget as HTMLInputElement).value)} />
-									{#if p.id === $mainProfileId}<span class="pbadge main">★ Haupt</span>{/if}
-									{#if p.id === $activeProfileId}<span class="pbadge">aktiv</span>{/if}
+									{#if p.id === $mainProfileId}<span class="pbadge main">{$t('set.acc.mainBadge')}</span>{/if}
+									{#if p.id === $activeProfileId}<span class="pbadge">{$t('set.acc.activeBadge')}</span>{/if}
 									{#if p.id !== $mainProfileId}
-										<button class="mini" onclick={() => requestSetMain(p.id)} title="Als Haupt-Profil festlegen (Admin-Code nötig)">★ Haupt</button>
+										<button class="mini" onclick={() => requestSetMain(p.id)} title={$t('set.acc.setMainTitle')}>{$t('set.acc.mainBadge')}</button>
 									{/if}
-									<button class="mini" onclick={() => openPinPanel(p.id)}>{p.pinHash ? '🔒 PIN ändern' : 'PIN setzen'}</button>
+									<button class="mini" onclick={() => openPinPanel(p.id)}>{p.pinHash ? $t('set.acc.pinChange') : $t('set.acc.pinSet')}</button>
 									{#if p.pinHash}
-										<button class="mini" onclick={() => openResetPanel(p.id)} title="PIN vergessen? Mit Admin-Code zurücksetzen">PIN vergessen?</button>
+										<button class="mini" onclick={() => openResetPanel(p.id)} title={$t('set.acc.pinForgotTitle')}>{$t('set.acc.pinForgot')}</button>
 									{/if}
 									<button
 										class="mini danger"
 										disabled={$profiles.length <= MIN_PROFILES || p.id === $mainProfileId}
 										onclick={() => deleteProfile(p.id)}
-										title={p.id === $mainProfileId ? 'Haupt-Profil ist nicht löschbar' : ($profiles.length <= MIN_PROFILES ? 'Mindestens ein Profil nötig' : 'Profil löschen')}
+										title={p.id === $mainProfileId ? $t('set.acc.delMain') : ($profiles.length <= MIN_PROFILES ? $t('set.acc.delMin') : $t('set.acc.delOk'))}
 									>🗑</button>
 
 									{#if avatarPickFor === p.id}
@@ -557,39 +598,39 @@
 											{#each ACCENT_PRESETS as c (c)}
 												<button class="swatch" class:on={p.accent?.toLowerCase() === c} style="--sw: {c}" onclick={() => { setProfileAccent(p.id, c); accentPickFor = null; }} title={c} aria-label={`Akzent ${c}`}></button>
 											{/each}
-											<label class="swatch custom" title="Eigene Farbe"><input type="color" value={p.accent || '#30c5bb'} oninput={(e) => setProfileAccent(p.id, (e.currentTarget as HTMLInputElement).value)} /><span>+</span></label>
-											<button class="mini" onclick={() => { setProfileAccent(p.id, ''); accentPickFor = null; }} title="Globale Akzentfarbe verwenden">Standard</button>
+											<label class="swatch custom" title={$t('set.customColor')}><input type="color" value={p.accent || '#30c5bb'} oninput={(e) => setProfileAccent(p.id, (e.currentTarget as HTMLInputElement).value)} /><span>+</span></label>
+											<button class="mini" onclick={() => { setProfileAccent(p.id, ''); accentPickFor = null; }} title={$t('set.acc.useGlobalAccent')}>{$t('set.acc.standard')}</button>
 										</div>
 									{/if}
 
 									{#if pinEditFor === p.id}
 										<div class="pin-panel">
 											{#if p.pinHash}
-												<input class="pin-in" type="password" inputmode="numeric" placeholder="Alter PIN" bind:value={oldPinInput} />
+												<input class="pin-in" type="password" inputmode="numeric" placeholder={$t('set.acc.oldPin')} bind:value={oldPinInput} />
 											{/if}
-											<input class="pin-in" type="password" inputmode="numeric" placeholder="Neuer PIN (min. 4)" bind:value={newPinInput} onkeydown={(e) => e.key === 'Enter' && savePin(p)} />
-											<button class="mini primary" onclick={() => savePin(p)}>Speichern</button>
-											{#if p.pinHash}<button class="mini danger" onclick={() => removePin(p)}>PIN entfernen</button>{/if}
-											<button class="mini" onclick={closePinPanel}>Abbrechen</button>
+											<input class="pin-in" type="password" inputmode="numeric" placeholder={$t('set.acc.newPin')} bind:value={newPinInput} onkeydown={(e) => e.key === 'Enter' && savePin(p)} />
+											<button class="mini primary" onclick={() => savePin(p)}>{$t('common.save')}</button>
+											{#if p.pinHash}<button class="mini danger" onclick={() => removePin(p)}>{$t('set.acc.removePin')}</button>{/if}
+											<button class="mini" onclick={closePinPanel}>{$t('common.cancel')}</button>
 											{#if pinError}<span class="pin-err">{pinError}</span>{/if}
 										</div>
 									{/if}
 
 									{#if resetPinFor === p.id}
 										<div class="pin-panel">
-											<input class="pin-in" type="password" placeholder="Admin-Code" bind:value={resetAdminInput} onkeydown={(e) => e.key === 'Enter' && doResetPin(p.id)} />
-											<button class="mini primary" onclick={() => doResetPin(p.id)}>PIN zurücksetzen</button>
-											<button class="mini" onclick={closeResetPanel}>Abbrechen</button>
+											<input class="pin-in" type="password" placeholder={$t('set.acc.adminCode')} bind:value={resetAdminInput} onkeydown={(e) => e.key === 'Enter' && doResetPin(p.id)} />
+											<button class="mini primary" onclick={() => doResetPin(p.id)}>{$t('set.acc.resetPin')}</button>
+											<button class="mini" onclick={closeResetPanel}>{$t('common.cancel')}</button>
 											{#if resetMsg}<span class="pin-err">{resetMsg}</span>{/if}
-											{#if !$adminCodeHash}<span class="pin-err">Es ist noch kein Admin-Code gesetzt (siehe unten).</span>{/if}
+											{#if !$adminCodeHash}<span class="pin-err">{$t('set.acc.noAdminYet')}</span>{/if}
 										</div>
 									{/if}
 
 									{#if mainChangeFor === p.id}
 										<div class="pin-panel">
-											<input class="pin-in" type="password" placeholder="Admin-Code" bind:value={mainAdminInput} onkeydown={(e) => e.key === 'Enter' && confirmSetMain(p.id)} />
-											<button class="mini primary" onclick={() => confirmSetMain(p.id)}>Als Haupt festlegen</button>
-											<button class="mini" onclick={cancelSetMain}>Abbrechen</button>
+											<input class="pin-in" type="password" placeholder={$t('set.acc.adminCode')} bind:value={mainAdminInput} onkeydown={(e) => e.key === 'Enter' && confirmSetMain(p.id)} />
+											<button class="mini primary" onclick={() => confirmSetMain(p.id)}>{$t('set.acc.confirmMain')}</button>
+											<button class="mini" onclick={cancelSetMain}>{$t('common.cancel')}</button>
 											{#if mainMsg}<span class="pin-err">{mainMsg}</span>{/if}
 										</div>
 									{/if}
@@ -604,41 +645,41 @@
 
 						<div class="block" style="margin-top:18px">
 							<div class="block-label">🛡️ Admin-Code (für vergessene PINs)</div>
-							<p class="hint" style="margin-top:0">Ein separater, frei wählbarer Code – unabhängig von Profil-PINs. Damit kannst du oben einen vergessenen Profil-PIN zurücksetzen und das Haupt-Profil ändern. Das Haupt-Profil (★) ist nicht löschbar.</p>
+							<p class="hint" style="margin-top:0">{$t('set.acc.adminIntro')}</p>
 							<div class="admin-row">
 								{#if $adminCodeHash}
-									<input class="pin-in wide" type="password" placeholder="Alter Admin-Code" bind:value={oldAdminInput} />
+									<input class="pin-in wide" type="password" placeholder={$t('set.acc.oldAdminCode')} bind:value={oldAdminInput} />
 								{/if}
-								<input class="pin-in wide" type="password" placeholder={$adminCodeHash ? 'Neuer Admin-Code' : 'Admin-Code festlegen (min. 4)'} bind:value={adminInput} onkeydown={(e) => e.key === 'Enter' && saveAdminCode()} />
-								<button class="mini primary" onclick={saveAdminCode}>{$adminCodeHash ? 'Ändern' : 'Setzen'}</button>
-								{#if $adminCodeHash}<button class="mini danger" onclick={removeAdminCode}>Entfernen</button>{/if}
+								<input class="pin-in wide" type="password" placeholder={$adminCodeHash ? $t('set.acc.newAdminCode') : $t('set.acc.setAdminCode')} bind:value={adminInput} onkeydown={(e) => e.key === 'Enter' && saveAdminCode()} />
+								<button class="mini primary" onclick={saveAdminCode}>{$adminCodeHash ? $t('set.acc.change') : $t('set.acc.set')}</button>
+								{#if $adminCodeHash}<button class="mini danger" onclick={removeAdminCode}>{$t('common.remove')}</button>{/if}
 							</div>
-							<div class="admin-status">Status: {$adminCodeHash ? '✅ Admin-Code ist gesetzt' : '⚠️ noch kein Admin-Code'}{#if adminMsg} · {adminMsg}{/if}</div>
+							<div class="admin-status">{$t('set.acc.statusPrefix')} {$adminCodeHash ? $t('set.acc.adminStatusSet') : $t('set.acc.adminStatusNone')}{#if adminMsg} · {adminMsg}{/if}</div>
 						</div>
 
-						<p class="hint">Profil wechseln kannst du unten links über den Profil-Button.</p>
+						<p class="hint">{$t('set.acc.switchHint')}</p>
 					{:else if active === 'plugins'}
-						<p class="acc-intro">Schalte eingebaute Zusatzfunktionen an oder aus.</p>
+						<p class="acc-intro">{$t('set.plug.intro')}</p>
 
 						<div class="plugin">
 							<div class="plugin-head">
-								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.continueWatching}/> <b>Weiterschauen</b></label>
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.continueWatching}/> <b>{$t('set.plug.continue')}</b></label>
 							</div>
-							<p class="hint">Zeigt auf der Startseite die Reihe „Zuletzt geöffnet" für schnellen Wiedereinstieg.</p>
+							<p class="hint">{$t('set.plug.continueHint')}</p>
 						</div>
 
 						<div class="plugin">
 							<div class="plugin-head">
-								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.miniPlayerEnabled}/> <b>Mini-Player</b></label>
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.miniPlayerEnabled}/> <b>{$t('set.plug.mini')}</b></label>
 							</div>
-							<p class="hint">Wechselst du während eines Streams die Ansicht, läuft er als kleines Fenster unten rechts weiter. Aus = der Stream wird beim Verlassen der Stream-Seite ausgeblendet.</p>
+							<p class="hint">{$t('set.plug.miniHint')}</p>
 						</div>
 
 						<div class="plugin">
 							<div class="plugin-head">
-								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.sleepTimerEnabled}/> <b>Sleep-Timer</b></label>
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.sleepTimerEnabled}/> <b>{$t('set.plug.sleep')}</b></label>
 							</div>
-							<p class="hint">Nach Ablauf der Zeit wird ein Hinweis gezeigt – optional wird der laufende Stream geschlossen. Der Timer startet, sobald du ihn einschaltest.</p>
+							<p class="hint">{$t('set.plug.sleepHint')}</p>
 							{#if $settings.plugins.sleepTimerEnabled}
 								<div class="plugin-opts">
 									<div class="quick">
@@ -646,25 +687,25 @@
 											<button class="qbtn" class:on={$settings.plugins.sleepTimerMinutes === m} onclick={() => ($settings.plugins.sleepTimerMinutes = m)}>{m} Min</button>
 										{/each}
 									</div>
-									<label>Dauer:
+									<label>{$t('set.plug.duration')}
 										<select bind:value={$settings.plugins.sleepTimerMinutes}>
-											<option value={15}>15 Minuten</option>
-											<option value={30}>30 Minuten</option>
-											<option value={60}>60 Minuten</option>
-											<option value={90}>90 Minuten</option>
-											<option value={120}>2 Stunden</option>
+											<option value={15}>{$t('set.plug.min15')}</option>
+											<option value={30}>{$t('set.plug.min30')}</option>
+											<option value={60}>{$t('set.plug.min60')}</option>
+											<option value={90}>{$t('set.plug.min90')}</option>
+											<option value={120}>{$t('set.plug.h2')}</option>
 										</select>
 									</label>
-									<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.sleepTimerCloseStream}/> Stream danach schließen</label>
+									<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.sleepTimerCloseStream}/> {$t('set.plug.sleepClose')}</label>
 								</div>
 							{/if}
 						</div>
 
 						<div class="plugin">
 							<div class="plugin-head">
-								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.discordEnabled}/> <b>Discord-Status</b></label>
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.discordEnabled}/> <b>{$t('set.plug.discord')}</b></label>
 							</div>
-							<p class="hint">Zeigt auf deinem Discord-Profil „Schaut …" an. <b>Kein Login nötig</b> – es nutzt deine bereits laufende Discord-App. Voraussetzung: Discord-Desktop-App ist offen.</p>
+							<p class="hint">{$t('set.plug.discordHint')}</p>
 							{#if $settings.plugins.discordEnabled}
 								<div class="plugin-opts">
 									{#if DEFAULT_DISCORD_CLIENT_ID}
@@ -673,9 +714,9 @@
 										<p class="hint" style="margin:0">ℹ️ Es ist noch keine eingebaute OmniHub-Kennung hinterlegt. Bis dahin bleibt der Status leer – oder du trägst unten eine eigene Application-ID ein.</p>
 									{/if}
 									<details style="flex-basis:100%; margin-top:8px">
-										<summary style="cursor:pointer; color:var(--text-muted); font-size:13px">Erweitert: eigene Discord-Application-ID</summary>
-										<input class="pin-in wide" style="display:block; margin-top:8px" type="text" inputmode="numeric" placeholder="optional – z.B. 1234567890123456789" bind:value={$settings.plugins.discordClientId} />
-										<p class="hint" style="margin-top:4px">Nur nötig, wenn keine eingebaute Kennung vorhanden ist oder du eine eigene App verwenden willst. Anlegen unter <b>discord.com/developers/applications</b> → „New Application" → <b>Application ID</b> kopieren.</p>
+										<summary style="cursor:pointer; color:var(--text-muted); font-size:13px">{$t('set.plug.discordAdvanced')}</summary>
+										<input class="pin-in wide" style="display:block; margin-top:8px" type="text" inputmode="numeric" placeholder={$t('set.plug.discordIdPh')} bind:value={$settings.plugins.discordClientId} />
+										<p class="hint" style="margin-top:4px">{$t('set.plug.discordIdHint')}</p>
 									</details>
 								</div>
 							{/if}
@@ -683,22 +724,22 @@
 
 						<div class="plugin">
 							<div class="plugin-head">
-								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.hardwareAcceleration}/> <b>Hardware-Beschleunigung</b></label>
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.hardwareAcceleration}/> <b>{$t('set.plug.hwAccel')}</b></label>
 							</div>
-							<p class="hint">Nutzt die Grafikkarte (GPU) für flüssigeres Abspielen. Ausschalten kann bei Grafikfehlern, Flackern oder schwarzem Bild helfen, kostet aber Leistung. <b>Wirkt erst nach einem Neustart der App.</b></p>
+							<p class="hint">{$t('set.plug.hwAccelHint')}</p>
 							<div class="plugin-opts">
-								<button onclick={restartApp} style="background:var(--accent-soft); border:1px solid color-mix(in srgb, var(--accent) 40%, transparent); color:var(--text); padding:8px 14px; border-radius:9px; cursor:pointer; font-family:inherit; font-size:13px; font-weight:600;">App jetzt neu starten</button>
+								<button onclick={restartApp} style="background:var(--accent-soft); border:1px solid color-mix(in srgb, var(--accent) 40%, transparent); color:var(--text); padding:8px 14px; border-radius:9px; cursor:pointer; font-family:inherit; font-size:13px; font-weight:600;">{$t('set.plug.restartNow')}</button>
 							</div>
 						</div>
 
 						<div class="block" style="margin-top:16px">
-							<div class="block-label">Browser-Erweiterungen (z.B. AdBlock, Buster)</div>
+							<div class="block-label">{$t('set.plug.extTitle')}</div>
 							<p class="hint" style="margin-top:0">
-								Echte Browser-Erweiterungen lassen sich hier <b>nicht installieren</b>: OmniHub nutzt die System-WebView (Edge/WebView2), nicht Chrome – es gibt keine Schnittstelle, um Erweiterungen wie AdBlock oder Buster zu laden. Captcha-Solver werden zudem bewusst nicht angeboten.
+								{$t('set.plug.extBody')}
 							</p>
 						</div>
 					{:else}
-						<p class="hint">Dieser Tab wird in einer kommenden Version ausgebaut.</p>
+						<p class="hint">{$t('set.plug.extOutro')}</p>
 					{/if}
 				</div>
 			</section>
@@ -894,4 +935,11 @@
 	.opt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 	.opt-btn.ghosty { background: var(--bg-elev); color: var(--accent); border: 1px solid var(--border); }
 	.copyright { text-align: center; color: var(--text-dim); font-size: 11.5px; margin-top: 8px; }
+	.theme-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+	.tp { display: flex; align-items: center; gap: 8px; padding: 6px 11px 6px 6px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 600; transition: border-color 0.15s ease, transform 0.1s ease; }
+	.tp:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+	.tp.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+	.tp-prev { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, var(--c1) 55%, var(--c2) 55%); border: 1px solid var(--cb); display: grid; place-items: center; flex: 0 0 auto; }
+	.tp-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ca); box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.25); }
+	.tp-name { white-space: nowrap; }
 </style>

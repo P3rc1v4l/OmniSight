@@ -1,14 +1,71 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.42.0
+Stand: v0.44.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
 ---
 
-## 🆕 v0.42.0
-- 🟡 **Mehrsprachigkeit – Phase 2:** Statistiken, Gemerkt, CR-Kalender, Neuigkeiten & Upcoming übersetzt (inkl. sprachabhängiger Datums-/Zeitformate). **Phase 3:** Einstellungs-Dialog, restliche Dialoge, Achievement-Stufennamen.
+## 💡 Ideen-Pool / Backlog (v0.43.0 gesammelt)
+
+Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht Rust/Tauri (im Sandbox nicht testbar), 🎨 = reines Frontend.
+
+### 🎬 Anbieter & Startseite
+- ⏳ ⭐ 🎨 **Anbieter-Ordner/Sammlungen** – eigene Gruppen (z. B. „Anime", „Sport", „Kinder") zum Ein-/Ausklappen.
+- ⏳ 🎨 **Karten-Ansicht umschaltbar** – kompakt / groß / Liste.
+- ⏳ 🎨 **Schnellsuche direkt beim Anbieter** – Deep-Link in dessen Suche statt nur Startseite.
+- 💡 🎨 **Erreichbarkeits-Indikator** pro Karte (online/offline).
+
+### ▶️ Streaming & Player
+- ⏳ ⭐ 🦀 **Split-View** – zwei Streams echt nebeneinander im Raster (nicht nur Hintergrund-Stream).
+- 💡 🦀 **Windows-Picture-in-Picture**.
+- ⏳ 🎨 **Theater-Modus** – UI dimmt automatisch, sobald ein Stream läuft.
+- 💡 🦀 **Globale Medientasten** (Play/Pause/Stumm über Windows-Tasten).
+
+### 🔖 Entdecken & Watchlist
+- ⏳ ⭐ 🎨 **„Verfügbar bei dir"** – Hinweis, wenn ein gemerkter Titel auf einem deiner Anbieter läuft (JustWatch-Abgleich).
+- ⏳ 🎨 **Eigene Bewertung + „Gesehen"-Status** pro Titel.
+- ⏳ 🎨 **Empfehlungen** („Weil du X gemerkt hast", via TMDB).
+- ⏳ 🎨 **Tags/Unterlisten** in der Watchlist (z. B. „Heute Abend").
+
+### 📊 Statistik & Achievements
+- ⏳ ⭐ 🎨 **Jahresrückblick / „Wrapped"** als teilbare Zusammenfassung.
+- ⏳ 🎨 **Streak-Zähler** (Tage in Folge) + passende Achievements.
+- ⏳ 🎨 **Wochen-Heatmap** der Streamzeit.
+- ⏳ 🎨 **Detailseite pro Anbieter**.
+
+### 🔑 Profile & Sicherheit
+- ⏳ ⭐ 🦀 **App-Sperre beim Start** (ganze App per PIN) + Auto-Sperre nach Inaktivität.
+- ⏳ 🎨 **Kinder-Profile** mit Anbieter-Sperre.
+- ⏳ 🎨 **Backup/Restore** aller Profildaten als Datei.
+
+### 🎨 Design & Barrierefreiheit
+- ✅ **Fertige Theme-Presets** (komplette Farbschemata, nicht nur Akzent) – umgesetzt in v0.44.0.
+- ⏳ 🎨 **Anpassbare Tastenkürzel**.
+- ⏳ 🎨 **Kontrast-Modus** + „Bewegung reduzieren" beachten.
+- 💡 🎨 **Eigene Theme-/CSS-Datei laden**.
+
+### ⚙️ System & Daten
+- ⏳ ⭐ 🦀 **Autostart mit Windows + Tray-Icon** (minimiert starten, Schnellzugriff auf letztes Profil/Stream).
+- ⏳ 🎨 **Einstellungs-Export/-Import**, optional Datei-Sync über Dropbox-/Drive-Ordner.
+- ⏳ 🦀 **Update-Kanäle** (stabil/beta).
+- ⏳ 🎨 **Performance-Modus** (Effekte aus, solange ein Stream läuft).
+
+### 🧩 Erweiterbarkeit
+- 💡 🎨 **Widget-System** für die Startseite (Wetter, RSS, Notizen).
+- 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
+
+---
+
+## 🆕 v0.44.0
+- 🟢 **Theme-Vorlagen:** fertige Farbschemata (Standard, Mitternacht, Graphit, Amethyst, Wald, Sonnenuntergang, Nord, Papier, Hoher Kontrast) im Design-Tab – setzen Flächen + Akzent, live umschaltbar.
+
+## 🆕 v0.43.0
+- 🟢 **Mehrsprachigkeit (DE/EN) – abgeschlossen:** Einstellungs-Dialog, alle Dialoge (Titel-Infos, Anbieter hinzufügen, Tastenkürzel) und die Achievements (Stufennamen + Beschreibungen) übersetzt. Die gesamte Oberfläche ist nun zweisprachig.
+
+## v0.42.0
+- 🟡 **Mehrsprachigkeit – Phase 2:** Statistiken, Gemerkt, CR-Kalender, Neuigkeiten & Upcoming übersetzt (inkl. sprachabhängiger Datums-/Zeitformate).
 
 ## v0.41.0
 - 🟡 **Mehrsprachigkeit (DE/EN) – Phase 1:** Übersetzungssystem + Sprache im Onboarding; Navigation, Onboarding, Startseite und alle Kategorien übersetzt.

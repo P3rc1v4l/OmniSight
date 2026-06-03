@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t } from '$lib/i18n';
 	import { addCustomProvider } from '$lib/stores/providers';
 	import type { Quality } from '$lib/types';
 
@@ -25,24 +26,24 @@
 	<div class="backdrop" onclick={onBackdrop} role="presentation">
 		<div class="dialog omni-card" role="dialog" aria-modal="true" aria-label="Anbieter hinzufügen">
 			<header>
-				<h2>Eigenen Anbieter hinzufügen</h2>
-				<button class="x" onclick={close} aria-label="Schließen">×</button>
+				<h2>{$t('ap.title')}</h2>
+				<button class="x" onclick={close} aria-label={$t('common.close')}>×</button>
 			</header>
 			<div class="body">
-				<label class="f"><span>Name</span>
-					<input type="text" bind:value={name} placeholder="z. B. Mein Dienst" />
+				<label class="f"><span>{$t('ap.name')}</span>
+					<input type="text" bind:value={name} placeholder={$t('ap.namePh')} />
 				</label>
-				<label class="f"><span>Adresse (URL)</span>
+				<label class="f"><span>{$t('ap.url')}</span>
 					<input type="text" bind:value={url} placeholder="https://…" />
 				</label>
-				<label class="f"><span>Beschreibung (optional)</span>
-					<input type="text" bind:value={subtitle} placeholder="z. B. Filme & Serien" />
+				<label class="f"><span>{$t('ap.descLabel')}</span>
+					<input type="text" bind:value={subtitle} placeholder={$t('ap.descPh')} />
 				</label>
 				<div class="row">
-					<label class="f"><span>Farbe</span>
+					<label class="f"><span>{$t('ap.color')}</span>
 						<input type="color" bind:value={color} />
 					</label>
-					<label class="f"><span>Qualität</span>
+					<label class="f"><span>{$t('ap.quality')}</span>
 						<select bind:value={quality}>
 							<option value="4K">4K</option>
 							<option value="1080p">1080p</option>
@@ -51,11 +52,11 @@
 						</select>
 					</label>
 				</div>
-				<p class="hint">Das Logo wird aus dem Namen erzeugt; ein eigenes Logo lässt sich später im Karteneditor setzen.</p>
+				<p class="hint">{$t('ap.hint')}</p>
 			</div>
 			<footer>
-				<button class="ghost" onclick={close}>Abbrechen</button>
-				<button class="primary" disabled={!name.trim() || !url.trim()} onclick={save}>Hinzufügen</button>
+				<button class="ghost" onclick={close}>{$t('common.cancel')}</button>
+				<button class="primary" disabled={!name.trim() || !url.trim()} onclick={save}>{$t('ap.add')}</button>
 			</footer>
 		</div>
 	</div>

@@ -93,7 +93,7 @@
 			document.querySelector<HTMLInputElement>('input[data-omni-search]')?.focus();
 		} else if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
 			e.preventDefault();
-			settings.update(($s) => ({ ...$s, appearance: { ...$s.appearance, theme: $s.appearance.theme === 'dark' ? 'light' : 'dark' } }));
+			settings.update(($s) => ({ ...$s, appearance: { ...$s.appearance, theme: $s.appearance.theme === 'dark' ? 'light' : 'dark', themePreset: 'default' } }));
 		} else if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.metaKey && !e.altKey) {
 			// Zifferntasten: Favorit (sonst sichtbaren Anbieter) Nr. n direkt starten.
 			if (showSettings || showShortcuts || get(onboardingOpen)) return;

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t as tt } from '$lib/i18n';
 	import { titleInfo, closeTitleInfo, tmdb } from '$lib/tmdb';
 	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist } from '$lib/stores/watchlist';
 	import { openUrlInApp } from '$lib/embedded';
@@ -68,7 +69,7 @@
 	{@const item = $titleInfo}
 	<div class="overlay" onclick={closeTitleInfo} role="presentation">
 		<div class="modal" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-			<button class="close" onclick={closeTitleInfo} aria-label="Schließen">✕</button>
+			<button class="close" onclick={closeTitleInfo} aria-label={$tt('common.close')}>✕</button>
 
 			<div class="hero">
 				{#if backdrop}<img class="backdrop" src={backdrop} alt="" />{/if}
@@ -78,7 +79,7 @@
 					<div class="hero-meta">
 						<h2>{item.title}</h2>
 						<div class="chips">
-							<span class="kind">{item.media_type === 'tv' ? 'Serie' : 'Film'}</span>
+							<span class="kind">{item.media_type === 'tv' ? $tt('common.series') : $tt('common.movie')}</span>
 							{#if year}<span>{year}</span>{/if}
 							{#if rating}<span class="star">★ {rating}</span>{/if}
 							{#if runtime}<span>{runtime} Min</span>{/if}
@@ -92,22 +93,22 @@
 
 			<div class="content">
 				{#if loading}
-					<p class="muted">Lade Details …</p>
+					<p class="muted">{$tt('ti.loading')}</p>
 				{/if}
 
 				{#if overview}
 					<p class="overview">{overview}</p>
 				{:else if !loading}
-					<p class="muted">Keine Beschreibung verfügbar.</p>
+					<p class="muted">{$tt('ti.noDesc')}</p>
 				{/if}
 
 				{#if trailerKey}
 					<div class="block">
-						<div class="block-label">Trailer</div>
+						<div class="block-label">{$tt('ti.trailer')}</div>
 						<div class="video">
 							<iframe
 								src={`https://www.youtube-nocookie.com/embed/${trailerKey}`}
-								title="Trailer"
+								title={$tt('ti.trailer')}
 								loading="lazy"
 								allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
 								allowfullscreen
@@ -118,7 +119,7 @@
 
 				{#if providers.length}
 					<div class="block">
-						<div class="block-label">Wo streamen (DE)</div>
+						<div class="block-label">{$tt('ti.whereStream')}</div>
 						<div class="provs">
 							{#each providers as p (p.name)}
 								<button class="prov" title={`${p.name} öffnen`} onclick={() => openProviderLink(p)}>
@@ -126,15 +127,15 @@
 								</button>
 							{/each}
 						</div>
-						<p class="src">Klick öffnet den Anbieter in OmniHub (sofern angemeldet) · Anbieterdaten: JustWatch via TMDB</p>
+						<p class="src">{$tt('ti.providerNote')}</p>
 					</div>
 				{:else if !loading}
-					<p class="muted small">Keine Streaming-Info für Deutschland gefunden.</p>
+					<p class="muted small">{$tt('ti.noStream')}</p>
 				{/if}
 
 				<div class="footer">
 					<button class="wl" class:on={isInWatchlist($watchlist, item.id, item.media_type)} onclick={toggleWatchlist}>
-						{isInWatchlist($watchlist, item.id, item.media_type) ? '✓ Gemerkt' : '+ Merken'}
+						{isInWatchlist($watchlist, item.id, item.media_type) ? $tt('mb.saved') : $tt('mb.save')}
 					</button>
 				</div>
 			</div>

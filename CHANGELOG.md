@@ -11,6 +11,26 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.44.0] – 2026-06-03
+
+### Theme-Vorlagen (Farbschemata)
+- Neuer Bereich **„Theme-Vorlagen"** im Design-Tab: fertige, in sich stimmige Farbschemata, die Hintergrund, Flächen, Texte und einen passenden Akzent in einem Rutsch setzen.
+- Mitgeliefert: **Standard, Mitternacht, Graphit, Amethyst, Wald, Sonnenuntergang, Nord** (dunkel) sowie **Papier** und **Hoher Kontrast** (hell).
+- „Standard" folgt weiterhin dem Hell-/Dunkel-Schalter. Jede andere Vorlage legt ihren eigenen Modus + Akzent fest – der Akzent lässt sich danach frei weiter anpassen. Das Umschalten von Hell/Dunkel (auch per Strg+D) setzt automatisch auf „Standard" zurück.
+- Die Auswahl ist sofort sichtbar (live) und wird pro Installation gespeichert.
+
+---
+
+## [0.43.0] – 2026-06-03
+
+### Mehrsprachigkeit (Phase 3 – abgeschlossen)
+- **Einstellungs-Dialog** vollständig übersetzt: alle Tabs (Design, Profile, Uhr, Benachrichtigungen, Plugins, Mehr), sämtliche Felder, Schalter, Hinweistexte, Auswahllisten und alle Meldungen (Toasts).
+- **Dialoge** übersetzt: **Titel-Infos** (TitleInfoModal), **Eigenen Anbieter hinzufügen** (AddProviderModal) und **Tastenkürzel** (ShortcutsModal).
+- **Achievements** sind jetzt zweisprachig: alle ~60 Stufennamen sowie die Fortschritts-Beschreibungen wechseln mit der Sprache.
+- Damit ist die komplette App-Oberfläche in Deutsch und Englisch verfügbar.
+
+---
+
 ## [0.42.0] – 2026-06-03
 
 ### Mehrsprachigkeit (Phase 2)

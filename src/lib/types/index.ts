@@ -51,6 +51,7 @@ export interface AppearanceSettings {
 	accentColor: string;
 	accentText: string;
 	theme: 'dark' | 'light' | 'system';
+	themePreset: string;
 	fontFamily: string;
 	fontSize: number;
 	radius: number;

@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { Settings } from '$lib/types';
 import { loadState, saveState } from '$lib/persistence';
+import { getPreset, PRESET_VAR_MAP } from '$lib/themes';
 
 // Steuert, ob das Onboarding-Fenster offen ist (kann von überall ausgelöst werden).
 export const onboardingOpen = writable(false);
@@ -15,6 +16,7 @@ export const DEFAULT_SETTINGS: Settings = {
 		accentColor: '#30c5bb',
 		accentText: '#00201e',
 		theme: 'dark',
+		themePreset: 'default',
 		fontFamily: "'DM Sans', ui-sans-serif, system-ui, sans-serif",
 		fontSize: 14,
 		radius: 15,
@@ -80,11 +82,20 @@ export function applySettings(s: Settings): void {
 		root.style.removeProperty('--bg-image');
 		root.setAttribute('data-bgimage', 'false');
 	}
-	let theme = a.theme;
+	const preset = getPreset(a.themePreset);
+	let theme = preset && preset.id !== 'default' ? preset.mode : a.theme;
 	if (theme === 'system') {
 		theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 	}
 	root.setAttribute('data-theme', theme);
+	// Preset-Palette: entweder die 9 Variablen setzen – oder entfernen, damit app.css greift.
+	if (preset && preset.vars) {
+		for (const [k, cssVar] of PRESET_VAR_MAP) root.style.setProperty(cssVar, preset.vars[k]);
+		root.setAttribute('data-preset', preset.id);
+	} else {
+		for (const [, cssVar] of PRESET_VAR_MAP) root.style.removeProperty(cssVar);
+		root.setAttribute('data-preset', 'default');
+	}
 }
 
 let loaded = false;
