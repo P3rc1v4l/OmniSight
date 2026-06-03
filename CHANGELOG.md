@@ -11,6 +11,74 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.51.0] – 2026-06-03
+
+### Gemerkt: Empfehlungen „Weil du … gemerkt hast"
+- Unter der Watchlist erscheinen jetzt **Empfehlungs-Reihen** auf Basis deiner Titel (TMDB-Empfehlungen). Als Ausgangstitel werden deine **bestbewerteten**, sonst zuletzt hinzugefügten Titel genommen (bis zu drei Reihen).
+- Bereits gemerkte Titel werden herausgefiltert; ein Klick auf eine Empfehlung öffnet die Titel-Infos (von dort direkt merkbar).
+- Hinweis: nutzt die TMDB-Empfehlungen-Schnittstelle (gültiger TMDB-Key + Internet nötig); je Ausgangstitel einmal geladen.
+
+---
+
+## [0.50.0] – 2026-06-03
+
+### Gemerkt: Bewertung & „Gesehen"-Status
+- Jeder Titel lässt sich jetzt mit **1–5 Sternen** bewerten (nochmal auf denselben Stern tippen = Bewertung löschen) und als **gesehen** markieren.
+- Gesehene Titel werden auf der Karte abgedunkelt und mit einem ✓-Abzeichen versehen.
+- Neue **Filter** „Ungesehen / Gesehen" sowie die **Sortierung „Beste Bewertung"**.
+- Bewertung und Status werden pro Profil mit der Watchlist gespeichert (und sind in Export/Import enthalten).
+
+---
+
+## [0.49.0] – 2026-06-03
+
+### Gemerkt: „Verfügbar bei dir"
+- Jede Watchlist-Karte zeigt jetzt, bei **welchen deiner Anbieter** der Titel in Deutschland läuft (Abgleich über TMDB/JustWatch). Die Anbieter erscheinen als klickbare Chips – ein Klick öffnet den Titel direkt beim jeweiligen Anbieter (mit dessen Login-Sitzung).
+- Es werden nur Anbieter angezeigt, die du auch eingerichtet hast. Die Daten werden je Titel einmal geladen und zwischengespeichert.
+- Hinweis: Das ist eine **Anzeige in der App** (keine Push-Benachrichtigung). Voraussetzung sind ein gültiger TMDB-Key und Internet; Anbieter, die OmniHub (noch) nicht zuordnen kann, werden nicht angezeigt.
+
+---
+
+## [0.48.0] – 2026-06-03
+
+### Gemerkt: Wochen-Vorschau mit Titeln
+- Der bisherige „heute erscheint X"-Hinweis zeigt jetzt **welche Titel** es sind – und wurde auf die **kommenden 7 Tage** erweitert.
+- Jeder Eintrag listet **Wochentag** (bzw. „Heute"/„Morgen", sprachabhängig) und Titel; heutige Titel bekommen ein „heute"-Abzeichen. Ein Klick öffnet direkt die Titel-Infos.
+- Nebenbei: Das Tagesdatum wird jetzt aus der **lokalen** Zeit bestimmt (vorher UTC), das vermeidet ein falsches „heute" am späten Abend.
+
+---
+
+## [0.47.0] – 2026-06-03
+
+### Anbieter-Sammlungen (Ordner)
+- Neue **Sammlungen**: Über das 📁-Symbol in der Werkzeugleiste lassen sich eigene Ordner anlegen (z. B. „Anime", „Sport", „Kinder"), umbenennen, löschen und mit beliebigen Anbietern füllen – ein Anbieter kann in mehreren Sammlungen sein.
+- Auf der Startseite erscheint jede Sammlung als **ein-/ausklappbarer Abschnitt** über der Anbieter-Übersicht (Klappzustand wird gespeichert). Beim Suchen werden die Sammlungen ausgeblendet.
+- Sammlungen werden **pro Profil** gespeichert.
+
+---
+
+## [0.46.0] – 2026-06-03
+
+### Jahres-Rückblick (datiertes Tracking)
+- Die Streamzeit wird jetzt **datiert** aufgezeichnet (Tages-Buckets je Anbieter, pro Profil) – plus die Anzahl gestarteter Streams je Tag.
+- Der **Rückblick** hat nun eine **Zeitraum-Wahl**: „Gesamt" sowie jedes Jahr mit Daten. Streamzeit, gestartete Streams, genutzte Anbieter und Top-Anbieter beziehen sich auf den gewählten Zeitraum.
+- Hinweis: Die datierte Aufzeichnung beginnt mit diesem Update. Ältere Streamzeit (vor v0.46.0) hat keine Datumsangabe und erscheint daher nur unter **„Gesamt"**, nicht in einzelnen Jahren. Favoriten/Watchlist sind aktuelle Bestände, Achievements bleiben gesamt.
+
+---
+
+## [0.45.0] – 2026-06-03
+
+### Rückblick / „Wrapped"
+- Neuer **Rückblick** (Button im Statistik-Tab): zeigt deine Gesamt-Streamzeit, gestartete Streams, genutzte Anbieter, Favoriten, Watchlist-Titel, deine **Top-Anbieter** und freigeschaltete Achievements in einer teilbaren Poster-Ansicht (zum Screenshoten). Hinweis: basiert auf den Gesamt-Daten (es werden keine Datums-Zeitstempel gespeichert, daher kein Jahres-Filter).
+
+### „Überrasch mich" mit Zufallstitel
+- Der 🎲-Button wählt jetzt nicht nur einen zufälligen Anbieter, sondern sucht über TMDB einen **zufälligen Titel, der bei genau diesem Anbieter (DE) läuft**, und öffnet ihn direkt dort. Findet sich kein passender Titel (Nische/keine Daten), wird – wie bisher – der Anbieter geöffnet.
+
+### Update-Banner immer im Vordergrund
+- Das „Herunterladen & installieren"-Banner liegt jetzt als fixes Overlay direkt unter der Titelleiste **über allen Oberflächen** (Dialoge, Mini-Player, Seiten). Hinweis: ein im Vordergrund laufender **eingebetteter** Stream (native WebView) liegt technisch über der HTML-Ebene – dort kann das Banner verdeckt sein (Lösung wäre ein Rust-Eingriff, separat).
+
+---
+
 ## [0.44.0] – 2026-06-03
 
 ### Theme-Vorlagen (Farbschemata)

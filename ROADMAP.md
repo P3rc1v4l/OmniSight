@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.44.0
+Stand: v0.51.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -12,7 +12,7 @@ Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Mach
 Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht Rust/Tauri (im Sandbox nicht testbar), 🎨 = reines Frontend.
 
 ### 🎬 Anbieter & Startseite
-- ⏳ ⭐ 🎨 **Anbieter-Ordner/Sammlungen** – eigene Gruppen (z. B. „Anime", „Sport", „Kinder") zum Ein-/Ausklappen.
+- ✅ **Anbieter-Ordner/Sammlungen** – eigene, ein-/ausklappbare Gruppen, umgesetzt in v0.47.0.
 - ⏳ 🎨 **Karten-Ansicht umschaltbar** – kompakt / groß / Liste.
 - ⏳ 🎨 **Schnellsuche direkt beim Anbieter** – Deep-Link in dessen Suche statt nur Startseite.
 - 💡 🎨 **Erreichbarkeits-Indikator** pro Karte (online/offline).
@@ -24,13 +24,13 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Globale Medientasten** (Play/Pause/Stumm über Windows-Tasten).
 
 ### 🔖 Entdecken & Watchlist
-- ⏳ ⭐ 🎨 **„Verfügbar bei dir"** – Hinweis, wenn ein gemerkter Titel auf einem deiner Anbieter läuft (JustWatch-Abgleich).
-- ⏳ 🎨 **Eigene Bewertung + „Gesehen"-Status** pro Titel.
-- ⏳ 🎨 **Empfehlungen** („Weil du X gemerkt hast", via TMDB).
+- ✅ **„Verfügbar bei dir"** – Anbieter-Chips an jeder Watchlist-Karte (JustWatch-Abgleich), umgesetzt in v0.49.0.
+- ✅ **Eigene Bewertung + „Gesehen"-Status** pro Titel, umgesetzt in v0.50.0.
+- ✅ **Empfehlungen** („Weil du … gemerkt hast", via TMDB), umgesetzt in v0.51.0.
 - ⏳ 🎨 **Tags/Unterlisten** in der Watchlist (z. B. „Heute Abend").
 
 ### 📊 Statistik & Achievements
-- ⏳ ⭐ 🎨 **Jahresrückblick / „Wrapped"** als teilbare Zusammenfassung.
+- ✅ **Rückblick / „Wrapped"** – teilbare Zusammenfassung (Gesamt-Daten) umgesetzt in v0.45.0.
 - ⏳ 🎨 **Streak-Zähler** (Tage in Folge) + passende Achievements.
 - ⏳ 🎨 **Wochen-Heatmap** der Streamzeit.
 - ⏳ 🎨 **Detailseite pro Anbieter**.
@@ -57,6 +57,29 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.51.0
+- 🟢 **Empfehlungen:** „Weil du … gemerkt hast"-Reihen unter der Watchlist (TMDB-Empfehlungen, Seeds aus bestbewerteten/zuletzt hinzugefügten Titeln).
+
+## 🆕 v0.50.0
+- 🟢 **Bewertung & „Gesehen":** 1–5 Sterne + Gesehen-Status pro Watchlist-Titel, mit Filtern (gesehen/ungesehen) und Sortierung „Beste Bewertung".
+
+## 🆕 v0.49.0
+- 🟢 **„Verfügbar bei dir":** Watchlist-Karten zeigen passende eigene Anbieter (TMDB/JustWatch-Abgleich), klickbar zum direkten Öffnen.
+
+## 🆕 v0.48.0
+- 🟢 **Gemerkt – Wochen-Vorschau:** zeigt welche Titel erscheinen (mit Wochentag + „heute"-Abzeichen), erweitert auf die kommenden 7 Tage; lokales Datum statt UTC.
+
+## 🆕 v0.47.0
+- 🟢 **Anbieter-Sammlungen:** eigene Ordner (anlegen/umbenennen/löschen, Anbieter zuordnen) als ein-/ausklappbare Abschnitte auf der Startseite, pro Profil.
+
+## 🆕 v0.46.0
+- 🟢 **Jahres-Rückblick:** datiertes Streamzeit-Tracking (Tages-Buckets je Profil) + Zeitraum-Wahl im Rückblick (Gesamt / einzelne Jahre).
+
+## 🆕 v0.45.0
+- 🟢 **Rückblick / „Wrapped":** teilbare Poster-Zusammenfassung der Nutzung (Statistik-Tab).
+- 🟢 **„Überrasch mich" + Zufallstitel:** öffnet einen zufälligen Titel, der beim gewählten Anbieter läuft.
+- 🟢 **Update-Banner immer im Vordergrund** (fixes Overlay über allen HTML-Oberflächen).
 
 ## 🆕 v0.44.0
 - 🟢 **Theme-Vorlagen:** fertige Farbschemata (Standard, Mitternacht, Graphit, Amethyst, Wald, Sonnenuntergang, Nord, Papier, Hoher Kontrast) im Design-Tab – setzen Flächen + Akzent, live umschaltbar.
