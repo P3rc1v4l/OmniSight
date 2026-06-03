@@ -1,8 +1,9 @@
 <script lang="ts">
+	import { get } from 'svelte/store';
+	import { t } from '$lib/i18n';
 	import { watchlist, removeFromWatchlist } from '$lib/stores/watchlist';
 	import { openTitleInfo } from '$lib/tmdb';
 	import { pushToast } from '$lib/stores/toasts';
-	import { get } from 'svelte/store';
 	import type { WatchlistItem } from '$lib/types';
 
 	$: today = new Date().toISOString().slice(0, 10);
@@ -47,7 +48,7 @@
 	function exportWatchlist() {
 		const items = get(watchlist);
 		if (items.length === 0) {
-			pushToast('Nichts zu exportieren', 'Deine Watchlist ist leer.', 'ℹ️', 2400);
+			pushToast(get(t)('wl.toastNothingTitle'), get(t)('wl.toastNothingBody'), 'ℹ️', 2400);
 			return;
 		}
 		const data = JSON.stringify({ app: 'OmniHub', type: 'watchlist', version: 1, items }, null, 2);
@@ -60,7 +61,7 @@
 		a.click();
 		a.remove();
 		setTimeout(() => URL.revokeObjectURL(url), 1000);
-		pushToast('Watchlist exportiert', `${items.length} Titel als Datei gespeichert.`, '📤', 2600);
+		pushToast(get(t)('wl.toastExportedTitle'), get(t)('wl.toastExportedBody', { n: items.length }), '📤', 2600);
 	}
 
 	function triggerImport() {
@@ -105,9 +106,9 @@
 					}
 					return merged;
 				});
-				pushToast('Watchlist importiert', `${added} neue Titel hinzugefügt.`, '📥', 2800);
+				pushToast(get(t)('wl.toastImportedTitle'), get(t)('wl.toastImportedBody', { n: added }), '📥', 2800);
 			} catch {
-				pushToast('Import fehlgeschlagen', 'Das ist keine gültige OmniHub-Watchlist-Datei.', '⚠️', 3400);
+				pushToast(get(t)('wl.toastImportFailTitle'), get(t)('wl.toastImportFailBody'), '⚠️', 3400);
 			}
 			input.value = '';
 		};
@@ -118,65 +119,65 @@
 <div class="page">
 	<header class="head">
 		<div>
-			<h1>Gemerkt</h1>
-			<p class="sub">{$watchlist.length} Titel auf deiner Liste</p>
+			<h1>{$t('wl.title')}</h1>
+			<p class="sub">{$t('wl.countSub', { n: $watchlist.length })}</p>
 		</div>
 		<div class="tools">
-			<button class="tool" onclick={exportWatchlist} title="Als Datei speichern">📤 Export</button>
-			<button class="tool" onclick={triggerImport} title="Aus Datei laden">📥 Import</button>
+			<button class="tool" onclick={exportWatchlist} title={$t('wl.exportTitle')}>📤 {$t('wl.export')}</button>
+			<button class="tool" onclick={triggerImport} title={$t('wl.importTitle')}>📥 {$t('wl.import')}</button>
 			<input bind:this={fileInput} type="file" accept=".json,application/json" onchange={onFile} hidden />
 		</div>
 	</header>
 
 	{#if releasesToday.length}
 		<div class="banner">
-			🎉 <strong>{releasesToday.length}</strong> Titel deiner Watchlist erscheinen heute!
+			🎉 <strong>{releasesToday.length}</strong> {$t('wl.bannerSuffix')}
 		</div>
 	{/if}
 
 	{#if $watchlist.length === 0}
 		<div class="empty omni-card">
 			<span class="emoji">🔖</span>
-			<p>Noch nichts gemerkt.</p>
-			<small>Suche oben auf der Übersicht nach einem Titel, öffne das Info-Fenster und klicke „＋ Merken". Oder importiere eine Watchlist-Datei.</small>
+			<p>{$t('wl.emptyTitle')}</p>
+			<small>{$t('wl.emptyHint')}</small>
 		</div>
 	{:else}
 		<div class="bar">
 			<div class="seg-group">
-				<button class="seg" class:on={typeFilter === 'all'} onclick={() => (typeFilter = 'all')}>Alle</button>
-				<button class="seg" class:on={typeFilter === 'movie'} onclick={() => (typeFilter = 'movie')}>Filme</button>
-				<button class="seg" class:on={typeFilter === 'tv'} onclick={() => (typeFilter = 'tv')}>Serien</button>
+				<button class="seg" class:on={typeFilter === 'all'} onclick={() => (typeFilter = 'all')}>{$t('common.all')}</button>
+				<button class="seg" class:on={typeFilter === 'movie'} onclick={() => (typeFilter = 'movie')}>{$t('common.movies')}</button>
+				<button class="seg" class:on={typeFilter === 'tv'} onclick={() => (typeFilter = 'tv')}>{$t('common.seriesPl')}</button>
 			</div>
-			<select class="sort" bind:value={sortBy} aria-label="Sortierung">
-				<option value="added-desc">Zuletzt hinzugefügt</option>
-				<option value="added-asc">Zuerst hinzugefügt</option>
-				<option value="title-asc">Titel A–Z</option>
-				<option value="title-desc">Titel Z–A</option>
-				<option value="date-desc">Erscheinung: neu → alt</option>
-				<option value="date-asc">Erscheinung: alt → neu</option>
+			<select class="sort" bind:value={sortBy} aria-label={$t('wl.sortAria')}>
+				<option value="added-desc">{$t('wl.sort.addedDesc')}</option>
+				<option value="added-asc">{$t('wl.sort.addedAsc')}</option>
+				<option value="title-asc">{$t('wl.sort.titleAsc')}</option>
+				<option value="title-desc">{$t('wl.sort.titleDesc')}</option>
+				<option value="date-desc">{$t('wl.sort.dateDesc')}</option>
+				<option value="date-asc">{$t('wl.sort.dateAsc')}</option>
 			</select>
-			<input class="search" type="text" placeholder="In Watchlist suchen…" bind:value={q} />
+			<input class="search" type="text" placeholder={$t('wl.searchPh')} bind:value={q} />
 		</div>
 
 		{#if shown.length === 0}
 			<div class="empty omni-card">
 				<span class="emoji">🔍</span>
-				<p>Keine Treffer für deine Auswahl.</p>
-				<button class="reset" onclick={resetFilters}>Filter zurücksetzen</button>
+				<p>{$t('wl.noMatch')}</p>
+				<button class="reset" onclick={resetFilters}>{$t('wl.resetFilters')}</button>
 			</div>
 		{:else}
 			<div class="grid">
 				{#each shown as w (w.mediaType + '-' + w.tmdbId)}
 					<div class="card omni-card">
-						<button class="thumb" onclick={() => openInfo(w)} aria-label={`Infos zu ${w.title}`}>
+						<button class="thumb" onclick={() => openInfo(w)} aria-label={$t('wl.infoAria', { title: w.title })}>
 							{#if w.poster}<img src={w.poster} alt={w.title} loading="lazy" decoding="async" />
 							{:else}<div class="noimg">?</div>{/if}
 						</button>
 						<div class="meta">
 							<button class="t t-btn" onclick={() => openInfo(w)}>{w.title}</button>
-							<div class="s">{w.mediaType === 'tv' ? 'Serie' : 'Film'}{w.releaseDate ? ' · ' + w.releaseDate.slice(0, 4) : ''}</div>
+							<div class="s">{w.mediaType === 'tv' ? $t('common.series') : $t('common.movie')}{w.releaseDate ? ' · ' + w.releaseDate.slice(0, 4) : ''}</div>
 							<p class="o">{w.overview ? w.overview.slice(0, 110) + (w.overview.length > 110 ? '…' : '') : ''}</p>
-							<button class="rm" onclick={() => removeFromWatchlist(w.tmdbId, w.mediaType)}>Entfernen</button>
+							<button class="rm" onclick={() => removeFromWatchlist(w.tmdbId, w.mediaType)}>{$t('common.remove')}</button>
 						</div>
 					</div>
 				{/each}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { t as tt } from '$lib/i18n';
 	import { tmdb, openTitleInfo, titleInfo } from '$lib/tmdb';
 	import { hiddenTitles, isHidden, hideTitle, showHidden } from '$lib/stores/hidden';
 	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist } from '$lib/stores/watchlist';
@@ -66,7 +67,7 @@
 		const { path, params, fb } = queryFor(cat, m);
 		const res = await tmdb.list(path, params, fb);
 		if (!res || res.length === 0) {
-			error = 'Keine Daten von TMDB. Ist der API-Key in src-tauri/src/tmdb.rs eingetragen und besteht eine Internetverbindung?';
+			error = 'mb.errorNoData';
 			items = [];
 		} else {
 			cache.set(key, res);
@@ -190,19 +191,19 @@
 	}
 
 	const cats: { id: Cat; label: string }[] = [
-		{ id: 'movie', label: 'Filme' },
-		{ id: 'tv', label: 'Serien' },
-		{ id: 'anime', label: 'Anime' }
+		{ id: 'movie', key: 'common.movies' },
+		{ id: 'tv', key: 'common.seriesPl' },
+		{ id: 'anime', key: 'cat.anime' }
 	];
 	const year = (d: string | null) => (d && d.length >= 4 ? d.slice(0, 4) : '');
-	const fallbackTitle = kind === 'upcoming' ? 'Upcoming' : 'Neuigkeiten';
+	const fallbackTitle = $derived(kind === 'upcoming' ? $tt('mb.upcoming') : $tt('mb.news'));
 </script>
 
 <div class="browser">
 	<div class="topbar">
 		<div class="tabs">
 			{#each cats as c (c.id)}
-				<button class="tab" class:on={category === c.id} onclick={() => (category = c.id)}>{c.label}</button>
+				<button class="tab" class:on={category === c.id} onclick={() => (category = c.id)}>{$tt(c.key)}</button>
 			{/each}
 		</div>
 
@@ -211,11 +212,11 @@
 		<div class="right">
 			{#if kind === 'news'}
 				<div class="seg">
-					<button class="s" class:on={mode === 'trending'} onclick={() => (mode = 'trending')}>Trending</button>
-					<button class="s" class:on={mode === 'new'} onclick={() => (mode = 'new')}>Neu</button>
+					<button class="s" class:on={mode === 'trending'} onclick={() => (mode = 'trending')}>{$tt('mb.trending')}</button>
+					<button class="s" class:on={mode === 'new'} onclick={() => (mode = 'new')}>{$tt('mb.new')}</button>
 				</div>
 			{/if}
-			<button class="eye" onclick={() => showHidden.set(true)} title="Ausgeblendete Titel" aria-label="Ausgeblendete Titel">
+			<button class="eye" onclick={() => showHidden.set(true)} title={$tt('mb.hiddenTitles')} aria-label={$tt('mb.hiddenTitles')}>
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
 					<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" />
 				</svg>
@@ -226,11 +227,11 @@
 
 	<div class="hero">
 		{#if loading}
-			<div class="state">Lädt…</div>
+			<div class="state">{$tt('mb.loading')}</div>
 		{:else if error}
-			<div class="state err">{error}</div>
+			<div class="state err">{$tt(error)}</div>
 		{:else if !hero}
-			<div class="state">Keine Titel – alle ausgeblendet? Über das Auge oben rechts wieder einblenden.</div>
+			<div class="state">{$tt('mb.noTitles')}</div>
 		{:else}
 			{#if heroImg}<div class="back" style="background-image: url({heroImg})"></div>{/if}
 			<div class="shade"></div>
@@ -244,23 +245,23 @@
 					<div class="meta">
 						{#if heroRating}<span class="rate">★ {heroRating}</span>{/if}
 						{#if year(hero.release_date)}<span>{year(hero.release_date)}</span>{/if}
-						<span>{hero.media_type === 'tv' ? 'Serie' : 'Film'}</span>
+						<span>{hero.media_type === 'tv' ? $tt('common.series') : $tt('common.movie')}</span>
 					</div>
 					{#if hero.overview}<p class="desc">{hero.overview}</p>{/if}
 					{#if heroProviders.length}
 						<div class="provs">
-							<span class="provs-label">Ansehen bei</span>
+							<span class="provs-label">{$tt('mb.watchAt')}</span>
 							{#each heroProviders.slice(0, 6) as p (p.name)}
-								<button class="provlogo" title={`${p.name} öffnen`} onclick={(e) => openProv(e, p)}>
+								<button class="provlogo" title={$tt('home.openTitle', { name: p.name })} onclick={(e) => openProv(e, p)}>
 									<img src={p.logo} alt={p.name} loading="lazy" />
 								</button>
 							{/each}
 						</div>
 					{/if}
 					<div class="actions">
-						<button class="details" onclick={openHero}>Details ansehen</button>
+						<button class="details" onclick={openHero}>{$tt('mb.details')}</button>
 						<button class="watch" class:on={inList} onclick={toggleWatch}>
-							{inList ? '✓ Gemerkt' : '+ Merken'}
+							{inList ? $tt('mb.saved') : $tt('mb.save')}
 						</button>
 					</div>
 				</div>
@@ -276,7 +277,7 @@
 						<button class="pbtn" onclick={() => pick(i)} title={t.title} aria-label={t.title}>
 							{#if t.poster}<img src={t.poster} alt={t.title} loading="lazy" />{:else}<div class="noimg">?</div>{/if}
 						</button>
-						<button class="hidebtn" onclick={(e) => hide(e, t)} title="Ausblenden" aria-label="Titel ausblenden">
+						<button class="hidebtn" onclick={(e) => hide(e, t)} title={$tt('mb.hide')} aria-label={$tt('mb.hideTitle')}>
 							<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9">
 								<path d="M3 3l18 18M10.6 5.1A10.9 10.9 0 0 1 12 5c7 0 11 7 11 7a18 18 0 0 1-3.2 4M6.6 6.6A18 18 0 0 0 1 12s4 7 11 7a10.9 10.9 0 0 0 4-.7" />
 							</svg>

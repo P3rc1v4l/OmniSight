@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { fetchWeekSchedule, type AiringItem } from '$lib/anilist';
 	import { openUrlInApp } from '$lib/embedded';
+	import { settings } from '$lib/stores/settings';
+	import { t, tr } from '$lib/i18n';
 
 	let items = $state<AiringItem[]>([]);
 	let loading = $state(true);
@@ -30,19 +32,22 @@
 	const filtered = $derived(onlyCrunchyroll ? items.filter((i) => i.crunchyrollUrl) : items);
 	const crCount = $derived(items.filter((i) => i.crunchyrollUrl).length);
 
-	function dayLabel(d: Date): string {
+	const lang = $derived($settings.appearance.language === 'en' ? 'en' : 'de');
+	const locale = $derived(lang === 'en' ? 'en-US' : 'de-DE');
+
+	function dayLabel(d: Date, lg: 'de' | 'en', loc: string): string {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 		const dd = new Date(d);
 		dd.setHours(0, 0, 0, 0);
 		const diff = Math.round((dd.getTime() - today.getTime()) / 86400000);
-		if (diff === 0) return 'Heute';
-		if (diff === 1) return 'Morgen';
-		if (diff === -1) return 'Gestern';
-		return dd.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+		if (diff === 0) return tr(lg, 'cal.today');
+		if (diff === 1) return tr(lg, 'cal.tomorrow');
+		if (diff === -1) return tr(lg, 'cal.yesterday');
+		return dd.toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long' });
 	}
-	function timeLabel(ts: number): string {
-		return new Date(ts * 1000).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+	function timeLabel(ts: number, loc: string): string {
+		return new Date(ts * 1000).toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' });
 	}
 
 	const groups = $derived.by(() => {
@@ -55,7 +60,7 @@
 			if (!m.has(key)) {
 				const dd = new Date(d);
 				dd.setHours(0, 0, 0, 0);
-				m.set(key, { label: dayLabel(d), isToday: dd.getTime() === today.getTime(), sort: dd.getTime(), items: [] });
+				m.set(key, { label: dayLabel(d, lang, locale), isToday: dd.getTime() === today.getTime(), sort: dd.getTime(), items: [] });
 			}
 			m.get(key)!.items.push(it);
 		}
@@ -77,19 +82,19 @@
 		<div class="head-title">
 			<span class="ico">⛩️</span>
 			<div>
-				<h1>CR&nbsp;Kalender</h1>
-				<p class="sub">Anime-Ausstrahlung der {range === 'last' ? 'letzten' : 'nächsten'} 7&nbsp;Tage · Quelle: AniList</p>
+				<h1>{$t('cal.title')}</h1>
+				<p class="sub">{$t('cal.sub', { range: range === 'last' ? $t('cal.rangeLast') : $t('cal.rangeNext') })}</p>
 			</div>
 		</div>
 		<div class="controls">
 			<div class="range">
-				<button class:on={range === 'next'} onclick={() => setRange('next')}>Nächste 7 Tage</button>
-				<button class:on={range === 'last'} onclick={() => setRange('last')}>Letzte 7 Tage</button>
+				<button class:on={range === 'next'} onclick={() => setRange('next')}>{$t('cal.next7')}</button>
+				<button class:on={range === 'last'} onclick={() => setRange('last')}>{$t('cal.last7')}</button>
 			</div>
-			<button class="seg" class:on={onlyCrunchyroll} onclick={() => (onlyCrunchyroll = !onlyCrunchyroll)} title="Nur Crunchyroll-Titel zeigen">
-				<span class="dot"></span>Nur Crunchyroll
+			<button class="seg" class:on={onlyCrunchyroll} onclick={() => (onlyCrunchyroll = !onlyCrunchyroll)} title={$t('cal.onlyCRTitle')}>
+				<span class="dot"></span>{$t('cal.onlyCR')}
 			</button>
-			<button class="refresh" onclick={load} disabled={loading} title="Aktualisieren" aria-label="Aktualisieren">↻</button>
+			<button class="refresh" onclick={load} disabled={loading} title={$t('common.refresh')} aria-label={$t('common.refresh')}>↻</button>
 		</div>
 	</header>
 
@@ -105,14 +110,14 @@
 	{:else if failed}
 		<div class="state">
 			<span class="emoji">⚠️</span>
-			<p>Konnte den Plan nicht laden.</p>
-			<button class="retry" onclick={load}>Erneut versuchen</button>
+			<p>{$t('cal.loadFail')}</p>
+			<button class="retry" onclick={load}>{$t('common.retry')}</button>
 		</div>
 	{:else if groups.length === 0}
 		<div class="state">
 			<span class="emoji">⛩️</span>
-			<p>{onlyCrunchyroll ? 'Diese Woche keine als Crunchyroll markierten Titel.' : 'Diese Woche keine anstehenden Anime.'}</p>
-			{#if onlyCrunchyroll}<button class="retry" onclick={() => (onlyCrunchyroll = false)}>Alle Anime anzeigen</button>{/if}
+			<p>{onlyCrunchyroll ? $t('cal.emptyCR') : $t('cal.emptyAll')}</p>
+			{#if onlyCrunchyroll}<button class="retry" onclick={() => (onlyCrunchyroll = false)}>{$t('cal.showAll')}</button>{/if}
 		</div>
 	{:else}
 		{#each groups as g (g.label)}
@@ -131,16 +136,16 @@
 								{:else}
 									<div class="cover ph">{it.title.slice(0, 1)}</div>
 								{/if}
-								<span class="time">{timeLabel(it.airingAt)}</span>
+								<span class="time">{timeLabel(it.airingAt, locale)}</span>
 							</div>
 							<div class="body">
 								<div class="title" title={it.title}>{it.title}</div>
-								<div class="ep">Episode {it.episode}</div>
+								<div class="ep">{$t('cal.episode', { n: it.episode })}</div>
 								<div class="actions">
 									{#if it.crunchyrollUrl}
-										<button class="btn cr-btn" onclick={() => openCrunchyroll(it)}>▶ Auf Crunchyroll</button>
+										<button class="btn cr-btn" onclick={() => openCrunchyroll(it)}>{$t('cal.onCR')}</button>
 									{:else}
-										<button class="btn info-btn" onclick={() => openInfo(it)}>Infos ansehen</button>
+										<button class="btn info-btn" onclick={() => openInfo(it)}>{$t('cal.viewInfo')}</button>
 									{/if}
 								</div>
 							</div>

@@ -4,6 +4,7 @@
 	import { achievements, unlockedCount } from '$lib/stores/achievements';
 	import { providers, favorites } from '$lib/stores/providers';
 	import Logo from '$lib/components/Logo.svelte';
+	import { t } from '$lib/i18n';
 
 	const favCount = $derived($favorites.length);
 
@@ -23,20 +24,20 @@
 </script>
 
 <div class="page">
-	<h1>Statistiken</h1>
-	<p class="sub">Deine Nutzung und freigeschalteten Achievements.</p>
+	<h1>{$t('stats.title')}</h1>
+	<p class="sub">{$t('stats.sub')}</p>
 
 	<div class="cards">
-		<div class="stat omni-card"><span class="big">{formatDuration($totalWatchMs)}</span><span>Gesamte Streamzeit</span></div>
-		<div class="stat omni-card"><span class="big">{$openCount}</span><span>Gestartete Streams</span></div>
-		<div class="stat omni-card"><span class="big">{$distinctProvidersWatched}</span><span>Genutzte Anbieter</span></div>
-		<div class="stat omni-card"><span class="big">{favCount}</span><span>Favoriten</span></div>
-		<div class="stat omni-card"><span class="big">{$watchlist.length}</span><span>Watchlist-Titel</span></div>
-		<div class="stat omni-card"><span class="big">{$unlockedCount} / {$achievements.length}</span><span>Achievements</span></div>
+		<div class="stat omni-card"><span class="big">{formatDuration($totalWatchMs)}</span><span>{$t('stats.totalTime')}</span></div>
+		<div class="stat omni-card"><span class="big">{$openCount}</span><span>{$t('stats.startedStreams')}</span></div>
+		<div class="stat omni-card"><span class="big">{$distinctProvidersWatched}</span><span>{$t('stats.usedProviders')}</span></div>
+		<div class="stat omni-card"><span class="big">{favCount}</span><span>{$t('stats.favorites')}</span></div>
+		<div class="stat omni-card"><span class="big">{$watchlist.length}</span><span>{$t('stats.watchlistTitles')}</span></div>
+		<div class="stat omni-card"><span class="big">{$unlockedCount} / {$achievements.length}</span><span>{$t('stats.achievements')}</span></div>
 	</div>
 
 	{#if topProviders.length}
-		<h2>Meistgenutzte Anbieter</h2>
+		<h2>{$t('stats.topProviders')}</h2>
 		<div class="bars omni-card">
 			{#each topProviders as t}
 				<div class="bar-row">
@@ -51,7 +52,7 @@
 		</div>
 	{/if}
 
-	<h2>Achievements</h2>
+	<h2>{$t('stats.achievements')}</h2>
 	<div class="ach">
 		{#each $achievements as a (a.id)}
 			<div class="aitem omni-card" class:on={a.unlocked}>
@@ -67,7 +68,7 @@
 		{/each}
 	</div>
 
-	<p class="hint">Streamzeit wird gemessen, solange ein Anbieter-Fenster offen ist (Aktualisierung alle 15 Sekunden sowie beim Schließen).</p>
+	<p class="hint">{$t('stats.hint')}</p>
 </div>
 
 <style>

@@ -11,6 +11,17 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.42.0] – 2026-06-03
+
+### Mehrsprachigkeit (Phase 2)
+- Übersetzt: **Statistiken**, **Gemerkt** (Watchlist, inkl. Sortier-Optionen, Meldungen und Import/Export), **CR-Kalender** (inkl. „Heute/Morgen/Gestern", Wochentage und Uhrzeiten je nach Sprache) sowie **Neuigkeiten** und **Upcoming** (gemeinsamer MediaBrowser: Reiter, Hero, „Merken/Gemerkt", Fehlertexte).
+- Datums- und Uhrzeitformate richten sich jetzt nach der gewählten Sprache (de-DE bzw. en-US).
+
+### Noch offen (Phase 3)
+- **Einstellungs-Dialog**, einzelne Dialoge (Titel-Infos, Anbieter hinzufügen, Kurzbefehle) und die **Achievement-Stufennamen** (~60 Stück, eigener Datensatz) folgen als letzte Phase.
+
+---
+
 ## [0.41.0] – 2026-06-03
 
 ### Mehrsprachigkeit (Phase 1)

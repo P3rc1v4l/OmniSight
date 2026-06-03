@@ -1,14 +1,17 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.41.0
+Stand: v0.42.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
 ---
 
-## 🆕 v0.41.0
-- 🟡 **Mehrsprachigkeit (DE/EN) – Phase 1:** Übersetzungssystem + Sprache im Onboarding; Navigation, Onboarding, Startseite und alle Kategorien übersetzt. **Phase 2:** Einstellungs-Dialog + restliche Seiten/Dialoge.
+## 🆕 v0.42.0
+- 🟡 **Mehrsprachigkeit – Phase 2:** Statistiken, Gemerkt, CR-Kalender, Neuigkeiten & Upcoming übersetzt (inkl. sprachabhängiger Datums-/Zeitformate). **Phase 3:** Einstellungs-Dialog, restliche Dialoge, Achievement-Stufennamen.
+
+## v0.41.0
+- 🟡 **Mehrsprachigkeit (DE/EN) – Phase 1:** Übersetzungssystem + Sprache im Onboarding; Navigation, Onboarding, Startseite und alle Kategorien übersetzt.
 
 ## 🆕 Erledigt in v0.41.0
 - ✅ **Akzentfarbe je Profil** – jedes Profil kann eine eigene Akzentfarbe haben (überschreibt die globale, sobald das Profil aktiv ist). Auswahl im Profil-Editor.
