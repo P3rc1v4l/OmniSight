@@ -26,10 +26,16 @@
 
 <style>
 	.banner {
+		position: fixed;
+		top: var(--titlebar-h);
+		left: 0;
+		right: 0;
+		z-index: 100000;
 		display: flex; align-items: center; gap: 14px;
 		padding: 10px 18px;
 		background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 28%, var(--bg-elev)), var(--bg-elev));
 		border-bottom: 1px solid var(--accent);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 		flex-shrink: 0;
 	}
 	.ic { font-size: 18px; }

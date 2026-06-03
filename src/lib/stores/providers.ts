@@ -2,7 +2,7 @@ import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import { DEFAULT_PROVIDERS } from '$lib/data/providers';
 import { loadState, saveState } from '$lib/persistence';
-import type { Provider, Quality } from '$lib/types';
+import type { Provider, Quality, ProviderCollection } from '$lib/types';
 
 // Katalog = global (welche Anbieter existieren, URL, Farbe, sichtbar/versteckt).
 export const providers = writable<Provider[]>([]);
@@ -11,6 +11,38 @@ export const favorites = writable<string[]>([]);
 export const recentProviderIds = writable<string[]>([]);
 // Eigene Kartenreihenfolge je Profil (Liste von IDs). Leer = alphabetisch.
 export const providerOrder = writable<string[]>([]);
+
+// Benutzerdefinierte Sammlungen ("Ordner") – pro Profil.
+export const collections = writable<ProviderCollection[]>([]);
+
+export function addCollection(name: string): string {
+	const id = `col-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`;
+	collections.update((c) => [...c, { id, name: name.trim() || 'Sammlung', providerIds: [], collapsed: false }]);
+	return id;
+}
+export function renameCollection(id: string, name: string): void {
+	collections.update((c) => c.map((x) => (x.id === id ? { ...x, name: name.trim() || x.name } : x)));
+}
+export function deleteCollection(id: string): void {
+	collections.update((c) => c.filter((x) => x.id !== id));
+}
+export function toggleCollectionProvider(id: string, providerId: string): void {
+	collections.update((c) =>
+		c.map((x) =>
+			x.id === id
+				? {
+						...x,
+						providerIds: x.providerIds.includes(providerId)
+							? x.providerIds.filter((p) => p !== providerId)
+							: [...x.providerIds, providerId]
+					}
+				: x
+		)
+	);
+}
+export function toggleCollectionCollapsed(id: string): void {
+	collections.update((c) => c.map((x) => (x.id === id ? { ...x, collapsed: !x.collapsed } : x)));
+}
 
 export function setProviderOrder(ids: string[]): void {
 	providerOrder.set(ids);
@@ -107,6 +139,7 @@ export async function loadProviderProfileData(profileId: string): Promise<void> 
 	favorites.set(await loadState<string[]>(`favorites:${profileId}`, []));
 	recentProviderIds.set(await loadState<string[]>(`recent:${profileId}`, []));
 	providerOrder.set(await loadState<string[]>(`order:${profileId}`, []));
+	collections.set(await loadState<ProviderCollection[]>(`collections:${profileId}`, []));
 	profReady = true;
 }
 
@@ -115,6 +148,7 @@ if (browser) {
 	favorites.subscribe(($f) => { if (profReady && pid) void saveState(`favorites:${pid}`, $f); });
 	recentProviderIds.subscribe(($r) => { if (profReady && pid) void saveState(`recent:${pid}`, $r); });
 	providerOrder.subscribe(($o) => { if (profReady && pid) void saveState(`order:${pid}`, $o); });
+	collections.subscribe(($c) => { if (profReady && pid) void saveState(`collections:${pid}`, $c); });
 }
 
 export const activeStream = writable<Provider | null>(null);

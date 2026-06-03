@@ -5,6 +5,9 @@
 	import { providers, favorites } from '$lib/stores/providers';
 	import Logo from '$lib/components/Logo.svelte';
 	import { t } from '$lib/i18n';
+	import WrappedModal from '$lib/components/WrappedModal.svelte';
+
+	let showWrapped = $state(false);
 
 	const favCount = $derived($favorites.length);
 
@@ -26,6 +29,7 @@
 <div class="page">
 	<h1>{$t('stats.title')}</h1>
 	<p class="sub">{$t('stats.sub')}</p>
+	<button class="wrapped-btn" onclick={() => (showWrapped = true)}>{$t('stats.wrapped')}</button>
 
 	<div class="cards">
 		<div class="stat omni-card"><span class="big">{formatDuration($totalWatchMs)}</span><span>{$t('stats.totalTime')}</span></div>
@@ -71,8 +75,14 @@
 	<p class="hint">{$t('stats.hint')}</p>
 </div>
 
+{#if showWrapped}
+	<WrappedModal onClose={() => (showWrapped = false)} />
+{/if}
+
 <style>
 	.page { padding: 22px 28px 36px; }
+	.wrapped-btn { margin: 4px 0 8px; padding: 9px 16px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--text); font-weight: 700; font-size: 13px; cursor: pointer; transition: border-color 0.15s ease, transform 0.1s ease; }
+	.wrapped-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
 	h1 { margin: 0; font-size: 26px; font-weight: 800; }
 	h2 { margin: 28px 0 10px; font-size: 16px; font-weight: 700; }
 	.sub { color: var(--text-muted); margin: 4px 0 22px; }

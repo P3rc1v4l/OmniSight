@@ -29,6 +29,18 @@ export function isInWatchlist(items: WatchlistItem[], tmdbId: number, mediaType:
 	return items.some((x) => x.tmdbId === tmdbId && x.mediaType === mediaType);
 }
 
+export function setRating(tmdbId: number, mediaType: 'movie' | 'tv', rating: number): void {
+	watchlist.update(($w) =>
+		$w.map((x) => (x.tmdbId === tmdbId && x.mediaType === mediaType ? { ...x, rating } : x))
+	);
+}
+
+export function toggleSeen(tmdbId: number, mediaType: 'movie' | 'tv'): void {
+	watchlist.update(($w) =>
+		$w.map((x) => (x.tmdbId === tmdbId && x.mediaType === mediaType ? { ...x, seen: !x.seen } : x))
+	);
+}
+
 let pid: string | null = null;
 let ready = false;
 export async function loadWatchlistForProfile(profileId: string): Promise<void> {

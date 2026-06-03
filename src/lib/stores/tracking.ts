@@ -12,6 +12,47 @@ import { loadState, saveState } from '$lib/persistence';
 export const watchTime = writable<Record<string, number>>({}); // Millisekunden je Anbieter-ID
 export const openCount = writable<number>(0);
 
+// Datierte Aufzeichnung für den Rückblick nach Zeitraum (z.B. „dieses Jahr").
+// watchLog: Datum (YYYY-MM-DD) -> Anbieter-ID -> Millisekunden.
+// openLog:  Datum (YYYY-MM-DD) -> Anzahl geöffneter Streams.
+export const watchLog = writable<Record<string, Record<string, number>>>({});
+export const openLog = writable<Record<string, number>>({});
+
+function todayKey(): string {
+	return new Date().toISOString().slice(0, 10);
+}
+
+function inRange(date: string, from: string | null, to: string | null): boolean {
+	if (from && date < from) return false;
+	if (to && date > to) return false;
+	return true;
+}
+
+/** Summiert die Streamzeit je Anbieter im Zeitraum (ISO-Datumsgrenzen, null = offen). */
+export function rangeWatch(
+	log: Record<string, Record<string, number>>,
+	from: string | null,
+	to: string | null
+): { byProvider: Record<string, number>; total: number } {
+	const byProvider: Record<string, number> = {};
+	let total = 0;
+	for (const [date, provs] of Object.entries(log)) {
+		if (!inRange(date, from, to)) continue;
+		for (const [id, ms] of Object.entries(provs)) {
+			byProvider[id] = (byProvider[id] ?? 0) + ms;
+			total += ms;
+		}
+	}
+	return { byProvider, total };
+}
+
+/** Zählt geöffnete Streams im Zeitraum. */
+export function rangeOpens(log: Record<string, number>, from: string | null, to: string | null): number {
+	let n = 0;
+	for (const [date, c] of Object.entries(log)) if (inRange(date, from, to)) n += c;
+	return n;
+}
+
 export const totalWatchMs = derived(watchTime, ($w) =>
 	Object.values($w).reduce((a, b) => a + b, 0)
 );
@@ -22,10 +63,18 @@ export const distinctProvidersWatched = derived(watchTime, ($w) =>
 export function addWatchTime(id: string, ms: number): void {
 	if (ms <= 0) return;
 	watchTime.update(($w) => ({ ...$w, [id]: ($w[id] ?? 0) + ms }));
+	const day = todayKey();
+	watchLog.update(($l) => {
+		const d = { ...($l[day] ?? {}) };
+		d[id] = (d[id] ?? 0) + ms;
+		return { ...$l, [day]: d };
+	});
 }
 
 export function incrementOpenCount(): void {
 	openCount.update((n) => n + 1);
+	const day = todayKey();
+	openLog.update(($l) => ({ ...$l, [day]: ($l[day] ?? 0) + 1 }));
 }
 
 let openSessions: Record<string, number> = {}; // ID -> Zeitpunkt der letzten Verbuchung
@@ -84,10 +133,14 @@ export async function loadTrackingForProfile(profileId: string): Promise<void> {
 	pid = profileId;
 	watchTime.set(await loadState<Record<string, number>>(`watchTime:${profileId}`, {}));
 	openCount.set(await loadState<number>(`openCount:${profileId}`, 0));
+	watchLog.set(await loadState<Record<string, Record<string, number>>>(`watchLog:${profileId}`, {}));
+	openLog.set(await loadState<Record<string, number>>(`openLog:${profileId}`, {}));
 	ready = true;
 }
 
 if (browser) {
 	watchTime.subscribe(($w) => { if (ready && pid) void saveState(`watchTime:${pid}`, $w); });
 	openCount.subscribe(($n) => { if (ready && pid) void saveState(`openCount:${pid}`, $n); });
+	watchLog.subscribe(($l) => { if (ready && pid) void saveState(`watchLog:${pid}`, $l); });
+	openLog.subscribe(($l) => { if (ready && pid) void saveState(`openLog:${pid}`, $l); });
 }

@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { visibleProviders, favoriteProviders, favorites, toggleFavorite, providerOrder, setProviderOrder, setFavoritesOrder } from '$lib/stores/providers';
+	import { visibleProviders, favoriteProviders, favorites, toggleFavorite, providerOrder, setProviderOrder, setFavoritesOrder, collections, toggleCollectionCollapsed } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import ProviderCard from '$lib/components/ProviderCard.svelte';
 	import Logo from '$lib/components/Logo.svelte';
 	import AddProviderModal from '$lib/components/AddProviderModal.svelte';
+	import CollectionsModal from '$lib/components/CollectionsModal.svelte';
+	import type { Provider } from '$lib/types';
 	import { tmdb, openTitleInfo } from '$lib/tmdb';
 	import { addToWatchlist, watchlist, isInWatchlist } from '$lib/stores/watchlist';
 	import type { TmdbItem } from '$lib/types';
@@ -12,6 +14,9 @@
 	import { continueList, type ContinueEntry } from '$lib/stores/continue';
 	import { searchHistory, addSearch, removeSearch, clearSearchHistory } from '$lib/stores/searchHistory';
 	import { t } from '$lib/i18n';
+	import { extractWatchProviders } from '$lib/watchProviders';
+	import { pushToast } from '$lib/stores/toasts';
+	import { get } from 'svelte/store';
 
 	let search = $state('');
 	let searchFocused = $state(false);
@@ -25,6 +30,18 @@
 		}
 	});
 	let showAdd = $state(false);
+	let showCollections = $state(false);
+
+	// Sammlungen mit aufgelösten (existierenden, sichtbaren) Anbietern; leere werden ausgeblendet.
+	const collectionViews = $derived.by(() => {
+		const provs = $visibleProviders;
+		return $collections
+			.map((c) => ({
+				...c,
+				items: c.providerIds.map((id) => provs.find((p) => p.id === id)).filter((p): p is Provider => !!p)
+			}))
+			.filter((c) => c.items.length > 0);
+	});
 	let tmdbResults = $state<TmdbItem[]>([]);
 	let searching = $state(false);
 	let searchToken = 0;
@@ -65,11 +82,40 @@
 		for (const p of $visibleProviders) m[p.category] = (m[p.category] ?? 0) + 1;
 		return m;
 	});
-	// „Überrasch mich" – zufälligen sichtbaren Anbieter öffnen.
-	function surprise() {
+	// „Überrasch mich" – zufälligen Anbieter wählen UND einen zufälligen Titel,
+	// der bei genau diesem Anbieter (DE) läuft, direkt dort öffnen.
+	// Findet sich kein passender Titel (z.B. Nische/keine TMDB-Daten), wird der
+	// Anbieter normal geöffnet (ehrlicher Fallback).
+	let surprising = $state(false);
+	async function surprise() {
 		const list = $visibleProviders;
-		if (!list.length) return;
-		openProvider(list[Math.floor(Math.random() * list.length)]);
+		if (!list.length || surprising) return;
+		const p = list[Math.floor(Math.random() * list.length)];
+		surprising = true;
+		try {
+			const pool = (await tmdb.trending()) ?? [];
+			const shuffled = [...pool].sort(() => Math.random() - 0.5);
+			let tries = 0;
+			for (const item of shuffled) {
+				if (tries >= 8) break;
+				tries++;
+				const mt = item.media_type === 'tv' ? 'tv' : 'movie';
+				const d = await tmdb.details(mt, item.id);
+				const match = extractWatchProviders(d, item.title).find((w) => w.id === p.id);
+				if (match) {
+					const art = item.poster ?? null;
+					openUrlInApp(item.title, match.url, p.id, p.name, p.color, p.color2 ?? p.color, art);
+					pushToast(get(t)('home.surpriseHit', { title: item.title, provider: p.name }), undefined, '🎲', 3200);
+					return;
+				}
+			}
+		} catch (e) {
+			console.warn('[surprise] TMDB-Abgleich fehlgeschlagen:', e);
+		} finally {
+			surprising = false;
+		}
+		// Fallback: Anbieter ohne konkreten Titel öffnen.
+		openProvider(p);
 	}
 	// Gemerkte Kategorie ohne Anbieter? -> zurück auf „Alle" (sonst leere Ansicht).
 	$effect(() => {
@@ -158,6 +204,9 @@
 </script>
 
 <AddProviderModal open={showAdd} close={() => (showAdd = false)} />
+{#if showCollections}
+	<CollectionsModal onClose={() => (showCollections = false)} />
+{/if}
 
 <div class="page">
 	<header class="top">
@@ -174,8 +223,9 @@
 			/>
 		</div>
 		<div class="tools">
-			<button class="tool" title={$t('home.surprise')} onclick={surprise} aria-label={$t('home.surpriseAria')}>🎲</button>
+			<button class="tool" class:busy={surprising} title={$t('home.surprise')} onclick={surprise} aria-label={$t('home.surpriseAria')} disabled={surprising}>{surprising ? '⏳' : '🎲'}</button>
 			<button class="tool" title={$t('home.sortAZ')} onclick={() => setProviderOrder([])}>A↓Z</button>
+			<button class="tool" title={$t('home.collections')} onclick={() => (showCollections = true)} aria-label={$t('home.collections')}>📁</button>
 			<button class="primary" onclick={() => (showAdd = true)}><span>＋</span> {$t('home.addProvider')}</button>
 			<div class="view">
 				<button class:active={view === 'grid'} onclick={() => (view = 'grid')} aria-label={$t('home.gridAria')} title={$t('home.grid')}>▦</button>
@@ -225,6 +275,24 @@
 				</div>
 			{/each}
 		</div>
+	{/if}
+
+	{#if collectionViews.length && !search}
+		{#each collectionViews as col (col.id)}
+			<div class="section-label col-label">
+				<button class="col-toggle" onclick={() => toggleCollectionCollapsed(col.id)}>
+					<span class="chev">{col.collapsed ? '▸' : '▾'}</span> 📁 {col.name}
+					<span class="hint-inline">· {col.items.length}</span>
+				</button>
+			</div>
+			{#if !col.collapsed}
+				<div class="grid favs">
+					{#each col.items as p (p.id)}
+						<ProviderCard provider={p} />
+					{/each}
+				</div>
+			{/if}
+		{/each}
 	{/if}
 
 	<div class="section-label">{$t('home.allProviders')} <span class="hint-inline">· {$t('home.dragCards')}</span></div>
@@ -361,6 +429,10 @@
 	.view button.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 
 	.cont-resume { display: inline-flex; align-items: center; gap: 9px; background: none; border: 0; padding: 0; margin: 4px 0 12px; cursor: pointer; font-family: inherit; font-size: 13px; }
+	.col-label { padding: 0; }
+	.col-toggle { display: inline-flex; align-items: center; gap: 7px; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; color: inherit; }
+	.col-toggle .chev { color: var(--text-muted); font-size: 11px; width: 12px; display: inline-block; }
+	.col-toggle:hover { color: var(--accent); }
 	.cr-play { width: 24px; height: 24px; border-radius: 999px; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-size: 10px; flex-shrink: 0; }
 	.cr-label { color: var(--text); font-weight: 700; }
 	.cr-title { color: var(--text-muted); max-width: 340px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

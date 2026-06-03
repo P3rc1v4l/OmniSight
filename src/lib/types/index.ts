@@ -46,6 +46,13 @@ export interface NotificationSettings {
 	watchlistReminder: boolean;
 }
 
+export interface ProviderCollection {
+	id: string;
+	name: string;
+	providerIds: string[];
+	collapsed?: boolean;
+}
+
 export interface AppearanceSettings {
 	backgroundImage: string | null;
 	accentColor: string;
@@ -98,6 +105,8 @@ export interface WatchlistItem {
 	overview: string;
 	releaseDate: string | null;
 	addedAt: number;
+	rating?: number; // eigene Bewertung 1–5 (0/undefiniert = keine)
+	seen?: boolean; // als gesehen markiert
 }
 
 export interface TmdbItem {
