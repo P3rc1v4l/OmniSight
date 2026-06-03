@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.51.0
+Stand: v0.52.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -57,6 +57,9 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.52.0
+- 🛠️ **Fixes:** Gemerkt-Seite fror durch doppelte „Verfügbar bei"-Chips ein (entdoppelt); Empfehlungen auf **eine** Reihe mit max. 10 zufälligen Titeln umgestellt; „Diese Woche" deckt jetzt die ganze Kalenderwoche (Mo–So) ab.
 
 ## 🆕 v0.51.0
 - 🟢 **Empfehlungen:** „Weil du … gemerkt hast"-Reihen unter der Watchlist (TMDB-Empfehlungen, Seeds aus bestbewerteten/zuletzt hinzugefügten Titeln).

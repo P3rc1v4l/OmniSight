@@ -11,6 +11,17 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.52.0] – 2026-06-03
+
+### Behoben
+- **Gemerkt-Seite fror ein / Buttons nicht klickbar:** Ursache war ein Render-Fehler durch doppelte „Verfügbar bei"-Chips (zwei TMDB-Anbieter, die auf denselben OmniHub-Anbieter zeigen). Die Chips werden jetzt entdoppelt – „Gesehen/Ungesehen" wird wieder sofort übernommen und alle Buttons reagieren.
+
+### Geändert
+- **Empfehlungen:** statt eigener Vorschläge pro Film gibt es jetzt **eine** Reihe mit **bis zu 10 zufälligen Titeln**, gemischt aus den Empfehlungen zu (zufällig gewählten) Titeln deiner Liste. Sie wird nur neu gewürfelt, wenn sich die Liste ändert – nicht beim Bewerten/Gesehen-Markieren.
+- **„Diese Woche"-Vorschau:** deckt jetzt die **gesamte aktuelle Kalenderwoche (Mo–So)** ab – inklusive Titel, die diese Woche bereits erschienen sind. Vergangene Tage zeigen den Wochentag mit Datum, heute/morgen/gestern werden benannt.
+
+---
+
 ## [0.51.0] – 2026-06-03
 
 ### Gemerkt: Empfehlungen „Weil du … gemerkt hast"
