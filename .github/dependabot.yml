@@ -1,5 +1,5 @@
 # Hält Abhängigkeiten automatisch aktuell und öffnet dafür Pull Requests.
-# OmniHub hat drei "Ökosysteme": npm (Frontend), Cargo (Rust-Backend) und die
+# OmniSight hat drei "Ökosysteme": npm (Frontend), Cargo (Rust-Backend) und die
 # Versionen der GitHub-Actions selbst.
 version: 2
 updates:
