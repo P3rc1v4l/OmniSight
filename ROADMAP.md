@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.53.0
+Stand: v0.54.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -57,6 +57,10 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.54.0
+- 🟢 **Update-Fallback:** zusätzliche Prüfung über die GitHub-Releases-API (Banner + Download-Link), wenn der signierte Updater nichts findet.
+- 🟢 **Schnellerer Start:** Settings/Profile/Katalog parallel geladen; Update-Check ~4 s verzögert.
 
 ## 🆕 v0.53.0
 - 🦀 **Spotify-Pause im Hintergrund:** „Stumm" pausiert Spotify per Play/Pause-Klick (Web Audio lässt sich nicht stummschalten). Muss per GitHub Actions gebaut/getestet werden; Lautstärkeregler wirkt bei Spotify weiterhin nicht.

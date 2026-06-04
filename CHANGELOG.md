@@ -11,6 +11,19 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.54.0] – 2026-06-03
+
+### Update-Prüfung: GitHub-Fallback
+- Findet der signierte Tauri-Updater nichts (z. B. weil ein Release **keine** `latest.json`/Updater-Artefakte hat), prüft OmniHub jetzt **zusätzlich die GitHub-Releases-API**. Gibt es dort eine neuere veröffentlichte Version, erscheint das Banner mit dem Hinweis und einem **„Auf GitHub herunterladen"-Link** (manueller Download).
+- Damit wird eine neue Version auch dann erkannt, wenn der Auto-Install-Pfad (noch) nicht eingerichtet ist. **Wichtig:** Entwürfe/Drafts werden von GitHub bewusst nicht ausgeliefert – ein als *Draft* gespeichertes Release wird also weder vom Updater noch vom Fallback gefunden.
+
+### Schnellerer Start
+- Settings, Profile und Anbieter-Katalog werden beim Start jetzt **parallel** geladen statt nacheinander.
+- Die Update-Prüfung startet erst **~4 Sekunden nach** dem ersten Rendern, damit sie die Anzeige nicht ausbremst.
+- Hinweis: Ein Teil der Startzeit hängt an Windows/WebView2 bzw. Virenscannern (außerhalb der App) – das lässt sich per Code nicht beeinflussen.
+
+---
+
 ## [0.53.0] – 2026-06-03
 
 ### Spotify im Hintergrund stummschalten/pausieren (🦀 bauen & testen)
