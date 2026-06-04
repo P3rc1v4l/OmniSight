@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.59.0
+Stand: v0.62.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -47,16 +47,26 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🎨 **Eigene Theme-/CSS-Datei laden**.
 
 ### ⚙️ System & Daten
-- ⏳ ⭐ 🦀 **Autostart mit Windows + Tray-Icon** (minimiert starten, Schnellzugriff auf letztes Profil/Stream).
+- 🔜 ⭐ 🦀 **Autostart + Tray-Icon** – NÄCHSTER nativer Schritt (autostart-Plugin + Systemtray; muss per GitHub Actions gebaut & getestet werden).
 - ⏳ 🎨 **Einstellungs-Export/-Import**, optional Datei-Sync über Dropbox-/Drive-Ordner.
-- ⏳ 🦀 **Update-Kanäle** (stabil/beta).
-- ⏳ 🎨 **Performance-Modus** (Effekte aus, solange ein Stream läuft).
+- 🟡 **Update-Kanäle** (stabil/beta): Beta zeigt Vorabversionen via GitHub-Fallback (Frontend, v0.62.0). Signierter Auto-Install pro Kanal bräuchte noch CI/Endpoint-Arbeit (🦀).
+- ✅ **Performance-Modus** (Effekte aus bei laufendem Stream), umgesetzt in v0.62.0.
 
 ### 🧩 Erweiterbarkeit
 - 💡 🎨 **Widget-System** für die Startseite (Wetter, RSS, Notizen).
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.62.0
+- 🟢 **Performance-Modus:** schaltet Animationen, Glas-Effekt, Schatten und Partikel automatisch ab, solange ein Stream (Vordergrund oder Hintergrund) läuft. Schalter in Design-Einstellungen.
+- 🟡 **Update-Kanäle (stabil/beta):** Auswahl in Erweitert; Beta zeigt auch Vorabversionen über den GitHub-Fallback.
+
+## 🆕 v0.61.0
+- 🟢 **„Weiterschauen"** als eigener Abschnitt mit Überschrift, klar über den Favoriten.
+
+## 🆕 v0.60.0
+- 🟢 **Erreichbarkeit verfeinert:** Geräte-Offline-Erkennung (kein falsches „rot"), Auto-Refresh (bei Wiederverbindung + alle 5 Min), manueller 🔄-Knopf und Tooltip mit Prüfzeitpunkt (zweisprachig).
 
 ## 🆕 v0.59.0
 - 🟢 **Erreichbarkeits-Indikator** pro Anbieter-Karte: kleiner Punkt (grün = erreichbar, rot = nicht erreichbar) via Favicon-Ping; abschaltbar in Design-Einstellungen. Grober Ping, kein Login-Status.

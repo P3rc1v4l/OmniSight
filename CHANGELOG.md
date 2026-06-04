@@ -11,6 +11,35 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.62.0] – 2026-06-04
+
+### Performance-Modus
+- Neuer Schalter unter **Einstellungen → Design**: Ist er an, schaltet OmniHub **Animationen, Glas-Effekt, Schatten und Partikel automatisch ab, solange ein Stream läuft** (Vordergrund oder Hintergrund) – und schaltet sie danach wieder ein. Spart Leistung beim Schauen.
+
+### Update-Kanäle (stabil/beta)
+- Unter **Einstellungen → Erweitert** lässt sich jetzt ein **Update-Kanal** wählen. **Beta** zeigt zusätzlich **Vorabversionen** (über den GitHub-Fallback), **Stabil** nur normale Releases.
+- Ehrlich: Der signierte Auto-Install nutzt weiterhin das neueste stabile Release; Beta-Funde erscheinen als **GitHub-Download-Link**. Echte signierte Kanäle bräuchten noch CI-/Endpoint-Arbeit.
+
+---
+
+## [0.61.0] – 2026-06-04
+
+### „Weiterschauen" als eigener Abschnitt über den Favoriten
+- Der Weiterschauen-Eintrag steht klar **über den Favoriten** und hat jetzt eine eigene Überschnitt-Zeile **„▶ Weiterschauen"** (wie ⭐ Favoriten), statt nur ein kleiner Knopf zu sein.
+- Hinweis: In den letzten Versionen war er bereits oberhalb der Favoriten – falls er bei dir darunter erschien, lag das an einer **älteren installierten Version** (siehe Update-Hinweis weiter unten).
+
+---
+
+## [0.60.0] – 2026-06-04
+
+### Erreichbarkeits-Anzeige verfeinert
+- **Offline-Erkennung:** Ist dein **Gerät** offline, werden Anbieter nicht mehr fälschlich „rot", sondern grau mit Hinweis „Keine Internetverbindung".
+- **Automatische Aktualisierung:** Der Status frischt sich bei **Wiederverbindung** und **alle 5 Minuten** automatisch auf.
+- **Manuell aktualisieren:** Neuer **🔄-Knopf** in der Anbieter-Leiste (erscheint nur, wenn der Indikator aktiv ist) prüft sofort alles neu.
+- **Tooltip mit Zeitpunkt:** Der Status-Punkt zeigt jetzt z. B. „Erreichbar · vor 3 Min geprüft" und ist vollständig zweisprachig (DE/EN).
+
+---
+
 ## [0.59.0] – 2026-06-04
 
 ### Erreichbarkeits-Indikator pro Karte
