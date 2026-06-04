@@ -1,4 +1,4 @@
-// OmniHub – Anime-Ausstrahlungsplan über die offene AniList-GraphQL-API.
+// OmniSight – Anime-Ausstrahlungsplan über die offene AniList-GraphQL-API.
 // Kein API-Schlüssel nötig. Wird für den Crunchyroll-Kalender genutzt
 // (Crunchyroll selbst hat keine offene API). externalLinks markiert,
 // welche Titel auf Crunchyroll laufen.

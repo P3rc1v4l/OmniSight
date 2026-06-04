@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "OmniHub",
-  "version": "0.62.0",
+  "productName": "OmniSight",
+  "version": "0.66.0",
   "identifier": "com.p3rc1v4l.omnihub",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "OmniHub",
+        "title": "OmniSight",
         "width": 1400,
         "height": 900,
         "minWidth": 1024,
@@ -38,7 +38,7 @@
     "copyright": "© 2026 Luka Kalinka. Alle Rechte vorbehalten.",
     "category": "Entertainment",
     "shortDescription": "Zentraler Streaming-Hub",
-    "longDescription": "OmniHub bündelt deine Streaming-Dienste in einem Fenster – mit Profilen, Watchlist, Statistiken und TMDB-Metadaten.",
+    "longDescription": "OmniSight bündelt deine Streaming-Dienste in einem Fenster – mit Profilen, Watchlist, Statistiken und TMDB-Metadaten.",
     "licenseFile": "../LICENSE",
     "icon": [
       "icons/32x32.png",
@@ -65,7 +65,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc2OEJGRDgxODQ5RUZFOTYKUldTVy9wNkVnZjJMZGhiY3FwakE1a0FLbXVnSnB5V003WnRNU0VmSEs5UVFFM3lZekNHb3hBVHMK",
       "endpoints": [
-        "https://github.com/P3rc1v4l/OmniHub/releases/latest/download/latest.json"
+        "https://github.com/P3rc1v4l/OmniSight/releases/latest/download/latest.json"
       ]
     }
   }

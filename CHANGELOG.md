@@ -1,6 +1,6 @@
 # Changelog
 
-Alle nennenswerten Änderungen an OmniHub werden hier dokumentiert.
+Alle nennenswerten Änderungen an OmniSight werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
@@ -11,10 +11,49 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.66.0] – 2026-06-04
+
+### Projekt umbenannt: OmniHub → OmniSight
+- Das gesamte Projekt heißt jetzt **OmniSight**. Umbenannt wurden u. a.: **Produktname & Fenstertitel** (damit auch das Installations-Setup und die `.exe` „OmniSight" heißen), **Paket-/Crate-Namen** (npm `omnisight`, Cargo `omnisight`/`omnisight_lib`), der **Release-Name** im CI, alle **Oberflächentexte**, das **Onboarding**, der **About-Bereich**, sämtliche **Kommentare**, die **GitHub-Links** sowie der **ZIP-Dateiname** (ab jetzt `omnisight-vX.zip`).
+- **Bewusst NICHT geändert (zum Schutz deiner Daten):** der interne **Bundle-Identifier** `com.p3rc1v4l.omnihub`, der **Store-Dateiname** `omnihub.json`, die **localStorage-Schlüssel** `omnihub:*` (inkl. PIN-Salt) und der **Discord-Bild-Asset-Key** `omnihub`. So bleiben Einstellungen, Profile, Streamzeit und gespeicherte PINs erhalten, und das Update **ersetzt** die App, statt eine zweite Kopie zu installieren. Alte Backups (`omnihub-backup`) lassen sich weiterhin importieren.
+- **Wichtig (GitHub-Links/Updater):** Die Links zeigen jetzt auf `…/P3rc1v4l/OmniSight`. Sie funktionieren erst, **sobald du das Repository umbenannt hast**. Plane also: dieses Release veröffentlichen → Repo umbenennen. (GitHub leitet alte Repo-Links automatisch auf den neuen Namen um.)
+
+---
+
+## [0.65.0] – 2026-06-04
+
+### Eigenes Bild als Profil-Avatar
+- Im Profileditor lässt sich über die Kamera-Kachel im Avatar-Auswahlfeld jetzt ein **eigenes Bild hochladen**. Es wird automatisch **quadratisch zugeschnitten und auf 128 px verkleinert/komprimiert**, damit der Speicher klein bleibt.
+- Bild-Avatare werden überall korrekt angezeigt: in der Profil-Karte, im Profil-Umschalter (Liste) und am aktiven Profil-Knopf. Ein Emoji auswählen ersetzt das Bild wieder. Reines Frontend.
+
+---
+
+## [0.64.0] – 2026-06-04
+
+### Profileditor neu gestaltet
+- Die Profilverwaltung (Einstellungen → Konto) ist jetzt ein übersichtliches **Karten-Raster** statt einer gedrängten Liste.
+- Jede **Profil-Karte** zeigt einen großen **Avatar auf der Profil-Akzentfarbe**, den editierbaren Namen und klare **Abzeichen** (Hauptprofil ★, Aktiv, 🔒 PIN). Ein farbiger Balken oben spiegelt die Akzentfarbe; die aktive Karte ist hervorgehoben.
+- Aktionen sind als saubere **Chips** gruppiert: Farbe, PIN setzen/ändern, PIN vergessen, Als Hauptprofil, Löschen. Avatar-, Farb- und PIN-Auswahl öffnen sich direkt in der Karte.
+- **Mehr Avatare** zur Auswahl und eine eigene **„Profil hinzufügen"-Karte**.
+- Alle bestehenden Funktionen bleiben erhalten (PIN mit Alt-PIN-Prüfung, Admin-Code, Hauptprofil-Wechsel mit Admin-Bestätigung). Reines Frontend.
+
+---
+
+## [0.63.0] – 2026-06-04
+
+### Autostart + System-Tray (🦀 bauen & testen)
+- **Mit Windows starten:** OmniSight kann sich beim Anmelden automatisch starten (Schalter in **Einstellungen → Erweitert → System**).
+- **System-Tray:** Ein Tray-Symbol mit Menü **„OmniSight öffnen"** und **„Beenden"**; **Linksklick** holt das Fenster zurück.
+- **Minimiert starten:** Beim Start wird das Fenster minimiert.
+- **Beim Schließen in den Tray:** Das Schließen des Fensters versteckt OmniSight in den Infobereich, statt es zu beenden (über das Tray-Menü wieder öffnen oder ganz beenden).
+- **Wichtig/ehrlich:** Das sind native (Rust-)Änderungen inkl. Tray + neuem Autostart-Plugin und neuen Berechtigungen – **im Sandbox nicht baubar/testbar**. Bitte über **GitHub Actions** bauen und testen. Sollte der Build meckern (z. B. an einer umbenannten Tray-Methode oder am Cargo.lock), schick mir das Log – dann ziehe ich es nach. Noch offen: Schnellzugriff auf das letzte Profil/den letzten Stream direkt im Tray-Menü.
+
+---
+
 ## [0.62.0] – 2026-06-04
 
 ### Performance-Modus
-- Neuer Schalter unter **Einstellungen → Design**: Ist er an, schaltet OmniHub **Animationen, Glas-Effekt, Schatten und Partikel automatisch ab, solange ein Stream läuft** (Vordergrund oder Hintergrund) – und schaltet sie danach wieder ein. Spart Leistung beim Schauen.
+- Neuer Schalter unter **Einstellungen → Design**: Ist er an, schaltet OmniSight **Animationen, Glas-Effekt, Schatten und Partikel automatisch ab, solange ein Stream läuft** (Vordergrund oder Hintergrund) – und schaltet sie danach wieder ein. Spart Leistung beim Schauen.
 
 ### Update-Kanäle (stabil/beta)
 - Unter **Einstellungen → Erweitert** lässt sich jetzt ein **Update-Kanal** wählen. **Beta** zeigt zusätzlich **Vorabversionen** (über den GitHub-Fallback), **Stabil** nur normale Releases.
@@ -72,7 +111,7 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ### Backup & Wiederherstellung
 - Unter **Einstellungen → Erweitert** gibt es jetzt eine **Sicherung**: „Backup exportieren" speichert **alle** Daten (Profile, Watchlist mit Bewertungen/Status, Anbieter, Sammlungen, Statistiken/Tracking, Einstellungen, Suchverlauf …) als eine **JSON-Datei**.
-- „Backup importieren" stellt aus einer solchen Datei wieder her – mit Sicherheitsabfrage, danach lädt OmniHub automatisch neu. **Achtung:** Der Import **überschreibt** die aktuellen Daten.
+- „Backup importieren" stellt aus einer solchen Datei wieder her – mit Sicherheitsabfrage, danach lädt OmniSight automatisch neu. **Achtung:** Der Import **überschreibt** die aktuellen Daten.
 - Technisch wird sowohl der Plugin-Store als auch der localStorage gesichert – dadurch ist das Backup vollständig und erfasst auch künftige neue Funktionen automatisch. Reines Frontend, kein zusätzliches Plugin nötig.
 
 ---
@@ -98,7 +137,7 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 ## [0.54.0] – 2026-06-03
 
 ### Update-Prüfung: GitHub-Fallback
-- Findet der signierte Tauri-Updater nichts (z. B. weil ein Release **keine** `latest.json`/Updater-Artefakte hat), prüft OmniHub jetzt **zusätzlich die GitHub-Releases-API**. Gibt es dort eine neuere veröffentlichte Version, erscheint das Banner mit dem Hinweis und einem **„Auf GitHub herunterladen"-Link** (manueller Download).
+- Findet der signierte Tauri-Updater nichts (z. B. weil ein Release **keine** `latest.json`/Updater-Artefakte hat), prüft OmniSight jetzt **zusätzlich die GitHub-Releases-API**. Gibt es dort eine neuere veröffentlichte Version, erscheint das Banner mit dem Hinweis und einem **„Auf GitHub herunterladen"-Link** (manueller Download).
 - Damit wird eine neue Version auch dann erkannt, wenn der Auto-Install-Pfad (noch) nicht eingerichtet ist. **Wichtig:** Entwürfe/Drafts werden von GitHub bewusst nicht ausgeliefert – ein als *Draft* gespeichertes Release wird also weder vom Updater noch vom Fallback gefunden.
 
 ### Schnellerer Start
@@ -111,7 +150,7 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 ## [0.53.0] – 2026-06-03
 
 ### Spotify im Hintergrund stummschalten/pausieren (🦀 bauen & testen)
-- Spotify spielt über **Web Audio** (kein `<audio>`-Element), daher griff das normale Stummschalten nicht. Neu: Ist ein Hintergrund-Stream **Spotify**, klickt OmniHub beim „Stumm" einmalig Spotifys **Play/Pause-Button** (pausiert) und beim Aktivieren wieder auf **Play**. Der Klick erfolgt nur einmal pro Schaltvorgang (keine Endlos-Toggles).
+- Spotify spielt über **Web Audio** (kein `<audio>`-Element), daher griff das normale Stummschalten nicht. Neu: Ist ein Hintergrund-Stream **Spotify**, klickt OmniSight beim „Stumm" einmalig Spotifys **Play/Pause-Button** (pausiert) und beim Aktivieren wieder auf **Play**. Der Klick erfolgt nur einmal pro Schaltvorgang (keine Endlos-Toggles).
 - **Achtung:** native (Rust-)Änderung – im Build-Sandbox nicht testbar. Bitte per GitHub Actions bauen und testen.
 - Bekannte Grenze: Der **Lautstärkeregler** wirkt bei Spotify weiterhin nicht (Web Audio lässt sich von außen nicht regeln) – für Spotify bitte „Stumm" (= Pause) nutzen. Sollte Spotify seine Button-Kennungen ändern, kann es erneut nötig sein, die Selektoren anzupassen.
 
@@ -120,7 +159,7 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 ## [0.52.0] – 2026-06-03
 
 ### Behoben
-- **Gemerkt-Seite fror ein / Buttons nicht klickbar:** Ursache war ein Render-Fehler durch doppelte „Verfügbar bei"-Chips (zwei TMDB-Anbieter, die auf denselben OmniHub-Anbieter zeigen). Die Chips werden jetzt entdoppelt – „Gesehen/Ungesehen" wird wieder sofort übernommen und alle Buttons reagieren.
+- **Gemerkt-Seite fror ein / Buttons nicht klickbar:** Ursache war ein Render-Fehler durch doppelte „Verfügbar bei"-Chips (zwei TMDB-Anbieter, die auf denselben OmniSight-Anbieter zeigen). Die Chips werden jetzt entdoppelt – „Gesehen/Ungesehen" wird wieder sofort übernommen und alle Buttons reagieren.
 
 ### Geändert
 - **Empfehlungen:** statt eigener Vorschläge pro Film gibt es jetzt **eine** Reihe mit **bis zu 10 zufälligen Titeln**, gemischt aus den Empfehlungen zu (zufällig gewählten) Titeln deiner Liste. Sie wird nur neu gewürfelt, wenn sich die Liste ändert – nicht beim Bewerten/Gesehen-Markieren.
@@ -152,7 +191,7 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 ### Gemerkt: „Verfügbar bei dir"
 - Jede Watchlist-Karte zeigt jetzt, bei **welchen deiner Anbieter** der Titel in Deutschland läuft (Abgleich über TMDB/JustWatch). Die Anbieter erscheinen als klickbare Chips – ein Klick öffnet den Titel direkt beim jeweiligen Anbieter (mit dessen Login-Sitzung).
 - Es werden nur Anbieter angezeigt, die du auch eingerichtet hast. Die Daten werden je Titel einmal geladen und zwischengespeichert.
-- Hinweis: Das ist eine **Anzeige in der App** (keine Push-Benachrichtigung). Voraussetzung sind ein gültiger TMDB-Key und Internet; Anbieter, die OmniHub (noch) nicht zuordnen kann, werden nicht angezeigt.
+- Hinweis: Das ist eine **Anzeige in der App** (keine Push-Benachrichtigung). Voraussetzung sind ein gültiger TMDB-Key und Internet; Anbieter, die OmniSight (noch) nicht zuordnen kann, werden nicht angezeigt.
 
 ---
 
@@ -425,7 +464,7 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ### Technisch
 - Neues Plugin `tauri-plugin-global-shortcut` (+ JS-Paket) und Berechtigungen `global-shortcut:register/unregister/is-registered`.
-- Vollbild lässt einen 2px-Streifen oben frei – nötig, damit OmniHub die Maus am oberen Rand erkennt (Alternative wäre, der Streaming-Seite Tauri-Zugriff zu geben – das wäre unsicher).
+- Vollbild lässt einen 2px-Streifen oben frei – nötig, damit OmniSight die Maus am oberen Rand erkennt (Alternative wäre, der Streaming-Seite Tauri-Zugriff zu geben – das wäre unsicher).
 
 ---
 
@@ -508,7 +547,7 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 ## [0.20.0] – 2026-05-30
 
 ### Hinzugefügt
-- **Anbieter-Logos im Hero:** Neuigkeiten/Upcoming zeigen jetzt unter der Beschreibung, **wo der Titel läuft** (bis zu 6 Logos). Ein Klick öffnet den Anbieter direkt in OmniHub (Titel-Suche, geteilte Anmeldung – wie im Info-Fenster). Die Anbieter werden pro Titel nachgeladen und zwischengespeichert.
+- **Anbieter-Logos im Hero:** Neuigkeiten/Upcoming zeigen jetzt unter der Beschreibung, **wo der Titel läuft** (bis zu 6 Logos). Ein Klick öffnet den Anbieter direkt in OmniSight (Titel-Suche, geteilte Anmeldung – wie im Info-Fenster). Die Anbieter werden pro Titel nachgeladen und zwischengespeichert.
 
 ### Intern
 - Die „Wo läuft das"-Logik liegt jetzt in einem gemeinsamen Modul `watchProviders.ts`, das Hero und Titel-Info-Fenster gemeinsam nutzen (eine Quelle statt doppeltem Code).
@@ -608,7 +647,7 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 ## [0.15.2] – 2026-05-29
 
 ### Hinzugefügt
-- **Anbieter im Titel-Info-Fenster sind jetzt anklickbar.** Ein Klick auf ein Anbieter-Logo öffnet den Anbieter **in OmniHub** – bei großen Anbietern (Netflix, Prime, Disney+, Crunchyroll, Apple TV+, RTL+, Joyn, Paramount+, YouTube) direkt mit **dem Titel in der Suche**, sonst die JustWatch-Seite des Titels. Die Anmelde-Sitzung wird mit der jeweiligen Anbieter-Kachel geteilt, du bleibst also eingeloggt.
+- **Anbieter im Titel-Info-Fenster sind jetzt anklickbar.** Ein Klick auf ein Anbieter-Logo öffnet den Anbieter **in OmniSight** – bei großen Anbietern (Netflix, Prime, Disney+, Crunchyroll, Apple TV+, RTL+, Joyn, Paramount+, YouTube) direkt mit **dem Titel in der Suche**, sonst die JustWatch-Seite des Titels. Die Anmelde-Sitzung wird mit der jeweiligen Anbieter-Kachel geteilt, du bleibst also eingeloggt.
 
 > Hinweis: Einen garantierten Direkt-Link zur exakten Titelseite liefert TMDB nicht – daher die Anbieter-Suche bzw. JustWatch als bestmögliche Annäherung.
 
@@ -666,21 +705,21 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 ## [0.12.2] – 2026-05-29
 
 ### Geändert
-- **Eingebaute OmniHub-Discord-Kennung hinterlegt.** Der Discord-Status funktioniert jetzt mit einem **einzigen Schalter** – keine Eingabe nötig. (Eine eigene Application-ID unter „Erweitert" hat weiterhin Vorrang.)
+- **Eingebaute OmniSight-Discord-Kennung hinterlegt.** Der Discord-Status funktioniert jetzt mit einem **einzigen Schalter** – keine Eingabe nötig. (Eine eigene Application-ID unter „Erweitert" hat weiterhin Vorrang.)
 
 ---
 
 ## [0.12.1] – 2026-05-29
 
 ### Geändert
-- **Discord-Status ohne Code-Eingabe vorbereitet:** Es gibt jetzt einen Platz für eine **eingebaute OmniHub-Discord-Kennung**. Sobald diese hinterlegt ist, müssen Nutzer im Discord-Modul **nichts mehr eintragen** – einfach einschalten. Die eigene Application-ID ist nur noch eine **optionale „Erweitert"-Einstellung**. Klarstellung in der App: Es ist **kein Discord-Login** nötig, es nutzt die laufende Discord-App.
+- **Discord-Status ohne Code-Eingabe vorbereitet:** Es gibt jetzt einen Platz für eine **eingebaute OmniSight-Discord-Kennung**. Sobald diese hinterlegt ist, müssen Nutzer im Discord-Modul **nichts mehr eintragen** – einfach einschalten. Die eigene Application-ID ist nur noch eine **optionale „Erweitert"-Einstellung**. Klarstellung in der App: Es ist **kein Discord-Login** nötig, es nutzt die laufende Discord-App.
 
 ---
 
 ## [0.12.0] – 2026-05-29
 
 ### Hinzugefügt
-- **Discord-Status (Rich Presence) als Plugin-Modul:** Im „Plugins"-Tab aktivierbar. Bei aktivem Stream zeigt Discord „Schaut <Anbieter>", sonst „Durchstöbert OmniHub". Voraussetzung: laufende Discord-App + eigene **Discord-Application-ID** (Client-ID), die im Plugins-Tab eingetragen wird.
+- **Discord-Status (Rich Presence) als Plugin-Modul:** Im „Plugins"-Tab aktivierbar. Bei aktivem Stream zeigt Discord „Schaut <Anbieter>", sonst „Durchstöbert OmniSight". Voraussetzung: laufende Discord-App + eigene **Discord-Application-ID** (Client-ID), die im Plugins-Tab eingetragen wird.
   - Rust-Backend via Crate `discord-rich-presence` 1.1.0 mit Commands `discord_connect/set_activity/clear/disconnect` (lokale Discord-IPC).
   - Frontend-Modul aktualisiert die Anzeige automatisch beim Wechsel des Streams.
 
@@ -696,7 +735,7 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
   - **Sleep-Timer:** zeigt nach 15/30/60/90/120 Min einen Hinweis und schließt optional den laufenden Stream.
 
 ### Hinweis (ehrlich)
-- **Echte Browser-Erweiterungen** (AdBlock, Buster usw.) lassen sich technisch **nicht** installieren: OmniHub nutzt die System-WebView (Edge/WebView2), nicht Chrome – Tauri bietet dafür keine Schnittstelle. **Captcha-Solver** werden bewusst nicht angeboten. Der Plugins-Tab weist darauf hin.
+- **Echte Browser-Erweiterungen** (AdBlock, Buster usw.) lassen sich technisch **nicht** installieren: OmniSight nutzt die System-WebView (Edge/WebView2), nicht Chrome – Tauri bietet dafür keine Schnittstelle. **Captcha-Solver** werden bewusst nicht angeboten. Der Plugins-Tab weist darauf hin.
 - Weitere Module wie **Discord-Status** sind möglich, brauchen aber eine zusätzliche (Rust-)Integration – auf Wunsch als Nächstes.
 
 ---

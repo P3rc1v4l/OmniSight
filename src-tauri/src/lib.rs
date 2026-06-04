@@ -1,4 +1,4 @@
-// OmniHub – Rust-Backend (Tauri v2).
+// OmniSight – Rust-Backend (Tauri v2).
 
 mod tmdb;
 mod discord;
@@ -23,6 +23,43 @@ fn hw_accel_disabled() -> bool {
             .and_then(|v| v.as_bool()),
         Some(false)
     )
+}
+
+/// Liest einen Bool aus settings.plugins.<key> der Store-Datei (oder None).
+fn plugin_bool(key: &str) -> Option<bool> {
+    let appdata = std::env::var("APPDATA").ok()?;
+    let path = std::path::Path::new(&appdata)
+        .join("com.p3rc1v4l.omnihub")
+        .join("omnihub.json");
+    let text = std::fs::read_to_string(path).ok()?;
+    let json = serde_json::from_str::<serde_json::Value>(&text).ok()?;
+    json.get("settings")
+        .and_then(|s| s.get("plugins"))
+        .and_then(|p| p.get(key))
+        .and_then(|v| v.as_bool())
+}
+
+/// Laufzeit-Schalter „Beim Schließen in den Tray" (vom Frontend gesetzt).
+#[derive(Default)]
+struct TrayState {
+    close_to_tray: std::sync::atomic::AtomicBool,
+}
+
+#[tauri::command]
+fn set_close_to_tray(state: tauri::State<TrayState>, enabled: bool) {
+    state
+        .close_to_tray
+        .store(enabled, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// Hauptfenster zeigen, wiederherstellen und fokussieren.
+fn show_main<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {
+    use tauri::Manager;
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.show();
+        let _ = w.unminimize();
+        let _ = w.set_focus();
+    }
 }
 
 /// Gibt die installierte WebView2-Laufzeit-Version zurück (für die Diagnose in den
@@ -107,7 +144,74 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None,
+        ))
         .manage(discord::DiscordState::default())
+        .manage(TrayState::default())
+        .setup(|app| {
+            use tauri::menu::{MenuBuilder, MenuItemBuilder};
+            use tauri::tray::{TrayIconBuilder, TrayIconEvent};
+            use tauri::Manager;
+
+            // Laufzeit-Schalter mit gespeichertem Wert vorbelegen.
+            if plugin_bool("closeToTray") == Some(true) {
+                app.state::<TrayState>()
+                    .close_to_tray
+                    .store(true, std::sync::atomic::Ordering::Relaxed);
+            }
+
+            // System-Tray mit Menü (Öffnen / Beenden) + Linksklick = Fenster zeigen.
+            let show_i = MenuItemBuilder::with_id("show", "OmniSight öffnen").build(app)?;
+            let quit_i = MenuItemBuilder::with_id("quit", "Beenden").build(app)?;
+            let menu = MenuBuilder::new(app).items(&[&show_i, &quit_i]).build()?;
+            let _tray = TrayIconBuilder::with_id("omni-tray")
+                .icon(app.default_window_icon().unwrap().clone())
+                .tooltip("OmniSight")
+                .menu(&menu)
+                .show_menu_on_left_click(false)
+                .on_menu_event(|app, event| match event.id().as_ref() {
+                    "show" => show_main(app),
+                    "quit" => app.exit(0),
+                    _ => {}
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: tauri::tray::MouseButton::Left,
+                        button_state: tauri::tray::MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        show_main(tray.app_handle());
+                    }
+                })
+                .build(app)?;
+
+            // „Minimiert starten": Hauptfenster nach dem Start minimieren.
+            if plugin_bool("startMinimized") == Some(true) {
+                if let Some(w) = app.get_webview_window("main") {
+                    let _ = w.minimize();
+                }
+            }
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            // „In den Tray schließen": Schließen des Hauptfensters abfangen -> verstecken.
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() == "main" {
+                    use tauri::Manager;
+                    let keep = window
+                        .state::<TrayState>()
+                        .close_to_tray
+                        .load(std::sync::atomic::Ordering::Relaxed);
+                    if keep {
+                        api.prevent_close();
+                        let _ = window.hide();
+                    }
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             tmdb::tmdb_search,
             tmdb::tmdb_trending,
@@ -124,7 +228,8 @@ pub fn run() {
             webview_set_volume,
             webview_set_paused,
             webview2_version,
+            set_close_to_tray,
         ])
         .run(tauri::generate_context!())
-        .expect("Fehler beim Start von OmniHub");
+        .expect("Fehler beim Start von OmniSight");
 }

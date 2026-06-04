@@ -1,4 +1,4 @@
-// OmniHub – TMDB-Anbindung.
+// OmniSight – TMDB-Anbindung.
 //
 // === TMDB-API-KEY EINTRAGEN ===
 // 1. Kostenlos einen Key anlegen: https://www.themoviedb.org/settings/api

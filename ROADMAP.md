@@ -1,7 +1,7 @@
-# OmniHub – Roadmap
+# OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.62.0
+Stand: v0.66.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -47,7 +47,7 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🎨 **Eigene Theme-/CSS-Datei laden**.
 
 ### ⚙️ System & Daten
-- 🔜 ⭐ 🦀 **Autostart + Tray-Icon** – NÄCHSTER nativer Schritt (autostart-Plugin + Systemtray; muss per GitHub Actions gebaut & getestet werden).
+- 🟡 ⭐ 🦀 **Autostart + Tray-Icon** umgesetzt in v0.63.0 (Autostart, Tray mit Öffnen/Beenden, minimiert starten, in Tray schließen). MUSS per GitHub Actions gebaut & getestet werden. Offen: Schnellzugriff letztes Profil/Stream im Tray-Menü.
 - ⏳ 🎨 **Einstellungs-Export/-Import**, optional Datei-Sync über Dropbox-/Drive-Ordner.
 - 🟡 **Update-Kanäle** (stabil/beta): Beta zeigt Vorabversionen via GitHub-Fallback (Frontend, v0.62.0). Signierter Auto-Install pro Kanal bräuchte noch CI/Endpoint-Arbeit (🦀).
 - ✅ **Performance-Modus** (Effekte aus bei laufendem Stream), umgesetzt in v0.62.0.
@@ -57,6 +57,18 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.66.0
+- 🟢 **Umbenennung OmniHub → OmniSight** (Produktname, Setup/.exe, Paket-/Crate-Namen, CI-Release-Name, UI, Onboarding, Kommentare, GitHub-Links, ZIP-Name). Interne Daten-Kennungen (Bundle-Identifier, `omnihub.json`, `omnihub:`-Schlüssel, Discord-Asset-Key) bewusst beibehalten, damit Nutzerdaten + Update-Kontinuität erhalten bleiben.
+
+## 🆕 v0.65.0
+- 🟢 **Eigenes Bild als Avatar:** Upload im Profileditor, automatisch quadratisch zugeschnitten + auf 128 px verkleinert; überall korrekt angezeigt (Karte, Umschalter, aktiver Knopf).
+
+## 🆕 v0.64.0
+- 🟢 **Profileditor neu gestaltet:** Karten-Raster mit großem Avatar (auf Profil-Akzentfarbe), Abzeichen (Haupt/Aktiv/PIN), Chip-Aktionen, In-Karte-Picker, mehr Avatare und „Profil hinzufügen"-Karte.
+
+## 🆕 v0.63.0
+- 🦀 **Autostart + Tray** (Rust, per CI bauen): Mit Windows starten, System-Tray (Öffnen/Beenden, Linksklick = Fenster), „minimiert starten" und „beim Schließen in den Tray". Schalter in Einstellungen → Erweitert → System.
 
 ## 🆕 v0.62.0
 - 🟢 **Performance-Modus:** schaltet Animationen, Glas-Effekt, Schatten und Partikel automatisch ab, solange ein Stream (Vordergrund oder Hintergrund) läuft. Schalter in Design-Einstellungen.
@@ -219,7 +231,7 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 ## 🆕 Neue Vorschläge (Stand v0.24.0)
 
 ### Technisch
-- ✅ **Echtes Vollbild für eingebettete Streams** (v0.25–0.27): OmniHub-Vollbild-Schalter, randlos, Leiste per Maus oben einblendbar, Esc beendet (globales Tastenkürzel).
+- ✅ **Echtes Vollbild für eingebettete Streams** (v0.25–0.27): OmniSight-Vollbild-Schalter, randlos, Leiste per Maus oben einblendbar, Esc beendet (globales Tastenkürzel).
 - ✅ **Hardware-Beschleunigung (GPU) umschaltbar** (v0.25): Schalter unter Plugins, greift beim Neustart über WebView2-Startargument.
 - 💡 Webview-Pooling: Anbieter-Webviews vorhalten statt neu erzeugen → schnelleres Umschalten.
 - 💡 Datei-Logging mit Rotation (optional aktivierbar) zur leichteren Fehlersuche bei Builds.
@@ -228,7 +240,7 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 ### Sicherheit
 - ⏳ Profil-PIN optional als **App-Sperre beim Start** (nicht nur beim Profilwechsel).
 - 💡 PINs verschlüsselt ablegen (OS-Schlüsselspeicher/keyring) statt im Klartext.
-- 💡 Strikte CSP **nur für die OmniHub-Oberfläche** (Anbieter-Webviews bleiben unbeschränkt).
+- 💡 Strikte CSP **nur für die OmniSight-Oberfläche** (Anbieter-Webviews bleiben unbeschränkt).
 - 💡 Signatur der Auto-Updates verifizieren + deutlicher Hinweis, falls der Schlüssel fehlt.
 
 ### Funktionen
@@ -267,7 +279,7 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 
 ### Technisch / Sicherheit
 - 💡 PINs verschlüsselt ablegen (OS-Schlüsselspeicher/keyring) statt Klartext.
-- 💡 Strikte CSP nur für die OmniHub-Oberfläche (Anbieter-Webviews bleiben frei).
+- 💡 Strikte CSP nur für die OmniSight-Oberfläche (Anbieter-Webviews bleiben frei).
 - 💡 Auto-Update-Signatur verifizieren + Hinweis, falls Schlüssel fehlt.
 - ✅ **Lazy-Loading von Postern/Logos** (v0.34.1) – Bilder laden erst beim Heranscrollen (`loading="lazy"` + `decoding="async"`), schnellerer Seitenaufbau.
 - 💡 Konfig-Backup (Export/Import) + Geräte-Sync.

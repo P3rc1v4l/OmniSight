@@ -1,4 +1,4 @@
-// OmniHub – holt ein Favicon und gibt es als Daten-URL zurück (Base64).
+// OmniSight – holt ein Favicon und gibt es als Daten-URL zurück (Base64).
 // So lässt es sich offline zwischenspeichern und seine Farbe per Canvas auslesen
 // (Daten-URLs sind nicht cross-origin -> kein „tainted canvas").
 
@@ -13,7 +13,7 @@ pub async fn fetch_favicon(url: String) -> Result<String, String> {
 
     let resp = client
         .get(&url)
-        .header("User-Agent", "Mozilla/5.0 (OmniHub)")
+        .header("User-Agent", "Mozilla/5.0 (OmniSight)")
         .send()
         .await
         .map_err(|e| e.to_string())?;

@@ -1,4 +1,4 @@
-// OmniHub – Discord Rich Presence ("Schaut gerade …").
+// OmniSight – Discord Rich Presence ("Schaut gerade …").
 // Nutzt die lokale Discord-IPC. Erfordert die laufende Discord-Desktop-App
 // und eine Discord-Application-ID (Client-ID) aus dem Discord Developer Portal.
 

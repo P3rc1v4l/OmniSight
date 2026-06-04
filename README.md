@@ -1,4 +1,4 @@
-# OmniHub
+# OmniSight
 
 Zentraler **Streaming-Hub** als Windows-Desktop-App. Bündelt deine legalen
 Streaming-Dienste in einem Fenster – mit Profilen, Watchlist, Statistiken und
@@ -30,7 +30,7 @@ läuft auf GitHubs Servern:
 
 ## TMDB-Key eintragen (für Suche, News & Upcoming)
 
-Damit Filmsuche, Neuigkeiten und Upcoming funktionieren, braucht OmniHub einen
+Damit Filmsuche, Neuigkeiten und Upcoming funktionieren, braucht OmniSight einen
 **kostenlosen** TMDB-API-Key. Eintragen dauert ~1 Minute, alles im Browser:
 
 1. Kostenlos registrieren: <https://www.themoviedb.org/signup>
