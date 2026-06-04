@@ -57,12 +57,14 @@
 	}
 
 	onMount(async () => {
-		// Reihenfolge: Settings -> Profile (kennt aktives Profil) -> Katalog ->
-		// profilbezogene Daten. Jeder Schritt einzeln abgesichert, damit ein
-		// Fehler (z.B. Update-Prüfung) nicht den Rest abbricht.
-		try { await hydrateSettings(); applySettings(get(settings)); } catch (e) { console.error('[init] settings', e); }
-		try { await hydrateProfiles(); } catch (e) { console.error('[init] profiles', e); }
-		try { await hydrateCatalog(); } catch (e) { console.error('[init] catalog', e); }
+		// Settings, Profile und Katalog sind voneinander unabhängig und werden parallel
+		// geladen (schnellerer Start). applySettings läuft direkt nach den Settings.
+		// Erst danach die profilbezogenen Daten (brauchen das aktive Profil).
+		await Promise.all([
+			hydrateSettings().then(() => applySettings(get(settings))).catch((e) => console.error('[init] settings', e)),
+			hydrateProfiles().catch((e) => console.error('[init] profiles', e)),
+			hydrateCatalog().catch((e) => console.error('[init] catalog', e))
+		]);
 		try {
 			const pid = get(activeProfileId);
 			if (pid) await loadProfileData(pid);
@@ -71,8 +73,9 @@
 		if (!get(settings).onboardingDone) onboardingOpen.set(true);
 		window.addEventListener('keydown', onKey);
 
-		// Beim Start nach Updates suchen – und danach automatisch einmal pro Stunde.
-		try { void checkForUpdate(false); } catch (e) { console.error('[init] update', e); }
+		// Update-Prüfung erst kurz nach dem Start (blockiert das erste Rendern nicht),
+		// danach automatisch einmal pro Stunde.
+		setTimeout(() => { void checkForUpdate(false); }, 4000);
 		updateTimer = setInterval(() => { void checkForUpdate(false); }, 60 * 60 * 1000);
 	});
 

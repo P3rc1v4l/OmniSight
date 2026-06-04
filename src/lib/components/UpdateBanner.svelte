@@ -17,6 +17,9 @@
 				<div class="bar" style="width: {Math.round($updateState.progress * 100)}%"></div>
 				<span class="pct">{Math.round($updateState.progress * 100)}%</span>
 			</div>
+		{:else if $updateState.manualUrl}
+			<a class="install" href={$updateState.manualUrl} target="_blank" rel="noreferrer">Auf GitHub herunterladen ↗</a>
+			<button class="later" onclick={dismissUpdate}>Später</button>
 		{:else}
 			<button class="install" onclick={installUpdate}>Herunterladen & installieren</button>
 			<button class="later" onclick={dismissUpdate}>Später</button>
@@ -43,7 +46,7 @@
 	.text strong { font-size: 14px; }
 	.cur { color: var(--text-muted); font-size: 12px; }
 	.notes { color: var(--text-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60ch; }
-	.install { background: var(--accent); color: var(--accent-text); border: 0; padding: 9px 16px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 13px; }
+	.install { background: var(--accent); color: var(--accent-text); border: 0; padding: 9px 16px; border-radius: 9px; font-weight: 700; cursor: pointer; font-size: 13px; text-decoration: none; display: inline-block; }
 	.later { background: transparent; border: 1px solid var(--border-strong); color: var(--text); padding: 9px 14px; border-radius: 9px; cursor: pointer; font-size: 13px; }
 	.prog { display: flex; align-items: center; gap: 10px; min-width: 220px; }
 	.prog .bar { height: 8px; background: var(--accent); border-radius: 999px; transition: width 0.2s; }
