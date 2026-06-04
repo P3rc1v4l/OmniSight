@@ -64,7 +64,7 @@ jobs:
           # Tag-Push -> der gepushte Tag (z.B. v0.2.0).
           # Manueller Start -> Version aus package.json (z.B. v0.2.0).
           tagName: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', steps.version.outputs.v) }}
-          releaseName: ${{ github.ref_type == 'tag' && format('OmniHub {0}', github.ref_name) || format('OmniHub v{0}', steps.version.outputs.v) }}
+          releaseName: ${{ github.ref_type == 'tag' && format('OmniSight {0}', github.ref_name) || format('OmniSight v{0}', steps.version.outputs.v) }}
           releaseBody: 'Automatisch erstellter Release. Siehe CHANGELOG.md.'
           # Standard: false -> sofort veröffentlichter Release.
           # Nur wenn du beim manuellen Start "draft" anhakst -> Entwurf.
