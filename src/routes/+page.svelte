@@ -40,8 +40,9 @@
 	let search = $state('');
 	let searchFocused = $state(false);
 	let view: 'grid' | 'list' = $state('grid');
-	const CAT_KEY = 'omnihub:categoryFilter';
-	let categoryFilter = $state(browser ? localStorage.getItem(CAT_KEY) || 'all' : 'all');
+	const CAT_KEY = 'omnisight:categoryFilter';
+	const OLD_CAT_KEY = 'omnihub:categoryFilter';
+	let categoryFilter = $state(browser ? (localStorage.getItem(CAT_KEY) ?? localStorage.getItem(OLD_CAT_KEY)) || 'all' : 'all');
 	// Zuletzt gewählten Kategorie-Filter merken.
 	$effect(() => {
 		if (browser) {

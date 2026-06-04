@@ -15,14 +15,15 @@ export interface HiddenEntry {
 export const hiddenTitles = writable<HiddenEntry[]>([]);
 export const showHidden = writable(false);
 
-const LS = 'omnihub:hidden';
+const LS = 'omnisight:hidden';
+const OLD_LS = 'omnihub:hidden';
 let loaded = false;
 
 if (browser) {
 	(async () => {
 		let init: HiddenEntry[] = [];
 		try {
-			const raw = window.localStorage.getItem(LS);
+			const raw = window.localStorage.getItem(LS) ?? window.localStorage.getItem(OLD_LS);
 			if (raw) init = JSON.parse(raw);
 		} catch {
 			/* ignore */

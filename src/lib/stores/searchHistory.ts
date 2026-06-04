@@ -1,13 +1,14 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-const KEY = 'omnihub:searchHistory';
+const KEY = 'omnisight:searchHistory';
+const OLD_KEY = 'omnihub:searchHistory';
 const MAX = 8;
 
 function load(): string[] {
 	if (!browser) return [];
 	try {
-		const v = JSON.parse(localStorage.getItem(KEY) ?? '[]');
+		const v = JSON.parse(localStorage.getItem(KEY) ?? localStorage.getItem(OLD_KEY) ?? '[]');
 		return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : [];
 	} catch {
 		return [];

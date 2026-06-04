@@ -12,14 +12,15 @@ export interface FaviconEntry {
 
 export const faviconCache = writable<Record<string, FaviconEntry>>({});
 
-const LS = 'omnihub:favicons';
+const LS = 'omnisight:favicons';
+const OLD_LS = 'omnihub:favicons';
 let loaded = false;
 
 if (browser) {
 	(async () => {
 		let init: Record<string, FaviconEntry> = {};
 		try {
-			const raw = window.localStorage.getItem(LS);
+			const raw = window.localStorage.getItem(LS) ?? window.localStorage.getItem(OLD_LS);
 			if (raw) init = JSON.parse(raw);
 		} catch {
 			/* ignore */

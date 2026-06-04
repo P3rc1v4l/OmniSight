@@ -140,10 +140,14 @@ export async function switchProfile(profileId: string): Promise<void> {
 }
 
 // Schneller, zuverlässiger Sofort-Cache (überlebt Reloads sicher, synchron).
-const LS_PROFILES = 'omnihub:profiles';
-const LS_ACTIVE = 'omnihub:activeProfileId';
-const LS_MAIN = 'omnihub:mainProfileId';
-const LS_ADMIN = 'omnihub:adminCodeHash';
+const LS_PROFILES = 'omnisight:profiles';
+const LS_ACTIVE = 'omnisight:activeProfileId';
+const LS_MAIN = 'omnisight:mainProfileId';
+const LS_ADMIN = 'omnisight:adminCodeHash';
+const OLD_LS_PROFILES = 'omnihub:profiles';
+const OLD_LS_ACTIVE = 'omnihub:activeProfileId';
+const OLD_LS_MAIN = 'omnihub:mainProfileId';
+const OLD_LS_ADMIN = 'omnihub:adminCodeHash';
 function lsGet<T>(key: string): T | null {
 	if (!browser) return null;
 	try {
@@ -161,21 +165,21 @@ export async function hydrateProfiles(): Promise<void> {
 	if (loaded || !browser) return;
 	loaded = true;
 	// Quelle: zuerst localStorage (sofort), sonst Plugin-Store.
-	let list = lsGet<Profile[]>(LS_PROFILES) ?? (await loadState<Profile[]>('profiles', []));
+	let list = lsGet<Profile[]>(LS_PROFILES) ?? lsGet<Profile[]>(OLD_LS_PROFILES) ?? (await loadState<Profile[]>('profiles', []));
 	if (!Array.isArray(list) || !list.length) list = [defaultProfile()];
 	profiles.set(list);
 	const savedActive =
-		lsGet<string | null>(LS_ACTIVE) ?? (await loadState<string | null>('activeProfileId', list[0].id));
+		lsGet<string | null>(LS_ACTIVE) ?? lsGet<string | null>(OLD_LS_ACTIVE) ?? (await loadState<string | null>('activeProfileId', list[0].id));
 	// Falls das gespeicherte aktive Profil nicht mehr existiert -> erstes nehmen.
 	activeProfileId.set(list.some((p) => p.id === savedActive) ? (savedActive as string) : list[0].id);
 
 	// Haupt-Profil: gespeicherte Wahl, sonst erstes Profil als Standard.
 	const savedMain =
-		lsGet<string | null>(LS_MAIN) ?? (await loadState<string | null>('mainProfileId', list[0].id));
+		lsGet<string | null>(LS_MAIN) ?? lsGet<string | null>(OLD_LS_MAIN) ?? (await loadState<string | null>('mainProfileId', list[0].id));
 	mainProfileId.set(list.some((p) => p.id === savedMain) ? (savedMain as string) : list[0].id);
 
 	// Admin-Code-Hash laden (falls gesetzt).
-	const savedAdmin = lsGet<string | null>(LS_ADMIN) ?? (await loadState<string | null>('adminCodeHash', null));
+	const savedAdmin = lsGet<string | null>(LS_ADMIN) ?? lsGet<string | null>(OLD_LS_ADMIN) ?? (await loadState<string | null>('adminCodeHash', null));
 	adminCodeHash.set(savedAdmin ?? null);
 }
 
