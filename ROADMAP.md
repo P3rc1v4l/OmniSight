@@ -1,7 +1,7 @@
 # OmniHub – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.54.0
+Stand: v0.59.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -15,10 +15,10 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - ✅ **Anbieter-Ordner/Sammlungen** – eigene, ein-/ausklappbare Gruppen, umgesetzt in v0.47.0.
 - ⏳ 🎨 **Karten-Ansicht umschaltbar** – kompakt / groß / Liste.
 - ⏳ 🎨 **Schnellsuche direkt beim Anbieter** – Deep-Link in dessen Suche statt nur Startseite.
-- 💡 🎨 **Erreichbarkeits-Indikator** pro Karte (online/offline).
+- ✅ **Erreichbarkeits-Indikator** pro Karte (Favicon-Ping), umgesetzt in v0.59.0.
 
 ### ▶️ Streaming & Player
-- ⏳ ⭐ 🦀 **Split-View** – zwei Streams echt nebeneinander im Raster (nicht nur Hintergrund-Stream).
+- 🔜 ⭐ 🦀 **Split-View** – zwei Streams echt nebeneinander im Raster (nicht nur Hintergrund-Stream). NÄCHSTER SCHRITT (nativ/Rust, muss per GitHub Actions gebaut & getestet werden).
 - 💡 🦀 **Windows-Picture-in-Picture**.
 - ⏳ 🎨 **Theater-Modus** – UI dimmt automatisch, sobald ein Stream läuft.
 - 💡 🦀 **Globale Medientasten** (Play/Pause/Stumm über Windows-Tasten).
@@ -32,13 +32,13 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 ### 📊 Statistik & Achievements
 - ✅ **Rückblick / „Wrapped"** – teilbare Zusammenfassung (Gesamt-Daten) umgesetzt in v0.45.0.
 - ⏳ 🎨 **Streak-Zähler** (Tage in Folge) + passende Achievements.
-- ⏳ 🎨 **Wochen-Heatmap** der Streamzeit.
-- ⏳ 🎨 **Detailseite pro Anbieter**.
+- ✅ **Wochen-Heatmap** der Sehzeit (im Rückblick), umgesetzt in v0.58.0.
+- ✅ **Detailseite pro Anbieter** (Statistik + „hier verfügbar" + Aktionen), umgesetzt in v0.57.0.
 
 ### 🔑 Profile & Sicherheit
 - ⏳ ⭐ 🦀 **App-Sperre beim Start** (ganze App per PIN) + Auto-Sperre nach Inaktivität.
 - ⏳ 🎨 **Kinder-Profile** mit Anbieter-Sperre.
-- ⏳ 🎨 **Backup/Restore** aller Profildaten als Datei.
+- ✅ **Backup/Restore** aller Daten als Datei (Plugin-Store + localStorage), umgesetzt in v0.56.0.
 
 ### 🎨 Design & Barrierefreiheit
 - ✅ **Fertige Theme-Presets** (komplette Farbschemata, nicht nur Akzent) – umgesetzt in v0.44.0.
@@ -57,6 +57,24 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.59.0
+- 🟢 **Erreichbarkeits-Indikator** pro Anbieter-Karte: kleiner Punkt (grün = erreichbar, rot = nicht erreichbar) via Favicon-Ping; abschaltbar in Design-Einstellungen. Grober Ping, kein Login-Status.
+
+## 🆕 v0.58.0
+- 🟢 **Wochen-Heatmap** im Rückblick: GitHub-artiges Raster der täglichen Sehzeit (pro Jahr bzw. letzte 26 Wochen bei „Gesamt"), mit Monats-/Wochentags-Beschriftung, Tooltips und Legende.
+
+## 🆕 v0.57.0
+- 🟢 **Anbieter-Detailseite** (/provider): erreichbar über das ⓘ auf der Anbieter-Karte. Zeigt deine Sehzeit-Statistik (gesamt, diese Woche, Anteil, Rang), „Überrasch mich hier" und welche Watchlist-Titel dort laufen.
+
+## 🆕 v0.56.0
+- 🟢 **Backup/Restore:** komplette Sicherung aller App-Daten (Plugin-Store + localStorage) als JSON-Datei, mit Wiederherstellung (überschreibt + lädt neu). In Einstellungen → Erweitert.
+
+## 🆕 v0.55.0
+- 🦀 **Pause für Hintergrund-Streams** (inkl. Spotify) + bestmögliche **Spotify-Lautstärke** (Rust, per CI bauen).
+- 🟢 **Gemerkt:** kleinere Karten, Anbieter-Chips nur als gleich große Logos, Empfehlungen über volle Breite (bis 24), Standardfilter „Ungesehen".
+- 🟢 **Uhr:** Live-Vorschau der Transparenz beim Bearbeiten.
+- 🟢 **Design:** Theme-Vorlagen nach Dunkel/Hell gruppiert & sortiert.
 
 ## 🆕 v0.54.0
 - 🟢 **Update-Fallback:** zusätzliche Prüfung über die GitHub-Releases-API (Banner + Download-Link), wenn der signierte Updater nichts findet.

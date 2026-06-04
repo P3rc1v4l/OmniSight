@@ -54,6 +54,8 @@ fn webview_set_muted(app: tauri::AppHandle, label: String, muted: bool) -> Resul
 
 /// Setzt die Lautstärke (0.0–1.0) eines eingebetteten Streams per Label. Wie beim Mute
 /// über alle Medien-Elemente + Beobachter, falls der Player sein Video-Element austauscht.
+/// Sonderfall Spotify (Web Audio, kein <audio>): bestmöglicher Versuch über den
+/// Lautstärke-Regler der Oberfläche (Input-Range bzw. Klick auf die Leiste).
 #[tauri::command]
 fn webview_set_volume(app: tauri::AppHandle, label: String, volume: f64) -> Result<(), String> {
     use tauri::Manager;
@@ -62,9 +64,26 @@ fn webview_set_volume(app: tauri::AppHandle, label: String, volume: f64) -> Resu
         .ok_or_else(|| format!("Webview '{}' nicht gefunden", label))?;
     let v = if volume < 0.0 { 0.0 } else if volume > 1.0 { 1.0 } else { volume };
     let js = String::from(
-        "(function(){window.__omniVol=__V__;function c(r,o){try{if(!r||!r.querySelectorAll)return;r.querySelectorAll('video,audio').forEach(function(e){o.push(e)});r.querySelectorAll('*').forEach(function(e){if(e.shadowRoot)c(e.shadowRoot,o)});r.querySelectorAll('iframe').forEach(function(f){try{if(f.contentDocument)c(f.contentDocument,o)}catch(_){}})}catch(_){}}function a(){var o=[];c(document,o);o.forEach(function(e){try{e.volume=window.__omniVol}catch(_){}})}a();if(!window.__omniVolObs){var t;window.__omniVolObs=new MutationObserver(function(){clearTimeout(t);t=setTimeout(a,400)});try{window.__omniVolObs.observe(document.documentElement,{childList:true,subtree:true})}catch(_){}}})();",
+        "(function(){window.__omniVol=__V__;function c(r,o){try{if(!r||!r.querySelectorAll)return;r.querySelectorAll('video,audio').forEach(function(e){o.push(e)});r.querySelectorAll('*').forEach(function(e){if(e.shadowRoot)c(e.shadowRoot,o)});r.querySelectorAll('iframe').forEach(function(f){try{if(f.contentDocument)c(f.contentDocument,o)}catch(_){}})}catch(_){}}function a(){var o=[];c(document,o);o.forEach(function(e){try{e.volume=window.__omniVol}catch(_){}})}a();if(!window.__omniVolObs){var t;window.__omniVolObs=new MutationObserver(function(){clearTimeout(t);t=setTimeout(a,400)});try{window.__omniVolObs.observe(document.documentElement,{childList:true,subtree:true})}catch(_){}}try{if((location.host||'').indexOf('spotify')!==-1){var r=Math.max(0,Math.min(1,window.__omniVol));var vi=document.querySelector('[data-testid=\"volume-bar\"] input[type=range]')||document.querySelector('input[type=range][aria-label*=\"olum\" i],input[type=range][aria-label*=\"autst\" i]');if(vi){var mx=parseFloat(vi.max||'1')||1;var setv=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;setv.call(vi,String(r*mx));vi.dispatchEvent(new Event('input',{bubbles:true}));vi.dispatchEvent(new Event('change',{bubbles:true}));}else{var bar=document.querySelector('[data-testid=\"volume-bar\"]');var cl=bar?(bar.querySelector('[data-testid=\"progress-bar\"]')||bar.firstElementChild||bar):null;if(cl){var rc=cl.getBoundingClientRect();var x=rc.left+rc.width*r;var y=rc.top+rc.height/2;['pointerdown','pointerup','click'].forEach(function(t){try{cl.dispatchEvent(new MouseEvent(t,{bubbles:true,cancelable:true,clientX:x,clientY:y}))}catch(_){}});}}}}catch(_){}})();",
     )
     .replace("__V__", &format!("{:.3}", v));
+    wv.eval(&js).map_err(|e| e.to_string())
+}
+
+/// Pausiert/spielt einen eingebetteten Stream per Label. Generisch über alle Medien-
+/// Elemente (pause()/play()); Spotify über den Play/Pause-Button. Einmalig (kein
+/// Beobachter), damit Nutzeraktionen nicht überschrieben werden.
+#[tauri::command]
+fn webview_set_paused(app: tauri::AppHandle, label: String, paused: bool) -> Result<(), String> {
+    use tauri::Manager;
+    let wv = app
+        .get_webview(&label)
+        .ok_or_else(|| format!("Webview '{}' nicht gefunden", label))?;
+    let val = if paused { "true" } else { "false" };
+    let js = String::from(
+        "(function(){window.__omniPaused=__P__;function c(r,o){try{if(!r||!r.querySelectorAll)return;r.querySelectorAll('video,audio').forEach(function(e){o.push(e)});r.querySelectorAll('*').forEach(function(e){if(e.shadowRoot)c(e.shadowRoot,o)});r.querySelectorAll('iframe').forEach(function(f){try{if(f.contentDocument)c(f.contentDocument,o)}catch(_){}})}catch(_){}}var o=[];c(document,o);o.forEach(function(e){try{if(window.__omniPaused)e.pause();else{var pr=e.play();if(pr&&pr.catch)pr.catch(function(){})}}catch(_){}});try{if((location.host||'').indexOf('spotify')!==-1){var sb=document.querySelector('[data-testid=\"control-button-playpause\"]');if(!sb){var cs=document.querySelectorAll('button[aria-label]');for(var i=0;i<cs.length;i++){var al=(cs[i].getAttribute('aria-label')||'').toLowerCase();if(al.indexOf('paus')!==-1||al.indexOf('anhalt')!==-1||al.indexOf('play')!==-1||al.indexOf('wiederg')!==-1||al.indexOf('abspiel')!==-1){sb=cs[i];break;}}}if(sb){var L=(sb.getAttribute('aria-label')||'').toLowerCase();var known=L.indexOf('paus')!==-1||L.indexOf('anhalt')!==-1||L.indexOf('play')!==-1||L.indexOf('wiederg')!==-1||L.indexOf('abspiel')!==-1;var playing=L.indexOf('paus')!==-1||L.indexOf('anhalt')!==-1;if(known){if(window.__omniPaused&&playing)sb.click();else if(!window.__omniPaused&&!playing)sb.click();}}}}catch(_){}})();",
+    )
+    .replace("__P__", val);
     wv.eval(&js).map_err(|e| e.to_string())
 }
 
@@ -103,6 +122,7 @@ pub fn run() {
             favicon::fetch_favicon,
             webview_set_muted,
             webview_set_volume,
+            webview_set_paused,
             webview2_version,
         ])
         .run(tauri::generate_context!())

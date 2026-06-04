@@ -11,6 +11,61 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.59.0] – 2026-06-04
+
+### Erreichbarkeits-Indikator pro Karte
+- Jede Anbieter-Karte zeigt jetzt einen kleinen **Status-Punkt** (im Qualitäts-Abzeichen oben links): **grün** = erreichbar, **rot** = nicht erreichbar, **gelb** = wird gerade geprüft.
+- Technik: Es wird das **Favicon** der Anbieter-Domain geladen (lädt = erreichbar, Fehler/Timeout = nicht erreichbar). Das umgeht CORS und ist rein im Frontend.
+- Abschaltbar unter **Einstellungen → Design** („Erreichbarkeit anzeigen"). Ergebnisse werden 5 Minuten zwischengespeichert.
+- Ehrlich: Das ist ein **grober Erreichbarkeits-Ping**, kein Login-/Service-Status – ein fehlendes Favicon kann fälschlich „nicht erreichbar" zeigen.
+
+---
+
+## [0.58.0] – 2026-06-04
+
+### Wochen-Heatmap im Rückblick
+- Der **Rückblick** zeigt jetzt eine **Aktivitäts-Heatmap** im GitHub-Stil: ein Raster aus Tagen (Wochen als Spalten, Mo–So als Zeilen), eingefärbt nach täglicher Sehzeit.
+- Sie passt sich dem gewählten **Zeitraum** an: bei einem Jahr das ganze Jahr, bei „Gesamt" die letzten 26 Wochen. Mit Monats- und Wochentags-Beschriftung, Tooltip pro Tag (Datum + Sehzeit) und einer Intensitäts-Legende.
+
+---
+
+## [0.57.0] – 2026-06-04
+
+### Anbieter-Detailseite
+- Über das neue **ⓘ-Symbol** auf jeder Anbieter-Karte (erscheint beim Überfahren) öffnet sich eine eigene **Detailseite** pro Anbieter.
+- Sie zeigt deine **Statistik** für diesen Anbieter: gesamte Sehzeit, Sehzeit **diese Woche**, **Anteil** an deiner Gesamt-Sehzeit und den **Rang** unter allen Anbietern.
+- Außerdem: **„Überrasch mich hier"** (öffnet einen zufälligen, dort verfügbaren Titel) und eine Übersicht, welche Titel **aus deiner Watchlist** bei diesem Anbieter laufen (TMDB-Abgleich).
+- Schnellaktionen: Anbieter öffnen und als Favorit markieren.
+
+---
+
+## [0.56.0] – 2026-06-04
+
+### Backup & Wiederherstellung
+- Unter **Einstellungen → Erweitert** gibt es jetzt eine **Sicherung**: „Backup exportieren" speichert **alle** Daten (Profile, Watchlist mit Bewertungen/Status, Anbieter, Sammlungen, Statistiken/Tracking, Einstellungen, Suchverlauf …) als eine **JSON-Datei**.
+- „Backup importieren" stellt aus einer solchen Datei wieder her – mit Sicherheitsabfrage, danach lädt OmniHub automatisch neu. **Achtung:** Der Import **überschreibt** die aktuellen Daten.
+- Technisch wird sowohl der Plugin-Store als auch der localStorage gesichert – dadurch ist das Backup vollständig und erfasst auch künftige neue Funktionen automatisch. Reines Frontend, kein zusätzliches Plugin nötig.
+
+---
+
+## [0.55.0] – 2026-06-04
+
+### Hintergrund-Streams: Pausieren + Spotify-Lautstärke (🦀 bauen & testen)
+- Jeder Hintergrund-Stream hat jetzt einen **Pause/Play-Knopf** (neben Stummschalten). Generisch über die Medien-Elemente, bei **Spotify** über den Play/Pause-Button.
+- **Spotify-Lautstärke:** bestmöglicher Versuch über den Lautstärke-Regler der Oberfläche (Input-Range bzw. Klick auf die Leiste). **Achtung:** native Rust-Änderung, im Sandbox nicht testbar – bitte per GitHub Actions bauen. Sollte Spotifys Regler-Aufbau abweichen, kann das Anpassen nötig sein; Pausieren/Stummschalten (= Pause) bleibt der zuverlässige Weg.
+
+### Gemerkt
+- **Kleinere Karten** (kompakteres Raster), damit mehr auf den Bildschirm passt.
+- **Anbieter-Chips** zeigen jetzt nur noch das **Logo**, alle **gleich groß** und kompakter – ohne Namenstext.
+- **Empfehlungen** füllen jetzt die **gesamte Breite** (responsives Raster) und zeigen **bis zu 24** Titel statt 10.
+- Beim Öffnen landest du standardmäßig bei den **ungesehenen** Titeln.
+
+### Einstellungen
+- **Uhr:** Beim Bearbeiten wird die **Transparenz live** angezeigt (die Uhr bleibt während der Einstellung sichtbar und greifbar).
+- **Design:** Theme-Vorlagen sind nach **Dunkel/Hell** gruppiert und sinnvoll sortiert.
+
+---
+
 ## [0.54.0] – 2026-06-03
 
 ### Update-Prüfung: GitHub-Fallback
