@@ -18,8 +18,9 @@
 	import UpdateBanner from '$lib/components/UpdateBanner.svelte';
 	import NotificationCenter from '$lib/components/NotificationCenter.svelte';
 	import { checkForUpdate } from '$lib/stores/updater';
-	import { hideEmbedded, unhideEmbedded, immersive, openProvider } from '$lib/embedded';
+	import { hideEmbedded, unhideEmbedded, immersive, openProvider, streamMode, backgroundStreams } from '$lib/embedded';
 	import { settings, hydrateSettings, applySettings, onboardingOpen } from '$lib/stores/settings';
+	import { browser } from '$app/environment';
 	import { hydrateCatalog, favoriteProviders, visibleProviders } from '$lib/stores/providers';
 	import { hydrateProfiles, loadProfileData, activeProfileId, profiles } from '$lib/stores/profiles';
 	import { achievements, maybeNotify } from '$lib/stores/achievements';
@@ -105,10 +106,18 @@
 			if (p) { e.preventDefault(); openProvider(p); }
 		}
 	}
+
+	// Performance-Modus: Effekte aus, solange ein Stream läuft (Vordergrund oder Hintergrund).
+	const perfActive = $derived(
+		$settings.appearance.performanceMode && ($streamMode !== null || $backgroundStreams.length > 0)
+	);
+	$effect(() => {
+		if (browser) document.documentElement.setAttribute('data-perf', perfActive ? 'true' : 'false');
+	});
 </script>
 
 <div class="root">
-	<Particles />
+	{#if !perfActive}<Particles />{/if}
 	{#if !$immersive}
 		<Titlebar onHelp={() => (showShortcuts = true)} />
 		<UpdateBanner />

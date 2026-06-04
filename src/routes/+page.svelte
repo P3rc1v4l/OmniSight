@@ -17,6 +17,25 @@
 	import { extractWatchProviders } from '$lib/watchProviders';
 	import { pushToast } from '$lib/stores/toasts';
 	import { get } from 'svelte/store';
+	import { onMount } from 'svelte';
+	import { refreshAll } from '$lib/stores/reachability';
+
+	// Erreichbarkeit: bei Wiederverbindung und periodisch (alle 5 Min) auffrischen.
+	function refreshReach(force = false) {
+		if (get(settings).appearance.showReachability) refreshAll(get(visibleProviders), force);
+	}
+	onMount(() => {
+		const onOnline = () => refreshReach(true);
+		const onOffline = () => refreshReach(false);
+		window.addEventListener('online', onOnline);
+		window.addEventListener('offline', onOffline);
+		const id = setInterval(() => refreshReach(false), 5 * 60 * 1000);
+		return () => {
+			window.removeEventListener('online', onOnline);
+			window.removeEventListener('offline', onOffline);
+			clearInterval(id);
+		};
+	});
 
 	let search = $state('');
 	let searchFocused = $state(false);
@@ -224,6 +243,9 @@
 		</div>
 		<div class="tools">
 			<button class="tool" class:busy={surprising} title={$t('home.surprise')} onclick={surprise} aria-label={$t('home.surpriseAria')} disabled={surprising}>{surprising ? '⏳' : '🎲'}</button>
+			{#if $settings.appearance.showReachability}
+				<button class="tool" title={$t('reach.refresh')} aria-label={$t('reach.refresh')} onclick={() => refreshReach(true)}>🔄</button>
+			{/if}
 			<button class="tool" title={$t('home.sortAZ')} onclick={() => setProviderOrder([])}>A↓Z</button>
 			<button class="tool" title={$t('home.collections')} onclick={() => (showCollections = true)} aria-label={$t('home.collections')}>📁</button>
 			<button class="primary" onclick={() => (showAdd = true)}><span>＋</span> {$t('home.addProvider')}</button>
@@ -248,9 +270,9 @@
 	{/if}
 
 	{#if $continueList.length && !search && $settings.plugins.continueWatching}
+		<div class="section-label">▶ {$t('home.resume')}</div>
 		<button class="cont-resume" onclick={() => reopenContinue($continueList[0])} title={$t('home.resumeTitle', { label: $continueList[0].label })}>
 			<span class="cr-play">▶</span>
-			<span class="cr-label">{$t('home.resume')}</span>
 			<span class="cr-title">{$continueList[0].label}</span>
 		</button>
 	{/if}
@@ -434,9 +456,8 @@
 	.col-toggle .chev { color: var(--text-muted); font-size: 11px; width: 12px; display: inline-block; }
 	.col-toggle:hover { color: var(--accent); }
 	.cr-play { width: 24px; height: 24px; border-radius: 999px; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-size: 10px; flex-shrink: 0; }
-	.cr-label { color: var(--text); font-weight: 700; }
-	.cr-title { color: var(--text-muted); max-width: 340px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-	.cont-resume:hover .cr-label, .cont-resume:hover .cr-title { color: var(--accent); }
+	.cr-title { color: var(--text-muted); max-width: 340px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+	.cont-resume:hover .cr-title { color: var(--accent); }
 	.catbar { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 16px; }
 	.cat { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 13px; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
 	.cat:hover { border-color: var(--border-strong); color: var(--text); }

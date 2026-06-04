@@ -5,7 +5,8 @@
 	import Logo from './Logo.svelte';
 	import { toggleFavorite, favorites, editingProvider, detailProviderId } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
-	import { reachability, checkProvider } from '$lib/stores/reachability';
+	import { reachability, reachabilityCheckedAt, checkProvider } from '$lib/stores/reachability';
+	import { t } from '$lib/i18n';
 	import { openProvider } from '$lib/embedded';
 	import { goto } from '$app/navigation';
 	import { faviconCache } from '$lib/stores/favicons';
@@ -17,6 +18,12 @@
 	$: fav = $favorites.includes(provider.id);
 	$: showReach = $settings.appearance.showReachability;
 	$: status = $reachability[provider.id] ?? 'unknown';
+	$: checkedAt = $reachabilityCheckedAt[provider.id];
+	$: statusLabel = status === 'online' ? $t('reach.online') : status === 'offline' ? $t('reach.offline') : status === 'no-net' ? $t('reach.nonet') : $t('reach.checking');
+	$: timeText = checkedAt && (status === 'online' || status === 'offline')
+		? (Date.now() - checkedAt < 60000 ? $t('reach.justNow') : $t('reach.minAgo', { n: Math.floor((Date.now() - checkedAt) / 60000) }))
+		: '';
+	$: dotTitle = timeText ? `${statusLabel} · ${timeText}` : statusLabel;
 
 	onMount(() => {
 		if (get(settings).appearance.showReachability) {
@@ -70,7 +77,7 @@
 	onkeydown={onKey}
 	title={`${provider.name} öffnen`}
 >
-	<span class="badge">{#if showReach && status !== 'unknown'}<span class="st-dot" data-st={status} title={status === 'online' ? 'Erreichbar' : status === 'offline' ? 'Nicht erreichbar' : 'Prüfe…'}></span>{/if}{provider.quality}</span>
+	<span class="badge">{#if showReach && status !== 'unknown'}<span class="st-dot" data-st={status} title={dotTitle}></span>{/if}{provider.quality}</span>
 
 	<button
 		class="bookmark"
@@ -142,6 +149,7 @@
 	.st-dot[data-st="online"] { background: #2ecc71; box-shadow: 0 0 5px rgba(46, 204, 113, 0.8); }
 	.st-dot[data-st="offline"] { background: #e0556b; }
 	.st-dot[data-st="checking"] { background: #f0a020; animation: stpulse 1s ease-in-out infinite; }
+	.st-dot[data-st="no-net"] { background: #888; }
 	@keyframes stpulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 	.bookmark {
 		position: absolute; top: 8px; right: 8px;

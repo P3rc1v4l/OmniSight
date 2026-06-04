@@ -34,7 +34,8 @@ export const DEFAULT_SETTINGS: Settings = {
 		animations: true,
 		language: 'de',
 		backgroundOpacity: 100,
-		showReachability: true
+		showReachability: true,
+		performanceMode: false
 	},
 	clock: { enabled: false, type: 'digital', hour12: false, showSeconds: true, color: '#ffffff', transparency: 50, size: 36, x: null, y: null },
 	notifications: {
@@ -51,6 +52,7 @@ export const DEFAULT_SETTINGS: Settings = {
 		hardwareAcceleration: true,
 		miniPlayerEnabled: true
 	},
+	updateChannel: 'stable',
 	onboardingDone: false
 };
 
@@ -110,6 +112,7 @@ export async function hydrateSettings(): Promise<void> {
 		clock: { ...DEFAULT_SETTINGS.clock, ...saved.clock },
 		notifications: { ...DEFAULT_SETTINGS.notifications, ...saved.notifications },
 		plugins: { ...DEFAULT_SETTINGS.plugins, ...saved.plugins },
+		updateChannel: saved.updateChannel ?? 'stable',
 		onboardingDone: saved.onboardingDone ?? false
 	};
 	settings.set(merged);

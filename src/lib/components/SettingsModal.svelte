@@ -423,6 +423,7 @@
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.cardHoverZoom}/> Karten-Hover-Zoom</label>
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.animations}/> Animationen</label>
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.showReachability}/> {$t('set.app.reachability')}</label>
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.performanceMode}/> {$t('set.app.perfMode')}</label>
 							</div>
 							<p class="hint">
 								<b>{$t('set.shadowLabel')}</b> {$t('set.shadowDesc')}
@@ -577,6 +578,14 @@
 
 						<div class="opt-group">
 							<div class="opt-group-title">{$t('set.adv.updates')}</div>
+							<div class="opt">
+								<div class="opt-ic">🛤️</div>
+								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.channel')}</div><div class="opt-d">{$t('set.adv.channelDesc')}</div></div>
+								<select class="opt-select" bind:value={$settings.updateChannel}>
+									<option value="stable">{$t('set.adv.channelStable')}</option>
+									<option value="beta">{$t('set.adv.channelBeta')}</option>
+								</select>
+							</div>
 							<div class="opt">
 								<div class="opt-ic">⬆️</div>
 								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.checkUpdates')}</div><div class="opt-d">{$t('set.adv.checkUpdatesDesc')}</div></div>
@@ -1011,6 +1020,7 @@
 	.opt-t { font-weight: 700; font-size: 14px; }
 	.opt-d { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
 	.opt-btn { flex-shrink: 0; background: var(--accent); color: var(--accent-text); border: 0; border-radius: 9px; padding: 8px 15px; font-family: inherit; font-weight: 700; font-size: 12.5px; cursor: pointer; }
+	.opt-select { flex-shrink: 0; background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); border-radius: 9px; padding: 8px 12px; font-family: inherit; font-size: 12.5px; cursor: pointer; }
 	.opt-btn:hover { filter: brightness(1.08); }
 	.opt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 	.opt-btn.ghosty { background: var(--bg-elev); color: var(--accent); border: 1px solid var(--border); }

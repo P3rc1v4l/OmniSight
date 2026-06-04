@@ -77,6 +77,7 @@ export interface AppearanceSettings {
 	language: 'de' | 'en';
 	backgroundOpacity: number;
 	showReachability: boolean;
+	performanceMode: boolean;
 }
 
 export interface PluginSettings {
@@ -95,6 +96,7 @@ export interface Settings {
 	clock: ClockSettings;
 	notifications: NotificationSettings;
 	plugins: PluginSettings;
+	updateChannel: 'stable' | 'beta';
 	onboardingDone: boolean;
 }
 

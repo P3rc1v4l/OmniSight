@@ -3,7 +3,9 @@
 // neuere, signierte Version, kann sie direkt heruntergeladen und installiert werden.
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
+import { get } from 'svelte/store';
 import { pushToast } from './toasts';
+import { settings } from './settings';
 import { APP_VERSION, LINKS } from '$lib/version';
 
 export interface UpdateState {
@@ -58,10 +60,12 @@ async function githubFallback(): Promise<{ version: string; notes: string | null
 		});
 		clearTimeout(to);
 		if (!res.ok) return null;
-		const list = (await res.json()) as Array<{ tag_name: string; body?: string; html_url: string; draft: boolean }>;
+		const list = (await res.json()) as Array<{ tag_name: string; body?: string; html_url: string; draft: boolean; prerelease: boolean }>;
+		const beta = get(settings).updateChannel === 'beta';
 		let best: { version: string; notes: string | null; url: string } | null = null;
 		for (const r of list) {
 			if (r.draft) continue;
+			if (r.prerelease && !beta) continue; // Vorabversionen nur im Beta-Kanal
 			const ver = (r.tag_name || '').replace(/^v/, '');
 			if (!ver) continue;
 			if (isNewer(ver, APP_VERSION) && (!best || isNewer(ver, best.version))) {
