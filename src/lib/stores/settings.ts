@@ -50,7 +50,10 @@ export const DEFAULT_SETTINGS: Settings = {
 		discordEnabled: false,
 		discordClientId: '',
 		hardwareAcceleration: true,
-		miniPlayerEnabled: true
+		miniPlayerEnabled: true,
+		autostart: false,
+		startMinimized: false,
+		closeToTray: false
 	},
 	updateChannel: 'stable',
 	onboardingDone: false

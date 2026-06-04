@@ -5,10 +5,10 @@ import { browser } from '$app/environment';
 import { APP_VERSION } from '$lib/version';
 import { exportStore, importStore } from '$lib/persistence';
 
-const BACKUP_TYPE = 'omnihub-backup';
+const BACKUP_TYPE = 'omnisight-backup';
 
 export interface BackupFile {
-	app: 'OmniHub';
+	app: 'OmniSight';
 	type: typeof BACKUP_TYPE;
 	version: string;
 	exportedAt: string;
@@ -30,7 +30,7 @@ function collectLocal(): Record<string, string> {
 export async function buildBackup(): Promise<BackupFile> {
 	const store = await exportStore();
 	return {
-		app: 'OmniHub',
+		app: 'OmniSight',
 		type: BACKUP_TYPE,
 		version: APP_VERSION,
 		exportedAt: new Date().toISOString(),
@@ -47,7 +47,7 @@ export async function downloadBackup(): Promise<void> {
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement('a');
 	a.href = url;
-	a.download = `omnihub-backup-${new Date().toISOString().slice(0, 10)}.json`;
+	a.download = `omnisight-backup-${new Date().toISOString().slice(0, 10)}.json`;
 	document.body.appendChild(a);
 	a.click();
 	a.remove();
@@ -57,8 +57,8 @@ export async function downloadBackup(): Promise<void> {
 // Backup-Text prüfen und (kurz) zusammenfassen – ohne etwas zu ändern.
 export function parseBackup(text: string): BackupFile {
 	const data = JSON.parse(text) as BackupFile;
-	if (!data || data.type !== BACKUP_TYPE || typeof data.store !== 'object' || data.store === null) {
-		throw new Error('Keine gültige OmniHub-Sicherung.');
+	if (!data || (data.type !== BACKUP_TYPE && data.type !== 'omnihub-backup') || typeof data.store !== 'object' || data.store === null) {
+		throw new Error('Keine gültige OmniSight-Sicherung.');
 	}
 	return data;
 }

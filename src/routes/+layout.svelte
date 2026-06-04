@@ -21,6 +21,7 @@
 	import { hideEmbedded, unhideEmbedded, immersive, openProvider, streamMode, backgroundStreams } from '$lib/embedded';
 	import { settings, hydrateSettings, applySettings, onboardingOpen } from '$lib/stores/settings';
 	import { browser } from '$app/environment';
+	import { applyCloseToTray, isAutostartEnabled } from '$lib/native';
 	import { hydrateCatalog, favoriteProviders, visibleProviders } from '$lib/stores/providers';
 	import { hydrateProfiles, loadProfileData, activeProfileId, profiles } from '$lib/stores/profiles';
 	import { achievements, maybeNotify } from '$lib/stores/achievements';
@@ -73,6 +74,14 @@
 
 		if (!get(settings).onboardingDone) onboardingOpen.set(true);
 		window.addEventListener('keydown', onKey);
+
+		// Native: Tray-Schließverhalten an Rust melden; Autostart-Status mit dem System abgleichen.
+		void applyCloseToTray(get(settings).plugins.closeToTray);
+		void isAutostartEnabled().then((on) => {
+			if (on !== null && on !== get(settings).plugins.autostart) {
+				settings.update((s) => ({ ...s, plugins: { ...s.plugins, autostart: on } }));
+			}
+		});
 
 		// Update-Prüfung erst kurz nach dem Start (blockiert das erste Rendern nicht),
 		// danach automatisch einmal pro Stunde.

@@ -19,7 +19,7 @@
 
 	function rectOf(): Rect | null {
 		// Im Vollbild füllt das Webview das ganze Fenster (randlos). Ist die Leiste
-		// ausgeblendet, bleibt nur ein winziger Streifen oben frei, damit OmniHub die
+		// ausgeblendet, bleibt nur ein winziger Streifen oben frei, damit OmniSight die
 		// Maus am oberen Rand erkennen kann; ist sie eingeblendet, beginnt das Video
 		// unter der Leiste.
 		if (get(immersive)) {

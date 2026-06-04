@@ -1,5 +1,5 @@
 // Gemeinsame Logik für „Wo läuft der Titel": wandelt die TMDB-`watch/providers`
-// in klickbare Anbieter um. Die id passt zu den OmniHub-Kacheln, damit die
+// in klickbare Anbieter um. Die id passt zu den OmniSight-Kacheln, damit die
 // Anmelde-Sitzung geteilt wird; unbekannte Anbieter führen zur JustWatch-Seite.
 
 export interface WatchProvider {

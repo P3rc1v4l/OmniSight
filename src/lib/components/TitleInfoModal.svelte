@@ -33,7 +33,7 @@
 	});
 
 	// Bekannte Anbieter -> Suche/Startseite (Login-Sitzung wird über die id geteilt,
-	// passend zu den Anbieter-Kacheln in OmniHub). Unbekannte -> JustWatch-Link des Titels.
+	// passend zu den Anbieter-Kacheln in OmniSight). Unbekannte -> JustWatch-Link des Titels.
 	const providers = $derived(extractWatchProviders(details, $titleInfo?.title ?? ''));
 
 	const IMG = 'https://image.tmdb.org/t/p';

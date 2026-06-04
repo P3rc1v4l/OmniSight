@@ -154,7 +154,7 @@
 				</div>
 			</section>
 		{/each}
-		<p class="foot">„Auf Crunchyroll" öffnet den Titel direkt in OmniHub. Die Crunchyroll-Markierung stammt aus AniList und kann unvollständig sein{#if crCount === 0 && !onlyCrunchyroll} (aktuell keine markiert){/if}.</p>
+		<p class="foot">„Auf Crunchyroll" öffnet den Titel direkt in OmniSight. Die Crunchyroll-Markierung stammt aus AniList und kann unvollständig sein{#if crCount === 0 && !onlyCrunchyroll} (aktuell keine markiert){/if}.</p>
 	{/if}
 </div>
 

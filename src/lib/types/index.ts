@@ -1,4 +1,4 @@
-// Zentrale Typdefinitionen für OmniHub.
+// Zentrale Typdefinitionen für OmniSight.
 
 export type Quality = '4K' | '1080p' | 'HD' | 'SD';
 
@@ -89,6 +89,9 @@ export interface PluginSettings {
 	discordClientId: string;
 	hardwareAcceleration: boolean;
 	miniPlayerEnabled: boolean;
+	autostart: boolean;
+	startMinimized: boolean;
+	closeToTray: boolean;
 }
 
 export interface Settings {

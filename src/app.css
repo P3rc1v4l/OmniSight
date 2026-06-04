@@ -7,9 +7,9 @@
 @import '@fontsource/dm-sans/700.css';
 @import '@fontsource/dm-sans/800.css';
 
-/* OmniHub-Design-Tokens (alle live über Einstellungen änderbar). */
+/* OmniSight-Design-Tokens (alle live über Einstellungen änderbar). */
 :root {
-	--accent: #30c5bb;          /* OmniHub-Teal */
+	--accent: #30c5bb;          /* OmniSight-Teal */
 	--accent-text: #00201e;
 	--accent-soft: rgba(48, 197, 187, 0.16);
 	--radius: 15px;

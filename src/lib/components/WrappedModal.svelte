@@ -126,7 +126,7 @@
 		<button class="close" onclick={onClose} aria-label={$t('common.close')}>✕</button>
 
 		<div class="head">
-			<div class="brand"><span class="dot"></span> <span>OmniHub</span></div>
+			<div class="brand"><span class="dot"></span> <span>OmniSight</span></div>
 			<h2>{$t('wrapped.title')}</h2>
 			<p class="sub">{$t('wrapped.sub')}</p>
 			<div class="periods">

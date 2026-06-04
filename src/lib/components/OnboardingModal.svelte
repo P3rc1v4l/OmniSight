@@ -48,7 +48,7 @@
 
 			<div class="body">
 				{#if step === 0}
-					<img class="welcome-logo" src="/logo.png" alt="OmniHub" />
+					<img class="welcome-logo" src="/logo.png" alt="OmniSight" />
 					<p class="big">{$t('ob.tagline')}</p>
 					<p>{$t('ob.intro')}</p>
 				{:else if step === 1}

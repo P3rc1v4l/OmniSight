@@ -34,7 +34,7 @@ export async function openInWindow(p: Provider): Promise<void> {
 
 		const win = new WebviewWindow(label, {
 			url: p.url,
-			title: `${p.name} – OmniHub`,
+			title: `${p.name} – OmniSight`,
 			width: 1280,
 			height: 800,
 			resizable: true,

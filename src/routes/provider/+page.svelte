@@ -81,7 +81,7 @@
 	});
 </script>
 
-<svelte:head><title>{prov ? prov.name : 'Anbieter'} · OmniHub</title></svelte:head>
+<svelte:head><title>{prov ? prov.name : 'Anbieter'} · OmniSight</title></svelte:head>
 
 {#if prov}
 	<div class="page">

@@ -9,7 +9,7 @@
 	let connected = false;
 	let lastClientId = '';
 
-	// Eigene ID hat Vorrang, sonst die eingebaute OmniHub-ID.
+	// Eigene ID hat Vorrang, sonst die eingebaute OmniSight-ID.
 	function effectiveId(): string {
 		return (get(settings).plugins.discordClientId || DEFAULT_DISCORD_CLIENT_ID).trim();
 	}
@@ -19,9 +19,9 @@
 		if (!p.discordEnabled || !connected) return;
 		const stream = get(activeStream);
 		if (stream && stream.name) {
-			discordSetActivity(`Schaut ${stream.name}`, stream.subtitle || 'über OmniHub', 'omnihub', 'OmniHub');
+			discordSetActivity(`Schaut ${stream.name}`, stream.subtitle || 'über OmniSight', 'omnihub', 'OmniSight');
 		} else {
-			discordSetActivity('Durchstöbert OmniHub', 'Streaming-Hub', 'omnihub', 'OmniHub');
+			discordSetActivity('Durchstöbert OmniSight', 'Streaming-Hub', 'omnihub', 'OmniSight');
 		}
 	}
 

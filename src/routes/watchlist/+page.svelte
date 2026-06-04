@@ -152,12 +152,12 @@
 			pushToast(get(t)('wl.toastNothingTitle'), get(t)('wl.toastNothingBody'), 'ℹ️', 2400);
 			return;
 		}
-		const data = JSON.stringify({ app: 'OmniHub', type: 'watchlist', version: 1, items }, null, 2);
+		const data = JSON.stringify({ app: 'OmniSight', type: 'watchlist', version: 1, items }, null, 2);
 		const blob = new Blob([data], { type: 'application/json' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
-		a.download = 'omnihub-watchlist.json';
+		a.download = 'omnisight-watchlist.json';
 		document.body.appendChild(a);
 		a.click();
 		a.remove();

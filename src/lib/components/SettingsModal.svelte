@@ -9,6 +9,8 @@
 	import { APP_VERSION, APP_NAME, LINKS, DEFAULT_DISCORD_CLIENT_ID } from '$lib/version';
 	import { updateState, checkForUpdate } from '$lib/stores/updater';
 	import { downloadBackup, parseBackup, applyBackup, type BackupFile } from '$lib/backup';
+	import { setAutostart, applyCloseToTray } from '$lib/native';
+	import { isImageAvatar, processAvatarImage } from '$lib/avatar';
 	import { pushToast } from '$lib/stores/toasts';
 	import { t } from '$lib/i18n';
 	import { THEME_PRESETS } from '$lib/themes';
@@ -118,7 +120,7 @@
 	// Schnellauswahl-Akzentfarben.
 	const ACCENT_PRESETS = ['#30c5bb', '#6c8cff', '#f0a020', '#e0556b', '#9b6cff', '#28c76f', '#ff7a45', '#22d3ee'];
 	// Avatar-Auswahl je Profil.
-	const PROFILE_AVATARS = ['👤', '🦊', '🐼', '🐱', '🐯', '🐸', '🦉', '🦁', '🐲', '👾', '🤖', '🎮', '🍿', '⭐', '🔥', '🌙'];
+	const PROFILE_AVATARS = ['👤', '🦊', '🐼', '🐱', '🐯', '🐸', '🦉', '🦁', '🐲', '👾', '🤖', '🎮', '🍿', '⭐', '🔥', '🌙', '🐺', '🦄', '🐙', '🦖', '🐧', '🦥', '🌈', '🍀', '🎬', '🎧', '🚀', '💎', '🎯', '👑'];
 	function toggleShape(id: string) {
 		settings.update((s) => {
 			const cur = s.appearance.particleShapes ?? ['circle'];
@@ -159,6 +161,21 @@
 	}
 	function closePinPanel() {
 		pinEditFor = null; oldPinInput = ''; newPinInput = ''; pinError = '';
+	}
+
+	// Eigenes Bild als Avatar hochladen (verkleinert + komprimiert).
+	async function onAvatarFile(e: Event, id: string) {
+		const input = e.target as HTMLInputElement;
+		const f = input.files?.[0];
+		if (!f) return;
+		try {
+			const url = await processAvatarImage(f);
+			setProfileAvatar(id, url);
+			avatarPickFor = null;
+		} catch {
+			pushToast(get(t)('set.acc.avatarFailed'), undefined, '⚠️', 2600);
+		}
+		input.value = '';
 	}
 
 	// Beim Öffnen den gewünschten Tab aktivieren.
@@ -602,6 +619,14 @@
 						</div>
 
 						<div class="opt-group">
+							<div class="opt-group-title">{$t('set.adv.system')}</div>
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.autostart} onchange={() => setAutostart($settings.plugins.autostart)}/> {$t('set.adv.autostart')}</label>
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.startMinimized}/> {$t('set.adv.startMin')}</label>
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.closeToTray} onchange={() => applyCloseToTray($settings.plugins.closeToTray)}/> {$t('set.adv.closeTray')}</label>
+							<p class="hint">{$t('set.adv.systemHint')}</p>
+						</div>
+
+						<div class="opt-group">
 							<div class="opt-group-title">{$t('set.adv.backup')}</div>
 							<div class="opt">
 								<div class="opt-ic">💾</div>
@@ -652,30 +677,53 @@
 						<p class="copyright">© 2026 Luka Kalinka · {APP_NAME}</p>
 					{:else if active === 'account'}
 						<p class="acc-intro">{$t('set.acc.intro')}</p>
-						<div class="plist">
+						<div class="pgrid">
 							{#each $profiles as p (p.id)}
-								<div class="prow">
-									<button class="pav" onclick={() => { avatarPickFor = avatarPickFor === p.id ? null : p.id; accentPickFor = null; }} title={$t('set.acc.avatarTitle')} aria-label={$t('set.acc.avatarTitle')}>{p.avatar ?? '👤'}</button>
-									<button class="pacc" style="--pc: {p.accent || 'var(--accent)'}" onclick={() => { accentPickFor = accentPickFor === p.id ? null : p.id; avatarPickFor = null; }} title="Akzentfarbe dieses Profils" aria-label="Akzentfarbe wählen"></button>
-									<input class="pname-in" value={p.name} oninput={(e) => renameProfile(p.id, (e.currentTarget as HTMLInputElement).value)} />
-									{#if p.id === $mainProfileId}<span class="pbadge main">{$t('set.acc.mainBadge')}</span>{/if}
-									{#if p.id === $activeProfileId}<span class="pbadge">{$t('set.acc.activeBadge')}</span>{/if}
-									{#if p.id !== $mainProfileId}
-										<button class="mini" onclick={() => requestSetMain(p.id)} title={$t('set.acc.setMainTitle')}>{$t('set.acc.mainBadge')}</button>
-									{/if}
-									<button class="mini" onclick={() => openPinPanel(p.id)}>{p.pinHash ? $t('set.acc.pinChange') : $t('set.acc.pinSet')}</button>
-									{#if p.pinHash}
-										<button class="mini" onclick={() => openResetPanel(p.id)} title={$t('set.acc.pinForgotTitle')}>{$t('set.acc.pinForgot')}</button>
-									{/if}
-									<button
-										class="mini danger"
-										disabled={$profiles.length <= MIN_PROFILES || p.id === $mainProfileId}
-										onclick={() => deleteProfile(p.id)}
-										title={p.id === $mainProfileId ? $t('set.acc.delMain') : ($profiles.length <= MIN_PROFILES ? $t('set.acc.delMin') : $t('set.acc.delOk'))}
-									>🗑</button>
+								<div class="pcard" class:active={p.id === $activeProfileId} style="--pc: {p.accent || 'var(--accent)'}">
+									<div class="pcard-head">
+										<button class="pcard-av" onclick={() => { avatarPickFor = avatarPickFor === p.id ? null : p.id; accentPickFor = null; }} title={$t('set.acc.avatarTitle')} aria-label={$t('set.acc.avatarTitle')}>
+											{#if isImageAvatar(p.avatar)}
+												<img class="pcard-av-img" src={p.avatar} alt="" />
+											{:else}
+												<span class="pcard-av-em">{p.avatar ?? '👤'}</span>
+											{/if}
+											<span class="pcard-av-edit">✎</span>
+										</button>
+										<div class="pcard-meta">
+											<input class="pname-in" value={p.name} oninput={(e) => renameProfile(p.id, (e.currentTarget as HTMLInputElement).value)} aria-label={$t('set.acc.nameLabel')} maxlength="24" />
+											<div class="pcard-badges">
+												{#if p.id === $mainProfileId}<span class="pbadge main">★ {$t('set.acc.mainBadge')}</span>{/if}
+												{#if p.id === $activeProfileId}<span class="pbadge">{$t('set.acc.activeBadge')}</span>{/if}
+												{#if p.pinHash}<span class="pbadge lock">🔒 PIN</span>{/if}
+											</div>
+										</div>
+									</div>
+
+									<div class="pcard-actions">
+										<button class="chip" onclick={() => { accentPickFor = accentPickFor === p.id ? null : p.id; avatarPickFor = null; }} title={$t('set.acc.colorTitle')}>
+											<span class="chip-dot" style="background: {p.accent || 'var(--accent)'}"></span>{$t('set.acc.colorChip')}
+										</button>
+										<button class="chip" onclick={() => openPinPanel(p.id)}>{p.pinHash ? '🔒 ' + $t('set.acc.pinChange') : '🔓 ' + $t('set.acc.pinSet')}</button>
+										{#if p.pinHash}
+											<button class="chip" onclick={() => openResetPanel(p.id)} title={$t('set.acc.pinForgotTitle')}>{$t('set.acc.pinForgot')}</button>
+										{/if}
+										{#if p.id !== $mainProfileId}
+											<button class="chip" onclick={() => requestSetMain(p.id)} title={$t('set.acc.setMainTitle')}>★ {$t('set.acc.setMain')}</button>
+										{/if}
+										<button
+											class="chip danger"
+											disabled={$profiles.length <= MIN_PROFILES || p.id === $mainProfileId}
+											onclick={() => deleteProfile(p.id)}
+											title={p.id === $mainProfileId ? $t('set.acc.delMain') : ($profiles.length <= MIN_PROFILES ? $t('set.acc.delMin') : $t('set.acc.delOk'))}
+										>🗑 {$t('common.remove')}</button>
+									</div>
 
 									{#if avatarPickFor === p.id}
-										<div class="avatar-panel">
+										<div class="picker">
+											<label class="av-opt upload" title={$t('set.acc.uploadAvatar')} aria-label={$t('set.acc.uploadAvatar')}>
+												<input type="file" accept="image/*" onchange={(e) => onAvatarFile(e, p.id)} hidden />
+												📷
+											</label>
 											{#each PROFILE_AVATARS as em (em)}
 												<button class="av-opt" class:on={(p.avatar ?? '👤') === em} onclick={() => { setProfileAvatar(p.id, em); avatarPickFor = null; }} aria-label={`Avatar ${em}`}>{em}</button>
 											{/each}
@@ -683,57 +731,59 @@
 									{/if}
 
 									{#if accentPickFor === p.id}
-										<div class="avatar-panel accent">
+										<div class="picker accent">
 											{#each ACCENT_PRESETS as c (c)}
 												<button class="swatch" class:on={p.accent?.toLowerCase() === c} style="--sw: {c}" onclick={() => { setProfileAccent(p.id, c); accentPickFor = null; }} title={c} aria-label={`Akzent ${c}`}></button>
 											{/each}
 											<label class="swatch custom" title={$t('set.customColor')}><input type="color" value={p.accent || '#30c5bb'} oninput={(e) => setProfileAccent(p.id, (e.currentTarget as HTMLInputElement).value)} /><span>+</span></label>
-											<button class="mini" onclick={() => { setProfileAccent(p.id, ''); accentPickFor = null; }} title={$t('set.acc.useGlobalAccent')}>{$t('set.acc.standard')}</button>
+											<button class="chip" onclick={() => { setProfileAccent(p.id, ''); accentPickFor = null; }} title={$t('set.acc.useGlobalAccent')}>{$t('set.acc.standard')}</button>
 										</div>
 									{/if}
 
 									{#if pinEditFor === p.id}
-										<div class="pin-panel">
+										<div class="picker pin">
 											{#if p.pinHash}
 												<input class="pin-in" type="password" inputmode="numeric" placeholder={$t('set.acc.oldPin')} bind:value={oldPinInput} />
 											{/if}
 											<input class="pin-in" type="password" inputmode="numeric" placeholder={$t('set.acc.newPin')} bind:value={newPinInput} onkeydown={(e) => e.key === 'Enter' && savePin(p)} />
-											<button class="mini primary" onclick={() => savePin(p)}>{$t('common.save')}</button>
-											{#if p.pinHash}<button class="mini danger" onclick={() => removePin(p)}>{$t('set.acc.removePin')}</button>{/if}
-											<button class="mini" onclick={closePinPanel}>{$t('common.cancel')}</button>
+											<button class="chip primary" onclick={() => savePin(p)}>{$t('common.save')}</button>
+											{#if p.pinHash}<button class="chip danger" onclick={() => removePin(p)}>{$t('set.acc.removePin')}</button>{/if}
+											<button class="chip" onclick={closePinPanel}>{$t('common.cancel')}</button>
 											{#if pinError}<span class="pin-err">{pinError}</span>{/if}
 										</div>
 									{/if}
 
 									{#if resetPinFor === p.id}
-										<div class="pin-panel">
+										<div class="picker pin">
 											<input class="pin-in" type="password" placeholder={$t('set.acc.adminCode')} bind:value={resetAdminInput} onkeydown={(e) => e.key === 'Enter' && doResetPin(p.id)} />
-											<button class="mini primary" onclick={() => doResetPin(p.id)}>{$t('set.acc.resetPin')}</button>
-											<button class="mini" onclick={closeResetPanel}>{$t('common.cancel')}</button>
+											<button class="chip primary" onclick={() => doResetPin(p.id)}>{$t('set.acc.resetPin')}</button>
+											<button class="chip" onclick={closeResetPanel}>{$t('common.cancel')}</button>
 											{#if resetMsg}<span class="pin-err">{resetMsg}</span>{/if}
 											{#if !$adminCodeHash}<span class="pin-err">{$t('set.acc.noAdminYet')}</span>{/if}
 										</div>
 									{/if}
 
 									{#if mainChangeFor === p.id}
-										<div class="pin-panel">
+										<div class="picker pin">
 											<input class="pin-in" type="password" placeholder={$t('set.acc.adminCode')} bind:value={mainAdminInput} onkeydown={(e) => e.key === 'Enter' && confirmSetMain(p.id)} />
-											<button class="mini primary" onclick={() => confirmSetMain(p.id)}>{$t('set.acc.confirmMain')}</button>
-											<button class="mini" onclick={cancelSetMain}>{$t('common.cancel')}</button>
+											<button class="chip primary" onclick={() => confirmSetMain(p.id)}>{$t('set.acc.confirmMain')}</button>
+											<button class="chip" onclick={cancelSetMain}>{$t('common.cancel')}</button>
 											{#if mainMsg}<span class="pin-err">{mainMsg}</span>{/if}
 										</div>
 									{/if}
 								</div>
 							{/each}
+
+							{#if $profiles.length < MAX_PROFILES}
+								<button class="pcard add" onclick={() => addProfile(`Profil ${$profiles.length + 1}`)}>
+									<span class="add-plus">＋</span>
+									<span>{$t('set.acc.addProfile')}</span>
+								</button>
+							{/if}
 						</div>
-						{#if $profiles.length < MAX_PROFILES}
-							<button class="ghost" onclick={() => addProfile(`Profil ${$profiles.length + 1}`)}>
-								＋ Profil hinzufügen
-							</button>
-						{/if}
 
 						<div class="block" style="margin-top:18px">
-							<div class="block-label">🛡️ Admin-Code (für vergessene PINs)</div>
+							<div class="block-label">🛡️ {$t('set.acc.adminTitle')}</div>
 							<p class="hint" style="margin-top:0">{$t('set.acc.adminIntro')}</p>
 							<div class="admin-row">
 								{#if $adminCodeHash}
@@ -798,9 +848,9 @@
 							{#if $settings.plugins.discordEnabled}
 								<div class="plugin-opts">
 									{#if DEFAULT_DISCORD_CLIENT_ID}
-										<p class="hint" style="margin:0">✅ Es ist eine eingebaute OmniHub-Kennung hinterlegt – du musst nichts weiter eintragen.</p>
+										<p class="hint" style="margin:0">✅ Es ist eine eingebaute OmniSight-Kennung hinterlegt – du musst nichts weiter eintragen.</p>
 									{:else}
-										<p class="hint" style="margin:0">ℹ️ Es ist noch keine eingebaute OmniHub-Kennung hinterlegt. Bis dahin bleibt der Status leer – oder du trägst unten eine eigene Application-ID ein.</p>
+										<p class="hint" style="margin:0">ℹ️ Es ist noch keine eingebaute OmniSight-Kennung hinterlegt. Bis dahin bleibt der Status leer – oder du trägst unten eine eigene Application-ID ein.</p>
 									{/if}
 									<details style="flex-basis:100%; margin-top:8px">
 										<summary style="cursor:pointer; color:var(--text-muted); font-size:13px">{$t('set.plug.discordAdvanced')}</summary>
@@ -969,22 +1019,37 @@
 
 	/* Profile-Tab */
 	.acc-intro { color: var(--text-muted); font-size: 13px; margin: 0 0 14px; }
-	.plist { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-	.prow { display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; flex-wrap: wrap; }
-	.pav { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-soft); border: 1px solid var(--border); display: grid; place-items: center; font-size: 15px; flex-shrink: 0; cursor: pointer; transition: transform 0.12s, border-color 0.12s; padding: 0; }
-	.pav:hover { transform: scale(1.08); border-color: var(--accent); }
-	.avatar-panel { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; padding: 10px; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; }
+	.pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; margin-bottom: 16px; }
+	.pcard { background: var(--bg-card); border: 1px solid var(--border); border-top: 3px solid var(--pc); border-radius: 14px; padding: 14px; }
+	.pcard.active { box-shadow: 0 0 0 1px var(--pc); border-color: var(--pc); }
+	.pcard-head { display: flex; align-items: center; gap: 12px; }
+	.pcard-av { position: relative; width: 56px; height: 56px; border-radius: 16px; background: var(--pc); border: 0; padding: 0; cursor: pointer; flex-shrink: 0; display: grid; place-items: center; box-shadow: 0 5px 16px -7px var(--pc); transition: transform 0.12s; }
+	.pcard-av:hover { transform: scale(1.05); }
+	.pcard-av-em { font-size: 28px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+	.pcard-av-img { width: 100%; height: 100%; border-radius: 16px; object-fit: cover; display: block; }
+	.av-opt.upload { cursor: pointer; background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+	.pcard-av-edit { position: absolute; right: -4px; bottom: -4px; width: 20px; height: 20px; border-radius: 50%; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text-muted); font-size: 10px; display: grid; place-items: center; }
+	.pcard-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+	.pcard-badges { display: flex; flex-wrap: wrap; gap: 5px; }
+	.pcard-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+	.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-family: inherit; }
+	.chip:hover { color: var(--text); border-color: var(--border-strong); }
+	.chip.primary { background: var(--accent); color: var(--accent-text); border: 0; font-weight: 700; }
+	.chip.danger:hover { color: #f87171; border-color: #f87171; }
+	.chip:disabled { opacity: 0.4; cursor: not-allowed; }
+	.chip-dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 1px var(--border) inset; }
+	.picker { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; padding: 10px; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; }
 	.av-opt { width: 34px; height: 34px; border-radius: 9px; background: var(--bg-card); border: 1px solid var(--border); font-size: 17px; cursor: pointer; display: grid; place-items: center; transition: transform 0.1s, border-color 0.12s, background 0.12s; }
 	.av-opt:hover { transform: scale(1.1); border-color: var(--border-strong); }
 	.av-opt.on { border-color: var(--accent); background: var(--accent-soft); }
-	.pacc { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; cursor: pointer; padding: 0; background: var(--pc); border: 2px solid var(--bg-card); box-shadow: 0 0 0 1px var(--border); transition: transform 0.12s; }
-	.pacc:hover { transform: scale(1.12); }
-	.avatar-panel.accent { align-items: center; }
-	.pname-in { flex: 1; min-width: 120px; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13.5px; font-family: inherit; }
+	.pname-in { width: 100%; box-sizing: border-box; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 14px; font-weight: 600; font-family: inherit; }
 	.pbadge { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 3px 8px; border-radius: 999px; }
-	.pin-in { width: 150px; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13px; letter-spacing: 3px; font-family: inherit; }
-	.pin-panel { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; padding-top: 8px; border-top: 1px dashed var(--border); }
 	.pbadge.main { color: #fbbf24; background: color-mix(in srgb, #fbbf24 18%, transparent); }
+	.pbadge.lock { color: var(--text-muted); background: var(--bg-elev); border: 1px solid var(--border); }
+	.pcard.add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 130px; border: 1px dashed var(--border-strong); border-radius: 14px; background: transparent; color: var(--text-muted); cursor: pointer; font-family: inherit; font-size: 13px; }
+	.pcard.add:hover { border-color: var(--accent); color: var(--accent); }
+	.add-plus { font-size: 30px; line-height: 1; }
+	.pin-in { width: 150px; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 10px; font-size: 13px; letter-spacing: 3px; font-family: inherit; }
 	.pin-in.wide { width: 240px; letter-spacing: normal; }
 	.admin-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 	.admin-status { font-size: 12px; color: var(--text-muted); margin-top: 8px; }

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { profiles, activeProfileId, switchProfile, addProfile, verifyPin, MAX_PROFILES } from '$lib/stores/profiles';
+	import { isImageAvatar } from '$lib/avatar';
 	import type { Profile } from '$lib/types';
 
 	let { openProfiles }: { openProfiles: () => void } = $props();
@@ -58,7 +59,7 @@
 				<div class="list">
 					{#each $profiles as p (p.id)}
 						<button class="row" class:active={p.id === $activeProfileId} onclick={() => select(p)}>
-							<span class="av">{p.avatar ?? '👤'}</span>
+							<span class="av">{#if isImageAvatar(p.avatar)}<img src={p.avatar} alt="" />{:else}{p.avatar ?? '👤'}{/if}</span>
 							<span class="nm">{p.name}</span>
 							{#if p.pinHash}<span class="lock">🔒</span>{/if}
 							{#if p.id === $activeProfileId}<span class="check">✓</span>{/if}
@@ -75,7 +76,7 @@
 	{/if}
 
 	<button class="profile" onclick={toggle}>
-		<span class="avatar">{active?.avatar ?? '👤'}</span>
+		<span class="avatar">{#if isImageAvatar(active?.avatar)}<img src={active?.avatar} alt="" />{:else}{active?.avatar ?? '👤'}{/if}</span>
 		<span class="pname">{active?.name ?? $profiles[0]?.name ?? 'Profil'}</span>
 		<span class="chev">{open ? '▴' : '▾'}</span>
 	</button>
@@ -97,7 +98,8 @@
 	}
 	.row:hover { background: var(--bg-card); }
 	.row.active { background: var(--accent-soft); color: var(--accent); }
-	.av { width: 22px; height: 22px; border-radius: 50%; background: var(--bg-card-2); display: grid; place-items: center; font-size: 12px; }
+	.av { width: 22px; height: 22px; border-radius: 50%; background: var(--bg-card-2); display: grid; place-items: center; font-size: 12px; overflow: hidden; }
+	.av img { width: 100%; height: 100%; object-fit: cover; }
 	.nm { flex: 1; text-align: left; font-weight: 600; }
 	.lock, .check { font-size: 12px; }
 	.sep { height: 1px; background: var(--border); margin: 6px 4px; }
@@ -127,7 +129,8 @@
 		color: var(--text); font-family: inherit;
 	}
 	.profile:hover { border-color: var(--border-strong); }
-	.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 13px; }
+	.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 13px; overflow: hidden; }
+	.avatar img { width: 100%; height: 100%; object-fit: cover; }
 	.pname { flex: 1; text-align: left; font-size: 13px; font-weight: 600; }
 	.chev { color: var(--text-muted); font-size: 10px; }
 </style>

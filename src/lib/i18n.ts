@@ -109,8 +109,8 @@ const dict: Record<string, { de: string; en: string }> = {
 	'home.addProvider': { de: 'Anbieter', en: 'Provider' },
 
 	// --- Onboarding ---
-	'ob.welcomeTitle': { de: 'Willkommen bei OmniHub', en: 'Welcome to OmniHub' },
-	'ob.tagline': { de: 'OmniHub bündelt deine Streaming-Dienste in einem Fenster.', en: 'OmniHub brings your streaming services together in one window.' },
+	'ob.welcomeTitle': { de: 'Willkommen bei OmniSight', en: 'Welcome to OmniSight' },
+	'ob.tagline': { de: 'OmniSight bündelt deine Streaming-Dienste in einem Fenster.', en: 'OmniSight brings your streaming services together in one window.' },
 	'ob.intro': { de: 'In den nächsten Schritten richten wir kurz Sprache, Profil, Design und die sichtbaren Anbieter ein. Du kannst alles später in den Einstellungen ändern.', en: "In the next steps we'll quickly set up language, profile, design and visible providers. You can change everything later in settings." },
 	'ob.langTitle': { de: 'Wähle deine Sprache', en: 'Choose your language' },
 	'ob.langHint': { de: 'Du kannst die Sprache später jederzeit in den Einstellungen ändern.', en: 'You can change the language any time later in settings.' },
@@ -141,7 +141,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'stats.achievements': { de: 'Achievements', en: 'Achievements' },
 	'stats.topProviders': { de: 'Meistgenutzte Anbieter', en: 'Most-used providers' },
 	'stats.wrapped': { de: '🎬 Rückblick', en: '🎬 Recap' },
-	'wrapped.title': { de: 'Dein OmniHub-Rückblick', en: 'Your OmniHub recap' },
+	'wrapped.title': { de: 'Dein OmniSight-Rückblick', en: 'Your OmniSight recap' },
 	'wrapped.sub': { de: 'Deine Nutzung im Überblick', en: 'Your usage at a glance' },
 	'wrapped.periodAll': { de: 'Gesamt', en: 'All time' },
 	'wrapped.topProviders': { de: 'Deine Top-Anbieter', en: 'Your top providers' },
@@ -194,7 +194,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'wl.toastImportedTitle': { de: 'Watchlist importiert', en: 'Watchlist imported' },
 	'wl.toastImportedBody': { de: '{n} neue Titel hinzugefügt.', en: '{n} new titles added.' },
 	'wl.toastImportFailTitle': { de: 'Import fehlgeschlagen', en: 'Import failed' },
-	'wl.toastImportFailBody': { de: 'Das ist keine gültige OmniHub-Watchlist-Datei.', en: 'That is not a valid OmniHub watchlist file.' },
+	'wl.toastImportFailBody': { de: 'Das ist keine gültige OmniSight-Watchlist-Datei.', en: 'That is not a valid OmniSight watchlist file.' },
 
 	// --- CR-Kalender ---
 	'cal.title': { de: 'CR Kalender', en: 'CR Calendar' },
@@ -264,7 +264,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'ti.noDesc': { de: 'Keine Beschreibung verfügbar.', en: 'No description available.' },
 	'ti.trailer': { de: 'Trailer', en: 'Trailer' },
 	'ti.whereStream': { de: 'Wo streamen (DE)', en: 'Where to stream (DE)' },
-	'ti.providerNote': { de: 'Klick öffnet den Anbieter in OmniHub (sofern angemeldet) · Anbieterdaten: JustWatch via TMDB', en: 'Click opens the provider in OmniHub (if signed in) · Provider data: JustWatch via TMDB' },
+	'ti.providerNote': { de: 'Klick öffnet den Anbieter in OmniSight (sofern angemeldet) · Anbieterdaten: JustWatch via TMDB', en: 'Click opens the provider in OmniSight (if signed in) · Provider data: JustWatch via TMDB' },
 	'ti.noStream': { de: 'Keine Streaming-Info für Deutschland gefunden.', en: 'No streaming info found for Germany.' },
 
 	// --- Allgemein (Einstellungen) ---
@@ -318,7 +318,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'set.openAs': { de: 'Anbieter öffnen als', en: 'Open providers as' },
 	'set.embedded': { de: 'Eingebettet (im Fenster)', en: 'Embedded (in window)' },
 	'set.ownWindow': { de: 'Eigenes Fenster', en: 'Separate window' },
-	'set.openAsHint': { de: '„Eingebettet" zeigt den Anbieter direkt in OmniHub. Falls dabei nichts erscheint, stelle auf „Eigenes Fenster" – das öffnet ein separates Browser-Fenster (funktioniert immer).', en: '“Embedded” shows the provider directly in OmniHub. If nothing appears, switch to “Separate window” – that opens a separate browser window (always works).' },
+	'set.openAsHint': { de: '„Eingebettet" zeigt den Anbieter direkt in OmniSight. Falls dabei nichts erscheint, stelle auf „Eigenes Fenster" – das öffnet ein separates Browser-Fenster (funktioniert immer).', en: '“Embedded” shows the provider directly in OmniSight. If nothing appears, switch to “Separate window” – that opens a separate browser window (always works).' },
 	'set.resetDesign': { de: '↩️ Design auf Standard zurücksetzen', en: '↩️ Reset design to defaults' },
 
 	// --- Einstellungen: Benachrichtigungen ---
@@ -346,6 +346,14 @@ const dict: Record<string, { de: string; en: string }> = {
 
 	// --- Einstellungen: Profile/Konto ---
 	'set.acc.intro': { de: 'Jedes Profil hat eigene Favoriten, Watchlist, Streamzeit – und beim Streamen eigene, dauerhafte Logins (pro Profil getrennt).', en: 'Each profile has its own favorites, watchlist and stream time – and its own persistent logins while streaming (separated per profile).' },
+	'set.acc.colorChip': { de: 'Farbe', en: 'Color' },
+	'set.acc.uploadAvatar': { de: 'Eigenes Bild hochladen', en: 'Upload your own image' },
+	'set.acc.avatarFailed': { de: 'Bild konnte nicht geladen werden.', en: 'Could not load image.' },
+	'set.acc.colorTitle': { de: 'Akzentfarbe dieses Profils', en: "This profile's accent color" },
+	'set.acc.setMain': { de: 'Hauptprofil', en: 'Main profile' },
+	'set.acc.addProfile': { de: 'Profil hinzufügen', en: 'Add profile' },
+	'set.acc.nameLabel': { de: 'Profilname', en: 'Profile name' },
+	'set.acc.adminTitle': { de: 'Admin-Code (für vergessene PINs)', en: 'Admin code (for forgotten PINs)' },
 	'set.acc.avatarTitle': { de: 'Avatar wählen', en: 'Choose avatar' },
 	'set.acc.mainBadge': { de: '★ Haupt', en: '★ Main' },
 	'set.acc.activeBadge': { de: 'aktiv', en: 'active' },
@@ -401,7 +409,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'set.plug.hwAccelHint': { de: 'Nutzt die Grafikkarte (GPU) für flüssigeres Abspielen. Ausschalten kann bei Grafikfehlern, Flackern oder schwarzem Bild helfen, kostet aber Leistung. Wirkt erst nach einem Neustart der App.', en: 'Uses the graphics card (GPU) for smoother playback. Turning it off can help with graphics glitches, flicker or a black screen, but costs performance. Takes effect after restarting the app.' },
 	'set.plug.restartNow': { de: 'App jetzt neu starten', en: 'Restart app now' },
 	'set.plug.extTitle': { de: 'Browser-Erweiterungen (z.B. AdBlock, Buster)', en: 'Browser extensions (e.g. AdBlock, Buster)' },
-	'set.plug.extBody': { de: 'Echte Browser-Erweiterungen lassen sich hier nicht installieren: OmniHub nutzt die System-WebView (Edge/WebView2), nicht Chrome – es gibt keine Schnittstelle, um Erweiterungen wie AdBlock oder Buster zu laden. Captcha-Solver werden zudem bewusst nicht angeboten.', en: "Real browser extensions can't be installed here: OmniHub uses the system WebView (Edge/WebView2), not Chrome – there's no interface to load extensions like AdBlock or Buster. Captcha solvers are also deliberately not offered." },
+	'set.plug.extBody': { de: 'Echte Browser-Erweiterungen lassen sich hier nicht installieren: OmniSight nutzt die System-WebView (Edge/WebView2), nicht Chrome – es gibt keine Schnittstelle, um Erweiterungen wie AdBlock oder Buster zu laden. Captcha-Solver werden zudem bewusst nicht angeboten.', en: "Real browser extensions can't be installed here: OmniSight uses the system WebView (Edge/WebView2), not Chrome – there's no interface to load extensions like AdBlock or Buster. Captcha solvers are also deliberately not offered." },
 	'set.plug.extOutro': { de: 'Dieser Tab wird in einer kommenden Version ausgebaut.', en: 'This tab will be expanded in a future version.' },
 
 	// --- Einstellungen: Mehr ---
@@ -414,6 +422,11 @@ const dict: Record<string, { de: string; en: string }> = {
 	'set.adv.wv2Runtime': { de: 'WebView2-Runtime', en: 'WebView2 runtime' },
 	'set.adv.wv2RuntimeDesc': { de: 'Grundlage für die eingebetteten Streams.', en: 'Foundation for the embedded streams.' },
 	'set.adv.updates': { de: 'Updates', en: 'Updates' },
+	'set.adv.system': { de: 'System', en: 'System' },
+	'set.adv.autostart': { de: 'Mit Windows starten', en: 'Start with Windows' },
+	'set.adv.startMin': { de: 'Minimiert starten', en: 'Start minimized' },
+	'set.adv.closeTray': { de: 'Beim Schließen in den Infobereich (Tray)', en: 'Close to system tray' },
+	'set.adv.systemHint': { de: 'Über das Tray-Symbol kannst du OmniSight wieder öffnen oder ganz beenden. Diese Funktionen wirken nur in der Desktop-App.', en: 'Use the tray icon to reopen or fully quit OmniSight. These options only apply in the desktop app.' },
 	'set.adv.backup': { de: 'Sicherung', en: 'Backup' },
 	'set.adv.backupExport': { de: 'Backup exportieren', en: 'Export backup' },
 	'set.adv.backupExportDesc': { de: 'Alle Profile, Watchlist, Anbieter & Einstellungen als Datei speichern.', en: 'Save all profiles, watchlist, providers & settings to a file.' },
@@ -426,7 +439,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'set.adv.restoreConfirm': { de: 'Sicherung vom {date} (App v{version}) wiederherstellen? Aktuelle Daten werden überschrieben.', en: 'Restore backup from {date} (app v{version})? Current data will be overwritten.' },
 	'set.adv.restoreConfirmBtn': { de: 'Wiederherstellen', en: 'Restore' },
 	'set.adv.restoreDone': { de: 'Wiederhergestellt', en: 'Restored' },
-	'set.adv.restoreDoneDesc': { de: 'OmniHub wird neu geladen…', en: 'OmniHub is reloading…' },
+	'set.adv.restoreDoneDesc': { de: 'OmniSight wird neu geladen…', en: 'OmniSight is reloading…' },
 	'set.adv.checkUpdates': { de: 'Nach Updates suchen', en: 'Check for updates' },
 	'set.adv.checkUpdatesDesc': { de: 'Prüft GitHub auf eine neuere Version.', en: 'Checks GitHub for a newer version.' },
 	'set.adv.allVersions': { de: 'Alle Versionen', en: 'All versions' },
@@ -444,7 +457,7 @@ const dict: Record<string, { de: string; en: string }> = {
 
 	// --- Einstellungen: Meldungen ---
 	'set.toast.restartFailTitle': { de: 'Neustart nicht möglich', en: 'Restart not possible' },
-	'set.toast.restartFailBody': { de: 'Bitte schließe und öffne OmniHub manuell.', en: 'Please close and reopen OmniHub manually.' },
+	'set.toast.restartFailBody': { de: 'Bitte schließe und öffne OmniSight manuell.', en: 'Please close and reopen OmniSight manually.' },
 	'set.toast.designResetTitle': { de: 'Design zurückgesetzt', en: 'Design reset' },
 	'set.toast.designResetBody': { de: 'Standard-Werte wiederhergestellt.', en: 'Default values restored.' },
 	'set.toast.adminSaved': { de: 'Admin-Code gespeichert', en: 'Admin code saved' },
