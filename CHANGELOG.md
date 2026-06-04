@@ -11,6 +11,15 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.53.0] – 2026-06-03
+
+### Spotify im Hintergrund stummschalten/pausieren (🦀 bauen & testen)
+- Spotify spielt über **Web Audio** (kein `<audio>`-Element), daher griff das normale Stummschalten nicht. Neu: Ist ein Hintergrund-Stream **Spotify**, klickt OmniHub beim „Stumm" einmalig Spotifys **Play/Pause-Button** (pausiert) und beim Aktivieren wieder auf **Play**. Der Klick erfolgt nur einmal pro Schaltvorgang (keine Endlos-Toggles).
+- **Achtung:** native (Rust-)Änderung – im Build-Sandbox nicht testbar. Bitte per GitHub Actions bauen und testen.
+- Bekannte Grenze: Der **Lautstärkeregler** wirkt bei Spotify weiterhin nicht (Web Audio lässt sich von außen nicht regeln) – für Spotify bitte „Stumm" (= Pause) nutzen. Sollte Spotify seine Button-Kennungen ändern, kann es erneut nötig sein, die Selektoren anzupassen.
+
+---
+
 ## [0.52.0] – 2026-06-03
 
 ### Behoben
