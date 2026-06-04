@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "OmniSight",
-  "version": "0.66.0",
-  "identifier": "com.p3rc1v4l.omnihub",
+  "version": "0.67.0",
+  "identifier": "com.p3rc1v4l.omnisight",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",

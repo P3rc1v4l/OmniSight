@@ -1,6 +1,6 @@
 [package]
 name = "omnisight"
-version = "0.66.0"
+version = "0.67.0"
 description = "OmniSight – zentraler Streaming-Hub"
 authors = ["P3rc1v4l"]
 edition = "2021"

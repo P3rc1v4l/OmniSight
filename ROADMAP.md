@@ -1,7 +1,7 @@
 # OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.66.0
+Stand: v0.67.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -57,6 +57,9 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.67.0
+- 🦀 **Interne Kennungen umbenannt (mit Migration):** Bundle-Identifier `com.p3rc1v4l.omnisight`, Store-Datei `omnisight.json`, localStorage `omnisight:*`. Rust kopiert beim ersten Start die alten App-Daten in den neuen Ordner; localStorage liest alte Schlüssel als Fallback. PIN-Salt + Discord-Asset-Key bewusst beibehalten (nicht migrierbar). Per CI bauen & testen.
 
 ## 🆕 v0.66.0
 - 🟢 **Umbenennung OmniHub → OmniSight** (Produktname, Setup/.exe, Paket-/Crate-Namen, CI-Release-Name, UI, Onboarding, Kommentare, GitHub-Links, ZIP-Name). Interne Daten-Kennungen (Bundle-Identifier, `omnihub.json`, `omnihub:`-Schlüssel, Discord-Asset-Key) bewusst beibehalten, damit Nutzerdaten + Update-Kontinuität erhalten bleiben.

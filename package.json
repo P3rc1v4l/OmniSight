@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "0.66.0",
+  "version": "0.67.0",
   "description": "OmniSight – zentraler Streaming-Hub als Desktop-App (Tauri v2 + SvelteKit)",
   "type": "module",
   "private": true,

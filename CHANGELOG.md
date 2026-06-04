@@ -11,6 +11,18 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.67.0] – 2026-06-04
+
+### Interne Kennungen umbenannt – mit Daten-Migration
+- Auch die internen Kennungen heißen jetzt OmniSight: **Bundle-Identifier** `com.p3rc1v4l.omnisight`, **Store-Datei** `omnisight.json`, **localStorage-Schlüssel** `omnisight:*`.
+- **Automatische Migration:** Beim ersten Start kopiert die App deine alten Daten aus `…\com.p3rc1v4l.omnihub\omnihub.json` in den neuen Ordner/Dateinamen (inkl. weiterer Dateien wie Fensterzustand). Die localStorage-Schlüssel werden beim Lesen automatisch vom alten Namen übernommen. Dein alter Daten-Ordner bleibt **als Sicherung unangetastet**.
+- **Bewusst NICHT geändert (technisch nicht migrierbar):**
+  - der **PIN-Salt** (`omnihub:` im PIN-Hash) – würde man ihn ändern, ließen sich bestehende PINs nie wieder bestätigen (Hashes sind nicht umkehrbar);
+  - der **Discord-Bild-Asset-Key** `omnihub` – das ist ein Verweis auf ein im Discord-Portal hochgeladenes Bild; erst wenn du dort ein Asset namens `omnisight` hochlädst, kann ich diesen einen Wert umstellen.
+- **Einmalige Folge des geänderten Identifiers:** Windows betrachtet die App als neu. Nach dem Update hast du **kurzzeitig zwei Einträge** (alt + neu); deine Daten sind bereits in die neue App übernommen – die **alte** kannst du manuell deinstallieren.
+
+---
+
 ## [0.66.0] – 2026-06-04
 
 ### Projekt umbenannt: OmniHub → OmniSight

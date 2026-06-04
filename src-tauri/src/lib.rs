@@ -9,11 +9,52 @@ mod favicon;
 /// (dieselbe Datei, die das Frontend über tauri-plugin-store schreibt) – und zwar
 /// BEVOR das Fenster/Webview erzeugt wird. Schlägt das Lesen fehl, bleibt die GPU
 /// aktiv (sicherer Standard). Windows: %APPDATA%\<identifier>\omnihub.json.
+/// Daten-Kennungen ab v0.67.0. Die Migration kopiert ggf. die alten Daten herüber.
+const APP_IDENTIFIER: &str = "com.p3rc1v4l.omnisight";
+const STORE_FILE: &str = "omnisight.json";
+const OLD_IDENTIFIER: &str = "com.p3rc1v4l.omnihub";
+const OLD_STORE_FILE: &str = "omnihub.json";
+
+/// Einmalige Migration: kopiert alte App-Daten (com.p3rc1v4l.omnihub\omnihub.json)
+/// in den neuen Ordner (com.p3rc1v4l.omnisight\omnisight.json) – aber nur, wenn dort
+/// noch nichts liegt. Alle weiteren Dateien (z. B. Fensterzustand) werden 1:1
+/// mitkopiert. Best effort: Fehler werden ignoriert, das alte Verzeichnis bleibt
+/// als Sicherung unangetastet.
+fn migrate_appdata() {
+    let Ok(appdata) = std::env::var("APPDATA") else { return; };
+    let base = std::path::Path::new(&appdata);
+    let new_dir = base.join(APP_IDENTIFIER);
+    let new_store = new_dir.join(STORE_FILE);
+    if new_store.exists() {
+        return; // bereits migriert oder schon in Benutzung
+    }
+    let old_dir = base.join(OLD_IDENTIFIER);
+    let old_store = old_dir.join(OLD_STORE_FILE);
+    if !old_store.exists() {
+        return; // nichts zu migrieren (Neuinstallation)
+    }
+    let _ = std::fs::create_dir_all(&new_dir);
+    let _ = std::fs::copy(&old_store, &new_store); // omnihub.json -> omnisight.json
+    if let Ok(entries) = std::fs::read_dir(&old_dir) {
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_file() {
+                if let Some(name) = p.file_name() {
+                    if name == std::ffi::OsStr::new(OLD_STORE_FILE) {
+                        continue; // Haupt-Store wurde schon umbenannt kopiert
+                    }
+                    let _ = std::fs::copy(&p, new_dir.join(name));
+                }
+            }
+        }
+    }
+}
+
 fn hw_accel_disabled() -> bool {
     let Ok(appdata) = std::env::var("APPDATA") else { return false; };
     let path = std::path::Path::new(&appdata)
-        .join("com.p3rc1v4l.omnihub")
-        .join("omnihub.json");
+        .join(APP_IDENTIFIER)
+        .join(STORE_FILE);
     let Ok(text) = std::fs::read_to_string(path) else { return false; };
     let Ok(json) = serde_json::from_str::<serde_json::Value>(&text) else { return false; };
     matches!(
@@ -29,8 +70,8 @@ fn hw_accel_disabled() -> bool {
 fn plugin_bool(key: &str) -> Option<bool> {
     let appdata = std::env::var("APPDATA").ok()?;
     let path = std::path::Path::new(&appdata)
-        .join("com.p3rc1v4l.omnihub")
-        .join("omnihub.json");
+        .join(APP_IDENTIFIER)
+        .join(STORE_FILE);
     let text = std::fs::read_to_string(path).ok()?;
     let json = serde_json::from_str::<serde_json::Value>(&text).ok()?;
     json.get("settings")
@@ -126,6 +167,10 @@ fn webview_set_paused(app: tauri::AppHandle, label: String, paused: bool) -> Res
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Einmalige Daten-Migration vom alten Identifier auf den neuen – MUSS vor dem
+    // ersten Store-Zugriff (hw_accel_disabled) laufen.
+    migrate_appdata();
+
     // Hardware-Beschleunigung ggf. abschalten. WebView2 liest dieses Env-Var beim
     // Anlegen seiner Umgebung – es muss daher VOR dem Fenster gesetzt werden.
     if hw_accel_disabled() {
