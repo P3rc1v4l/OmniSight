@@ -9,9 +9,11 @@
 	});
 
 	const c = $derived($settings.clock);
-	const visible = $derived(c.enabled && c.transparency < 100);
-	const opacity = $derived(Math.max(0, Math.min(1, (100 - c.transparency) / 100)));
 	const editing = $derived($clockEditing);
+	const realOpacity = $derived(Math.max(0, Math.min(1, (100 - c.transparency) / 100)));
+	// Beim Bearbeiten immer sichtbar (Live-Vorschau der Transparenz, nie ganz weg → greifbar).
+	const visible = $derived(editing || (c.enabled && c.transparency < 100));
+	const opacity = $derived(editing ? Math.max(0.15, realOpacity) : realOpacity);
 
 	const timeStr = $derived.by(() => {
 		const h24 = now.getHours();

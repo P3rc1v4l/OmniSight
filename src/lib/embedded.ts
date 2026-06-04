@@ -55,6 +55,7 @@ export interface BgStream {
 	provider: Provider;
 	muted: boolean;
 	volume: number; // 0–100
+	paused: boolean;
 }
 export const backgroundStreams = writable<BgStream[]>([]);
 
@@ -305,7 +306,7 @@ export function pushForegroundToBackground(): void {
 	if (!p || !foregroundLabel || usingFallback) return;
 	const label = foregroundLabel;
 	void hideLabel(label);
-	backgroundStreams.update((l) => [...l, { streamId: `s${++streamCounter}`, label, provider: p, muted: false, volume: 100 }]);
+	backgroundStreams.update((l) => [...l, { streamId: `s${++streamCounter}`, label, provider: p, muted: false, volume: 100, paused: false }]);
 	currentLabel = null;
 	currentProviderId = null;
 	foregroundLabel = null;
@@ -363,6 +364,20 @@ export async function setBackgroundVolume(streamId: string, volume: number): Pro
 		await invoke('webview_set_volume', { label: bg.label, volume: v / 100 });
 	} catch (e) {
 		console.warn('[volume] fehlgeschlagen:', e);
+	}
+}
+
+// Pausieren/Fortsetzen eines Hintergrund-Streams (Medien-Elemente bzw. Spotify-Play/Pause).
+export async function setBackgroundPaused(streamId: string, paused: boolean): Promise<void> {
+	const bg = get(backgroundStreams).find((b) => b.streamId === streamId);
+	if (!bg) return;
+	backgroundStreams.update((l) => l.map((b) => (b.streamId === streamId ? { ...b, paused } : b)));
+	if (!browser) return;
+	try {
+		const { invoke } = await import('@tauri-apps/api/core');
+		await invoke('webview_set_paused', { label: bg.label, paused });
+	} catch (e) {
+		console.warn('[pause] fehlgeschlagen:', e);
 	}
 }
 

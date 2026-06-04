@@ -8,12 +8,44 @@
 	} from '$lib/stores/profiles';
 	import { APP_VERSION, APP_NAME, LINKS, DEFAULT_DISCORD_CLIENT_ID } from '$lib/version';
 	import { updateState, checkForUpdate } from '$lib/stores/updater';
+	import { downloadBackup, parseBackup, applyBackup, type BackupFile } from '$lib/backup';
 	import { pushToast } from '$lib/stores/toasts';
 	import { t } from '$lib/i18n';
 	import { THEME_PRESETS } from '$lib/themes';
 	import { get } from 'svelte/store';
 
 	let { open = false, initialTab = 'appearance', close }: { open?: boolean; initialTab?: string; close: () => void } = $props();
+
+	// Backup/Restore
+	let backupFileInput = $state<HTMLInputElement | null>(null);
+	let pendingBackup = $state<BackupFile | null>(null);
+	let backupErr = $state('');
+	async function onBackupExport() {
+		try { await downloadBackup(); pushToast($t('set.adv.backupDone'), $t('set.adv.backupDoneDesc'), '💾'); }
+		catch (e) { pushToast('Fehler', String(e), '⚠️'); }
+	}
+	async function onBackupFile(e: Event) {
+		backupErr = '';
+		pendingBackup = null;
+		const f = (e.currentTarget as HTMLInputElement).files?.[0];
+		if (!f) return;
+		try {
+			pendingBackup = parseBackup(await f.text());
+		} catch (err) {
+			backupErr = err instanceof Error ? err.message : String(err);
+		}
+		(e.currentTarget as HTMLInputElement).value = '';
+	}
+	async function confirmRestore() {
+		if (!pendingBackup) return;
+		try {
+			await applyBackup(pendingBackup);
+			pushToast($t('set.adv.restoreDone'), $t('set.adv.restoreDoneDesc'), '✅');
+			setTimeout(() => location.reload(), 600);
+		} catch (e) {
+			backupErr = String(e);
+		}
+	}
 
 	// WebView2-Diagnose: Version einmalig holen, sobald die Einstellungen offen sind.
 	let wv2Ver = $state<string | null>(null);
@@ -59,7 +91,13 @@
 		{ id: 'star', key: 'set.shape.star' }
 	];
 
-	// Theme-Vorlagen (fertige Farbschemata).
+	// Theme-Vorlagen (fertige Farbschemata). Sinnvolle Reihenfolge (neutral -> farbig),
+	// gruppiert nach Dunkel/Hell für die Anzeige.
+	const PRESET_ORDER = ['default', 'midnight', 'graphite', 'nord', 'amethyst', 'forest', 'sunset', 'paper', 'contrast'];
+	const sortedPresets = [...THEME_PRESETS].sort((a, b) => PRESET_ORDER.indexOf(a.id) - PRESET_ORDER.indexOf(b.id));
+	const darkPresets = sortedPresets.filter((p) => p.mode === 'dark');
+	const lightPresets = sortedPresets.filter((p) => p.mode === 'light');
+
 	function pickPreset(p: (typeof THEME_PRESETS)[number]) {
 		settings.update((s) => {
 			const ap = { ...s.appearance, themePreset: p.id };
@@ -282,8 +320,24 @@
 
 						<div class="block">
 							<div class="block-label">{$t('set.themePreset')}</div>
+							<div class="tp-group-label">{$t('set.dark')}</div>
 							<div class="theme-presets">
-								{#each THEME_PRESETS as p (p.id)}
+								{#each darkPresets as p (p.id)}
+									<button
+										class="tp"
+										class:on={$settings.appearance.themePreset === p.id}
+										onclick={() => pickPreset(p)}
+										style="--c1: {p.vars ? p.vars.bg : '#0b0c10'}; --c2: {p.vars ? p.vars.bgCard2 : '#1a1d26'}; --ca: {p.accent ?? $settings.appearance.accentColor}; --cb: {p.vars ? p.vars.border : '#1f222b'}"
+										title={$settings.appearance.language === 'en' ? p.name.en : p.name.de}
+									>
+										<span class="tp-prev"><span class="tp-dot"></span></span>
+										<span class="tp-name">{$settings.appearance.language === 'en' ? p.name.en : p.name.de}</span>
+									</button>
+								{/each}
+							</div>
+							<div class="tp-group-label">{$t('set.light')}</div>
+							<div class="theme-presets">
+								{#each lightPresets as p (p.id)}
 									<button
 										class="tp"
 										class:on={$settings.appearance.themePreset === p.id}
@@ -368,6 +422,7 @@
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.cardShadow}/> Karten-Schatten</label>
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.cardHoverZoom}/> Karten-Hover-Zoom</label>
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.animations}/> Animationen</label>
+								<label class="toggle"><input type="checkbox" bind:checked={$settings.appearance.showReachability}/> {$t('set.app.reachability')}</label>
 							</div>
 							<p class="hint">
 								<b>{$t('set.shadowLabel')}</b> {$t('set.shadowDesc')}
@@ -534,6 +589,31 @@
 							</a>
 							{#if $updateState.available}
 								<p class="hint">{$t('set.adv.updateAvail', { n: $updateState.version })}</p>
+							{/if}
+						</div>
+
+						<div class="opt-group">
+							<div class="opt-group-title">{$t('set.adv.backup')}</div>
+							<div class="opt">
+								<div class="opt-ic">💾</div>
+								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.backupExport')}</div><div class="opt-d">{$t('set.adv.backupExportDesc')}</div></div>
+								<button class="opt-btn" onclick={onBackupExport}>{$t('set.adv.backupExportBtn')}</button>
+							</div>
+							<div class="opt">
+								<div class="opt-ic">📥</div>
+								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.backupImport')}</div><div class="opt-d">{$t('set.adv.backupImportDesc')}</div></div>
+								<button class="opt-btn" onclick={() => backupFileInput?.click()}>{$t('set.adv.backupImportBtn')}</button>
+								<input bind:this={backupFileInput} type="file" accept="application/json,.json" onchange={onBackupFile} hidden />
+							</div>
+							{#if backupErr}<p class="hint err">{backupErr}</p>{/if}
+							{#if pendingBackup}
+								<div class="restore-confirm">
+									<div class="rc-tx">{$t('set.adv.restoreConfirm', { date: new Date(pendingBackup.exportedAt).toLocaleString($settings.appearance.language === 'en' ? 'en-US' : 'de-DE'), version: pendingBackup.version })}</div>
+									<div class="rc-actions">
+										<button class="opt-btn danger" onclick={confirmRestore}>{$t('set.adv.restoreConfirmBtn')}</button>
+										<button class="opt-btn ghosty" onclick={() => (pendingBackup = null)}>{$t('common.cancel')}</button>
+									</div>
+								</div>
 							{/if}
 						</div>
 
@@ -934,8 +1014,14 @@
 	.opt-btn:hover { filter: brightness(1.08); }
 	.opt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 	.opt-btn.ghosty { background: var(--bg-elev); color: var(--accent); border: 1px solid var(--border); }
+	.opt-btn.danger { background: var(--danger, #e0556b); color: #fff; }
+	.hint.err { color: var(--danger, #e0556b); }
+	.restore-confirm { margin-top: 8px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--danger, #e0556b) 45%, var(--border)); background: color-mix(in srgb, var(--danger, #e0556b) 10%, transparent); border-radius: 10px; }
+	.rc-tx { font-size: 13px; margin-bottom: 10px; }
+	.rc-actions { display: flex; gap: 8px; }
 	.copyright { text-align: center; color: var(--text-dim); font-size: 11.5px; margin-top: 8px; }
 	.theme-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+	.tp-group-label { font-size: 11px; font-weight: 700; color: var(--text-dim); margin: 12px 0 2px; }
 	.tp { display: flex; align-items: center; gap: 8px; padding: 6px 11px 6px 6px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 600; transition: border-color 0.15s ease, transform 0.1s ease; }
 	.tp:hover { border-color: var(--border-strong); transform: translateY(-1px); }
 	.tp.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }

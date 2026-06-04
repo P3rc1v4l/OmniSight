@@ -6,6 +6,7 @@ type StoreLike = {
 	get<T = unknown>(key: string): Promise<T | undefined>;
 	set(key: string, value: unknown): Promise<void>;
 	save(): Promise<void>;
+	entries?<T = unknown>(): Promise<[string, T][]>;
 };
 
 let storePromise: Promise<StoreLike | null> | null = null;
@@ -44,6 +45,31 @@ export async function saveState<T>(key: string, value: T): Promise<void> {
 	if (!s) return;
 	try {
 		await s.set(key, value);
+	} catch {
+		/* ignore */
+	}
+}
+
+// Alle gespeicherten Schlüssel/Werte aus dem Plugin-Store lesen (für Backups).
+export async function exportStore(): Promise<Record<string, unknown>> {
+	const s = await getStore();
+	if (!s || !s.entries) return {};
+	try {
+		const out: Record<string, unknown> = {};
+		for (const [k, v] of await s.entries()) out[k] = v;
+		return out;
+	} catch {
+		return {};
+	}
+}
+
+// Schlüssel/Werte in den Plugin-Store schreiben und sichern (für Restore).
+export async function importStore(obj: Record<string, unknown>): Promise<void> {
+	const s = await getStore();
+	if (!s) return;
+	try {
+		for (const [k, v] of Object.entries(obj)) await s.set(k, v);
+		await s.save();
 	} catch {
 		/* ignore */
 	}

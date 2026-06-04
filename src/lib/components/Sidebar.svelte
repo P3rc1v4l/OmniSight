@@ -3,7 +3,7 @@
 	import { activeStream } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import { notifCenterOpen } from '$lib/stores/toasts';
-	import { backgroundStreams, bringToForeground, closeBackgroundStream, setBackgroundMuted, setBackgroundVolume, setAllBackgroundMuted, closeAllBackgroundStreams } from '$lib/embedded';
+	import { backgroundStreams, bringToForeground, closeBackgroundStream, setBackgroundMuted, setBackgroundVolume, setBackgroundPaused, setAllBackgroundMuted, closeAllBackgroundStreams } from '$lib/embedded';
 	import { t } from '$lib/i18n';
 	import Logo from './Logo.svelte';
 	import ProfileSwitcher from './ProfileSwitcher.svelte';
@@ -57,12 +57,13 @@
 			{#if bgOpen}
 				<div class="bg-list">
 					{#each $backgroundStreams as s (s.streamId)}
-						<div class="bg-row" class:muted={s.muted}>
+						<div class="bg-row" class:muted={s.muted} class:paused={s.paused}>
 							<div class="bg-top">
 								<Logo provider={s.provider} size={18} />
 								<span class="bg-name" title={s.provider.name}>{s.provider.name}</span>
+								<button class="bg-ic" onclick={() => setBackgroundPaused(s.streamId, !s.paused)} title={s.paused ? $t('bg.resume') : $t('bg.pause')} aria-label={s.paused ? $t('bg.resume') : $t('bg.pause')}>{s.paused ? '▶' : '⏸'}</button>
 								<button class="bg-ic" onclick={() => setBackgroundMuted(s.streamId, !s.muted)} title={s.muted ? $t('common.unmute') : $t('common.mute')} aria-label={s.muted ? $t('common.unmute') : $t('common.mute')}>{s.muted ? '🔇' : '🔊'}</button>
-								<button class="bg-ic" onclick={() => bringToForeground(s.streamId)} title={$t('bg.toForeground')} aria-label={$t('bg.toForeground')}>▶</button>
+								<button class="bg-ic" onclick={() => bringToForeground(s.streamId)} title={$t('bg.toForeground')} aria-label={$t('bg.toForeground')}>⤢</button>
 								<button class="bg-ic close" onclick={() => closeBackgroundStream(s.streamId)} title={$t('bg.closeStream')} aria-label={$t('bg.closeStream')}>✕</button>
 							</div>
 							<input
@@ -155,6 +156,7 @@
 	.bg-row { display: flex; flex-direction: column; gap: 5px; padding: 6px 4px; border-radius: 8px; }
 	.bg-row:hover { background: var(--bg-elev); }
 	.bg-row.muted { opacity: 0.62; }
+	.bg-row.paused .bg-name { color: var(--text-dim); }
 	.bg-top { display: flex; align-items: center; gap: 7px; }
 	.bg-name { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.bg-vol { width: 100%; height: 4px; accent-color: var(--accent); cursor: pointer; margin: 0; }

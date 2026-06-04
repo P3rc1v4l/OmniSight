@@ -76,6 +76,7 @@ export interface AppearanceSettings {
 	animations: boolean;
 	language: 'de' | 'en';
 	backgroundOpacity: number;
+	showReachability: boolean;
 }
 
 export interface PluginSettings {

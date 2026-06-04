@@ -50,7 +50,7 @@
 
 	async function buildRecs(items: WatchlistItem[]): Promise<void> {
 		const have = new Set(items.map((w) => w.mediaType + '-' + w.tmdbId));
-		const seedTitles = [...items].sort(() => Math.random() - 0.5).slice(0, 8);
+		const seedTitles = [...items].sort(() => Math.random() - 0.5).slice(0, 12);
 		const pool = new Map<string, TmdbItem>();
 		for (const s of seedTitles) {
 			const mt = (s.mediaType === 'tv' ? 'tv' : 'movie') as 'movie' | 'tv';
@@ -60,7 +60,7 @@
 				if (r.poster && !have.has(k) && !pool.has(k)) pool.set(k, r);
 			}
 		}
-		recs10.set([...pool.values()].sort(() => Math.random() - 0.5).slice(0, 10));
+		recs10.set([...pool.values()].sort(() => Math.random() - 0.5).slice(0, 24));
 	}
 
 	$: {
@@ -109,7 +109,7 @@
 
 	let sortBy = 'added-desc';
 	let typeFilter: 'all' | 'movie' | 'tv' = 'all';
-	let seenFilter: 'all' | 'seen' | 'unseen' = 'all';
+	let seenFilter: 'all' | 'seen' | 'unseen' = 'unseen';
 	let q = '';
 
 	function sortList(list: WatchlistItem[], by: string): WatchlistItem[] {
@@ -129,7 +129,7 @@
 		.filter((w) => seenFilter === 'all' || (seenFilter === 'seen' ? !!w.seen : !w.seen))
 		.filter((w) => !q.trim() || w.title.toLowerCase().includes(q.trim().toLowerCase()));
 	$: shown = sortList(filtered, sortBy);
-	function resetFilters() { sortBy = 'added-desc'; typeFilter = 'all'; seenFilter = 'all'; q = ''; }
+	function resetFilters() { sortBy = 'added-desc'; typeFilter = 'all'; seenFilter = 'unseen'; q = ''; }
 
 	let fileInput: HTMLInputElement;
 
@@ -297,10 +297,9 @@
 							<div class="s">{w.mediaType === 'tv' ? $t('common.series') : $t('common.movie')}{w.releaseDate ? ' · ' + w.releaseDate.slice(0, 4) : ''}</div>
 							{#if ($availability[w.mediaType + '-' + w.tmdbId] ?? []).length}
 								<div class="avail">
-									<span class="avail-label">✓ {$t('wl.availableAt')}</span>
 									{#each $availability[w.mediaType + '-' + w.tmdbId] as pv (pv.id)}
-										<button class="avail-chip" onclick={() => openAt(w, pv)} title={$t('wl.openAt', { provider: pv.name })}>
-											{#if pv.logo}<img src={pv.logo} alt="" />{/if}{pv.name}
+										<button class="avail-chip" onclick={() => openAt(w, pv)} title={$t('wl.openAt', { provider: pv.name })} aria-label={$t('wl.openAt', { provider: pv.name })}>
+											{#if pv.logo}<img src={pv.logo} alt={pv.name} />{:else}<span class="avail-fallback">{pv.name.slice(0, 1)}</span>{/if}
 										</button>
 									{/each}
 								</div>
@@ -362,11 +361,11 @@
 	.search:focus { outline: none; border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
 	.reset { margin-top: 12px; background: var(--accent); color: #00110f; border: none; border-radius: 9px; padding: 9px 18px; font-family: inherit; font-weight: 700; cursor: pointer; }
 	.banner { background: var(--accent-soft); color: var(--text); border: 1px solid var(--accent); padding: 12px 14px; border-radius: 12px; margin-bottom: 18px; font-size: 14px; }
-	.avail { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 2px; }
-	.avail-label { font-size: 11.5px; font-weight: 700; color: var(--accent); }
-	.avail-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 4px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--text); font-size: 11.5px; font-weight: 600; cursor: pointer; transition: border-color 0.12s ease; }
-	.avail-chip:hover { border-color: var(--accent); }
-	.avail-chip img { width: 16px; height: 16px; border-radius: 4px; object-fit: cover; }
+	.avail { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 4px 0 2px; }
+	.avail-chip { width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center; padding: 0; border-radius: 7px; border: 1px solid var(--border); background: var(--bg-elev); cursor: pointer; transition: border-color 0.12s ease, transform 0.12s ease; overflow: hidden; }
+	.avail-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
+	.avail-chip img { width: 22px; height: 22px; border-radius: 4px; object-fit: cover; display: block; }
+	.avail-fallback { font-size: 12px; font-weight: 800; color: var(--text-muted); }
 	.banner-head { font-weight: 700; color: var(--accent); margin-bottom: 8px; }
 	.rel-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 	.rel-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; border: 0; border-radius: 8px; padding: 6px 8px; cursor: pointer; font-family: inherit; font-size: 13.5px; color: var(--text); }
@@ -377,36 +376,36 @@
 	.rel-badge { flex: 0 0 auto; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-text); text-transform: uppercase; letter-spacing: 0.4px; }
 	.empty { padding: 56px; text-align: center; color: var(--text-muted); }
 	.emoji { font-size: 40px; display: block; margin-bottom: 10px; }
-	.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+	.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 	.card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
 	.thumb { padding: 0; border: 0; background: none; cursor: pointer; display: block; width: 100%; position: relative; }
 	.card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; transition: transform 0.25s ease, filter 0.25s ease; }
 	.thumb:hover img { transform: scale(1.04); filter: brightness(1.06); }
 	.noimg { aspect-ratio: 2/3; display: grid; place-items: center; background: var(--bg-card-2); font-size: 36px; color: var(--text-dim); }
-	.meta { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
-	.t { font-weight: 700; font-size: 14px; }
+	.meta { padding: 10px 11px; display: flex; flex-direction: column; gap: 4px; }
+	.t { font-weight: 700; font-size: 13px; line-height: 1.25; }
 	.t-btn { padding: 0; border: 0; background: none; color: var(--text); text-align: left; cursor: pointer; font-family: inherit; }
 	.t-btn:hover { color: var(--accent); }
 	.s { color: var(--text-muted); font-size: 12px; }
-	.o { color: var(--text-muted); font-size: 12px; line-height: 1.4; margin: 6px 0 0; }
-	.rm { margin-top: 8px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+	.o { color: var(--text-muted); font-size: 11.5px; line-height: 1.35; margin: 5px 0 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+	.rm { margin-top: 8px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 5px 8px; border-radius: 7px; cursor: pointer; font-size: 11.5px; }
 	.card.seen img { opacity: 0.5; }
 	.seen-badge { position: absolute; top: 6px; left: 6px; background: var(--accent); color: var(--accent-text); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
 	.stars { display: flex; gap: 1px; margin: 2px 0; }
 	.star { background: none; border: 0; padding: 0 1px; cursor: pointer; font-size: 16px; line-height: 1; color: var(--text-dim); transition: color 0.1s ease, transform 0.1s ease; }
 	.star.lit { color: #f5b301; }
 	.star:hover { transform: scale(1.18); }
-	.card-actions { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+	.card-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
 	.card-actions .rm { margin-top: 0; }
-	.seen-btn { background: transparent; border: 1px solid var(--border-strong); color: var(--text); padding: 6px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+	.seen-btn { background: transparent; border: 1px solid var(--border-strong); color: var(--text); padding: 5px 8px; border-radius: 7px; font-size: 11.5px; cursor: pointer; font-family: inherit; white-space: nowrap; }
 	.seen-btn.on { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 	.rm:hover { color: #f87171; border-color: #f87171; }
 	.recs { margin-top: 30px; display: flex; flex-direction: column; gap: 24px; }
 	.rec-head { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
-	.rec-scroller { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
-	.rec-card { flex: 0 0 120px; width: 120px; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-family: inherit; color: var(--text); }
-	.rec-card img { width: 120px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 10px; display: block; border: 1px solid var(--border); transition: transform 0.15s ease; }
+	.rec-scroller { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+	.rec-card { width: 100%; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-family: inherit; color: var(--text); }
+	.rec-card img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 10px; display: block; border: 1px solid var(--border); transition: transform 0.15s ease; }
 	.rec-card:hover img { transform: translateY(-3px); }
-	.rec-noimg { width: 120px; aspect-ratio: 2 / 3; border-radius: 10px; background: var(--bg-card-2); display: grid; place-items: center; color: var(--text-dim); font-size: 24px; }
+	.rec-noimg { width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; background: var(--bg-card-2); display: grid; place-items: center; color: var(--text-dim); font-size: 24px; }
 	.rec-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; margin-top: 6px; line-height: 1.25; }
 </style>

@@ -1,8 +1,13 @@
 <script lang="ts">
 	import type { Provider } from '$lib/types';
+	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import Logo from './Logo.svelte';
-	import { toggleFavorite, favorites, editingProvider } from '$lib/stores/providers';
+	import { toggleFavorite, favorites, editingProvider, detailProviderId } from '$lib/stores/providers';
+	import { settings } from '$lib/stores/settings';
+	import { reachability, checkProvider } from '$lib/stores/reachability';
 	import { openProvider } from '$lib/embedded';
+	import { goto } from '$app/navigation';
 	import { faviconCache } from '$lib/stores/favicons';
 	import { faviconDomain } from '$lib/providerVisual';
 
@@ -10,6 +15,14 @@
 	export let size: 'large' | 'compact' = 'large';
 
 	$: fav = $favorites.includes(provider.id);
+	$: showReach = $settings.appearance.showReachability;
+	$: status = $reachability[provider.id] ?? 'unknown';
+
+	onMount(() => {
+		if (get(settings).appearance.showReachability) {
+			void checkProvider({ id: provider.id, url: provider.url });
+		}
+	});
 
 	// Kartenfarbe: bei Favicon-Anbietern aus dem Logo abgeleitet (sofern nicht manuell gewählt).
 	$: dom = faviconDomain(provider);
@@ -32,6 +45,12 @@
 		editingProvider.set(provider);
 	}
 
+	function detailClick(e: Event) {
+		e.stopPropagation();
+		detailProviderId.set(provider.id);
+		goto('/provider');
+	}
+
 	function onKey(e: KeyboardEvent) {
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault();
@@ -51,7 +70,7 @@
 	onkeydown={onKey}
 	title={`${provider.name} öffnen`}
 >
-	<span class="badge">{provider.quality}</span>
+	<span class="badge">{#if showReach && status !== 'unknown'}<span class="st-dot" data-st={status} title={status === 'online' ? 'Erreichbar' : status === 'offline' ? 'Nicht erreichbar' : 'Prüfe…'}></span>{/if}{provider.quality}</span>
 
 	<button
 		class="bookmark"
@@ -69,6 +88,10 @@
 
 	<button class="edit" onclick={editClick} aria-label="Karte bearbeiten" title="Karte bearbeiten">
 		<svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-8 8H3v-3l8-8z"/></svg>
+	</button>
+
+	<button class="detail" onclick={detailClick} aria-label="Anbieter-Details" title="Details & Statistik">
+		<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.4"/><path d="M8 7.2v3.4M8 5.2v.1" stroke-linecap="round"/></svg>
 	</button>
 
 	<div class="logo-wrap"><Logo {provider} size={size === 'large' ? 64 : 44} /></div>
@@ -108,12 +131,18 @@
 	}
 	.badge {
 		position: absolute; top: 10px; left: 10px;
+		display: inline-flex; align-items: center; gap: 5px;
 		background: rgba(0, 0, 0, 0.45);
 		backdrop-filter: blur(6px);
 		font-size: 10px; font-weight: 700;
 		padding: 3px 8px; border-radius: 999px;
 		letter-spacing: 0.05em;
 	}
+	.st-dot { width: 7px; height: 7px; border-radius: 50%; background: #888; flex-shrink: 0; }
+	.st-dot[data-st="online"] { background: #2ecc71; box-shadow: 0 0 5px rgba(46, 204, 113, 0.8); }
+	.st-dot[data-st="offline"] { background: #e0556b; }
+	.st-dot[data-st="checking"] { background: #f0a020; animation: stpulse 1s ease-in-out infinite; }
+	@keyframes stpulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 	.bookmark {
 		position: absolute; top: 8px; right: 8px;
 		width: 28px; height: 28px; border-radius: 8px;
@@ -136,6 +165,17 @@
 	}
 	.card:hover .edit { opacity: 1; }
 	.edit:hover { background: rgba(0, 0, 0, 0.55); }
+	.detail {
+		position: absolute; top: 76px; right: 8px;
+		width: 28px; height: 28px; border-radius: 8px;
+		background: rgba(0, 0, 0, 0.35);
+		border: 0; color: rgba(255, 255, 255, 0.85);
+		display: grid; place-items: center;
+		cursor: pointer; opacity: 0;
+		transition: opacity 0.15s, background 0.15s;
+	}
+	.card:hover .detail { opacity: 1; }
+	.detail:hover { background: rgba(0, 0, 0, 0.55); }
 	.logo-wrap { display: grid; place-items: center; flex: 1; padding: 8px 0; }
 	.meta { display: flex; flex-direction: column; gap: 2px; padding-top: 4px; }
 	.name { font-weight: 700; font-size: 15px; line-height: 1.1; }

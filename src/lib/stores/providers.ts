@@ -98,6 +98,8 @@ export function removeCustomProvider(id: string): void {
 
 // Welche Karte wird gerade im Karteneditor bearbeitet (null = Editor zu).
 export const editingProvider = writable<Provider | null>(null);
+// Aktuell für die Detailseite (/provider) ausgewählter Anbieter.
+export const detailProviderId = writable<string | null>(null);
 
 // Bearbeitet eine bestehende Karte (Standard ODER eigener Anbieter).
 export function updateProvider(id: string, patch: Partial<Provider>): void {

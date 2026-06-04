@@ -33,7 +33,8 @@ export const DEFAULT_SETTINGS: Settings = {
 		cardHoverZoom: true,
 		animations: true,
 		language: 'de',
-		backgroundOpacity: 100
+		backgroundOpacity: 100,
+		showReachability: true
 	},
 	clock: { enabled: false, type: 'digital', hour12: false, showSeconds: true, color: '#ffffff', transparency: 50, size: 36, x: null, y: null },
 	notifications: {

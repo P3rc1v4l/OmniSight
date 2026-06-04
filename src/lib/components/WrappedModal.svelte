@@ -3,6 +3,7 @@
 	import { providers, favorites } from '$lib/stores/providers';
 	import { watchlist } from '$lib/stores/watchlist';
 	import { achievements } from '$lib/stores/achievements';
+	import { settings } from '$lib/stores/settings';
 	import { t } from '$lib/i18n';
 
 	let { onClose }: { onClose: () => void } = $props();
@@ -49,12 +50,76 @@
 		return { unlocked: a.filter((x) => x.unlocked).length, total: a.length };
 	});
 
+	// Wochen-Heatmap: tägliche Sehzeit (über alle Anbieter summiert).
+	const locale = $derived($settings.appearance.language === 'en' ? 'en-US' : 'de-DE');
+	const weekdayLabels = $derived($settings.appearance.language === 'en' ? ['Mon', '', 'Wed', '', 'Fri', '', ''] : ['Mo', '', 'Mi', '', 'Fr', '', '']);
+	function ymd2(d: Date): string {
+		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+	}
+	const dailyTotals = $derived.by(() => {
+		const out: Record<string, number> = {};
+		for (const [date, byProv] of Object.entries($watchLog)) {
+			let s = 0;
+			for (const v of Object.values(byProv)) s += v;
+			out[date] = s;
+		}
+		return out;
+	});
+	type Cell = { date: string; ms: number; level: number; inRange: boolean };
+	const heat = $derived.by(() => {
+		const todayStr = ymd2(new Date());
+		let startD: Date, endD: Date;
+		if (isAll) {
+			endD = new Date();
+			startD = new Date();
+			startD.setDate(startD.getDate() - (26 * 7 - 1)); // letzte 26 Wochen
+		} else {
+			startD = new Date(`${period}-01-01T00:00:00`);
+			endD = new Date(`${period}-12-31T00:00:00`);
+		}
+		const startStr = ymd2(startD);
+		const endStr = ymd2(endD);
+		// Gitter auf volle Wochen ausrichten (Mo–So).
+		const gridStart = new Date(startD);
+		gridStart.setDate(gridStart.getDate() - ((gridStart.getDay() + 6) % 7));
+		const gridEnd = new Date(endD);
+		gridEnd.setDate(gridEnd.getDate() + (6 - ((gridEnd.getDay() + 6) % 7)));
+		const weeks: { label: string; cells: Cell[] }[] = [];
+		const cur = new Date(gridStart);
+		let prevMonth = -1;
+		while (cur <= gridEnd) {
+			const cells: Cell[] = [];
+			let label = '';
+			for (let i = 0; i < 7; i++) {
+				if (i === 0) {
+					const mo = cur.getMonth();
+					if (mo !== prevMonth) { label = cur.toLocaleDateString(locale, { month: 'short' }); prevMonth = mo; }
+				}
+				const ds = ymd2(cur);
+				const inRange = ds >= startStr && ds <= endStr && ds <= todayStr;
+				const ms = inRange ? (dailyTotals[ds] ?? 0) : 0;
+				let level = 0;
+				if (inRange && ms > 0) { const min = ms / 60000; level = min < 30 ? 1 : min < 60 ? 2 : min < 120 ? 3 : 4; }
+				cells.push({ date: ds, ms, level, inRange });
+				cur.setDate(cur.getDate() + 1);
+			}
+			weeks.push({ label, cells });
+		}
+		return weeks;
+	});
+	function cellTitle(c: Cell): string {
+		if (!c.inRange) return '';
+		const d = new Date(c.date + 'T00:00:00').toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
+		return c.ms > 0 ? `${d}: ${formatDuration(c.ms)}` : d;
+	}
+
 	function onKey(e: KeyboardEvent) {
 		if (e.key === 'Escape') onClose();
 	}
 </script>
 
 <svelte:window onkeydown={onKey} />
+
 
 <div class="overlay" onclick={onClose} role="presentation">
 	<div class="card" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
@@ -102,6 +167,38 @@
 					{/each}
 				</div>
 			{/if}
+
+			<div class="block">
+				<div class="block-label">{$t('wrapped.heatmap')}</div>
+				<div class="heat-wrap">
+					<div class="heat-days">
+						{#each weekdayLabels as wl}<span>{wl}</span>{/each}
+					</div>
+					<div class="heat-cols">
+						<div class="heat-months">
+							{#each heat as w}<span class="heat-mo">{w.label}</span>{/each}
+						</div>
+						<div class="heat-grid">
+							{#each heat as w}
+								<div class="heat-col">
+									{#each w.cells as c}
+										<span class="heat-cell" class:out={!c.inRange} data-lv={c.level} title={cellTitle(c)}></span>
+									{/each}
+								</div>
+							{/each}
+						</div>
+					</div>
+				</div>
+				<div class="heat-legend">
+					<span>{$t('wrapped.heatLess')}</span>
+					<span class="heat-cell" data-lv="0"></span>
+					<span class="heat-cell" data-lv="1"></span>
+					<span class="heat-cell" data-lv="2"></span>
+					<span class="heat-cell" data-lv="3"></span>
+					<span class="heat-cell" data-lv="4"></span>
+					<span>{$t('wrapped.heatMore')}</span>
+				</div>
+			</div>
 
 			<div class="ach">🏆 {$t('wrapped.achievementsLine', { n: ach.unlocked, total: ach.total })}</div>
 		{/if}
@@ -160,5 +257,21 @@
 	.pfill { height: 100%; border-radius: 999px; }
 	.ptime { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 	.ach { margin-top: 18px; padding: 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); font-weight: 600; font-size: 14px; }
+	.heat-wrap { display: flex; gap: 6px; align-items: flex-start; }
+	.heat-days { display: flex; flex-direction: column; gap: 3px; padding-top: 16px; flex-shrink: 0; }
+	.heat-days span { height: 11px; line-height: 11px; font-size: 9px; color: var(--text-dim); }
+	.heat-cols { overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+	.heat-months { display: flex; height: 13px; }
+	.heat-mo { width: 14px; font-size: 9px; color: var(--text-dim); white-space: nowrap; overflow: visible; }
+	.heat-grid { display: flex; gap: 3px; }
+	.heat-col { display: flex; flex-direction: column; gap: 3px; }
+	.heat-cell { width: 11px; height: 11px; border-radius: 2.5px; background: color-mix(in srgb, var(--accent) 0%, var(--bg-card-2)); }
+	.heat-cell[data-lv="1"] { background: color-mix(in srgb, var(--accent) 30%, var(--bg-card-2)); }
+	.heat-cell[data-lv="2"] { background: color-mix(in srgb, var(--accent) 55%, var(--bg-card-2)); }
+	.heat-cell[data-lv="3"] { background: color-mix(in srgb, var(--accent) 78%, var(--bg-card-2)); }
+	.heat-cell[data-lv="4"] { background: var(--accent); }
+	.heat-cell.out { background: transparent; }
+	.heat-legend { display: flex; align-items: center; gap: 4px; margin-top: 10px; font-size: 10px; color: var(--text-dim); }
+	.heat-legend .heat-cell { width: 10px; height: 10px; }
 	.share { margin: 16px 0 0; color: var(--text-dim); font-size: 12px; }
 </style>
