@@ -1,6 +1,7 @@
-// Grobe Erreichbarkeits-Anzeige pro Anbieter. Wir laden das Favicon der Domain
-// (Bilder unterliegen keiner CORS-Beschränkung): lädt es -> erreichbar, Fehler/
-// Timeout -> nicht erreichbar. Das ist KEIN Login-/Service-Status, nur ein Ping.
+// Grobe Erreichbarkeits-Anzeige pro Anbieter. Wir fragen server-seitig (Rust) per
+// HTTP an: JEDE Antwort -> erreichbar, Verbindungsfehler/Timeout -> nicht erreichbar.
+// Das ist KEIN Login-/Service-Status, nur ein Ping. Außerhalb der Desktop-App
+// (kein Tauri) liefern wir 'unknown' statt einer Farbe – so wird nichts fälschlich rot.
 import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
 
@@ -17,35 +18,15 @@ function deviceOffline(): boolean {
 	return browser && typeof navigator !== 'undefined' && navigator.onLine === false;
 }
 
-function originOf(url: string): string | null {
+// HTTP-Erreichbarkeit über den Rust-Befehl. null = unbekannt (kein Tauri / Fehler).
+async function probeReachable(url: string): Promise<boolean | null> {
+	if (!browser) return null;
 	try {
-		return new URL(url).origin;
+		const { invoke } = await import('@tauri-apps/api/core');
+		return await invoke<boolean>('check_reachable', { url });
 	} catch {
-		return null;
+		return null; // kein Tauri -> unbekannt (nicht fälschlich rot)
 	}
-}
-
-function pingFavicon(origin: string, timeoutMs = 6000): Promise<boolean> {
-	return new Promise((resolve) => {
-		if (typeof Image === 'undefined') {
-			resolve(false);
-			return;
-		}
-		const img = new Image();
-		let done = false;
-		const finish = (ok: boolean) => {
-			if (done) return;
-			done = true;
-			clearTimeout(timer);
-			img.onload = null;
-			img.onerror = null;
-			resolve(ok);
-		};
-		const timer = setTimeout(() => finish(false), timeoutMs);
-		img.onload = () => finish(true);
-		img.onerror = () => finish(false);
-		img.src = `${origin}/favicon.ico?_omni=${Date.now()}`;
-	});
 }
 
 export async function checkProvider(p: { id: string; url: string }, force = false): Promise<void> {
@@ -58,8 +39,7 @@ export async function checkProvider(p: { id: string; url: string }, force = fals
 		reachability.update((s) => ({ ...s, [p.id]: 'no-net' }));
 		return;
 	}
-	const origin = originOf(p.url);
-	if (!origin) {
+	if (!p.url) {
 		reachability.update((s) => ({ ...s, [p.id]: 'unknown' }));
 		return;
 	}
@@ -68,9 +48,14 @@ export async function checkProvider(p: { id: string; url: string }, force = fals
 	if (cur !== 'online' && cur !== 'offline') {
 		reachability.update((s) => ({ ...s, [p.id]: 'checking' }));
 	}
-	const ok = await pingFavicon(origin);
-	reachability.update((s) => ({ ...s, [p.id]: ok ? 'online' : 'offline' }));
-	reachabilityCheckedAt.update((s) => ({ ...s, [p.id]: Date.now() }));
+	const ok = await probeReachable(p.url);
+	reachability.update((s) => ({
+		...s,
+		[p.id]: ok === null ? 'unknown' : ok ? 'online' : 'offline'
+	}));
+	if (ok !== null) {
+		reachabilityCheckedAt.update((s) => ({ ...s, [p.id]: Date.now() }));
+	}
 }
 
 export function checkProviders(list: { id: string; url: string }[], force = false): void {
