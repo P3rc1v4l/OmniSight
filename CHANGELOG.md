@@ -11,6 +11,25 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.75.0] – 2026-06-05
+
+### uBlock Origin wird automatisch gebündelt
+- Der Release-Workflow lädt beim Build die **neueste uBlock-Origin-Erweiterung** herunter und entpackt sie nach `src-tauri/extensions/uBlock0.chromium/`. Tauri bündelt sie als Ressource; Anbieter mit aktiviertem Werbeblocker-Schalter (seit 0.74.0) laden sie dann im eingebetteten Stream.
+- Schritt ist **ausfallsicher** (`continue-on-error`): ein Download-Problem blockiert den Release nicht.
+- `.gitignore` hält die heruntergeladenen Erweiterungs-Dateien aus dem Repo heraus (nur die README bleibt). uBlock aktualisiert seine Filterlisten selbst.
+
+---
+
+## [0.74.0] – 2026-06-05
+
+### Werbeblocker pro Anbieter (WebView2-Erweiterungen, nur Windows)
+- Neuer Schalter **„Werbeblocker (nur Windows)"** im Karten-Editor – frei pro Anbieter wählbar (Standard: aus).
+- Eingebettete Streams können daraus eine Chromium-Erweiterung (z. B. uBlock Origin) laden: Rust aktiviert für aktivierte Anbieter `browser_extensions_enabled` + `extensions_path` und lädt aus dem mitgelieferten Ordner `src-tauri/extensions/` (nur wenn dort Erweiterungen liegen).
+- `extensions/`-Ordner als App-Ressource gebündelt, inkl. Anleitung (README), wie uBlock Origin als entpackte Erweiterung abgelegt wird. uBlock aktualisiert seine Filterlisten selbst.
+- Hinweis: 🦀 nativer Teil – per CI bauen/testen; Wirkung nur im eingebetteten Modus; Release-Build-Verhalten von WebView2-Erweiterungen muss am echten Build geprüft werden.
+
+---
+
 ## [0.73.0] – 2026-06-05
 
 ### Werkzeug (keine App-Änderung)

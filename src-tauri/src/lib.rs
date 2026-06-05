@@ -123,6 +123,7 @@ async fn create_embedded_webview(
     y: f64,
     width: f64,
     height: f64,
+    adblock: bool,
 ) -> Result<(), String> {
     use tauri::webview::WebviewBuilder;
     use tauri::{LogicalPosition, LogicalSize, Manager, WebviewUrl};
@@ -132,7 +133,8 @@ async fn create_embedded_webview(
         .ok_or_else(|| "Hauptfenster nicht gefunden".to_string())?;
     let parsed: tauri::Url = url.parse().map_err(|_| "Ungültige URL".to_string())?;
 
-    let builder = WebviewBuilder::new(&label, WebviewUrl::External(parsed))
+    #[allow(unused_mut)]
+    let mut builder = WebviewBuilder::new(&label, WebviewUrl::External(parsed))
         .on_navigation(|u| {
             // Nur normale Web-Navigation zulassen.
             matches!(u.scheme(), "http" | "https" | "about" | "data" | "blob")
@@ -141,6 +143,21 @@ async fn create_embedded_webview(
             // Downloads in eingebetteten Streams blockieren.
             false
         });
+
+    // Optionaler Werbeblocker pro Anbieter: WebView2-Browser-Erweiterungen aktivieren
+    // und aus dem Ressourcen-Ordner `extensions/` laden – nur unter Windows und nur,
+    // wenn dort tatsächlich (entpackte) Erweiterungen liegen. Standard ist aus.
+    #[cfg(target_os = "windows")]
+    if adblock {
+        if let Ok(res_dir) = app.path().resource_dir() {
+            let ext_dir = res_dir.join("extensions");
+            if ext_dir.is_dir() {
+                builder = builder
+                    .browser_extensions_enabled(true)
+                    .extensions_path(ext_dir);
+            }
+        }
+    }
 
     window
         .add_child(
