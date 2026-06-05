@@ -52,6 +52,30 @@ jobs:
         # es muss also KEINE package-lock.json im Repo liegen.
         run: npm install
 
+      - name: uBlock Origin für eingebetteten Werbeblocker holen
+        # Holt die neueste uBlock-Origin-Erweiterung (entpackt) nach
+        # src-tauri/extensions/. Wird dann von Tauri als Ressource gebündelt
+        # und für Anbieter mit aktiviertem Werbeblocker-Schalter geladen.
+        # continue-on-error: ein Download-Hänger blockiert NICHT den Release;
+        # dann wird eben ohne gebündelten Werbeblocker gebaut.
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $rel = Invoke-RestMethod -Uri 'https://api.github.com/repos/gorhill/uBlock/releases/latest' -Headers @{ 'User-Agent' = 'omnisight-ci' }
+          Write-Host "uBlock Origin Version: $($rel.tag_name)"
+          $asset = $rel.assets | Where-Object { $_.name -like '*.chromium.zip' } | Select-Object -First 1
+          if (-not $asset) { throw 'Kein .chromium.zip-Asset im Release gefunden' }
+          Write-Host "Lade: $($asset.browser_download_url)"
+          Invoke-WebRequest -Uri $asset.browser_download_url -OutFile ublock.zip -Headers @{ 'User-Agent' = 'omnisight-ci' }
+          New-Item -ItemType Directory -Force -Path src-tauri/extensions | Out-Null
+          Expand-Archive -Path ublock.zip -DestinationPath src-tauri/extensions -Force
+          Get-ChildItem src-tauri/extensions
+          if (Test-Path 'src-tauri/extensions/uBlock0.chromium/manifest.json') {
+            Write-Host 'OK: uBlock0.chromium/manifest.json vorhanden'
+          } else {
+            Write-Host 'WARNUNG: manifest.json nicht gefunden – Ordnerstruktur prüfen'
+          }
+
       - name: Build + Release erstellen
         uses: tauri-apps/tauri-action@v0
         env:
