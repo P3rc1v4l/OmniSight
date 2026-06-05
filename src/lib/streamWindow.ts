@@ -22,41 +22,25 @@ export async function openInWindow(p: Provider): Promise<void> {
 			return;
 		}
 
-		// Getrenntes Daten-Verzeichnis je Profil (Windows/WebView2). Absoluter,
-		// beschreibbarer Pfad im App-Datenordner.
-		let dataDirectory: string | undefined;
-		try {
-			const { appLocalDataDir, join } = await import('@tauri-apps/api/path');
-			dataDirectory = await join(await appLocalDataDir(), 'webviews', pid);
-		} catch {
-			dataDirectory = undefined;
-		}
-
-		const win = new WebviewWindow(label, {
+		// Erzeugung in Rust: eigenes Daten-Verzeichnis pro Profil, Navigations-/
+		// Download-Schutz, optional Werbeblocker-Erweiterung und Passwort-Autofill.
+		const { invoke } = await import('@tauri-apps/api/core');
+		await invoke('open_stream_window', {
+			label,
 			url: p.url,
 			title: `${p.name} – OmniSight`,
-			width: 1280,
-			height: 800,
-			resizable: true,
-			decorations: true,
-			focus: true,
-			...(dataDirectory ? { dataDirectory } : {})
+			adblock: !!p.adblock,
+			profileId: pid
 		});
+		incrementOpenCount();
+		startSession(p.id);
 
-		win.once('tauri://created', () => {
-			incrementOpenCount();
-			startSession(p.id);
-			// Passwort-Speicherung/Autofill auch im Fenster-Modus aktivieren (Windows).
-			import('@tauri-apps/api/core')
-				.then(({ invoke }) => invoke('enable_webview_autofill', { label }))
-				.catch(() => {});
-		});
-		win.once('tauri://destroyed', () => endSession(p.id));
-		win.once('tauri://error', (e: unknown) =>
-			console.error(`[stream-window] ${p.name}:`, e)
-		);
+		// endSession, wenn das Fenster geschlossen wird.
+		const w = await WebviewWindow.getByLabel(label);
+		w?.once('tauri://destroyed', () => endSession(p.id));
 	} catch (e) {
 		// Browser-Vorschau (kein Tauri): Fallback in neuem Tab, Tracking simulieren.
+		console.warn('[stream-window]', e);
 		incrementOpenCount();
 		startSession(p.id);
 		window.open(p.url, '_blank', 'noopener');

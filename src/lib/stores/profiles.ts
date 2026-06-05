@@ -134,7 +134,17 @@ export async function switchProfile(profileId: string): Promise<void> {
 	const oldPid = get(activeProfileId);
 	// Laufende Streamzeit dem ALTEN Profil gutschreiben (pid noch alt).
 	resetSessions();
+	// Laufende Streams des alten Profils schließen: Fenster UND eingebettete Webviews.
 	if (oldPid) await closeProfileWindows(oldPid);
+	if (browser) {
+		try {
+			const emb = await import('$lib/embedded');
+			await emb.closeEmbedded();
+			await emb.closeAllBackgroundStreams();
+		} catch {
+			/* Browser-Vorschau */
+		}
+	}
 	activeProfileId.set(profileId);
 	await loadProfileData(profileId);
 }

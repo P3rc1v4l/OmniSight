@@ -137,7 +137,7 @@
 				<label class="f"><span>Werbeblocker (nur Windows)</span>
 					<div class="crow">
 						<input type="checkbox" bind:checked={adblock} />
-						<span class="hint" style="margin:0">Lädt für diesen Anbieter die WebView2-Werbeblocker-Erweiterung – sofern unter <code>src-tauri/extensions</code> installiert. Wirkt nur im eingebetteten Modus.</span>
+						<span class="hint" style="margin:0">Öffnet diesen Anbieter in einem <strong>eigenen Fenster</strong> mit Werbeblocker-Erweiterung (uBlock) und eigenem Login pro Profil. Nur Windows.</span>
 					</div>
 				</label>
 				<div class="f">
