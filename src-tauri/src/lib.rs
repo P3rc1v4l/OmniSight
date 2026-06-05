@@ -241,20 +241,28 @@ async fn open_stream_window(
         builder = builder.data_directory(base.join("webviews").join(&profile_id));
     }
 
-    // Werbeblocker: Erweiterungen aus dem Ressourcen-Ordner laden (nur Windows, nur falls vorhanden).
+    // Twitch erkennen – nur dort wird BetterTTV geladen.
+    let is_twitch = url.contains("twitch.tv");
+
+    // Erweiterungen laden (nur Windows): Twitch -> Twitch-Ordner (uBlock + BetterTTV);
+    // sonst, falls Werbeblocker aktiv -> Standard-Ordner (nur uBlock).
     #[cfg(target_os = "windows")]
-    if adblock {
+    if adblock || is_twitch {
         if let Ok(res) = app.path().resource_dir() {
-            let ext = res.join("extensions");
-            if ext.is_dir() {
+            let dir = if is_twitch {
+                res.join("extensions_twitch")
+            } else {
+                res.join("extensions")
+            };
+            if dir.is_dir() {
                 builder = builder
                     .browser_extensions_enabled(true)
-                    .extensions_path(ext);
+                    .extensions_path(dir);
             }
         }
     }
     #[cfg(not(target_os = "windows"))]
-    let _ = adblock;
+    let _ = (adblock, is_twitch);
 
     let win = builder.build().map_err(|e| e.to_string())?;
 

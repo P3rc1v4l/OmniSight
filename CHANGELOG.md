@@ -11,6 +11,30 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.84.0] – 2026-06-05
+
+### Gemerkt-Seite: Wochen-Releases an den Karten statt Banner
+- Das Banner „Diese Woche" oben wurde entfernt. Stattdessen werden die **betroffenen Titel-Karten hervorgehoben**: Akzent-Rahmen + Leucht-Schatten und ein kleines Badge oben rechts mit dem **Release-Tag** (bzw. „Heute" am Erscheinungstag).
+- Logik unverändert (Kalenderwoche Mo–So); nur die Darstellung wandert vom Banner direkt an die Karte.
+
+---
+
+## [0.83.0] – 2026-06-05
+
+### BetterTTV für Twitch
+- Twitch-Anbieter öffnen jetzt im Stream-Fenster mit **BetterTTV** und Werbeblockung. BetterTTV wird **nur** für Twitch geladen (eigener Ressourcen-Ordner `extensions_twitch/`, der nur fürs Twitch-Fenster als Erweiterungs-Pfad dient).
+- Werbeblocker-Anbieter laden weiterhin nur uBlock; Twitch lädt uBlock + BetterTTV.
+- CI lädt BetterTTV (Chrome-Build) und kopiert uBlock in den Twitch-Ordner (ausfallsicher).
+
+---
+
+## [0.82.0] – 2026-06-05
+
+### Profilwechsel führt zurück zur Übersicht
+- Wer beim Profilwechsel gerade einen Stream ansieht, wird jetzt automatisch zur Startseite/Übersicht zurückgeführt (zusammen mit dem Schließen der Streams aus 0.81.0).
+
+---
+
 ## [0.81.0] – 2026-06-05
 
 ### Profilwechsel schließt laufende Streams
