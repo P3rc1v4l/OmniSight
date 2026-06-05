@@ -11,6 +11,13 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.72.1] – 2026-06-05
+
+### Build-Fix
+- Kompilierfehler aus 0.72.0 behoben: Die DPI-Typen (`LogicalPosition`/`LogicalSize`) liegen direkt unter `tauri::`, nicht unter `tauri::dpi`. Der Navigations-/Download-Schutz aus 0.72.0 baut damit jetzt durch.
+
+---
+
 ## [0.72.0] – 2026-06-04
 
 ### Eingebettete Streams: Navigations- & Download-Schutz

@@ -124,9 +124,8 @@ async fn create_embedded_webview(
     width: f64,
     height: f64,
 ) -> Result<(), String> {
-    use tauri::dpi::{LogicalPosition, LogicalSize};
     use tauri::webview::WebviewBuilder;
-    use tauri::{Manager, WebviewUrl};
+    use tauri::{LogicalPosition, LogicalSize, Manager, WebviewUrl};
 
     let window = app
         .get_window("main")
