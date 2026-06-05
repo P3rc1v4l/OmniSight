@@ -1,7 +1,7 @@
 # OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.67.0
+Stand: v0.70.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -57,6 +57,16 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.70.0
+- 🦀 **Sicherheits-Härtung:** Berechtigungen nur noch fürs Hauptfenster (Stream-/Embed-Webviews ohne Rechte, Least Privilege); Favicon-Abruf auf 2 MB begrenzt. Per CI bauen & testen.
+- ⏳ Offene Sicherheits-Vorschläge: CSP setzen (2), Cargo.lock committen (3, manuell), Navigation der Stream-Seiten absichern (6), zufälliger PIN-Salt pro Profil (4).
+
+## 🆕 v0.69.0
+- 🦀 **Single-Instance:** Zweiter Programmstart startet keine neue Instanz, sondern holt die laufende (z. B. aus dem Tray) in den Vordergrund. Keine doppelten Tray-Icons mehr. Per CI bauen & testen.
+
+## 🆕 v0.68.0
+- 🦀 **Erreichbarkeit zuverlässiger:** echte HTTP-Anfrage in Rust (`check_reachable`) statt Favicon-Ping; jede Antwort = erreichbar, nur Verbindungsfehler = rot. Außerhalb von Tauri „unbekannt" statt rot. Per CI bauen & testen.
 
 ## 🆕 v0.67.0
 - 🦀 **Interne Kennungen umbenannt (mit Migration):** Bundle-Identifier `com.p3rc1v4l.omnisight`, Store-Datei `omnisight.json`, localStorage `omnisight:*`. Rust kopiert beim ersten Start die alten App-Daten in den neuen Ordner; localStorage liest alte Schlüssel als Fallback. PIN-Salt + Discord-Asset-Key bewusst beibehalten (nicht migrierbar). Per CI bauen & testen.

@@ -28,7 +28,20 @@ pub async fn fetch_favicon(url: String) -> Result<String, String> {
         .unwrap_or("image/png")
         .to_string();
 
+    // Schutz vor riesigen Antworten (Speicher): Favicons sind klein. Wir lehnen
+    // zu große Antworten ab – erst über die angekündigte Länge, dann zur Sicherheit
+    // noch einmal anhand der tatsächlich gelesenen Größe.
+    const MAX_FAVICON_BYTES: u64 = 2 * 1024 * 1024; // 2 MB
+    if let Some(len) = resp.content_length() {
+        if len > MAX_FAVICON_BYTES {
+            return Err("Favicon zu groß".into());
+        }
+    }
+
     let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
+    if bytes.len() as u64 > MAX_FAVICON_BYTES {
+        return Err("Favicon zu groß".into());
+    }
     if bytes.is_empty() {
         return Err("Favicon ist leer".into());
     }

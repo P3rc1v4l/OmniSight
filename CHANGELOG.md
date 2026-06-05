@@ -11,6 +11,29 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.70.0] – 2026-06-04
+
+### Sicherheits-Härtung
+- **Strengere Berechtigungen (Least Privilege):** Die Tauri-Berechtigungen gelten jetzt **nur noch fürs Hauptfenster**. Eingebettete Anbieter-Webviews (`embed-*`) und Stream-Fenster (`stream-*`) laden Fremd-Inhalte und bekommen **keinerlei** App-Berechtigungen mehr – selbst wenn eine eingebettete Seite manipuliert würde, käme sie nicht an OmniSights Funktionen. (Defense-in-Depth; die eingebetteten Webviews liefen ohnehin schon ohne IPC.)
+- **Favicon-Abruf begrenzt:** Antworten über 2 MB werden abgelehnt (erst per angekündigter Länge, dann anhand der tatsächlich gelesenen Größe), damit eine bösartige Favicon-URL den Speicher nicht zumüllen kann.
+
+---
+
+## [0.69.0] – 2026-06-04
+
+### Nur noch eine Instanz (kein doppeltes Tray-Icon mehr)
+- Liegt OmniSight im Infobereich (Tray) und du startest das Programm erneut, wird **keine zweite Instanz** mehr gestartet. Stattdessen holt die bereits laufende App ihr **Fenster zurück** (zeigen + in den Vordergrund), und der zweite Start beendet sich sofort. Damit häufen sich keine mehrfachen Tray-Icons / Prozesse mehr an.
+
+---
+
+## [0.68.0] – 2026-06-04
+
+### Erreichbarkeits-Anzeige zuverlässiger (keine falschen „rot")
+- Der Erreichbarkeits-Punkt prüft jetzt **server-seitig per echter HTTP-Anfrage** (in Rust), statt ein Favicon-Bild zu laden. **Jede** Antwort des Servers (auch 403/404) zählt als erreichbar – nur echte Verbindungs-/DNS-/Timeout-Fehler ergeben „rot". Damit verschwinden die falschen roten Punkte bei Anbietern, die kein `/favicon.ico` ausliefern.
+- Außerhalb der Desktop-App (Web-Vorschau ohne Tauri) wird der Status als **unbekannt** (kein Punkt) angezeigt, statt fälschlich „rot".
+
+---
+
 ## [0.67.0] – 2026-06-04
 
 ### Interne Kennungen umbenannt – mit Daten-Migration

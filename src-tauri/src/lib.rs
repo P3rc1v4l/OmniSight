@@ -110,6 +110,38 @@ fn webview2_version() -> Result<String, String> {
     tauri::webview_version().map_err(|e| e.to_string())
 }
 
+/// Grobe Erreichbarkeitsprüfung einer Anbieter-URL. JEDE HTTP-Antwort (auch 403/404)
+/// bedeutet „Server erreichbar"; nur Verbindungs-/DNS-/Timeout-Fehler gelten als
+/// nicht erreichbar. Das ist KEIN Login-/Service-Status. Server-seitig in Rust, daher
+/// kein CORS/CSP und kein falsches „rot", nur weil ein Favicon fehlt.
+#[tauri::command]
+async fn check_reachable(url: String) -> bool {
+    let client = match reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(8))
+        .redirect(reqwest::redirect::Policy::limited(5))
+        .build()
+    {
+        Ok(c) => c,
+        Err(_) => return false,
+    };
+    // Erst HEAD (sparsam); manche Server mögen kein HEAD -> dann GET als Rückfall.
+    if client
+        .head(&url)
+        .header("User-Agent", "Mozilla/5.0 (OmniSight)")
+        .send()
+        .await
+        .is_ok()
+    {
+        return true;
+    }
+    client
+        .get(&url)
+        .header("User-Agent", "Mozilla/5.0 (OmniSight)")
+        .send()
+        .await
+        .is_ok()
+}
+
 /// Schaltet einen eingebetteten Stream (per Webview-Label) stumm bzw. wieder laut.
 /// Tauri bietet kein direktes Audio-Mute, daher setzen wir im Webview alle
 /// <video>/<audio>-Elemente auf muted und beobachten DOM-Änderungen mit, weil
@@ -179,6 +211,13 @@ pub fn run() {
         std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", combined.trim());
     }
     tauri::Builder::default()
+        // Single-Instance MUSS als erstes Plugin registriert werden: Ein zweiter
+        // Programmstart (z. B. während die App im Tray liegt) startet KEINE neue
+        // Instanz, sondern meldet sich hier bei der laufenden – wir holen das Fenster
+        // zurück. Verhindert mehrere Tray-Icons / doppelte Prozesse.
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            show_main(app);
+        }))
         // window-state speichert Position/Größe automatisch und stellt sie beim
         // nächsten Start wieder her. Erststart läuft maximiert (siehe tauri.conf.json).
         .plugin(tauri_plugin_window_state::Builder::default().build())
@@ -273,6 +312,7 @@ pub fn run() {
             webview_set_volume,
             webview_set_paused,
             webview2_version,
+            check_reachable,
             set_close_to_tray,
         ])
         .run(tauri::generate_context!())
