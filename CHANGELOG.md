@@ -11,6 +11,14 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.76.0] – 2026-06-05
+
+### Kritischer Fix: CSP blockierte Tauris IPC
+- Die in 0.71.0 eingeführte CSP verbot `connect-src` zu `http://ipc.localhost` – dadurch scheiterten Backend-Aufrufe (u. a. das Laden des Stores), was die Oberfläche einfrieren ließ (Knöpfe ohne Wirkung, kein Anbieterwechsel).
+- `connect-src` um `ipc:` und `http://ipc.localhost` ergänzt (plus Asset-Protokoll vorsorglich in `img-src`/`connect-src`). Restliche Härtung bleibt erhalten.
+
+---
+
 ## [0.75.0] – 2026-06-05
 
 ### uBlock Origin wird automatisch gebündelt
