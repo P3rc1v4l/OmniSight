@@ -74,6 +74,29 @@ jobs:
             Write-Host 'WARNUNG: manifest.json nicht gefunden – Ordnerstruktur prüfen'
           }
 
+      - name: BetterTTV (nur Twitch) + Twitch-Erweiterungsordner
+        # Eigener Ordner extensions_twitch/, der NUR fürs Twitch-Fenster geladen wird:
+        # enthält BetterTTV und (für Werbeblockung auf Twitch) eine Kopie von uBlock.
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path src-tauri/extensions_twitch | Out-Null
+          if (Test-Path 'src-tauri/extensions/uBlock0.chromium') {
+            Copy-Item -Recurse -Force 'src-tauri/extensions/uBlock0.chromium' 'src-tauri/extensions_twitch/uBlock0.chromium'
+          }
+          $rel = Invoke-RestMethod -Uri 'https://api.github.com/repos/night/BetterTTV/releases/latest' -Headers @{ 'User-Agent' = 'omnisight-ci' }
+          Write-Host "BetterTTV Version: $($rel.tag_name)"
+          $asset = $rel.assets | Where-Object { $_.name -match '(?i)chrome' -and $_.name -like '*.zip' } | Select-Object -First 1
+          if ($asset) {
+            Write-Host "Lade: $($asset.browser_download_url)"
+            Invoke-WebRequest -Uri $asset.browser_download_url -OutFile bttv.zip -Headers @{ 'User-Agent' = 'omnisight-ci' }
+            New-Item -ItemType Directory -Force -Path src-tauri/extensions_twitch/betterttv | Out-Null
+            Expand-Archive -Path bttv.zip -DestinationPath src-tauri/extensions_twitch/betterttv -Force
+          } else {
+            Write-Host 'WARNUNG: kein Chrome-.zip-Asset bei BetterTTV gefunden – Twitch bekommt vorerst nur uBlock.'
+          }
+          Get-ChildItem -Recurse -Depth 1 src-tauri/extensions_twitch
+
       - name: Build + Release erstellen
         uses: tauri-apps/tauri-action@v0
         env:
