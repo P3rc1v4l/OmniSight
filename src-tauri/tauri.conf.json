@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "OmniSight",
-  "version": "0.79.0",
+  "version": "0.80.0",
   "identifier": "com.p3rc1v4l.omnisight",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -34,6 +34,7 @@
     "active": true,
     "createUpdaterArtifacts": true,
     "targets": "all",
+    "resources": ["extensions"],
     "publisher": "Luka Kalinka",
     "copyright": "© 2026 Luka Kalinka. Alle Rechte vorbehalten.",
     "category": "Entertainment",

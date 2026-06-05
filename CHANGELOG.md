@@ -11,6 +11,16 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.80.0] – 2026-06-05
+
+### Werbeblocker im eigenen Stream-Fenster + Profil-Trennung
+- Anbieter mit aktiviertem Werbeblocker öffnen jetzt in einem **eigenen Top-Level-Fenster**, das in Rust erzeugt wird (neuer Befehl `open_stream_window`). Nur dort lassen sich WebView2-Erweiterungen (uBlock) laden – eingebettete Kind-Webviews können das technisch nicht.
+- Dieses Fenster hat ein **eigenes Daten-Verzeichnis pro Profil** → getrennte Logins/Passwörter/Cookies je Profil. Damit ist die Profil-Trennung für solche Streams gelöst (eingebettete Kind-Webviews teilen sich die Umgebung und können das nicht).
+- Enthält außerdem Navigations-/Download-Schutz und Passwort-Autofill.
+- uBlock-Download im CI und Ressourcen-Bündelung wieder aktiv.
+
+---
+
 ## [0.79.0] – 2026-06-05
 
 ### Autofill auch im Fenster-Modus

@@ -203,6 +203,70 @@ async fn enable_webview_autofill(app: tauri::AppHandle, label: String) -> Result
     Ok(())
 }
 
+/// Öffnet einen Anbieter in einem eigenen Top-Level-Fenster (in Rust erzeugt). Bietet,
+/// was die eingebettete Kind-Webview nicht kann: eigenes Daten-Verzeichnis pro Profil
+/// (getrennte Logins/Passwörter/Cookies je Profil) und – falls aktiviert – die
+/// WebView2-Werbeblocker-Erweiterung. Plus Navigations-/Download-Schutz und Autofill.
+#[tauri::command]
+async fn open_stream_window(
+    app: tauri::AppHandle,
+    label: String,
+    url: String,
+    title: String,
+    adblock: bool,
+    profile_id: String,
+) -> Result<(), String> {
+    use tauri::webview::WebviewWindowBuilder;
+    use tauri::{Manager, WebviewUrl};
+
+    // Fenster existiert schon? -> nur zeigen/fokussieren.
+    if let Some(existing) = app.get_webview_window(&label) {
+        let _ = existing.show();
+        let _ = existing.set_focus();
+        return Ok(());
+    }
+
+    let parsed: tauri::Url = url.parse().map_err(|_| "Ungültige URL".to_string())?;
+
+    let mut builder = WebviewWindowBuilder::new(&app, label.as_str(), WebviewUrl::External(parsed))
+        .title(title)
+        .inner_size(1280.0, 800.0)
+        .resizable(true)
+        .focused(true)
+        .on_navigation(|u| matches!(u.scheme(), "http" | "https" | "about" | "data" | "blob"))
+        .on_download(|_w, _e| false);
+
+    // Eigenes Daten-Verzeichnis pro Profil.
+    if let Ok(base) = app.path().app_local_data_dir() {
+        builder = builder.data_directory(base.join("webviews").join(&profile_id));
+    }
+
+    // Werbeblocker: Erweiterungen aus dem Ressourcen-Ordner laden (nur Windows, nur falls vorhanden).
+    #[cfg(target_os = "windows")]
+    if adblock {
+        if let Ok(res) = app.path().resource_dir() {
+            let ext = res.join("extensions");
+            if ext.is_dir() {
+                builder = builder
+                    .browser_extensions_enabled(true)
+                    .extensions_path(ext);
+            }
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
+    let _ = adblock;
+
+    let win = builder.build().map_err(|e| e.to_string())?;
+
+    // Passwort-Speicherung/Autofill auch hier (Windows).
+    #[cfg(target_os = "windows")]
+    let _ = win.with_webview(apply_autofill);
+    #[cfg(not(target_os = "windows"))]
+    let _ = &win;
+
+    Ok(())
+}
+
 /// Grobe Erreichbarkeitsprüfung einer Anbieter-URL. JEDE HTTP-Antwort (auch 403/404)
 /// bedeutet „Server erreichbar"; nur Verbindungs-/DNS-/Timeout-Fehler gelten als
 /// nicht erreichbar. Das ist KEIN Login-/Service-Status. Server-seitig in Rust, daher
@@ -408,6 +472,7 @@ pub fn run() {
             check_reachable,
             create_embedded_webview,
             enable_webview_autofill,
+            open_stream_window,
             set_close_to_tray,
         ])
         .run(tauri::generate_context!())
