@@ -1,7 +1,7 @@
 # OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.70.0
+Stand: v0.71.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -57,6 +57,9 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.71.0
+- 🦀 **CSP fürs Hauptfenster** (Sicherheitsnetz gegen eingeschleusten Code): nur eigene Skripte/Stile; erlaubt TMDB-Bilder, YouTube-Trailer, GitHub-Update-Check. Per CI bauen & im Auge behalten (Konsole bei Problemen). Offen bleiben: Cargo.lock (3, manuell), Navigation (6), PIN-Salt (4).
 
 ## 🆕 v0.70.0
 - 🦀 **Sicherheits-Härtung:** Berechtigungen nur noch fürs Hauptfenster (Stream-/Embed-Webviews ohne Rechte, Least Privilege); Favicon-Abruf auf 2 MB begrenzt. Per CI bauen & testen.

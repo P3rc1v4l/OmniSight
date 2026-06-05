@@ -11,6 +11,15 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.71.0] – 2026-06-04
+
+### Content-Security-Policy (CSP) fürs Hauptfenster
+- Das App-Fenster hat jetzt eine **CSP** – eine Erlaubnisliste, die festlegt, woher Skripte, Bilder, Stile und Verbindungen kommen dürfen. Sie ist ein **Sicherheitsnetz**: Sollte je fremder Code in die Oberfläche gelangen, kann er keine externen Skripte nachladen oder Daten abfließen lassen.
+- Bewusst erlaubt, damit nichts kaputtgeht: Bilder von `image.tmdb.org` (+ `data:` für Favicons), der **Trailer** über `youtube-nocookie.com`, und der **Update-Check** zu `api.github.com`. Skripte/Stile nur aus der App selbst.
+- Betrifft nur das eigene Fenster – die eingebetteten Anbieter-Seiten laufen in eigenen Webviews und sind davon unberührt.
+
+---
+
 ## [0.70.0] – 2026-06-04
 
 ### Sicherheits-Härtung
