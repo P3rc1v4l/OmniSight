@@ -11,6 +11,14 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.73.0] – 2026-06-05
+
+### Werkzeug (keine App-Änderung)
+- Neuer Hilfs-Workflow **„Abhängigkeits-Infos"** (manuell startbar): erzeugt eine `Cargo.lock`, zeigt die Versionen von `webview2-com`/`windows` im Log und stellt die `Cargo.lock` als Download bereit. Grundlage für (a) das Committen von `Cargo.lock` (Reproduzierbarkeit + Sicherheit) und (b) das korrekte, versionsgenaue Einbauen des WebView2-Autofills.
+- Recherche-Ergebnis dokumentiert: WebView2-Browser-Erweiterungen (z. B. uBlock) sind über `browser_extensions_enabled` + `extensions_path` am Webview-Builder möglich (nur Windows, entpackte Erweiterungen).
+
+---
+
 ## [0.72.1] – 2026-06-05
 
 ### Build-Fix
