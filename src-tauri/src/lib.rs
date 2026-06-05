@@ -110,6 +110,49 @@ fn webview2_version() -> Result<String, String> {
     tauri::webview_version().map_err(|e| e.to_string())
 }
 
+/// Erzeugt eine eingebettete Anbieter-Webview als Kind des Hauptfensters – MIT
+/// Absicherung: Navigation nur zu http(s)/about/data (fremde Schemata wie file: werden
+/// blockiert), und automatische Downloads werden unterbunden. Scheitert das Erzeugen,
+/// fällt das Frontend auf den Fenster-Modus zurück (Streaming bricht nicht ab).
+#[tauri::command]
+async fn create_embedded_webview(
+    app: tauri::AppHandle,
+    label: String,
+    url: String,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+) -> Result<(), String> {
+    use tauri::dpi::{LogicalPosition, LogicalSize};
+    use tauri::webview::WebviewBuilder;
+    use tauri::{Manager, WebviewUrl};
+
+    let window = app
+        .get_window("main")
+        .ok_or_else(|| "Hauptfenster nicht gefunden".to_string())?;
+    let parsed: tauri::Url = url.parse().map_err(|_| "Ungültige URL".to_string())?;
+
+    let builder = WebviewBuilder::new(&label, WebviewUrl::External(parsed))
+        .on_navigation(|u| {
+            // Nur normale Web-Navigation zulassen.
+            matches!(u.scheme(), "http" | "https" | "about" | "data" | "blob")
+        })
+        .on_download(|_webview, _event| {
+            // Downloads in eingebetteten Streams blockieren.
+            false
+        });
+
+    window
+        .add_child(
+            builder,
+            LogicalPosition::new(x, y),
+            LogicalSize::new(width, height),
+        )
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
 /// Grobe Erreichbarkeitsprüfung einer Anbieter-URL. JEDE HTTP-Antwort (auch 403/404)
 /// bedeutet „Server erreichbar"; nur Verbindungs-/DNS-/Timeout-Fehler gelten als
 /// nicht erreichbar. Das ist KEIN Login-/Service-Status. Server-seitig in Rust, daher
@@ -313,6 +356,7 @@ pub fn run() {
             webview_set_paused,
             webview2_version,
             check_reachable,
+            create_embedded_webview,
             set_close_to_tray,
         ])
         .run(tauri::generate_context!())

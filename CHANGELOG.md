@@ -11,6 +11,15 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.72.0] – 2026-06-04
+
+### Eingebettete Streams: Navigations- & Download-Schutz
+- Die eingebetteten Anbieter-Webviews werden jetzt **in Rust** erzeugt und dabei abgesichert: **Navigation** nur zu normalen Web-Schemata (`http`/`https`/`about`/`data`/`blob`) – fremde Schemata wie `file:` werden blockiert; **automatische Downloads** in Streams werden unterbunden.
+- Sicherheitsnetz: Schlägt das abgesicherte Erzeugen fehl, fällt OmniSight automatisch auf den Fenster-Modus zurück – Streaming bricht nie ab.
+- (Grundlage für später: Auf dieser Rust-Erzeugung lassen sich künftig kosmetisches Adblock und WebView2-Autofill aufsetzen.)
+
+---
+
 ## [0.71.0] – 2026-06-04
 
 ### Content-Security-Policy (CSP) fürs Hauptfenster

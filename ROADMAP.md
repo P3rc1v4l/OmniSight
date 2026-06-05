@@ -1,7 +1,7 @@
 # OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.71.0
+Stand: v0.72.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -57,6 +57,10 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.72.0
+- 🦀 **Navigations-/Download-Schutz für eingebettete Streams** (Rust-Erzeugung mit `on_navigation`/`on_download`); Fallback auf Fenster-Modus bleibt. Per CI bauen & testen.
+- ⏳ Baut darauf auf: kosmetisches Adblock pro Anbieter (Init-Skript), WebView2-Autofill (with_webview). Separat/schwer: Lautstärke-Mixer-Name (Windows Core-Audio COM).
 
 ## 🆕 v0.71.0
 - 🦀 **CSP fürs Hauptfenster** (Sicherheitsnetz gegen eingeschleusten Code): nur eigene Skripte/Stile; erlaubt TMDB-Bilder, YouTube-Trailer, GitHub-Update-Check. Per CI bauen & im Auge behalten (Konsole bei Problemen). Offen bleiben: Cargo.lock (3, manuell), Navigation (6), PIN-Salt (4).
