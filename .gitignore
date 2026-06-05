@@ -11,6 +11,10 @@ node_modules/
 /src-tauri/target/
 /src-tauri/gen/
 
+# Heruntergeladene Browser-Erweiterungen (werden im CI-Build geholt, nicht commiten)
+/src-tauri/extensions/*
+!/src-tauri/extensions/README.md
+
 # OS / Editor
 .DS_Store
 Thumbs.db
