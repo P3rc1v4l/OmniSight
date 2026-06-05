@@ -52,12 +52,10 @@ jobs:
         # es muss also KEINE package-lock.json im Repo liegen.
         run: npm install
 
-      - name: uBlock Origin für eingebetteten Werbeblocker holen
-        # Holt die neueste uBlock-Origin-Erweiterung (entpackt) nach
-        # src-tauri/extensions/. Wird dann von Tauri als Ressource gebündelt
-        # und für Anbieter mit aktiviertem Werbeblocker-Schalter geladen.
-        # continue-on-error: ein Download-Hänger blockiert NICHT den Release;
-        # dann wird eben ohne gebündelten Werbeblocker gebaut.
+      - name: uBlock Origin für Werbeblocker holen
+        # Holt die neueste uBlock-Origin-Erweiterung (entpackt) nach src-tauri/extensions/.
+        # Wird als Ressource gebündelt und vom Stream-Fenster geladen, wenn der
+        # Werbeblocker-Schalter eines Anbieters an ist. Ausfallsicher.
         continue-on-error: true
         shell: pwsh
         run: |
