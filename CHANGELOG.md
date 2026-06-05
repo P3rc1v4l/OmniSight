@@ -11,6 +11,14 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.79.0] – 2026-06-05
+
+### Autofill auch im Fenster-Modus
+- Passwort-Speicherung & Autofill jetzt auch für Streams im Fenster-Modus (nicht nur eingebettet). Neuer Befehl `enable_webview_autofill`, der die WebView2-Einstellungen anhand des Fenster-Labels setzt; COM-Logik in einen gemeinsamen Helfer ausgelagert.
+- Erinnerung: Der Fenster-Modus nutzt bereits ein **eigenes Daten-Verzeichnis pro Profil** → gespeicherte Logins/Passwörter sind dort je Profil getrennt.
+
+---
+
 ## [0.78.0] – 2026-06-05
 
 ### Passwort-Autofill in eingebetteten Streams (nur Windows)

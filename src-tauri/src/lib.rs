@@ -160,22 +160,46 @@ async fn create_embedded_webview(
     // WebView2-Passwort-Speicherung & Autofill für diese Webview einschalten.
     // (Passwort-Autosave ist in WebView2 standardmäßig AUS.) Nur Windows; per COM.
     #[cfg(target_os = "windows")]
-    {
-        use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Settings4;
-        use windows::core::Interface;
-        let _ = _webview.with_webview(|pw| unsafe {
-            let controller = pw.controller();
-            if let Ok(core) = controller.CoreWebView2() {
-                if let Ok(settings) = core.Settings() {
-                    if let Ok(s4) = settings.cast::<ICoreWebView2Settings4>() {
-                        let _ = s4.SetIsPasswordAutosaveEnabled(true.into());
-                        let _ = s4.SetIsGeneralAutofillEnabled(true.into());
-                    }
+    let _ = _webview.with_webview(apply_autofill);
+
+    Ok(())
+}
+
+/// Aktiviert WebView2-Passwort-Speicherung & Autofill auf einer Platform-Webview (Windows).
+#[cfg(target_os = "windows")]
+fn apply_autofill(pw: tauri::webview::PlatformWebview) {
+    use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Settings4;
+    use windows::core::Interface;
+    unsafe {
+        let controller = pw.controller();
+        if let Ok(core) = controller.CoreWebView2() {
+            if let Ok(settings) = core.Settings() {
+                if let Ok(s4) = settings.cast::<ICoreWebView2Settings4>() {
+                    let _ = s4.SetIsPasswordAutosaveEnabled(true.into());
+                    let _ = s4.SetIsGeneralAutofillEnabled(true.into());
                 }
             }
-        });
+        }
     }
+}
 
+/// Aktiviert Passwort-Speicherung/Autofill für ein bereits erzeugtes Fenster/Webview
+/// (z. B. den Fenster-Modus). Findet das Ziel anhand des Labels. Nur Windows wirksam.
+#[tauri::command]
+async fn enable_webview_autofill(app: tauri::AppHandle, label: String) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    {
+        use tauri::Manager;
+        if let Some(win) = app.get_webview_window(&label) {
+            let _ = win.with_webview(apply_autofill);
+        } else if let Some(wv) = app.get_webview(&label) {
+            let _ = wv.with_webview(apply_autofill);
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = (&app, &label);
+    }
     Ok(())
 }
 
@@ -383,6 +407,7 @@ pub fn run() {
             webview2_version,
             check_reachable,
             create_embedded_webview,
+            enable_webview_autofill,
             set_close_to_tray,
         ])
         .run(tauri::generate_context!())
