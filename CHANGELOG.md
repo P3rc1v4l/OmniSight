@@ -11,6 +11,13 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.81.0] – 2026-06-05
+
+### Profilwechsel schließt laufende Streams
+- Beim Profilwechsel werden jetzt **alle** laufenden Streams des alten Profils geschlossen – nicht nur Fenster-Streams, sondern auch der **eingebettete** Vordergrund-Stream und eingebettete Hintergrund-Streams.
+
+---
+
 ## [0.80.0] – 2026-06-05
 
 ### Werbeblocker im eigenen Stream-Fenster + Profil-Trennung
