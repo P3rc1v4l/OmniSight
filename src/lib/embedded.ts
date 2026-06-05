@@ -155,7 +155,7 @@ export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 	const label = foregroundLabel ?? chooseLabel(p.id);
 	foregroundLabel = label;
 	try {
-		const { webview, dpi, win } = await getWebviewApi();
+		const { webview, dpi } = await getWebviewApi();
 		const { Webview } = webview;
 		const { LogicalPosition, LogicalSize } = dpi;
 
@@ -185,24 +185,20 @@ export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 		creatingLabel = label;
 		streamError.set(false);
 
-		const appWindow = win.getCurrentWindow();
-		const wv = new Webview(appWindow, label, {
+		// Erzeugung in Rust (mit Navigations-/Download-Schutz). Scheitert das,
+		// greift unten der Fallback auf den Fenster-Modus.
+		const { invoke } = await import('@tauri-apps/api/core');
+		await invoke('create_embedded_webview', {
+			label,
 			url: p.url,
 			x: Math.round(rect.x),
 			y: Math.round(rect.y),
 			width: Math.round(rect.width),
 			height: Math.round(rect.height)
 		});
-		wv.once('tauri://created', () => {
-			incrementOpenCount();
-			startSession(p.id);
-			creatingLabel = null;
-		});
-		wv.once('tauri://error', (e: unknown) => {
-			console.error('[embed]', e);
-			creatingLabel = null;
-			streamError.set(true);
-		});
+		incrementOpenCount();
+		startSession(p.id);
+		creatingLabel = null;
 		currentLabel = label;
 		currentProviderId = p.id;
 		usingFallback = false;
