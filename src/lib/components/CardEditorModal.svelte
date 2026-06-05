@@ -13,6 +13,7 @@
 	let quality = $state<Quality>('HD');
 	let icon = $state<string | undefined>(undefined);
 	let isCustom = $state(false);
+	let adblock = $state(false);
 	let lastId: string | null = null;
 
 	// Beim Öffnen einer Karte die Felder einmalig befüllen.
@@ -29,6 +30,7 @@
 			quality = p.quality;
 			icon = p.icon;
 			isCustom = !!p.custom;
+			adblock = !!p.adblock;
 		}
 		if (!p) lastId = null;
 	});
@@ -67,7 +69,8 @@
 			color2: color2.trim() || undefined,
 			colorManual: true,
 			quality,
-			icon: icon || undefined
+			icon: icon || undefined,
+			adblock
 		});
 		pushToast('Karte gespeichert', name.trim(), '✏️', 2200);
 		editingProvider.set(null);
@@ -130,6 +133,12 @@
 						<option value="HD">HD</option>
 						<option value="SD">SD</option>
 					</select>
+				</label>
+				<label class="f"><span>Werbeblocker (nur Windows)</span>
+					<div class="crow">
+						<input type="checkbox" bind:checked={adblock} />
+						<span class="hint" style="margin:0">Lädt für diesen Anbieter die WebView2-Werbeblocker-Erweiterung – sofern unter <code>src-tauri/extensions</code> installiert. Wirkt nur im eingebetteten Modus.</span>
+					</div>
 				</label>
 				<div class="f">
 					<span>Logo</span>

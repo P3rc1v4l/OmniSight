@@ -194,7 +194,8 @@ export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 			x: Math.round(rect.x),
 			y: Math.round(rect.y),
 			width: Math.round(rect.width),
-			height: Math.round(rect.height)
+			height: Math.round(rect.height),
+			adblock: !!p.adblock
 		});
 		incrementOpenCount();
 		startSession(p.id);

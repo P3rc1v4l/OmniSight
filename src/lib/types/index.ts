@@ -16,6 +16,7 @@ export interface Provider {
 	custom?: boolean;
 	hidden?: boolean;
 	favorite?: boolean;
+	adblock?: boolean;      // true = WebView2-Werbeblocker-Erweiterung für diesen Anbieter laden (nur Windows)
 }
 
 export interface Profile {
