@@ -133,8 +133,7 @@ async fn create_embedded_webview(
         .ok_or_else(|| "Hauptfenster nicht gefunden".to_string())?;
     let parsed: tauri::Url = url.parse().map_err(|_| "Ungültige URL".to_string())?;
 
-    #[allow(unused_mut)]
-    let mut builder = WebviewBuilder::new(&label, WebviewUrl::External(parsed))
+    let builder = WebviewBuilder::new(&label, WebviewUrl::External(parsed))
         .on_navigation(|u| {
             // Nur normale Web-Navigation zulassen.
             matches!(u.scheme(), "http" | "https" | "about" | "data" | "blob")
@@ -144,29 +143,40 @@ async fn create_embedded_webview(
             false
         });
 
-    // Optionaler Werbeblocker pro Anbieter: WebView2-Browser-Erweiterungen aktivieren
-    // und aus dem Ressourcen-Ordner `extensions/` laden – nur unter Windows und nur,
-    // wenn dort tatsächlich (entpackte) Erweiterungen liegen. Standard ist aus.
-    #[cfg(target_os = "windows")]
-    if adblock {
-        if let Ok(res_dir) = app.path().resource_dir() {
-            let ext_dir = res_dir.join("extensions");
-            if ext_dir.is_dir() {
-                builder = builder
-                    .browser_extensions_enabled(true)
-                    .extensions_path(ext_dir);
-            }
-        }
-    }
+    // HINWEIS: Das Laden von WebView2-Browser-Erweiterungen (Werbeblocker) in diese
+    // eingebettete Kind-Webview lässt den Prozess auf Windows einfrieren. Daher hier
+    // vorerst deaktiviert. Der `adblock`-Schalter bleibt erhalten, hat aktuell aber
+    // keine Wirkung, bis ein tragfähiger Weg gefunden ist (siehe Notiz im Chat).
+    let _ = adblock;
 
-    window
+    let _webview = window
         .add_child(
             builder,
             LogicalPosition::new(x, y),
             LogicalSize::new(width, height),
         )
-        .map(|_| ())
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    // WebView2-Passwort-Speicherung & Autofill für diese Webview einschalten.
+    // (Passwort-Autosave ist in WebView2 standardmäßig AUS.) Nur Windows; per COM.
+    #[cfg(target_os = "windows")]
+    {
+        use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Settings4;
+        use windows::core::Interface;
+        let _ = _webview.with_webview(|pw| unsafe {
+            let controller = pw.controller();
+            if let Ok(core) = controller.CoreWebView2() {
+                if let Ok(settings) = core.Settings() {
+                    if let Ok(s4) = settings.cast::<ICoreWebView2Settings4>() {
+                        let _ = s4.SetIsPasswordAutosaveEnabled(true.into());
+                        let _ = s4.SetIsGeneralAutofillEnabled(true.into());
+                    }
+                }
+            }
+        });
+    }
+
+    Ok(())
 }
 
 /// Grobe Erreichbarkeitsprüfung einer Anbieter-URL. JEDE HTTP-Antwort (auch 403/404)

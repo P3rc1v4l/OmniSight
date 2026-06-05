@@ -1,6 +1,6 @@
 [package]
 name = "omnisight"
-version = "0.76.0"
+version = "0.78.0"
 description = "OmniSight – zentraler Streaming-Hub"
 authors = ["P3rc1v4l"]
 edition = "2021"
@@ -32,6 +32,12 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 urlencoding = "2"
 discord-rich-presence = "1.1.0"
 base64 = "0.22"
+
+# Windows-spezifisch: direkter WebView2-COM-Zugriff für Passwort-Autofill.
+# Versionen exakt passend zu wry/Tauri (aus Cargo.lock), sonst Typ-Konflikte.
+[target.'cfg(windows)'.dependencies]
+webview2-com = "0.38"
+windows = "0.61"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

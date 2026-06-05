@@ -11,6 +11,24 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.78.0] – 2026-06-05
+
+### Passwort-Autofill in eingebetteten Streams (nur Windows)
+- Für eingebettete Anbieter-Webviews wird jetzt die WebView2-eigene **Passwort-Speicherung** (standardmäßig aus) und das **Formular-Autofill** aktiviert – per WebView2-COM (`ICoreWebView2Settings4`).
+- Passwörter werden im **eigenen WebView2-Profil** von OmniSight gespeichert (nicht im System oder einem Browser). WebView2 bietet beim Login das Speichern an und füllt beim nächsten Mal aus.
+- 🦀 Nativer COM-Code – per CI bauen. Versionen exakt passend zu wry (`webview2-com 0.38`, `windows 0.61`).
+
+---
+
+## [0.77.0] – 2026-06-05
+
+### Freeze behoben: WebView2-Erweiterungen in eingebetteter Ansicht deaktiviert
+- Das Laden einer Browser-Erweiterung (Werbeblocker) in die eingebettete Kind-Webview ließ den Prozess auf Windows einfrieren. Dieses Laden ist jetzt entfernt – eingebettete Streams laufen wieder stabil, auch bei aktiviertem Schalter.
+- Der Werbeblocker-Schalter bleibt im Karten-Editor erhalten, hat aber aktuell **keine Wirkung**, bis ein tragfähiger Weg gefunden ist.
+- Aufräumen: uBlock-Download im CI und die `extensions/`-Ressourcenbündelung entfernt (kein toter Ballast im Installer). Navigations-/Download-Schutz bleibt aktiv.
+
+---
+
 ## [0.76.0] – 2026-06-05
 
 ### Kritischer Fix: CSP blockierte Tauris IPC
