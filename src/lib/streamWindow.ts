@@ -46,6 +46,10 @@ export async function openInWindow(p: Provider): Promise<void> {
 		win.once('tauri://created', () => {
 			incrementOpenCount();
 			startSession(p.id);
+			// Passwort-Speicherung/Autofill auch im Fenster-Modus aktivieren (Windows).
+			import('@tauri-apps/api/core')
+				.then(({ invoke }) => invoke('enable_webview_autofill', { label }))
+				.catch(() => {});
 		});
 		win.once('tauri://destroyed', () => endSession(p.id));
 		win.once('tauri://error', (e: unknown) =>
