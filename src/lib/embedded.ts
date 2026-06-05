@@ -146,9 +146,10 @@ async function hideLabel(label: string): Promise<void> {
 
 export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 	if (!browser) return;
-	// Werbeblocker-Anbieter laufen im Fenster-Modus (eingebettete Kind-Webviews
-	// können keine Erweiterungen laden) – ebenso, wenn der Fenster-Modus gewählt ist.
-	if (p.adblock || get(settings).appearance.streamMode === 'window') {
+	// Werbeblocker-Anbieter UND Twitch (für BetterTTV) laufen im Fenster-Modus –
+	// eingebettete Kind-Webviews können keine Erweiterungen laden. Ebenso bei global
+	// gewähltem Fenster-Modus.
+	if (p.adblock || p.url.includes('twitch.tv') || get(settings).appearance.streamMode === 'window') {
 		usingFallback = true;
 		streamMode.set('window');
 		await openInWindow(p);

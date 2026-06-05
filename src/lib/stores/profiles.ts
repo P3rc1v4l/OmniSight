@@ -144,6 +144,15 @@ export async function switchProfile(profileId: string): Promise<void> {
 		} catch {
 			/* Browser-Vorschau */
 		}
+		// Falls man gerade einen Stream ansieht: zurück zur Übersicht.
+		if (window.location.pathname.startsWith('/stream')) {
+			try {
+				const { goto } = await import('$app/navigation');
+				await goto('/');
+			} catch {
+				/* Browser-Vorschau */
+			}
+		}
 	}
 	activeProfileId.set(profileId);
 	await loadProfileData(profileId);

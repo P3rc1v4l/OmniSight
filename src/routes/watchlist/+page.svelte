@@ -106,6 +106,8 @@
 	$: releasesWeek = $watchlist
 		.filter((x) => x.releaseDate && x.releaseDate >= weekStart && x.releaseDate <= weekEnd)
 		.sort((a, b) => (a.releaseDate ?? '').localeCompare(b.releaseDate ?? ''));
+	// Schlüssel der Titel mit Release in dieser Woche – zum Hervorheben der Karten.
+	$: releasesWeekKeys = new Set(releasesWeek.map((w) => w.mediaType + '-' + w.tmdbId));
 
 	let sortBy = 'added-desc';
 	let typeFilter: 'all' | 'movie' | 'tv' = 'all';
@@ -230,23 +232,6 @@
 		</div>
 	</header>
 
-	{#if releasesWeek.length}
-		<div class="banner">
-			<div class="banner-head">📅 {$t('wl.weekHead')}</div>
-			<ul class="rel-list">
-				{#each releasesWeek as w (w.tmdbId + '-' + w.mediaType)}
-					<li>
-						<button class="rel-item" class:today={w.releaseDate === today} onclick={() => openInfo(w)} title={$t('wl.infoAria', { title: w.title })}>
-							<span class="rel-day">{dayLabel(w.releaseDate ?? today, lang, locale)}</span>
-							<span class="rel-title">{w.title}</span>
-							{#if w.releaseDate === today}<span class="rel-badge">{$t('wl.todayBadge')}</span>{/if}
-						</button>
-					</li>
-				{/each}
-			</ul>
-		</div>
-	{/if}
-
 	{#if $watchlist.length === 0}
 		<div class="empty omni-card">
 			<span class="emoji">🔖</span>
@@ -286,10 +271,12 @@
 		{:else}
 			<div class="grid">
 				{#each shown as w (w.mediaType + '-' + w.tmdbId)}
-					<div class="card omni-card" class:seen={w.seen}>
+					{@const isWeek = releasesWeekKeys.has(w.mediaType + '-' + w.tmdbId)}
+					<div class="card omni-card" class:seen={w.seen} class:thisweek={isWeek}>
 						<button class="thumb" onclick={() => openInfo(w)} aria-label={$t('wl.infoAria', { title: w.title })}>
 							{#if w.poster}<img src={w.poster} alt={w.title} loading="lazy" decoding="async" />
 							{:else}<div class="noimg">?</div>{/if}
+							{#if isWeek}<span class="week-badge" class:today={w.releaseDate === today}>{w.releaseDate === today ? $t('wl.todayBadge') : dayLabel(w.releaseDate ?? today, lang, locale)}</span>{/if}
 							{#if w.seen}<span class="seen-badge">✓ {$t('wl.seen')}</span>{/if}
 						</button>
 						<div class="meta">
@@ -360,20 +347,14 @@
 	.search { flex: 1; min-width: 160px; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 8px 13px; font-family: inherit; font-size: 13px; }
 	.search:focus { outline: none; border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
 	.reset { margin-top: 12px; background: var(--accent); color: #00110f; border: none; border-radius: 9px; padding: 9px 18px; font-family: inherit; font-weight: 700; cursor: pointer; }
-	.banner { background: var(--accent-soft); color: var(--text); border: 1px solid var(--accent); padding: 12px 14px; border-radius: 12px; margin-bottom: 18px; font-size: 14px; }
+	.card.thisweek { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 6px 20px color-mix(in srgb, var(--accent) 26%, transparent); }
+	.week-badge { position: absolute; top: 8px; right: 8px; z-index: 2; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-text); text-transform: capitalize; letter-spacing: 0.2px; box-shadow: 0 2px 6px rgba(0,0,0,0.35); max-width: calc(100% - 16px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.week-badge.today { text-transform: uppercase; letter-spacing: 0.5px; }
 	.avail { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 4px 0 2px; }
 	.avail-chip { width: 28px; height: 28px; flex: 0 0 28px; display: grid; place-items: center; padding: 0; border-radius: 7px; border: 1px solid var(--border); background: var(--bg-elev); cursor: pointer; transition: border-color 0.12s ease, transform 0.12s ease; overflow: hidden; }
 	.avail-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
 	.avail-chip img { width: 22px; height: 22px; border-radius: 4px; object-fit: cover; display: block; }
 	.avail-fallback { font-size: 12px; font-weight: 800; color: var(--text-muted); }
-	.banner-head { font-weight: 700; color: var(--accent); margin-bottom: 8px; }
-	.rel-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-	.rel-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: transparent; border: 0; border-radius: 8px; padding: 6px 8px; cursor: pointer; font-family: inherit; font-size: 13.5px; color: var(--text); }
-	.rel-item:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
-	.rel-day { flex: 0 0 92px; color: var(--text-muted); font-size: 12.5px; text-transform: capitalize; }
-	.rel-item.today .rel-day { color: var(--accent); font-weight: 700; }
-	.rel-title { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-	.rel-badge { flex: 0 0 auto; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-text); text-transform: uppercase; letter-spacing: 0.4px; }
 	.empty { padding: 56px; text-align: center; color: var(--text-muted); }
 	.emoji { font-size: 40px; display: block; margin-bottom: 10px; }
 	.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
