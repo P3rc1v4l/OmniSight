@@ -11,6 +11,35 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.86.0] – 2026-06-06
+
+### Lautstärkemixer-Name (Windows)
+- WebView2-Audio erschien im Windows-Lautstärkemixer als **„Microsoft Edge WebView2"**. Über die **Windows Core Audio API (WASAPI)** werden jetzt die Audio-Sessions, die zu OmniSights eigenem Prozessbaum gehören, in **„OmniSight"** umbenannt und mit dem App-Icon versehen. Der Name greift sofort, das Icon nach erneutem Öffnen des Mixers. (Nativer Code – erst nach einem CI-Build/Installer sichtbar.)
+
+### Anbieter aus- und einblenden
+- Im **Karten-Editor** eines Anbieters gibt es jetzt **„🙈 Ausblenden"**. Ausgeblendete Anbieter verschwinden aus allen sichtbaren Listen, bleiben aber erhalten.
+- Am **Ende der Startseite** erscheint ein Abschnitt **„🙈 Ausgeblendet (N)"**, über den sich jeder Anbieter wieder **einblenden** lässt. Der Status wird gespeichert.
+
+### „Gesehen" markieren + Statistik-Übersicht
+- In den **Titelinfos** gibt es einen Button **„Als gesehen markieren"** (legt den Titel bei Bedarf zuerst in der Watchlist an).
+- In den **Statistiken** zeigt eine neue Kennzahl **„Gesehen"** die Anzahl und ein Button **„Gesehene Titel anzeigen"** ein klickbares Poster-Raster aller gesehenen Titel.
+
+### Watchlist-Hinweise (Release heute)
+- Die bereits vorhandene Einstellung **„Watchlist-Erinnerungen"** ist jetzt aktiv: Erscheint ein gemerkter Titel **heute**, kommt ein einmaliger Hinweis. Pro Titel nur einmal (gespeichert pro Profil).
+
+---
+
+## [0.85.0] – 2026-06-05
+
+### Befehlspalette (Strg+K)
+- Neue **Befehlspalette**: mit **Strg+K** öffnet sich ein Such-Overlay, das **Seiten**, **Aktionen** (Einstellungen, Design wechseln, Tastenkürzel) und alle **Anbieter** (zum Öffnen) durchsuchbar macht. Bedienung per Tastatur (↑/↓, Enter, Esc) oder Maus. Strg+K fokussiert nicht mehr nur die Suche, sondern öffnet die Palette.
+- Bei laufendem eingebettetem Stream wird dieser für die Palette kurz aus- und danach wieder eingeblendet.
+
+### Schnellerer Update-Check beim Start
+- Die Update-Prüfung startet jetzt **~0,8 s** nach dem Laden (statt 4 s) und läuft **parallel** zu den Profildaten – das „Update verfügbar" erscheint deutlich früher.
+
+---
+
 ## [0.84.0] – 2026-06-05
 
 ### Gemerkt-Seite: Wochen-Releases an den Karten statt Banner

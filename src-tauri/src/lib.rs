@@ -4,6 +4,8 @@ mod tmdb;
 mod discord;
 mod anilist;
 mod favicon;
+#[cfg(target_os = "windows")]
+mod audio_session;
 
 /// Liest die gespeicherte Einstellung „Hardware-Beschleunigung" aus der Store-Datei
 /// (dieselbe Datei, die das Frontend über tauri-plugin-store schreibt) – und zwar
@@ -443,6 +445,12 @@ pub fn run() {
                     let _ = w.minimize();
                 }
             }
+
+            // Lautstärkemixer: WebView2-Audio als „OmniSight" statt „Microsoft Edge WebView2"
+            // anzeigen (nur Windows; läuft im Hintergrund).
+            #[cfg(target_os = "windows")]
+            audio_session::start_audio_session_renamer();
+
             Ok(())
         })
         .on_window_event(|window, event| {
