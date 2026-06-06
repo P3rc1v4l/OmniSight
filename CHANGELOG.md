@@ -11,6 +11,26 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.87.0] – 2026-06-06
+
+### Karten-Editor aufgeräumt
+- Der Button **„Ausblenden"** sitzt jetzt oben rechts auf Titelhöhe (statt in der überfüllten Fußzeile), **„Auf Standard zurücksetzen"** heißt nur noch **„Zurücksetzen"**, und die Fußzeilen-Buttons laufen nicht mehr über den Rand.
+
+### Fenster-Modus verständlicher
+- Die Meldung auf „Schaut gerade" erklärt jetzt den **Grund** für den Fenster-Modus: bei aktivem **Werbeblocker** mit Hinweis, dass es ohne Werbeblocker wieder eingebettet läuft (bzw. Twitch/BetterTTV oder Einstellung).
+- **Schließt man das Anbieter-Fenster**, springt die App automatisch zurück zur **Übersicht** (vorher blieb man auf „Schaut gerade").
+
+### Gemerkt-Karten
+- Die Buttons **„Gesehen"/„Entfernen"** sind jetzt **unten an der Karte fixiert** (gleiche Höhe bei allen Karten).
+- Die **Inhaltsangabe** wird nicht mehr auf der Karte angeteasert.
+- Die **Bewertung** steht jetzt über den Anbietern (zwischen Jahr und Anbieter-Logos).
+- **Empfehlungen** erscheinen nur noch in **einer** Reihe (horizontal scrollbar).
+
+### Statistiken
+- **Gesehene Titel** öffnen sich jetzt in einem **In-App-Fenster** (wie die Einstellungen); der Button sitzt oben neben **„Rückblick"**.
+
+---
+
 ## [0.86.0] – 2026-06-06
 
 ### Lautstärkemixer-Name (Windows)
