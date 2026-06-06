@@ -11,6 +11,60 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.91.0] – 2026-06-06
+
+### „Accounts" – Anbieter-Logins je Profil (#9) — 🦀 muss im CI gebaut werden
+- Neuer Bereich **„Anmeldungen bei Anbietern"** im Einstellungen-Tab **Profile**: listet die in diesem Profil geöffneten Anbieter.
+- **Einzeln abmelden** („Abmelden") und **„Von allen abmelden"** – löscht das WebView2-Daten-Verzeichnis (Cookies/Login/Speicher) des Anbieters bzw. des ganzen Profils.
+- Dafür bekommt der **Fenster-Modus jetzt pro Anbieter ein eigenes Daten-Verzeichnis** (`webviews/{Profil}/{Anbieter}`) statt nur pro Profil. **Einmalige Folge:** bestehende Fenster-Modus-Logins werden beim Update einmal zurückgesetzt; danach sind Anbieter sauber einzeln abmeldbar.
+- *Ehrlicher Hinweis:* Vollständig wirkt das Abmelden bei Anbietern, die im **Fenster-Modus** geöffnet werden. **Eingebettete** Streams teilen sich technisch eine gemeinsame WebView2-Sitzung und lassen sich nicht einzeln pro Anbieter trennen.
+
+---
+
+## [0.90.0] – 2026-06-06
+
+### Erreichbarkeit & Weiterleitung (#3) — 🦀 muss im CI gebaut werden
+- **Erreichbarkeits-Check** nutzt jetzt einen **echten Browser-User-Agent** (+ Accept-Header, 10s Timeout). Dadurch werden Cloudflare-/Bot-geschützte Seiten wie **cine.to** und **bs.to** nicht mehr fälschlich als „offline" (rot) angezeigt. Jede HTTP-Antwort (auch 403/503) gilt als erreichbar.
+- **Such-Weiterleitung:** In Streams (eingebettet & Fenster) öffnen „in neuem Tab"-Links (z. B. zum Stream-Hoster) jetzt **im selben Fenster** – die Weiterleitung nach der Suche funktioniert. Gleichzeitig werden **`window.open`-Pop-under-Werbung** unterbunden.
+
+### Einstellungen überarbeitet (#10) — 🎨
+- **Benachrichtigungen**: in zwei Gruppen aufgeteilt („Im Benachrichtigungs-Center" = Erfolge + Watchlist-Release; „Kurze Hinweise" = Pause/Ton/Update), jede Option mit **Beschreibung**. Hinweis erklärt, was im Center landet.
+- **Plugins**: Abschnitts-Überschriften **Wiedergabe / Integrationen / System**.
+- **Design**: Abschnitts-Überschriften **Modus & Farbe** und **Hintergrund & Darstellung**.
+
+---
+
+## [0.89.0] – 2026-06-06
+
+### Onboarding überarbeitet (#11)
+- **Sprache ist jetzt die erste Seite** des Onboardings.
+- Neuer Schritt **Design** (Hell/Dunkel + Akzentfarbe) und ein Schritt **Schnelleinstellungen** („Weiterschauen" merken, beim Schließen in die Taskleiste, mit Windows starten) – Autostart/Tray werden direkt angewendet.
+- Das Onboarding liegt jetzt **immer ganz im Vordergrund**, auch über laufenden Streams (eingebetteter Stream wird währenddessen ausgeblendet).
+
+### Empfehlungs-Engine (#6)
+- **„Neue Vorschläge"**-Button über den Empfehlungen mischt frische Titel.
+- In der **Titel-Info einer Empfehlung** steht jetzt der **Grund** („Empfohlen, weil du … gemerkt hast").
+- **Empfehlungen ausblenden**: per ✕ direkt auf der Karte oder in der Titel-Info – ausgeblendete Titel tauchen nicht mehr auf (pro Profil gespeichert).
+- **Keine Empfehlungen wegen eines Titels**: in der Titel-Info einer Empfehlung lässt sich der zugrunde liegende Watchlist-Titel von künftigen Empfehlungen ausschließen.
+
+---
+
+## [0.88.0] – 2026-06-06
+
+### Benachrichtigungs-Center (#5)
+- Öffnet jetzt als **größeres, zentriertes Fenster** (wie die Einstellungen) mit aufgeräumtem Design, Icon-Badges und leerem-Zustand-Hinweis.
+- Es werden **nur noch wichtige Hinweise** gesammelt: **freigeschaltete Achievements** und **erscheinende Watchlist-Titel**. Kurze Bestätigungen wie „Karte gespeichert", „Einstellungen gespeichert" oder „Anbieter ausgeblendet" erscheinen weiterhin kurz als Toast, landen aber **nicht mehr im Verlauf**.
+
+### „Weiterschauen" prominenter (#2)
+- Der Weiterschauen-Eintrag ist jetzt eine **große Karte über den Favoriten** (mit Poster, Titel, Anbieter und „Fortsetzen"-Button) statt einer kleinen Zeile. Ein Klick **öffnet direkt den zuletzt gesehenen Titel** an der gemerkten Stelle.
+
+### Jahresrückblick-Banner (#8)
+- Im Zeitraum **15.–31. Dezember** erscheint beim Start ein **großes Banner** zum Jahresrückblick. Es lässt sich **„dieses Jahr nicht mehr"** ausblenden (kommt dann erst nächsten Dezember wieder) oder für die Sitzung schließen.
+- Im selben Zeitraum zeigen auch die **Einstellungen** oben einen Hinweis-Banner darauf.
+- **Test:** Aktuell ist zusätzlich ein Test-Fenster vom **06.–11.06.2026** aktiv, damit sich alles vor Dezember prüfen lässt (in `src/lib/yearReview.ts` einfach `TEST_FROM`/`TEST_TO` leeren, dann gilt nur Dezember).
+
+---
+
 ## [0.87.0] – 2026-06-06
 
 ### Karten-Editor aufgeräumt

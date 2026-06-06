@@ -117,6 +117,17 @@ fn webview2_version() -> Result<String, String> {
 /// blockiert), und automatische Downloads werden unterbunden. Scheitert das Erzeugen,
 /// fällt das Frontend auf den Fenster-Modus zurück (Streaming bricht nicht ab).
 #[tauri::command]
+// In Streams (eingebettet & Fenster) injiziert: echte „in neuem Tab"-Links (z. B. zum
+// Stream-Hoster) im selben Fenster öffnen, damit die Weiterleitung funktioniert; und
+// Pop-under-Werbung über window.open unterbinden.
+const STREAM_INIT_JS: &str = r#"(function(){try{
+  window.open=function(){return null;};
+  document.addEventListener('click',function(e){
+    var a=e.target&&e.target.closest?e.target.closest('a[target="_blank"]'):null;
+    if(a&&a.href){e.preventDefault();location.href=a.href;}
+  },true);
+}catch(_){}})();"#;
+
 async fn create_embedded_webview(
     app: tauri::AppHandle,
     label: String,
@@ -136,6 +147,7 @@ async fn create_embedded_webview(
     let parsed: tauri::Url = url.parse().map_err(|_| "Ungültige URL".to_string())?;
 
     let builder = WebviewBuilder::new(&label, WebviewUrl::External(parsed))
+        .initialization_script(STREAM_INIT_JS)
         .on_navigation(|u| {
             // Nur normale Web-Navigation zulassen.
             matches!(u.scheme(), "http" | "https" | "about" | "data" | "blob")
@@ -217,6 +229,7 @@ async fn open_stream_window(
     title: String,
     adblock: bool,
     profile_id: String,
+    provider_id: String,
 ) -> Result<(), String> {
     use tauri::webview::WebviewWindowBuilder;
     use tauri::{Manager, WebviewUrl};
@@ -235,12 +248,16 @@ async fn open_stream_window(
         .inner_size(1280.0, 800.0)
         .resizable(true)
         .focused(true)
+        .initialization_script(STREAM_INIT_JS)
         .on_navigation(|u| matches!(u.scheme(), "http" | "https" | "about" | "data" | "blob"))
         .on_download(|_w, _e| false);
 
-    // Eigenes Daten-Verzeichnis pro Profil.
+    // Eigenes Daten-Verzeichnis pro Profil UND pro Anbieter -> einzelnes „Abmelden"
+    // ist dann nur das Löschen dieses Ordners (siehe logout_provider).
     if let Ok(base) = app.path().app_local_data_dir() {
-        builder = builder.data_directory(base.join("webviews").join(&profile_id));
+        builder = builder.data_directory(
+            base.join("webviews").join(&profile_id).join(&provider_id),
+        );
     }
 
     // Twitch erkennen – nur dort wird BetterTTV geladen.
@@ -281,10 +298,45 @@ async fn open_stream_window(
 /// bedeutet „Server erreichbar"; nur Verbindungs-/DNS-/Timeout-Fehler gelten als
 /// nicht erreichbar. Das ist KEIN Login-/Service-Status. Server-seitig in Rust, daher
 /// kein CORS/CSP und kein falsches „rot", nur weil ein Favicon fehlt.
+/// Meldet einen einzelnen Anbieter im aktuellen Profil ab: löscht dessen WebView2-
+/// Daten-Verzeichnis (Cookies/Login/Speicher). Das zugehörige Fenster muss vorher
+/// geschlossen sein, sonst ist der Ordner gesperrt.
+#[tauri::command]
+async fn logout_provider(
+    app: tauri::AppHandle,
+    profile_id: String,
+    provider_id: String,
+) -> Result<(), String> {
+    use tauri::Manager;
+    let base = app.path().app_local_data_dir().map_err(|e| e.to_string())?;
+    let dir = base.join("webviews").join(&profile_id).join(&provider_id);
+    if dir.exists() {
+        std::fs::remove_dir_all(&dir)
+            .map_err(|e| format!("Ordner gesperrt? Bitte zuerst das Fenster schließen. ({e})"))?;
+    }
+    Ok(())
+}
+
+/// Meldet ALLE Anbieter eines Profils ab: löscht das komplette Profil-Daten-Verzeichnis.
+#[tauri::command]
+async fn logout_all_providers(app: tauri::AppHandle, profile_id: String) -> Result<(), String> {
+    use tauri::Manager;
+    let base = app.path().app_local_data_dir().map_err(|e| e.to_string())?;
+    let dir = base.join("webviews").join(&profile_id);
+    if dir.exists() {
+        std::fs::remove_dir_all(&dir)
+            .map_err(|e| format!("Ordner gesperrt? Bitte zuerst alle Stream-Fenster schließen. ({e})"))?;
+    }
+    Ok(())
+}
+
 #[tauri::command]
 async fn check_reachable(url: String) -> bool {
+    // Echter Browser-User-Agent: Cloudflare/Bot-Schutz (z. B. bs.to, cine.to) lässt
+    // „komische" User-Agents oft hängen oder blockt sie -> sonst fälschlich „offline".
+    const UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
     let client = match reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(8))
+        .timeout(std::time::Duration::from_secs(10))
         .redirect(reqwest::redirect::Policy::limited(5))
         .build()
     {
@@ -292,9 +344,12 @@ async fn check_reachable(url: String) -> bool {
         Err(_) => return false,
     };
     // Erst HEAD (sparsam); manche Server mögen kein HEAD -> dann GET als Rückfall.
+    // JEDE HTTP-Antwort (auch 403/503 von Cloudflare) bedeutet: Seite ist erreichbar.
     if client
         .head(&url)
-        .header("User-Agent", "Mozilla/5.0 (OmniSight)")
+        .header("User-Agent", UA)
+        .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+        .header("Accept-Language", "de-DE,de;q=0.9,en;q=0.8")
         .send()
         .await
         .is_ok()
@@ -303,7 +358,9 @@ async fn check_reachable(url: String) -> bool {
     }
     client
         .get(&url)
-        .header("User-Agent", "Mozilla/5.0 (OmniSight)")
+        .header("User-Agent", UA)
+        .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+        .header("Accept-Language", "de-DE,de;q=0.9,en;q=0.8")
         .send()
         .await
         .is_ok()
@@ -486,6 +543,8 @@ pub fn run() {
             webview_set_paused,
             webview2_version,
             check_reachable,
+            logout_provider,
+            logout_all_providers,
             create_embedded_webview,
             enable_webview_autofill,
             open_stream_window,

@@ -1,7 +1,7 @@
 # OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.87.0
+Stand: v0.91.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
