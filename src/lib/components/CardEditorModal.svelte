@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { editingProvider, updateProvider, resetProviderToDefault } from '$lib/stores/providers';
+	import { editingProvider, updateProvider, resetProviderToDefault, toggleProviderHidden } from '$lib/stores/providers';
 	import { pushToast } from '$lib/stores/toasts';
 	import Logo from './Logo.svelte';
 	import type { Quality, Provider } from '$lib/types';
@@ -83,6 +83,12 @@
 		pushToast('Karte zurückgesetzt', undefined, '↩️', 2000);
 		editingProvider.set(null);
 	}
+	function hideCard() {
+		if (!id) return;
+		toggleProviderHidden(id);
+		pushToast('Anbieter ausgeblendet', 'Unten auf der Startseite kannst du ihn wieder einblenden.', '🙈', 2600);
+		editingProvider.set(null);
+	}
 	function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) cancel(); }
 </script>
 
@@ -159,6 +165,7 @@
 				{#if !isCustom}
 					<button class="ghost danger" onclick={resetCard}>Auf Standard zurücksetzen</button>
 				{/if}
+				<button class="ghost" onclick={hideCard}>🙈 Ausblenden</button>
 				<span class="spacer"></span>
 				<button class="ghost" onclick={cancel}>Abbrechen</button>
 				<button class="primary" onclick={save}>Speichern</button>

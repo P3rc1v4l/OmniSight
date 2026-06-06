@@ -64,6 +64,15 @@ export function toggleFavorite(id: string): void {
 	favorites.update(($f) => ($f.includes(id) ? $f.filter((x) => x !== id) : [...$f, id]));
 }
 
+// Anbieter aus-/einblenden (bleibt im Katalog, nur aus den sichtbaren Listen entfernt).
+export function toggleProviderHidden(id: string): void {
+	providers.update(($p) => $p.map((x) => (x.id === id ? { ...x, hidden: !x.hidden } : x)));
+}
+// Sicheres Einblenden (z. B. aus der „Ausgeblendet"-Liste).
+export function unhideProvider(id: string): void {
+	providers.update(($p) => $p.map((x) => (x.id === id ? { ...x, hidden: false } : x)));
+}
+
 export function setFavoritesOrder(ids: string[]): void {
 	favorites.set(ids);
 }

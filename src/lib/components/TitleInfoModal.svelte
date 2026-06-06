@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { t as tt } from '$lib/i18n';
 	import { titleInfo, closeTitleInfo, tmdb } from '$lib/tmdb';
-	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist } from '$lib/stores/watchlist';
+	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist, toggleSeen } from '$lib/stores/watchlist';
 	import { openUrlInApp } from '$lib/embedded';
 	import { extractWatchProviders } from '$lib/watchProviders';
 
@@ -52,6 +52,22 @@
 		const mt = (item.media_type === 'tv' ? 'tv' : 'movie') as 'movie' | 'tv';
 		if (isInWatchlist($watchlist, item.id, item.media_type)) removeFromWatchlist(item.id, mt);
 		else addToWatchlist(item);
+	}
+
+	// Ist der aktuelle Titel als gesehen markiert?
+	const curSeen = $derived.by(() => {
+		const it = $titleInfo;
+		if (!it) return false;
+		const mt = it.media_type === 'tv' ? 'tv' : 'movie';
+		return !!$watchlist.find((w) => w.tmdbId === it.id && w.mediaType === mt)?.seen;
+	});
+	// Als gesehen markieren (fügt bei Bedarf zuerst zur Watchlist hinzu).
+	function toggleSeenBtn() {
+		const item = $titleInfo;
+		if (!item) return;
+		const mt = (item.media_type === 'tv' ? 'tv' : 'movie') as 'movie' | 'tv';
+		if (!isInWatchlist($watchlist, item.id, item.media_type)) addToWatchlist(item);
+		toggleSeen(item.id, mt);
 	}
 	function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeTitleInfo(); }
 
@@ -137,6 +153,9 @@
 					<button class="wl" class:on={isInWatchlist($watchlist, item.id, item.media_type)} onclick={toggleWatchlist}>
 						{isInWatchlist($watchlist, item.id, item.media_type) ? $tt('mb.saved') : $tt('mb.save')}
 					</button>
+					<button class="seen" class:on={curSeen} onclick={toggleSeenBtn}>
+						{curSeen ? $tt('ti.seen') : $tt('ti.markSeen')}
+					</button>
 				</div>
 			</div>
 		</div>
@@ -184,6 +203,9 @@
 	.wl { background: var(--accent); color: #00110f; border: none; border-radius: 10px; padding: 11px 20px; font-family: inherit; font-weight: 700; font-size: 14px; cursor: pointer; transition: filter 0.15s ease; }
 	.wl:hover { filter: brightness(1.06); }
 	.wl.on { background: color-mix(in srgb, var(--accent) 22%, var(--bg-card)); color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent); }
+	.seen { background: var(--bg-card); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 11px 18px; font-family: inherit; font-weight: 700; font-size: 14px; cursor: pointer; transition: filter 0.15s ease, background 0.15s ease; }
+	.seen:hover { filter: brightness(1.08); }
+	.seen.on { background: color-mix(in srgb, var(--accent) 18%, var(--bg-card)); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
 
 	@keyframes fade { from { opacity: 0; } }
 	@keyframes pop { from { opacity: 0; transform: scale(0.96) translateY(10px); } }

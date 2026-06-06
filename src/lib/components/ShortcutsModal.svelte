@@ -7,7 +7,7 @@
 		{ keys: ['F1'], key: 'sc.f1' },
 		{ keys: ['?'], key: 'sc.q' },
 		{ keys: ['1–9'], key: 'sc.fav' },
-		{ keys: ['Strg', 'K'], key: 'sc.search' },
+		{ keys: ['Strg', 'K'], key: 'sc.palette' },
 		{ keys: ['Strg', ','], key: 'sc.settings' },
 		{ keys: ['Strg', 'D'], key: 'sc.theme' },
 		{ keys: ['Esc'], key: 'sc.esc' },

@@ -1,7 +1,9 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { WatchlistItem, TmdbItem } from '$lib/types';
 import { loadState, saveState } from '$lib/persistence';
+import { pushToast } from './toasts';
+import { t } from '$lib/i18n';
 
 export const watchlist = writable<WatchlistItem[]>([]);
 
@@ -43,12 +45,38 @@ export function toggleSeen(tmdbId: number, mediaType: 'movie' | 'tv'): void {
 
 let pid: string | null = null;
 let ready = false;
+
+// Bereits gemeldete Release-Hinweise (pro Profil) – verhindert mehrfache Toasts.
+const notified = writable<string[]>([]);
+function todayStr(): string {
+	const d = new Date();
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+// Meldet Titel der Watchlist, die HEUTE erscheinen – einmal je Titel.
+// `enabled` kommt aus den Einstellungen (notifications.watchlistReminder).
+export function maybeNotifyReleases(items: WatchlistItem[], enabled: boolean): void {
+	if (!browser || !ready) return;
+	const today = todayStr();
+	const due = items.filter((w) => w.releaseDate === today && !w.seen);
+	if (!due.length) return;
+	const already = get(notified);
+	const fresh = due.filter((w) => !already.includes(w.mediaType + '-' + w.tmdbId));
+	if (!fresh.length) return;
+	notified.update((n) => [...n, ...fresh.map((w) => w.mediaType + '-' + w.tmdbId)]);
+	if (!enabled) return;
+	for (const w of fresh) {
+		pushToast(get(t)('wl.relNotify', { title: w.title }), undefined, '📅', 6000);
+	}
+}
+
 export async function loadWatchlistForProfile(profileId: string): Promise<void> {
 	pid = profileId;
 	watchlist.set(await loadState<WatchlistItem[]>(`watchlist:${profileId}`, []));
+	notified.set(await loadState<string[]>(`relnotified:${profileId}`, []));
 	ready = true;
 }
 
 if (browser) {
 	watchlist.subscribe(($w) => { if (ready && pid) void saveState(`watchlist:${pid}`, $w); });
+	notified.subscribe(($n) => { if (ready && pid) void saveState(`relnotified:${pid}`, $n); });
 }

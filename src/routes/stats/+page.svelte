@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { watchlist } from '$lib/stores/watchlist';
+	import { openTitleInfo } from '$lib/tmdb';
+	import type { WatchlistItem } from '$lib/types';
 	import { watchTime, totalWatchMs, openCount, distinctProvidersWatched, formatDuration } from '$lib/stores/tracking';
 	import { achievements, unlockedCount } from '$lib/stores/achievements';
 	import { providers, favorites } from '$lib/stores/providers';
@@ -8,6 +10,21 @@
 	import WrappedModal from '$lib/components/WrappedModal.svelte';
 
 	let showWrapped = $state(false);
+	let showSeen = $state(false);
+	// Alle als gesehen markierten Titel.
+	const seenTitles = $derived($watchlist.filter((w) => w.seen));
+	function openSeenInfo(w: WatchlistItem) {
+		openTitleInfo({
+			id: w.tmdbId,
+			media_type: w.mediaType,
+			title: w.title,
+			overview: w.overview,
+			poster: w.poster,
+			backdrop: null,
+			release_date: w.releaseDate,
+			vote_average: null
+		});
+	}
 
 	const favCount = $derived($favorites.length);
 
@@ -37,6 +54,7 @@
 		<div class="stat omni-card"><span class="big">{$distinctProvidersWatched}</span><span>{$t('stats.usedProviders')}</span></div>
 		<div class="stat omni-card"><span class="big">{favCount}</span><span>{$t('stats.favorites')}</span></div>
 		<div class="stat omni-card"><span class="big">{$watchlist.length}</span><span>{$t('stats.watchlistTitles')}</span></div>
+		<div class="stat omni-card"><span class="big">{seenTitles.length}</span><span>{$t('stats.seenTitles')}</span></div>
 		<div class="stat omni-card"><span class="big">{$unlockedCount} / {$achievements.length}</span><span>{$t('stats.achievements')}</span></div>
 	</div>
 
@@ -54,6 +72,25 @@
 				</div>
 			{/each}
 		</div>
+	{/if}
+
+	<h2>{$t('stats.seenList')}</h2>
+	{#if seenTitles.length}
+		<button class="wrapped-btn" onclick={() => (showSeen = !showSeen)}>
+			{showSeen ? $t('stats.seenHide') : $t('stats.seenShow')} ({seenTitles.length})
+		</button>
+		{#if showSeen}
+			<div class="seen-grid">
+				{#each seenTitles as w (w.mediaType + '-' + w.tmdbId)}
+					<button class="seen-card" onclick={() => openSeenInfo(w)} title={w.title}>
+						{#if w.poster}<img src={w.poster} alt={w.title} loading="lazy" decoding="async" />{:else}<div class="noimg">?</div>{/if}
+						<span class="st">{w.title}</span>
+					</button>
+				{/each}
+			</div>
+		{/if}
+	{:else}
+		<p class="hint">{$t('stats.seenNone')}</p>
 	{/if}
 
 	<h2>{$t('stats.achievements')}</h2>
@@ -108,5 +145,11 @@
 	.adesc { color: var(--text-muted); font-size: 12px; }
 	.aprog { height: 5px; background: var(--bg-card-2); border-radius: 999px; margin-top: 6px; overflow: hidden; }
 	.afill { height: 100%; background: var(--accent); border-radius: 999px; }
+	.seen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; margin-top: 12px; }
+	.seen-card { background: none; border: 0; padding: 0; cursor: pointer; display: flex; flex-direction: column; gap: 6px; text-align: left; font-family: inherit; }
+	.seen-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 10px; display: block; transition: transform 0.15s ease; }
+	.seen-card:hover img { transform: scale(1.04); }
+	.seen-card .noimg { width: 100%; aspect-ratio: 2/3; border-radius: 10px; background: var(--bg-card-2); display: grid; place-items: center; color: var(--text-muted); font-size: 22px; }
+	.seen-card .st { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.hint { color: var(--text-muted); font-size: 12.5px; margin-top: 18px; }
 </style>

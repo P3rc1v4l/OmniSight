@@ -17,6 +17,7 @@
 	import Particles from '$lib/components/Particles.svelte';
 	import UpdateBanner from '$lib/components/UpdateBanner.svelte';
 	import NotificationCenter from '$lib/components/NotificationCenter.svelte';
+	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import { checkForUpdate } from '$lib/stores/updater';
 	import { hideEmbedded, unhideEmbedded, immersive, openProvider, streamMode, backgroundStreams } from '$lib/embedded';
 	import { settings, hydrateSettings, applySettings, onboardingOpen } from '$lib/stores/settings';
@@ -25,6 +26,7 @@
 	import { hydrateCatalog, favoriteProviders, visibleProviders } from '$lib/stores/providers';
 	import { hydrateProfiles, loadProfileData, activeProfileId, profiles } from '$lib/stores/profiles';
 	import { achievements, maybeNotify } from '$lib/stores/achievements';
+	import { watchlist, maybeNotifyReleases } from '$lib/stores/watchlist';
 	import { get } from 'svelte/store';
 
 	let { children } = $props();
@@ -32,7 +34,20 @@
 	let showSettings = $state(false);
 	let settingsTab = $state('appearance');
 	let showShortcuts = $state(false);
+	let showPalette = $state(false);
 	let updateTimer: ReturnType<typeof setInterval>;
+
+	// Hell/Dunkel umschalten (von Strg+D und der Befehlspalette genutzt).
+	function toggleTheme() {
+		settings.update(($s) => ({
+			...$s,
+			appearance: {
+				...$s.appearance,
+				theme: $s.appearance.theme === 'dark' ? 'light' : 'dark',
+				themePreset: 'default'
+			}
+		}));
+	}
 
 	// Akzentfarbe: aktives Profil überschreibt die globale Farbe (ohne sie zu ändern).
 	// Setzt --accent, --accent-text und das abgeleitete --accent-soft.
@@ -58,6 +73,17 @@
 		void unhideEmbedded();
 	}
 
+	// Befehlspalette: beim Öffnen den eingebetteten Stream ausblenden (liegt sonst darüber),
+	// beim Schließen wieder einblenden.
+	function openPalette() {
+		showPalette = true;
+		void hideEmbedded();
+	}
+	function closePalette() {
+		showPalette = false;
+		void unhideEmbedded();
+	}
+
 	onMount(async () => {
 		// Settings, Profile und Katalog sind voneinander unabhängig und werden parallel
 		// geladen (schnellerer Start). applySettings läuft direkt nach den Settings.
@@ -67,6 +93,11 @@
 			hydrateProfiles().catch((e) => console.error('[init] profiles', e)),
 			hydrateCatalog().catch((e) => console.error('[init] catalog', e))
 		]);
+		// Update-Prüfung zügig nach dem Laden der Einstellungen anstoßen – läuft parallel
+		// zu den Profildaten und blockiert das Rendern nicht; danach einmal pro Stunde.
+		setTimeout(() => { void checkForUpdate(false); }, 800);
+		updateTimer = setInterval(() => { void checkForUpdate(false); }, 60 * 60 * 1000);
+
 		try {
 			const pid = get(activeProfileId);
 			if (pid) await loadProfileData(pid);
@@ -82,11 +113,6 @@
 				settings.update((s) => ({ ...s, plugins: { ...s.plugins, autostart: on } }));
 			}
 		});
-
-		// Update-Prüfung erst kurz nach dem Start (blockiert das erste Rendern nicht),
-		// danach automatisch einmal pro Stunde.
-		setTimeout(() => { void checkForUpdate(false); }, 4000);
-		updateTimer = setInterval(() => { void checkForUpdate(false); }, 60 * 60 * 1000);
 	});
 
 	// Neu freigeschaltete Achievements melden (nur einmal je Achievement).
@@ -95,18 +121,23 @@
 		void maybeNotify(list, $settings.notifications.achievementUnlocked);
 	});
 
+	// Watchlist-Hinweise: meldet Titel, die heute erscheinen (einmal je Titel, je nach Einstellung).
+	$effect(() => {
+		maybeNotifyReleases($watchlist, $settings.notifications.watchlistReminder);
+	});
+
 	function onKey(e: KeyboardEvent) {
 		const inField = (e.target as HTMLElement)?.matches?.('input,textarea,select');
-		if (e.key === 'Escape') { if (showSettings) closeSettings(); showShortcuts = false; return; }
+		if (e.key === 'Escape') { if (showPalette) closePalette(); if (showSettings) closeSettings(); showShortcuts = false; return; }
 		if (inField) return;
 		if (e.key === 'F1' || e.key === '?') { e.preventDefault(); showShortcuts = true; }
 		else if (e.key === ',' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); openSettings(); }
 		else if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
 			e.preventDefault();
-			document.querySelector<HTMLInputElement>('input[data-omni-search]')?.focus();
+			openPalette();
 		} else if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
 			e.preventDefault();
-			settings.update(($s) => ({ ...$s, appearance: { ...$s.appearance, theme: $s.appearance.theme === 'dark' ? 'light' : 'dark', themePreset: 'default' } }));
+			toggleTheme();
 		} else if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.metaKey && !e.altKey) {
 			// Zifferntasten: Favorit (sonst sichtbaren Anbieter) Nr. n direkt starten.
 			if (showSettings || showShortcuts || get(onboardingOpen)) return;
@@ -145,6 +176,13 @@
 
 <SettingsModal open={showSettings} initialTab={settingsTab} close={closeSettings} />
 <ShortcutsModal open={showShortcuts} close={() => (showShortcuts = false)} />
+<CommandPalette
+	open={showPalette}
+	onClose={closePalette}
+	onOpenSettings={() => openSettings()}
+	onToggleTheme={toggleTheme}
+	onShowShortcuts={() => (showShortcuts = true)}
+/>
 <OnboardingModal open={$onboardingOpen} close={() => onboardingOpen.set(false)} />
 <CardEditorModal />
 <SleepTimer />

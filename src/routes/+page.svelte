@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { visibleProviders, favoriteProviders, favorites, toggleFavorite, providerOrder, setProviderOrder, setFavoritesOrder, collections, toggleCollectionCollapsed } from '$lib/stores/providers';
+	import { visibleProviders, favoriteProviders, favorites, toggleFavorite, providerOrder, setProviderOrder, setFavoritesOrder, collections, toggleCollectionCollapsed, providers as allProviders, unhideProvider } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import ProviderCard from '$lib/components/ProviderCard.svelte';
 	import Logo from '$lib/components/Logo.svelte';
@@ -40,6 +40,9 @@
 	let search = $state('');
 	let searchFocused = $state(false);
 	let view: 'grid' | 'list' = $state('grid');
+	// Ausgeblendete Anbieter (zum Wieder-Einblenden am Seitenende).
+	let showHidden = $state(false);
+	const hiddenList = $derived($allProviders.filter((p) => p.hidden));
 	const CAT_KEY = 'omnisight:categoryFilter';
 	const OLD_CAT_KEY = 'omnihub:categoryFilter';
 	let categoryFilter = $state(browser ? (localStorage.getItem(CAT_KEY) ?? localStorage.getItem(OLD_CAT_KEY)) || 'all' : 'all');
@@ -415,11 +418,34 @@
 			</div>
 		{/if}
 	{/if}
+	{#if hiddenList.length}
+		<div class="section-label" style="margin-top: 26px">
+			🙈 {$t('home.hiddenSection')} ({hiddenList.length})
+			<button class="hidden-toggle" onclick={() => (showHidden = !showHidden)} aria-expanded={showHidden}>{showHidden ? '▲' : '▼'}</button>
+		</div>
+		{#if showHidden}
+			<div class="hidden-list">
+				{#each hiddenList as p (p.id)}
+					<div class="hidden-chip">
+						<Logo provider={p} size={22} />
+						<span class="hc-name">{p.name}</span>
+						<button class="hc-show" onclick={() => unhideProvider(p.id)}>{$t('home.unhide')}</button>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	{/if}
 </div>
 
 <style>
 	.page { padding: 22px 28px 36px; max-width: none; width: 100%; box-sizing: border-box; }
 	.hint-inline { font-size: 11px; font-weight: 500; color: var(--text-dim); }
+	.hidden-toggle { background: none; border: 0; color: var(--text-muted); cursor: pointer; font-size: 11px; padding: 2px 6px; }
+	.hidden-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+	.hidden-chip { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-card); }
+	.hc-name { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+	.hc-show { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+	.hc-show:hover { background: color-mix(in srgb, var(--accent) 26%, transparent); }
 	.dragwrap { position: relative; cursor: grab; }
 	.dragwrap:active { cursor: grabbing; }
 	.dragwrap.dragging, .lrow.dragging { opacity: 0.4; }
