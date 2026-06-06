@@ -15,6 +15,7 @@ import type { Provider } from '$lib/types';
 import { activeStream, markOpened } from '$lib/stores/providers';
 import { recordOpen } from '$lib/stores/continue';
 import { activeProfileId } from '$lib/stores/profiles';
+import { markProviderUsed } from '$lib/stores/accounts';
 import { settings } from '$lib/stores/settings';
 import { startSession, endSession, incrementOpenCount } from '$lib/stores/tracking';
 import { openInWindow } from '$lib/streamWindow';
@@ -202,6 +203,7 @@ export async function showEmbedded(p: Provider, rect: Rect): Promise<void> {
 		});
 		incrementOpenCount();
 		startSession(p.id);
+		markProviderUsed(p.id);
 		creatingLabel = null;
 		currentLabel = label;
 		currentProviderId = p.id;

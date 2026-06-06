@@ -17,13 +17,27 @@ export const notifHistory = writable<Toast[]>([]);
 export const notifCenterOpen = writable(false);
 
 let counter = 0;
+function makeToast(title: string, body?: string, icon = '🔔'): Toast {
+	return { id: ++counter, title, body, icon, at: Date.now() };
+}
+
+// Kurzer Hinweis (z. B. „Gespeichert"): erscheint nur transient, NICHT im Center-Verlauf.
 export function pushToast(title: string, body?: string, icon = '🔔', timeoutMs = 5000): void {
-	const id = ++counter;
-	const entry: Toast = { id, title, body, icon, at: Date.now() };
+	const entry = makeToast(title, body, icon);
+	toasts.update(($t) => [...$t, entry]);
+	if (timeoutMs > 0) {
+		setTimeout(() => dismissToast(entry.id), timeoutMs);
+	}
+}
+
+// Wichtige Benachrichtigung (Achievement, Release): erscheint kurz als Toast UND
+// bleibt im Center-Verlauf erhalten.
+export function pushNotification(title: string, body?: string, icon = '🔔', timeoutMs = 6000): void {
+	const entry = makeToast(title, body, icon);
 	toasts.update(($t) => [...$t, entry]);
 	notifHistory.update(($h) => [entry, ...$h].slice(0, 40));
 	if (timeoutMs > 0) {
-		setTimeout(() => dismissToast(id), timeoutMs);
+		setTimeout(() => dismissToast(entry.id), timeoutMs);
 	}
 }
 

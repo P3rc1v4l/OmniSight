@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { settings, clockEditing, DEFAULT_SETTINGS, onboardingOpen } from '$lib/stores/settings';
-	import { resetProviders } from '$lib/stores/providers';
+	import { resetProviders, providers } from '$lib/stores/providers';
+	import { usedProviders, logoutProvider, logoutAllProviders } from '$lib/stores/accounts';
 	import {
 		profiles, activeProfileId, addProfile, renameProfile, setProfileAvatar, setProfileAccent, deleteProfile,
 		setPin, clearPin, verifyPin, MAX_PROFILES, MIN_PROFILES,
@@ -14,9 +15,14 @@
 	import { pushToast } from '$lib/stores/toasts';
 	import { t } from '$lib/i18n';
 	import { THEME_PRESETS } from '$lib/themes';
+	import { isReviewPeriod, reviewYear } from '$lib/yearReview';
 	import { get } from 'svelte/store';
 
-	let { open = false, initialTab = 'appearance', close }: { open?: boolean; initialTab?: string; close: () => void } = $props();
+	let { open = false, initialTab = 'appearance', close, onOpenReview }: { open?: boolean; initialTab?: string; close: () => void; onOpenReview?: () => void } = $props();
+
+	// Jahresrückblick-Hinweis nur im Zeitraum anzeigen.
+	const reviewActive = isReviewPeriod();
+	const reviewYr = reviewYear();
 
 	// Backup/Restore
 	let backupFileInput = $state<HTMLInputElement | null>(null);
@@ -115,6 +121,24 @@
 	}
 	function pickMode(m: 'light' | 'dark') {
 		settings.update((s) => ({ ...s, appearance: { ...s.appearance, theme: m, themePreset: 'default' } }));
+	}
+
+	// Anbieter-Logins (Accounts): genutzte Anbieter des aktuellen Profils mit Namen.
+	const accountList = $derived(
+		$usedProviders
+			.map((id) => ({ id, name: $providers.find((p) => p.id === id)?.name ?? id }))
+			.sort((a, b) => a.name.localeCompare(b.name))
+	);
+	let logoutMsg = $state('');
+	async function doLogout(id: string) {
+		logoutMsg = '';
+		const r = await logoutProvider(id);
+		logoutMsg = r.ok ? $t('set.acc.logoutDone') : ($t('set.acc.logoutFail') + (r.error ? ' · ' + r.error : ''));
+	}
+	async function doLogoutAll() {
+		logoutMsg = '';
+		const r = await logoutAllProviders();
+		logoutMsg = r.ok ? $t('set.acc.logoutAllDone') : ($t('set.acc.logoutFail') + (r.error ? ' · ' + r.error : ''));
 	}
 
 	// Schnellauswahl-Akzentfarben.
@@ -305,7 +329,18 @@
 				</div>
 
 				<div class="content">
+					{#if reviewActive}
+						<button class="review-banner" onclick={() => onOpenReview?.()}>
+							<span class="rb-emoji">🎉</span>
+							<span class="rb-text">
+								<strong>{$t('review.bannerTitle', { year: reviewYr })}</strong>
+								<span class="rb-sub">{$t('review.settingsBanner')}</span>
+							</span>
+							<span class="rb-cta">{$t('review.open')} →</span>
+						</button>
+					{/if}
 					{#if active === 'appearance'}
+						<div class="opt-group-title">{$t('set.look.groupColor')}</div>
 						<div class="look-head">
 							<div class="look-card">
 								<div class="look-label">{$t('set.mode')}</div>
@@ -370,6 +405,7 @@
 							<p class="hint">{$t('set.themePresetHint')}</p>
 						</div>
 
+						<div class="opt-group-title" style="margin-top:18px">{$t('set.look.groupDisplay')}</div>
 						<div class="grid">
 							<div class="field">
 								<label>{$t('set.bgImage')}</label>
@@ -503,12 +539,29 @@
 							<button class="ghost danger" onclick={resetAppearance}>{$t('set.resetDesign')}</button>
 						</div>
 					{:else if active === 'notifications'}
-						<div class="grid">
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.pauseReminder}/> {$t('set.notif.pause')}</label>
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.sound}/> {$t('set.notif.sound')}</label>
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.updateHint}/> {$t('set.notif.update')}</label>
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.achievementUnlocked}/> {$t('set.notif.achievement')}</label>
-							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.watchlistReminder}/> {$t('set.notif.watchlist')}</label>
+						<p class="acc-intro">{$t('set.notif.centerNote')}</p>
+						<div class="opt-group-title">{$t('set.notif.groupCenter')}</div>
+						<div class="notif-row">
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.achievementUnlocked}/> <b>🏆 {$t('set.notif.achievement')}</b></label>
+							<p class="notif-desc">{$t('set.notif.achievementDesc')}</p>
+						</div>
+						<div class="notif-row">
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.watchlistReminder}/> <b>📅 {$t('set.notif.watchlist')}</b></label>
+							<p class="notif-desc">{$t('set.notif.watchlistDesc')}</p>
+						</div>
+
+						<div class="opt-group-title" style="margin-top:18px">{$t('set.notif.groupOther')}</div>
+						<div class="notif-row">
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.pauseReminder}/> <b>⏸️ {$t('set.notif.pause')}</b></label>
+							<p class="notif-desc">{$t('set.notif.pauseDesc')}</p>
+						</div>
+						<div class="notif-row">
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.sound}/> <b>🔊 {$t('set.notif.sound')}</b></label>
+							<p class="notif-desc">{$t('set.notif.soundDesc')}</p>
+						</div>
+						<div class="notif-row">
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.updateHint}/> <b>⬆️ {$t('set.notif.update')}</b></label>
+							<p class="notif-desc">{$t('set.notif.updateDesc')}</p>
 						</div>
 					{:else if active === 'clock'}
 						<div class="look-card" style="margin-bottom:16px">
@@ -797,9 +850,28 @@
 						</div>
 
 						<p class="hint">{$t('set.acc.switchHint')}</p>
+
+						<div class="opt-group-title" style="margin-top:22px">{$t('set.acc.loginsTitle')}</div>
+						<p class="hint" style="margin-top:0">{$t('set.acc.loginsHint')}</p>
+						{#if accountList.length}
+							<div class="acc-logins">
+								{#each accountList as a (a.id)}
+									<div class="acc-login">
+										<span class="acc-login-name">🔗 {a.name}</span>
+										<button class="mini danger" onclick={() => doLogout(a.id)}>{$t('set.acc.logout')}</button>
+									</div>
+								{/each}
+							</div>
+							<button class="ghost danger" style="margin-top:10px" onclick={doLogoutAll}>{$t('set.acc.logoutAll')}</button>
+						{:else}
+							<p class="hint">{$t('set.acc.loginsEmpty')}</p>
+						{/if}
+						<p class="hint" style="font-size:11.5px; opacity:0.8">{$t('set.acc.loginsNote')}</p>
+						{#if logoutMsg}<div class="admin-status">{logoutMsg}</div>{/if}
 					{:else if active === 'plugins'}
 						<p class="acc-intro">{$t('set.plug.intro')}</p>
 
+						<div class="opt-group-title">{$t('set.plug.groupPlayback')}</div>
 						<div class="plugin">
 							<div class="plugin-head">
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.continueWatching}/> <b>{$t('set.plug.continue')}</b></label>
@@ -840,6 +912,7 @@
 							{/if}
 						</div>
 
+						<div class="opt-group-title" style="margin-top:18px">{$t('set.plug.groupIntegration')}</div>
 						<div class="plugin">
 							<div class="plugin-head">
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.discordEnabled}/> <b>{$t('set.plug.discord')}</b></label>
@@ -861,6 +934,7 @@
 							{/if}
 						</div>
 
+						<div class="opt-group-title" style="margin-top:18px">{$t('set.plug.groupSystem')}</div>
 						<div class="plugin">
 							<div class="plugin-head">
 								<label class="toggle"><input type="checkbox" bind:checked={$settings.plugins.hardwareAcceleration}/> <b>{$t('set.plug.hwAccel')}</b></label>
@@ -934,6 +1008,13 @@
 	.x { background: transparent; border: 0; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; transition: background 0.13s, color 0.13s; }
 	.x:hover { background: var(--bg-card); color: var(--text); }
 	.content { padding: 24px 28px; overflow: auto; contain: paint; transform: translateZ(0); }
+	.review-banner { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; margin: 0 0 20px; padding: 14px 16px; border-radius: 14px; cursor: pointer; font-family: inherit; background: linear-gradient(100deg, color-mix(in srgb, var(--accent) 30%, var(--bg-elev)), color-mix(in srgb, #b15cff 22%, var(--bg-elev))); border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); transition: transform 0.12s ease; }
+	.review-banner:hover { transform: translateY(-1px); }
+	.rb-emoji { font-size: 24px; flex-shrink: 0; }
+	.rb-text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+	.rb-text strong { font-size: 14.5px; font-weight: 800; }
+	.rb-sub { font-size: 12px; color: var(--text-muted); }
+	.rb-cta { flex-shrink: 0; color: var(--accent); font-weight: 700; font-size: 13px; }
 	.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 20px; }
 	.look-head { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 16px; }
 	.look-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
@@ -1002,6 +1083,12 @@
 	.row button { background: var(--bg-elev); color: var(--text-muted); border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; cursor: pointer; }
 	.row button.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 	.toggle { display: flex; align-items: center; gap: 8px; background: var(--bg-card); padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 13px; cursor: pointer; }
+	.notif-row { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+	.notif-row .toggle { background: none; border: 0; padding: 0; }
+	.notif-desc { font-size: 12.5px; color: var(--text-muted); margin: 6px 0 0 46px; line-height: 1.4; }
+	.acc-logins { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+	.acc-login { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
+	.acc-login-name { font-size: 13.5px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.block { margin-top: 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
 	.block-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
 	.row3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }

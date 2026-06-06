@@ -9,6 +9,7 @@
 	import { extractWatchProviders } from '$lib/watchProviders';
 	import { openUrlInApp } from '$lib/embedded';
 	import { pushToast } from '$lib/stores/toasts';
+	import { hiddenRecs, excludedSeeds, currentRecReason, hideRec } from '$lib/stores/recs';
 	import type { WatchlistItem, TmdbItem } from '$lib/types';
 
 	// „Verfügbar bei dir": je Titel die DE-Anbieter von TMDB holen und auf die
@@ -46,31 +47,54 @@
 	// TMDB-Empfehlungen zu (zufällig gewählten) Titeln der eigenen Liste.
 	// Wird nur neu berechnet, wenn sich die Titel-Menge ändert (nicht bei Bewertung/Gesehen).
 	const recs10 = writable<TmdbItem[]>([]);
+	// Merkt sich, aus welchem Seed-Titel eine Empfehlung stammt (für die Begründung).
+	let recReasonMap: Record<string, { seedLabel: string; seedKey: string }> = {};
 	let recsSig = '';
 
 	async function buildRecs(items: WatchlistItem[]): Promise<void> {
 		const have = new Set(items.map((w) => w.mediaType + '-' + w.tmdbId));
-		const seedTitles = [...items].sort(() => Math.random() - 0.5).slice(0, 12);
+		const excluded = new Set(get(excludedSeeds));
+		// Ausgeschlossene Seed-Titel nicht als Basis verwenden.
+		const usable = items.filter((w) => !excluded.has(w.mediaType + '-' + w.tmdbId));
+		const seedTitles = [...usable].sort(() => Math.random() - 0.5).slice(0, 12);
 		const pool = new Map<string, TmdbItem>();
+		const reasons: Record<string, { seedLabel: string; seedKey: string }> = {};
 		for (const s of seedTitles) {
 			const mt = (s.mediaType === 'tv' ? 'tv' : 'movie') as 'movie' | 'tv';
+			const seedKey = s.mediaType + '-' + s.tmdbId;
 			const res = (await tmdb.list(`/${mt}/${s.tmdbId}/recommendations`, [], mt)) ?? [];
 			for (const r of res) {
 				const k = (r.media_type === 'tv' ? 'tv' : 'movie') + '-' + r.id;
-				if (r.poster && !have.has(k) && !pool.has(k)) pool.set(k, r);
+				if (r.poster && !have.has(k) && !pool.has(k)) {
+					pool.set(k, r);
+					reasons[k] = { seedLabel: s.title, seedKey };
+				}
 			}
 		}
+		recReasonMap = reasons;
 		recs10.set([...pool.values()].sort(() => Math.random() - 0.5).slice(0, 24));
 	}
 
 	$: {
-		const sig = $watchlist.map((w) => w.mediaType + '-' + w.tmdbId).sort().join(',');
+		const sig = $watchlist.map((w) => w.mediaType + '-' + w.tmdbId).sort().join(',') + '|' + $excludedSeeds.join(',');
 		if (sig !== recsSig) {
 			recsSig = sig;
 			if ($watchlist.length) void buildRecs($watchlist);
 			else recs10.set([]);
 		}
 	}
+
+	function recKey(r: TmdbItem): string { return (r.media_type === 'tv' ? 'tv' : 'movie') + '-' + r.id; }
+	// Anzeige: ausgeblendete Empfehlungen herausfiltern (reagiert sofort beim Ausblenden).
+	$: shownRecs = $recs10.filter((r) => !$hiddenRecs.includes(recKey(r)));
+
+	function openRecInfo(r: TmdbItem): void {
+		const k = recKey(r);
+		const reason = recReasonMap[k];
+		currentRecReason.set(reason ? { seedLabel: reason.seedLabel, seedKey: reason.seedKey, recKey: k } : null);
+		openTitleInfo(r);
+	}
+	function refreshRecs(): void { if ($watchlist.length) void buildRecs($watchlist); }
 
 	// Lokales Datum als YYYY-MM-DD (vermeidet Zeitzonen-Versatz von toISOString).
 	function ymd(d: Date): string {
@@ -313,16 +337,22 @@
 		{/if}
 	{/if}
 
-	{#if $recs10.length}
+	{#if shownRecs.length}
 		<div class="recs">
 			<div class="rec-row">
-				<div class="rec-head">{$t('wl.recsTitle')}</div>
+				<div class="rec-head-row">
+					<div class="rec-head">{$t('wl.recsTitle')}</div>
+					<button class="rec-refresh" onclick={refreshRecs}>🔀 {$t('wl.recsNew')}</button>
+				</div>
 				<div class="rec-scroller">
-					{#each $recs10 as rec (rec.media_type + '-' + rec.id)}
-						<button class="rec-card" onclick={() => openTitleInfo(rec)} title={rec.title}>
-							{#if rec.poster}<img src={rec.poster} alt={rec.title} loading="lazy" decoding="async" />{:else}<div class="rec-noimg">?</div>{/if}
-							<span class="rec-name">{rec.title}</span>
-						</button>
+					{#each shownRecs as rec (rec.media_type + '-' + rec.id)}
+						<div class="rec-card-wrap">
+							<button class="rec-hide" onclick={() => hideRec(recKey(rec))} title={$t('wl.recHide')} aria-label={$t('wl.recHide')}>✕</button>
+							<button class="rec-card" onclick={() => openRecInfo(rec)} title={rec.title}>
+								{#if rec.poster}<img src={rec.poster} alt={rec.title} loading="lazy" decoding="async" />{:else}<div class="rec-noimg">?</div>{/if}
+								<span class="rec-name">{rec.title}</span>
+							</button>
+						</div>
 					{/each}
 				</div>
 			</div>
@@ -381,9 +411,16 @@
 	.seen-btn.on { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 	.rm:hover { color: #f87171; border-color: #f87171; }
 	.recs { margin-top: 30px; display: flex; flex-direction: column; gap: 24px; }
-	.rec-head { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+	.rec-head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+	.rec-head { font-size: 15px; font-weight: 700; }
+	.rec-refresh { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+	.rec-refresh:hover { border-color: var(--accent); color: var(--accent); }
 	.rec-scroller { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
-	.rec-card { flex: 0 0 120px; width: 120px; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-family: inherit; color: var(--text); }
+	.rec-card-wrap { flex: 0 0 120px; width: 120px; position: relative; }
+	.rec-hide { position: absolute; top: 6px; right: 6px; z-index: 2; width: 24px; height: 24px; border-radius: 999px; border: 0; background: rgba(0, 0, 0, 0.65); color: #fff; font-size: 11px; cursor: pointer; opacity: 0; transition: opacity 0.12s ease; display: grid; place-items: center; }
+	.rec-card-wrap:hover .rec-hide { opacity: 1; }
+	.rec-hide:hover { background: #e23b3b; }
+	.rec-card { width: 100%; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-family: inherit; color: var(--text); }
 	.rec-card img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 10px; display: block; border: 1px solid var(--border); transition: transform 0.15s ease; }
 	.rec-card:hover img { transform: translateY(-3px); }
 	.rec-noimg { width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; background: var(--bg-card-2); display: grid; place-items: center; color: var(--text-dim); font-size: 24px; }

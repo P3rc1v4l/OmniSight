@@ -6,6 +6,7 @@ import { get } from 'svelte/store';
 import type { Provider } from '$lib/types';
 import { startSession, endSession, incrementOpenCount } from '$lib/stores/tracking';
 import { activeProfileId } from '$lib/stores/profiles';
+import { markProviderUsed } from '$lib/stores/accounts';
 
 export async function openInWindow(p: Provider): Promise<void> {
 	if (!browser) return;
@@ -30,8 +31,10 @@ export async function openInWindow(p: Provider): Promise<void> {
 			url: p.url,
 			title: `${p.name} – OmniSight`,
 			adblock: !!p.adblock,
-			profileId: pid
+			profileId: pid,
+			providerId: p.id
 		});
+		markProviderUsed(p.id);
 		incrementOpenCount();
 		startSession(p.id);
 

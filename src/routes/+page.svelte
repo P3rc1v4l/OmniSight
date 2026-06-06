@@ -274,10 +274,15 @@
 	{/if}
 
 	{#if $continueList.length && !search && $settings.plugins.continueWatching}
-		<div class="section-label">▶ {$t('home.resume')}</div>
-		<button class="cont-resume" onclick={() => reopenContinue($continueList[0])} title={$t('home.resumeTitle', { label: $continueList[0].label })}>
-			<span class="cr-play">▶</span>
-			<span class="cr-title">{$continueList[0].label}</span>
+		{@const c = $continueList[0]}
+		<button class="cont-resume" onclick={() => reopenContinue(c)} title={$t('home.resumeTitle', { label: c.label })} style="--c1: {c.color}; --c2: {c.color2}">
+			{#if c.poster}<img class="cr-poster" src={c.poster} alt={c.label} />{:else}<span class="cr-logo">▶</span>{/if}
+			<span class="cr-meta">
+				<span class="cr-kicker">▶ {$t('home.resume')}</span>
+				<span class="cr-title">{c.label}</span>
+				{#if c.subtitle}<span class="cr-sub">{c.subtitle}</span>{/if}
+			</span>
+			<span class="cr-cta">{$t('home.resumeCta')} ▶</span>
 		</button>
 	{/if}
 
@@ -477,14 +482,25 @@
 	.view button { padding: 8px 12px; }
 	.view button.active { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 
-	.cont-resume { display: inline-flex; align-items: center; gap: 9px; background: none; border: 0; padding: 0; margin: 4px 0 12px; cursor: pointer; font-family: inherit; font-size: 13px; }
+	.cont-resume {
+		display: flex; align-items: center; gap: 16px; width: 100%; text-align: left;
+		background: linear-gradient(100deg, color-mix(in srgb, var(--c1, var(--accent)) 28%, var(--bg-elev)), var(--bg-elev) 72%);
+		border: 1px solid color-mix(in srgb, var(--c1, var(--accent)) 35%, var(--border));
+		border-radius: 16px; padding: 14px 18px; margin: 4px 0 24px; cursor: pointer;
+		font-family: inherit; transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+	}
+	.cont-resume:hover { transform: translateY(-2px); border-color: var(--c1, var(--accent)); box-shadow: 0 10px 28px -12px color-mix(in srgb, var(--c1, var(--accent)) 60%, transparent); }
+	.cr-poster { width: 52px; height: 78px; object-fit: cover; border-radius: 9px; flex-shrink: 0; }
+	.cr-logo { width: 52px; height: 78px; border-radius: 9px; background: var(--c1, var(--accent)); color: #fff; display: grid; place-items: center; font-size: 22px; flex-shrink: 0; }
+	.cr-meta { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+	.cr-kicker { font-size: 11px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--c1, var(--accent)); }
+	.cr-title { font-size: 18px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.cr-sub { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.cr-cta { flex-shrink: 0; background: var(--accent); color: var(--accent-text); font-weight: 700; font-size: 13px; padding: 9px 16px; border-radius: 10px; white-space: nowrap; }
 	.col-label { padding: 0; }
 	.col-toggle { display: inline-flex; align-items: center; gap: 7px; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; color: inherit; }
 	.col-toggle .chev { color: var(--text-muted); font-size: 11px; width: 12px; display: inline-block; }
 	.col-toggle:hover { color: var(--accent); }
-	.cr-play { width: 24px; height: 24px; border-radius: 999px; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-size: 10px; flex-shrink: 0; }
-	.cr-title { color: var(--text-muted); max-width: 340px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-	.cont-resume:hover .cr-title { color: var(--accent); }
 	.catbar { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 16px; }
 	.cat { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 13px; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
 	.cat:hover { border-color: var(--border-strong); color: var(--text); }

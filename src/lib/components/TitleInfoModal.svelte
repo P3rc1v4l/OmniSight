@@ -2,6 +2,8 @@
 	import { t as tt } from '$lib/i18n';
 	import { titleInfo, closeTitleInfo, tmdb } from '$lib/tmdb';
 	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist, toggleSeen } from '$lib/stores/watchlist';
+	import { currentRecReason, hideRec, excludeSeed } from '$lib/stores/recs';
+	import { pushToast } from '$lib/stores/toasts';
 	import { openUrlInApp } from '$lib/embedded';
 	import { extractWatchProviders } from '$lib/watchProviders';
 
@@ -70,6 +72,27 @@
 		toggleSeen(item.id, mt);
 	}
 	function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeTitleInfo(); }
+
+	// Empfehlungsgrund: nur anzeigen, wenn dieser Titel die gerade geöffnete Empfehlung ist.
+	const recReason = $derived.by(() => {
+		const it = $titleInfo;
+		const r = $currentRecReason;
+		if (!it || !r) return null;
+		const key = (it.media_type === 'tv' ? 'tv' : 'movie') + '-' + it.id;
+		return r.recKey === key ? r : null;
+	});
+	function hideThisRec() {
+		if (recReason) {
+			hideRec(recReason.recKey);
+			closeTitleInfo();
+		}
+	}
+	function excludeThisSeed() {
+		if (recReason) {
+			excludeSeed(recReason.seedKey);
+			pushToast($tt('ti.recExcluded', { title: recReason.seedLabel }), undefined, '🚫', 3000);
+		}
+	}
 
 	function openProviderLink(p: { name: string; url: string; id: string }) {
 		const title = $titleInfo?.title ?? '';
@@ -149,6 +172,16 @@
 					<p class="muted small">{$tt('ti.noStream')}</p>
 				{/if}
 
+				{#if recReason}
+					<div class="rec-reason">
+						<p class="rr-text">💡 {$tt('ti.recBecause', { title: recReason.seedLabel })}</p>
+						<div class="rr-actions">
+							<button class="rr-btn" onclick={hideThisRec}>{$tt('ti.recHideThis')}</button>
+							<button class="rr-btn" onclick={excludeThisSeed}>{$tt('ti.recExcludeSeed', { title: recReason.seedLabel })}</button>
+						</div>
+					</div>
+				{/if}
+
 				<div class="footer">
 					<button class="wl" class:on={isInWatchlist($watchlist, item.id, item.media_type)} onclick={toggleWatchlist}>
 						{isInWatchlist($watchlist, item.id, item.media_type) ? $tt('mb.saved') : $tt('mb.save')}
@@ -200,6 +233,11 @@
 	.prov:hover img { border-color: color-mix(in srgb, var(--accent) 60%, transparent); box-shadow: 0 6px 16px -6px rgba(0,0,0,0.6); }
 	.src { font-size: 11px; color: var(--text-muted); margin-top: 10px; }
 	.footer { margin-top: 24px; display: flex; gap: 10px; }
+	.rec-reason { margin-top: 22px; padding: 14px 16px; border-radius: 12px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+	.rr-text { margin: 0 0 10px; font-size: 13.5px; color: var(--text); line-height: 1.4; }
+	.rr-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+	.rr-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; padding: 7px 12px; font-size: 12.5px; cursor: pointer; font-family: inherit; }
+	.rr-btn:hover { border-color: var(--accent); color: var(--accent); }
 	.wl { background: var(--accent); color: #00110f; border: none; border-radius: 10px; padding: 11px 20px; font-family: inherit; font-weight: 700; font-size: 14px; cursor: pointer; transition: filter 0.15s ease; }
 	.wl:hover { filter: brightness(1.06); }
 	.wl.on { background: color-mix(in srgb, var(--accent) 22%, var(--bg-card)); color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent); }

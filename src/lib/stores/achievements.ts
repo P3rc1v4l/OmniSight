@@ -7,7 +7,7 @@ import { favorites } from './providers';
 import { watchlist } from './watchlist';
 import { totalWatchMs, openCount, distinctProvidersWatched } from './tracking';
 import { settings } from './settings';
-import { pushToast } from './toasts';
+import { pushNotification } from './toasts';
 
 export interface Achievement {
 	id: string;
@@ -130,7 +130,7 @@ export function maybeNotify(list: Achievement[], enabled: boolean): void {
 	celebrated.update((c) => [...c, ...newly.map((a) => a.id)]);
 	if (!enabled) return;
 	for (const a of newly) {
-		pushToast('🏆 Achievement freigeschaltet', `${a.name} – ${a.desc}`, a.icon);
+		pushNotification('🏆 Achievement freigeschaltet', `${a.name} – ${a.desc}`, a.icon);
 	}
 }
 

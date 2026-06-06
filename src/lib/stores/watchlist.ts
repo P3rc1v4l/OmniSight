@@ -2,7 +2,7 @@ import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
 import type { WatchlistItem, TmdbItem } from '$lib/types';
 import { loadState, saveState } from '$lib/persistence';
-import { pushToast } from './toasts';
+import { pushNotification } from './toasts';
 import { t } from '$lib/i18n';
 
 export const watchlist = writable<WatchlistItem[]>([]);
@@ -65,7 +65,7 @@ export function maybeNotifyReleases(items: WatchlistItem[], enabled: boolean): v
 	notified.update((n) => [...n, ...fresh.map((w) => w.mediaType + '-' + w.tmdbId)]);
 	if (!enabled) return;
 	for (const w of fresh) {
-		pushToast(get(t)('wl.relNotify', { title: w.title }), undefined, '📅', 6000);
+		pushNotification(get(t)('wl.relNotify', { title: w.title }), undefined, '📅', 6000);
 	}
 }
 

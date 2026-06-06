@@ -18,6 +18,8 @@
 	import UpdateBanner from '$lib/components/UpdateBanner.svelte';
 	import NotificationCenter from '$lib/components/NotificationCenter.svelte';
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
+	import YearReviewBanner from '$lib/components/YearReviewBanner.svelte';
+	import WrappedModal from '$lib/components/WrappedModal.svelte';
 	import { checkForUpdate } from '$lib/stores/updater';
 	import { hideEmbedded, unhideEmbedded, immersive, openProvider, streamMode, backgroundStreams } from '$lib/embedded';
 	import { settings, hydrateSettings, applySettings, onboardingOpen } from '$lib/stores/settings';
@@ -35,6 +37,7 @@
 	let settingsTab = $state('appearance');
 	let showShortcuts = $state(false);
 	let showPalette = $state(false);
+	let showWrapped = $state(false);
 	let updateTimer: ReturnType<typeof setInterval>;
 
 	// Hell/Dunkel umschalten (von Strg+D und der Befehlspalette genutzt).
@@ -126,6 +129,11 @@
 		maybeNotifyReleases($watchlist, $settings.notifications.watchlistReminder);
 	});
 
+	// Onboarding immer ganz im Vordergrund: eingebetteten Stream ausblenden, solange es offen ist.
+	$effect(() => {
+		void ($onboardingOpen ? hideEmbedded() : unhideEmbedded());
+	});
+
 	function onKey(e: KeyboardEvent) {
 		const inField = (e.target as HTMLElement)?.matches?.('input,textarea,select');
 		if (e.key === 'Escape') { if (showPalette) closePalette(); if (showSettings) closeSettings(); showShortcuts = false; return; }
@@ -161,6 +169,7 @@
 	{#if !$immersive}
 		<Titlebar onHelp={() => (showShortcuts = true)} />
 		<UpdateBanner />
+		<YearReviewBanner onOpenReview={() => (showWrapped = true)} />
 	{/if}
 	<div class="below">
 		{#if !$immersive}
@@ -174,8 +183,11 @@
 <Toasts />
 <NotificationCenter />
 
-<SettingsModal open={showSettings} initialTab={settingsTab} close={closeSettings} />
+<SettingsModal open={showSettings} initialTab={settingsTab} close={closeSettings} onOpenReview={() => { closeSettings(); showWrapped = true; }} />
 <ShortcutsModal open={showShortcuts} close={() => (showShortcuts = false)} />
+{#if showWrapped}
+	<WrappedModal onClose={() => (showWrapped = false)} />
+{/if}
 <CommandPalette
 	open={showPalette}
 	onClose={closePalette}
