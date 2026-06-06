@@ -112,11 +112,6 @@ fn webview2_version() -> Result<String, String> {
     tauri::webview_version().map_err(|e| e.to_string())
 }
 
-/// Erzeugt eine eingebettete Anbieter-Webview als Kind des Hauptfensters – MIT
-/// Absicherung: Navigation nur zu http(s)/about/data (fremde Schemata wie file: werden
-/// blockiert), und automatische Downloads werden unterbunden. Scheitert das Erzeugen,
-/// fällt das Frontend auf den Fenster-Modus zurück (Streaming bricht nicht ab).
-#[tauri::command]
 // In Streams (eingebettet & Fenster) injiziert: echte „in neuem Tab"-Links (z. B. zum
 // Stream-Hoster) im selben Fenster öffnen, damit die Weiterleitung funktioniert; und
 // Pop-under-Werbung über window.open unterbinden.
@@ -128,6 +123,11 @@ const STREAM_INIT_JS: &str = r#"(function(){try{
   },true);
 }catch(_){}})();"#;
 
+/// Erzeugt eine eingebettete Anbieter-Webview als Kind des Hauptfensters – MIT
+/// Absicherung: Navigation nur zu http(s)/about/data (fremde Schemata wie file: werden
+/// blockiert), und automatische Downloads werden unterbunden. Scheitert das Erzeugen,
+/// fällt das Frontend auf den Fenster-Modus zurück (Streaming bricht nicht ab).
+#[tauri::command]
 async fn create_embedded_webview(
     app: tauri::AppHandle,
     label: String,
