@@ -282,15 +282,6 @@
 						<div class="meta">
 							<button class="t t-btn" onclick={() => openInfo(w)}>{w.title}</button>
 							<div class="s">{w.mediaType === 'tv' ? $t('common.series') : $t('common.movie')}{w.releaseDate ? ' · ' + w.releaseDate.slice(0, 4) : ''}</div>
-							{#if ($availability[w.mediaType + '-' + w.tmdbId] ?? []).length}
-								<div class="avail">
-									{#each $availability[w.mediaType + '-' + w.tmdbId] as pv (pv.id)}
-										<button class="avail-chip" onclick={() => openAt(w, pv)} title={$t('wl.openAt', { provider: pv.name })} aria-label={$t('wl.openAt', { provider: pv.name })}>
-											{#if pv.logo}<img src={pv.logo} alt={pv.name} />{:else}<span class="avail-fallback">{pv.name.slice(0, 1)}</span>{/if}
-										</button>
-									{/each}
-								</div>
-							{/if}
 							<div class="stars" role="group" aria-label={$t('wl.rate')}>
 								{#each [1, 2, 3, 4, 5] as n}
 									<button
@@ -302,7 +293,15 @@
 									>{(w.rating ?? 0) >= n ? '★' : '☆'}</button>
 								{/each}
 							</div>
-							<p class="o">{w.overview ? w.overview.slice(0, 110) + (w.overview.length > 110 ? '…' : '') : ''}</p>
+							{#if ($availability[w.mediaType + '-' + w.tmdbId] ?? []).length}
+								<div class="avail">
+									{#each $availability[w.mediaType + '-' + w.tmdbId] as pv (pv.id)}
+										<button class="avail-chip" onclick={() => openAt(w, pv)} title={$t('wl.openAt', { provider: pv.name })} aria-label={$t('wl.openAt', { provider: pv.name })}>
+											{#if pv.logo}<img src={pv.logo} alt={pv.name} />{:else}<span class="avail-fallback">{pv.name.slice(0, 1)}</span>{/if}
+										</button>
+									{/each}
+								</div>
+							{/if}
 							<div class="card-actions">
 								<button class="seen-btn" class:on={w.seen} onclick={() => toggleSeen(w.tmdbId, w.mediaType)}>{w.seen ? '✓ ' + $t('wl.seen') : '👁 ' + $t('wl.markSeen')}</button>
 								<button class="rm" onclick={() => removeFromWatchlist(w.tmdbId, w.mediaType)}>{$t('common.remove')}</button>
@@ -363,7 +362,7 @@
 	.card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; transition: transform 0.25s ease, filter 0.25s ease; }
 	.thumb:hover img { transform: scale(1.04); filter: brightness(1.06); }
 	.noimg { aspect-ratio: 2/3; display: grid; place-items: center; background: var(--bg-card-2); font-size: 36px; color: var(--text-dim); }
-	.meta { padding: 10px 11px; display: flex; flex-direction: column; gap: 4px; }
+	.meta { padding: 10px 11px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
 	.t { font-weight: 700; font-size: 13px; line-height: 1.25; }
 	.t-btn { padding: 0; border: 0; background: none; color: var(--text); text-align: left; cursor: pointer; font-family: inherit; }
 	.t-btn:hover { color: var(--accent); }
@@ -376,15 +375,15 @@
 	.star { background: none; border: 0; padding: 0 1px; cursor: pointer; font-size: 16px; line-height: 1; color: var(--text-dim); transition: color 0.1s ease, transform 0.1s ease; }
 	.star.lit { color: #f5b301; }
 	.star:hover { transform: scale(1.18); }
-	.card-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+	.card-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: auto; padding-top: 8px; }
 	.card-actions .rm { margin-top: 0; }
 	.seen-btn { background: transparent; border: 1px solid var(--border-strong); color: var(--text); padding: 5px 8px; border-radius: 7px; font-size: 11.5px; cursor: pointer; font-family: inherit; white-space: nowrap; }
 	.seen-btn.on { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 	.rm:hover { color: #f87171; border-color: #f87171; }
 	.recs { margin-top: 30px; display: flex; flex-direction: column; gap: 24px; }
 	.rec-head { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
-	.rec-scroller { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
-	.rec-card { width: 100%; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-family: inherit; color: var(--text); }
+	.rec-scroller { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
+	.rec-card { flex: 0 0 120px; width: 120px; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-family: inherit; color: var(--text); }
 	.rec-card img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 10px; display: block; border: 1px solid var(--border); transition: transform 0.15s ease; }
 	.rec-card:hover img { transform: translateY(-3px); }
 	.rec-noimg { width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; background: var(--bg-card-2); display: grid; place-items: center; color: var(--text-dim); font-size: 24px; }

@@ -3,6 +3,7 @@
 	import { get } from 'svelte/store';
 	import { goto } from '$app/navigation';
 	import { activeStream } from '$lib/stores/providers';
+	import { activeProfileId } from '$lib/stores/profiles';
 	import { settings } from '$lib/stores/settings';
 	import { watchTime, sessionStart, formatDuration } from '$lib/stores/tracking';
 	import { showEmbedded, hideEmbedded, repositionEmbedded, closeEmbedded, streamMode, immersive, setImmersive, miniPlayer, goMini, pushForegroundToBackground, streamError, reloadEmbedded, openCurrentInWindow, type Rect } from '$lib/embedded';
@@ -11,6 +12,33 @@
 
 	let host = $state<HTMLDivElement | null>(null);
 	let now = $state(Date.now());
+
+	// Fenster-Modus: Wird das separate Anbieter-Fenster geschlossen, beenden wir den
+	// Stream und kehren zur Übersicht zurück (sonst bliebe man auf „Schaut gerade").
+	let watchedLabel: string | null = null;
+	$effect(() => {
+		const p = $activeStream;
+		const mode = $streamMode;
+		if (mode !== 'window' || !p) return;
+		const pid = get(activeProfileId) ?? 'default';
+		const label = `stream-${pid}-${p.id}`;
+		if (label === watchedLabel) return;
+		watchedLabel = label;
+		void (async () => {
+			try {
+				const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+				const w = await WebviewWindow.getByLabel(label);
+				await w?.once('tauri://destroyed', () => {
+					activeStream.set(null);
+					void closeEmbedded();
+					if (window.location.pathname.startsWith('/stream')) goto('/');
+					watchedLabel = null;
+				});
+			} catch {
+				/* keine Tauri-Umgebung */
+			}
+		})();
+	});
 
 	// Vollbild: schmaler Streifen oben zum Einblenden der Leiste; Höhe der Leiste.
 	const REVEAL_STRIP = 2;
@@ -201,7 +229,15 @@
 
 		{#if $streamMode === 'window'}
 			<div class="hostnote">
-				<p>Dieser Anbieter wird in einem separaten Fenster angezeigt (Einbetten war auf diesem System nicht möglich).</p>
+				<p class="hn-title">Läuft in einem separaten Fenster</p>
+				{#if $activeStream?.adblock}
+					<p>Das liegt am aktiven <strong>Werbeblocker</strong> für diesen Anbieter – eingebettete Streams können keine Erweiterungen (und damit keinen Werbeblocker) laden.</p>
+					<p class="hn-hint">Tipp: Schalte den Werbeblocker für diesen Anbieter aus (Karte bearbeiten → Werbeblocker), dann läuft er wieder in der eingebetteten Ansicht.</p>
+				{:else if $activeStream?.url.includes('twitch.tv')}
+					<p>Twitch wird mit der <strong>BetterTTV</strong>-Erweiterung im eigenen Fenster geöffnet – eingebettete Streams können keine Erweiterungen laden.</p>
+				{:else}
+					<p>In den Einstellungen ist der <strong>Fenster-Modus</strong> gewählt. Stelle dort auf „Eingebettet", um Streams wieder direkt in der App anzuzeigen.</p>
+				{/if}
 			</div>
 		{:else}
 			<div class="host" bind:this={host}>
@@ -259,6 +295,8 @@
 	.recovery p { color: var(--text-muted); max-width: 440px; margin: 0 0 18px; line-height: 1.5; }
 	.rec-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 	.btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
-	.hostnote { flex: 1; display: grid; place-items: center; padding: 40px; }
-	.hostnote p { color: var(--text-muted); max-width: 420px; text-align: center; }
+	.hostnote { flex: 1; display: grid; place-items: center; align-content: center; padding: 40px; text-align: center; }
+	.hostnote p { color: var(--text-muted); max-width: 460px; margin: 0 0 10px; line-height: 1.5; }
+	.hn-title { color: var(--text) !important; font-size: 19px; font-weight: 800; margin-bottom: 14px !important; }
+	.hn-hint { font-size: 13px; color: var(--accent) !important; }
 </style>

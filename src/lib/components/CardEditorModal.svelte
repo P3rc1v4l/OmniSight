@@ -97,7 +97,10 @@
 		<div class="modal omni-card">
 			<header>
 				<h2>Karte bearbeiten</h2>
-				<button class="x" onclick={cancel} aria-label="Schließen">×</button>
+				<div class="head-actions">
+					<button class="head-hide" onclick={hideCard} title="Anbieter ausblenden">🙈 Ausblenden</button>
+					<button class="x" onclick={cancel} aria-label="Schließen">×</button>
+				</div>
 			</header>
 
 			<div class="preview">
@@ -163,9 +166,8 @@
 
 			<footer>
 				{#if !isCustom}
-					<button class="ghost danger" onclick={resetCard}>Auf Standard zurücksetzen</button>
+					<button class="ghost danger" onclick={resetCard}>Zurücksetzen</button>
 				{/if}
-				<button class="ghost" onclick={hideCard}>🙈 Ausblenden</button>
 				<span class="spacer"></span>
 				<button class="ghost" onclick={cancel}>Abbrechen</button>
 				<button class="primary" onclick={save}>Speichern</button>
@@ -186,6 +188,9 @@
 		border-radius: 16px; box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.7);
 	}
 	header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+	.head-actions { display: flex; align-items: center; gap: 8px; }
+	.head-hide { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); padding: 5px 11px; border-radius: 8px; cursor: pointer; font-family: inherit; font-size: 12.5px; white-space: nowrap; }
+	.head-hide:hover { border-color: var(--border-strong); color: var(--text); }
 	header h2 { margin: 0; font-size: 17px; font-weight: 800; }
 	.x { background: transparent; border: 0; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1; }
 	.preview { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-bottom: 1px solid var(--border); }
@@ -204,7 +209,7 @@
 	.filebtn:hover { border-color: var(--border-strong); }
 	.mini { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; font-family: inherit; }
 	.hint { color: var(--text-muted); font-size: 12px; margin: 0; }
-	footer { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--border); }
+	footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 14px 18px; border-top: 1px solid var(--border); }
 	.spacer { flex: 1; }
 	.ghost { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); padding: 9px 16px; border-radius: 10px; cursor: pointer; font-family: inherit; font-size: 13.5px; }
 	.ghost:hover { border-color: var(--border-strong); }
