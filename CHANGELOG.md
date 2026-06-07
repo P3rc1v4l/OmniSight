@@ -11,6 +11,25 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.98.0] – 2026-06-06
+
+### Watchlist-Import — 🎨
+- Über den **Import**-Button auf der Gemerkt-Seite lassen sich jetzt **CSV-Dateien** (Letterboxd, Trakt oder generisch) **und** die eigene **JSON-Sicherung** einlesen.
+- **Auflösung über TMDB:** Zeilen mit TMDB-ID werden exakt übernommen; Zeilen nur mit Titel (z. B. echte Letterboxd-Exporte) werden per Suche zugeordnet – bevorzugt nach **Jahr** und **Typ** (Film/Serie).
+- **Fortschrittsanzeige** während des Imports (X / Y), plus Ergebnis-Meldung (hinzugefügt / nicht gefunden bzw. Duplikate). Robuster CSV-Parser (Anführungszeichen, Kommas in Titeln) – mit Tests geprüft.
+- Profitiert vom TMDB-Cache aus v0.96.0 (schnellere Wiederholungen).
+
+---
+
+## [0.97.0] – 2026-06-06
+
+### Sicherheit: PIN-/Admin-Hashing gehärtet — 🔒
+- Profil-**PINs** und der **Admin-Code** werden jetzt mit **gesalzenem PBKDF2-SHA256** (100.000 Iterationen, zufälliger Salt pro PIN) gehasht – statt des bisherigen ungesalzenen einfachen SHA-256. Damit sind gleiche PINs nicht mehr am gleichen Hash erkennbar und Brute-Force/Rainbow-Tables deutlich erschwert.
+- **Automatische Migration ohne Datenverlust:** Bestehende (alte) PINs funktionieren weiter und werden beim **nächsten erfolgreichen Login** transparent auf PBKDF2 umgestellt; der Admin-Code beim nächsten erfolgreichen Prüfen.
+- Krypto- und Migrationslogik wurde mit 12 deterministischen Tests verifiziert (richtiger/falscher PIN, Salting, Legacy-Kompatibilität, Upgrade, Admin-Schema).
+
+---
+
 ## [0.96.0] – 2026-06-06
 
 ### Stabilität: svelte-check als CI-Gate — 🔧
