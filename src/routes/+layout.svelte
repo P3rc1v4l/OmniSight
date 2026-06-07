@@ -28,7 +28,7 @@
 	import { hydrateCatalog, favoriteProviders, visibleProviders } from '$lib/stores/providers';
 	import { hydrateProfiles, loadProfileData, activeProfileId, profiles } from '$lib/stores/profiles';
 	import { achievements, maybeNotify } from '$lib/stores/achievements';
-	import { watchlist, maybeNotifyReleases } from '$lib/stores/watchlist';
+	import { watchlist, maybeNotifyReleases, maybeNotifyEpisodes } from '$lib/stores/watchlist';
 	import { get } from 'svelte/store';
 
 	let { children } = $props();
@@ -105,6 +105,9 @@
 			const pid = get(activeProfileId);
 			if (pid) await loadProfileData(pid);
 		} catch (e) { console.error('[init] profileData', e); }
+
+		// Serien-Tracker: einmal pro Sitzung prüfen, ob heute neue Folgen erschienen sind.
+		void maybeNotifyEpisodes(get(watchlist), get(settings).notifications.episodeReminder);
 
 		if (!get(settings).onboardingDone) onboardingOpen.set(true);
 		window.addEventListener('keydown', onKey);

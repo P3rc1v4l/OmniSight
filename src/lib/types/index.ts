@@ -45,6 +45,7 @@ export interface NotificationSettings {
 	updateHint: boolean;
 	achievementUnlocked: boolean;
 	watchlistReminder: boolean;
+	episodeReminder: boolean;
 }
 
 export interface ProviderCollection {

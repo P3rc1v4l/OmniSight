@@ -54,7 +54,7 @@
 			{#each topProviders as t}
 				<div class="bar-row">
 					<div class="bl">
-						<Logo provider={t.provider} size={26} />
+						{#if t.provider}<Logo provider={t.provider} size={26} />{/if}
 						<span class="bn">{t.provider?.name}</span>
 					</div>
 					<div class="track"><div class="fill" style="width: {t.pct}%; background: {t.provider?.color}"></div></div>

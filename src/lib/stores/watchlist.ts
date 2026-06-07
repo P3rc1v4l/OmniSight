@@ -3,6 +3,7 @@ import { browser } from '$app/environment';
 import type { WatchlistItem, TmdbItem } from '$lib/types';
 import { loadState, saveState } from '$lib/persistence';
 import { pushNotification } from './toasts';
+import { tmdb } from '$lib/tmdb';
 import { t } from '$lib/i18n';
 
 export const watchlist = writable<WatchlistItem[]>([]);
@@ -66,6 +67,40 @@ export function maybeNotifyReleases(items: WatchlistItem[], enabled: boolean): v
 	if (!enabled) return;
 	for (const w of fresh) {
 		pushNotification(get(t)('wl.relNotify', { title: w.title }), undefined, '📅', 6000);
+	}
+}
+
+// Prüft für gemerkte Serien, ob heute eine neue Folge erschienen ist (TMDB
+// `last_episode_to_air`), und meldet sie einmalig. Läuft 1× pro App-Sitzung (Netzwerk!).
+let episodesChecking = false;
+export async function maybeNotifyEpisodes(items: WatchlistItem[], enabled: boolean): Promise<void> {
+	if (!browser || !ready || episodesChecking) return;
+	episodesChecking = true;
+	try {
+		const today = todayStr();
+		const tvItems = items.filter((w) => w.mediaType === 'tv' && !w.seen);
+		for (const w of tvItems) {
+			let det: Record<string, unknown> | null = null;
+			try {
+				det = await tmdb.details('tv', w.tmdbId);
+			} catch {
+				continue;
+			}
+			const last = det?.['last_episode_to_air'] as
+				| { air_date?: string; season_number?: number; episode_number?: number }
+				| null
+				| undefined;
+			if (!last || last.air_date !== today) continue;
+			const key = `ep:tv-${w.tmdbId}-s${last.season_number}e${last.episode_number}`;
+			if (get(notified).includes(key)) continue;
+			notified.update((n) => [...n, key]);
+			if (enabled) {
+				const ep = `S${last.season_number}·E${last.episode_number}`;
+				pushNotification(get(t)('wl.epNotify', { title: w.title, ep }), undefined, '📺', 6000);
+			}
+		}
+	} finally {
+		episodesChecking = false;
 	}
 }
 

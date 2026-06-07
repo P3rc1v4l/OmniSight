@@ -131,14 +131,21 @@
 	);
 	let logoutMsg = $state('');
 	async function doLogout(id: string) {
+		const name = $providers.find((p) => p.id === id)?.name ?? id;
+		if (!confirm(get(t)('set.acc.logoutConfirm', { name }))) return;
 		logoutMsg = '';
 		const r = await logoutProvider(id);
 		logoutMsg = r.ok ? $t('set.acc.logoutDone') : ($t('set.acc.logoutFail') + (r.error ? ' · ' + r.error : ''));
 	}
 	async function doLogoutAll() {
+		if (!confirm(get(t)('set.acc.logoutAllConfirm'))) return;
 		logoutMsg = '';
 		const r = await logoutAllProviders();
 		logoutMsg = r.ok ? $t('set.acc.logoutAllDone') : ($t('set.acc.logoutFail') + (r.error ? ' · ' + r.error : ''));
+	}
+	function confirmDeleteProfile(id: string) {
+		const name = $profiles.find((p) => p.id === id)?.name ?? '';
+		if (confirm(get(t)('set.acc.deleteConfirm', { name }))) deleteProfile(id);
 	}
 
 	// Schnellauswahl-Akzentfarben.
@@ -549,6 +556,10 @@
 							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.watchlistReminder}/> <b>📅 {$t('set.notif.watchlist')}</b></label>
 							<p class="notif-desc">{$t('set.notif.watchlistDesc')}</p>
 						</div>
+						<div class="notif-row">
+							<label class="toggle"><input type="checkbox" bind:checked={$settings.notifications.episodeReminder}/> <b>📺 {$t('set.notif.episode')}</b></label>
+							<p class="notif-desc">{$t('set.notif.episodeDesc')}</p>
+						</div>
 
 						<div class="opt-group-title" style="margin-top:18px">{$t('set.notif.groupOther')}</div>
 						<div class="notif-row">
@@ -667,7 +678,7 @@
 								<span class="opt-btn ghosty">Öffnen ↗</span>
 							</a>
 							{#if $updateState.available}
-								<p class="hint">{$t('set.adv.updateAvail', { n: $updateState.version })}</p>
+								<p class="hint">{$t('set.adv.updateAvail', { n: $updateState.version ?? '' })}</p>
 							{/if}
 						</div>
 
@@ -766,7 +777,7 @@
 										<button
 											class="chip danger"
 											disabled={$profiles.length <= MIN_PROFILES || p.id === $mainProfileId}
-											onclick={() => deleteProfile(p.id)}
+											onclick={() => confirmDeleteProfile(p.id)}
 											title={p.id === $mainProfileId ? $t('set.acc.delMain') : ($profiles.length <= MIN_PROFILES ? $t('set.acc.delMin') : $t('set.acc.delOk'))}
 										>🗑 {$t('common.remove')}</button>
 									</div>

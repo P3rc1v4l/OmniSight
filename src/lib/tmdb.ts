@@ -23,12 +23,23 @@ async function call<T>(name: string, args: Record<string, unknown> = {}): Promis
 	}
 }
 
+// Einfacher In-Memory-Cache für Detail-Abrufe: derselbe Titel wird oft mehrfach
+// geöffnet (Titel-Info, Empfehlungen, Serien-Tracker) – das spart Anfragen und Zeit.
+const detailsCache = new Map<string, { t: number; v: Record<string, unknown> }>();
+const DETAILS_TTL = 6 * 60 * 60 * 1000; // 6 Stunden
+
 export const tmdb = {
 	search: (query: string) => call<TmdbItem[]>('tmdb_search', { query }),
 	trending: () => call<TmdbItem[]>('tmdb_trending'),
 	upcoming: () => call<TmdbItem[]>('tmdb_upcoming'),
 	list: (path: string, params: [string, string][], mediaFallback: 'movie' | 'tv') =>
 		call<TmdbItem[]>('tmdb_list', { path, params, mediaFallback }),
-	details: (mediaType: 'movie' | 'tv', id: number) =>
-		call<Record<string, unknown>>('tmdb_details', { mediaType, id })
+	details: async (mediaType: 'movie' | 'tv', id: number): Promise<Record<string, unknown> | null> => {
+		const key = `${mediaType}-${id}`;
+		const hit = detailsCache.get(key);
+		if (hit && Date.now() - hit.t < DETAILS_TTL) return hit.v;
+		const v = await call<Record<string, unknown>>('tmdb_details', { mediaType, id });
+		if (v) detailsCache.set(key, { t: Date.now(), v });
+		return v;
+	}
 };

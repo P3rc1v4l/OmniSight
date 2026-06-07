@@ -176,11 +176,11 @@
 		hideTitle(t);
 	}
 
-	const inList = $derived(hero ? isInWatchlist($watchlist, hero.id, hero.media_type) : false);
+	const inList = $derived(hero ? isInWatchlist($watchlist, hero.id, hero.media_type as 'movie' | 'tv') : false);
 	function toggleWatch() {
 		if (!hero) return;
 		pauseTemporarily();
-		if (inList) removeFromWatchlist(hero.id, hero.media_type);
+		if (inList) removeFromWatchlist(hero.id, hero.media_type as 'movie' | 'tv');
 		else addToWatchlist(hero);
 	}
 
@@ -190,7 +190,7 @@
 		openUrlInApp(hero?.title ?? '', p.url, p.id, p.name, '#30c5bb', '#1f6f6a', hero?.poster ?? null);
 	}
 
-	const cats: { id: Cat; label: string }[] = [
+	const cats: { id: Cat; key: string }[] = [
 		{ id: 'movie', key: 'common.movies' },
 		{ id: 'tv', key: 'common.seriesPl' },
 		{ id: 'anime', key: 'cat.anime' }

@@ -10,6 +10,7 @@
 	import { openUrlInApp } from '$lib/embedded';
 	import { pushToast } from '$lib/stores/toasts';
 	import { hiddenRecs, excludedSeeds, currentRecReason, hideRec } from '$lib/stores/recs';
+	import { exportLetterboxd, exportTrakt } from '$lib/watchlistExport';
 	import type { WatchlistItem, TmdbItem } from '$lib/types';
 
 	// „Verfügbar bei dir": je Titel die DE-Anbieter von TMDB holen und auf die
@@ -135,7 +136,7 @@
 
 	let sortBy = 'added-desc';
 	let typeFilter: 'all' | 'movie' | 'tv' = 'all';
-	let seenFilter: 'all' | 'seen' | 'unseen' = 'unseen';
+	let recRowWidth = 0; // gemessene Breite der Empfehlungs-Leiste -> daraus: wie viele Karten passen
 	let q = '';
 
 	function sortList(list: WatchlistItem[], by: string): WatchlistItem[] {
@@ -152,10 +153,12 @@
 	}
 	$: filtered = $watchlist
 		.filter((w) => typeFilter === 'all' || w.mediaType === typeFilter)
-		.filter((w) => seenFilter === 'all' || (seenFilter === 'seen' ? !!w.seen : !w.seen))
+		.filter((w) => !w.seen)
 		.filter((w) => !q.trim() || w.title.toLowerCase().includes(q.trim().toLowerCase()));
 	$: shown = sortList(filtered, sortBy);
-	function resetFilters() { sortBy = 'added-desc'; typeFilter = 'all'; seenFilter = 'unseen'; q = ''; }
+	// Wie viele Empfehlungs-Karten passen in eine Reihe (Karte 120 + 12 Abstand = 132)?
+	$: recFit = Math.max(1, Math.floor((recRowWidth + 12) / 132));
+	function resetFilters() { sortBy = 'added-desc'; typeFilter = 'all'; q = ''; }
 
 	let fileInput: HTMLInputElement;
 
@@ -189,6 +192,19 @@
 		a.remove();
 		setTimeout(() => URL.revokeObjectURL(url), 1000);
 		pushToast(get(t)('wl.toastExportedTitle'), get(t)('wl.toastExportedBody', { n: items.length }), '📤', 2600);
+	}
+
+	function doExportLetterboxd() {
+		const items = get(watchlist);
+		if (!items.length) { pushToast(get(t)('wl.toastNothingTitle'), get(t)('wl.toastNothingBody'), 'ℹ️', 2400); return; }
+		const n = exportLetterboxd(items);
+		pushToast(get(t)('wl.toastLbTitle'), get(t)('wl.toastLbBody', { n }), '🎬', 3200);
+	}
+	function doExportTrakt() {
+		const items = get(watchlist);
+		if (!items.length) { pushToast(get(t)('wl.toastNothingTitle'), get(t)('wl.toastNothingBody'), 'ℹ️', 2400); return; }
+		const n = exportTrakt(items);
+		pushToast(get(t)('wl.toastTraktTitle'), get(t)('wl.toastTraktBody', { n }), '📺', 3200);
 	}
 
 	function triggerImport() {
@@ -252,6 +268,8 @@
 		<div class="tools">
 			<button class="tool" onclick={exportWatchlist} title={$t('wl.exportTitle')}>📤 {$t('wl.export')}</button>
 			<button class="tool" onclick={triggerImport} title={$t('wl.importTitle')}>📥 {$t('wl.import')}</button>
+			<button class="tool" onclick={doExportLetterboxd} title={$t('wl.exportLbTitle')}>🎬 Letterboxd</button>
+			<button class="tool" onclick={doExportTrakt} title={$t('wl.exportTraktTitle')}>📺 Trakt</button>
 			<input bind:this={fileInput} type="file" accept=".json,application/json" onchange={onFile} hidden />
 		</div>
 	</header>
@@ -268,11 +286,6 @@
 				<button class="seg" class:on={typeFilter === 'all'} onclick={() => (typeFilter = 'all')}>{$t('common.all')}</button>
 				<button class="seg" class:on={typeFilter === 'movie'} onclick={() => (typeFilter = 'movie')}>{$t('common.movies')}</button>
 				<button class="seg" class:on={typeFilter === 'tv'} onclick={() => (typeFilter = 'tv')}>{$t('common.seriesPl')}</button>
-			</div>
-			<div class="seg-group">
-				<button class="seg" class:on={seenFilter === 'all'} onclick={() => (seenFilter = 'all')}>{$t('common.all')}</button>
-				<button class="seg" class:on={seenFilter === 'unseen'} onclick={() => (seenFilter = 'unseen')}>{$t('wl.filterUnseen')}</button>
-				<button class="seg" class:on={seenFilter === 'seen'} onclick={() => (seenFilter = 'seen')}>{$t('wl.filterSeen')}</button>
 			</div>
 			<select class="sort" bind:value={sortBy} aria-label={$t('wl.sortAria')}>
 				<option value="added-desc">{$t('wl.sort.addedDesc')}</option>
@@ -344,8 +357,8 @@
 					<div class="rec-head">{$t('wl.recsTitle')}</div>
 					<button class="rec-refresh" onclick={refreshRecs}>🔀 {$t('wl.recsNew')}</button>
 				</div>
-				<div class="rec-scroller">
-					{#each shownRecs as rec (rec.media_type + '-' + rec.id)}
+				<div class="rec-scroller" bind:clientWidth={recRowWidth}>
+					{#each shownRecs.slice(0, recFit) as rec (rec.media_type + '-' + rec.id)}
 						<div class="rec-card-wrap">
 							<button class="rec-hide" onclick={() => hideRec(recKey(rec))} title={$t('wl.recHide')} aria-label={$t('wl.recHide')}>✕</button>
 							<button class="rec-card" onclick={() => openRecInfo(rec)} title={rec.title}>
@@ -410,12 +423,22 @@
 	.seen-btn { background: transparent; border: 1px solid var(--border-strong); color: var(--text); padding: 5px 8px; border-radius: 7px; font-size: 11.5px; cursor: pointer; font-family: inherit; white-space: nowrap; }
 	.seen-btn.on { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 	.rm:hover { color: #f87171; border-color: #f87171; }
-	.recs { margin-top: 30px; display: flex; flex-direction: column; gap: 24px; }
+	.recs {
+		position: sticky;
+		bottom: 0;
+		margin-top: 30px;
+		padding: 14px 0 6px;
+		background: linear-gradient(to top, var(--bg) 70%, transparent);
+		display: flex;
+		flex-direction: column;
+		gap: 24px;
+		z-index: 5;
+	}
 	.rec-head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 	.rec-head { font-size: 15px; font-weight: 700; }
 	.rec-refresh { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
 	.rec-refresh:hover { border-color: var(--accent); color: var(--accent); }
-	.rec-scroller { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
+	.rec-scroller { display: flex; gap: 12px; overflow: hidden; padding-bottom: 4px; }
 	.rec-card-wrap { flex: 0 0 120px; width: 120px; position: relative; }
 	.rec-hide { position: absolute; top: 6px; right: 6px; z-index: 2; width: 24px; height: 24px; border-radius: 999px; border: 0; background: rgba(0, 0, 0, 0.65); color: #fff; font-size: 11px; cursor: pointer; opacity: 0; transition: opacity 0.12s ease; display: grid; place-items: center; }
 	.rec-card-wrap:hover .rec-hide { opacity: 1; }

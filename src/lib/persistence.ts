@@ -18,7 +18,7 @@ async function getStore(): Promise<StoreLike | null> {
 			try {
 				const mod = await import('@tauri-apps/plugin-store');
 				// In Tauri v2 heißt der Loader "load" und liefert eine Promise.
-				const store = await mod.load('omnisight.json', { autoSave: true });
+				const store = await mod.load('omnisight.json', { autoSave: true, defaults: {} });
 				return store as unknown as StoreLike;
 			} catch {
 				// Wir sind im Browser-Dev oder Plugin nicht verfügbar -> kein Persistieren.

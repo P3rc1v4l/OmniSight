@@ -4,6 +4,7 @@
 	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist, toggleSeen } from '$lib/stores/watchlist';
 	import { currentRecReason, hideRec, excludeSeed } from '$lib/stores/recs';
 	import { pushToast } from '$lib/stores/toasts';
+	import { settings } from '$lib/stores/settings';
 	import { openUrlInApp } from '$lib/embedded';
 	import { extractWatchProviders } from '$lib/watchProviders';
 
@@ -46,6 +47,31 @@
 	const genres = $derived(((details?.genres ?? []) as any[]).map((g) => g.name).slice(0, 4));
 	const runtime = $derived(details?.runtime || details?.episode_run_time?.[0] || null);
 	const ratingRaw = $derived($titleInfo?.vote_average ?? details?.vote_average ?? null);
+
+	// Serien: nächste/letzte Folge (kommt aus den TMDB-Details).
+	type Ep = { air_date?: string; season_number?: number; episode_number?: number; name?: string };
+	const isTv = $derived($titleInfo?.media_type === 'tv');
+	const nextEp = $derived.by(() => {
+		if (!isTv) return null;
+		const e = details?.next_episode_to_air as Ep | undefined;
+		return e?.air_date ? e : null;
+	});
+	const lastEp = $derived.by(() => {
+		if (!isTv) return null;
+		const e = details?.last_episode_to_air as Ep | undefined;
+		return e?.air_date ? e : null;
+	});
+	const epLocale = $derived($settings.appearance.language === 'en' ? 'en-US' : 'de-DE');
+	function epCode(e: Ep): string { return `S${e.season_number}·E${e.episode_number}`; }
+	function epDate(e: Ep): string {
+		try {
+			return new Date((e.air_date ?? '') + 'T00:00:00').toLocaleDateString(epLocale, { day: '2-digit', month: 'short', year: 'numeric' });
+		} catch { return e.air_date ?? ''; }
+	}
+	function epIsToday(e: Ep): boolean {
+		const d = new Date(); const t = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+		return e.air_date === t;
+	}
 	const rating = $derived(ratingRaw ? Math.round(ratingRaw * 10) / 10 : null);
 
 	function toggleWatchlist() {
@@ -141,6 +167,23 @@
 					<p class="muted">{$tt('ti.noDesc')}</p>
 				{/if}
 
+				{#if nextEp || lastEp}
+					<div class="ep-block">
+						{#if nextEp}
+							<div class="ep-row">
+								<span class="ep-label">📺 {$tt('ti.nextEp')}</span>
+								<span class="ep-info">{epCode(nextEp)} · {epDate(nextEp)}{#if epIsToday(nextEp)} · <b class="ep-today">{$tt('ti.epToday')}</b>{/if}{#if nextEp.name} · {nextEp.name}{/if}</span>
+							</div>
+						{/if}
+						{#if lastEp}
+							<div class="ep-row">
+								<span class="ep-label">⏮️ {$tt('ti.lastEp')}</span>
+								<span class="ep-info">{epCode(lastEp)} · {epDate(lastEp)}{#if epIsToday(lastEp)} · <b class="ep-today">{$tt('ti.epToday')}</b>{/if}{#if lastEp.name} · {lastEp.name}{/if}</span>
+							</div>
+						{/if}
+					</div>
+				{/if}
+
 				{#if trailerKey}
 					<div class="block">
 						<div class="block-label">{$tt('ti.trailer')}</div>
@@ -221,6 +264,11 @@
 
 	.content { padding: 6px 22px 22px; }
 	.overview { line-height: 1.6; color: var(--text); margin: 6px 0 0; }
+	.ep-block { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+	.ep-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; }
+	.ep-label { font-size: 12.5px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+	.ep-info { font-size: 13.5px; color: var(--text); }
+	.ep-today { color: var(--accent); }
 	.muted { color: var(--text-muted); } .small { font-size: 13px; }
 	.block { margin-top: 22px; }
 	.block-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }

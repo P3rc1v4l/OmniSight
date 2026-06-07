@@ -40,7 +40,7 @@ export const DEFAULT_SETTINGS: Settings = {
 	clock: { enabled: false, type: 'digital', hour12: false, showSeconds: true, color: '#ffffff', transparency: 50, size: 36, x: null, y: null },
 	notifications: {
 		pauseReminder: true, sound: true, updateHint: true,
-		achievementUnlocked: true, watchlistReminder: true
+		achievementUnlocked: true, watchlistReminder: true, episodeReminder: true
 	},
 	plugins: {
 		sleepTimerEnabled: false,
