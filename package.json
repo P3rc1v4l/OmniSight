@@ -1,6 +1,6 @@
 {
   "name": "omnisight",
-  "version": "0.91.0",
+  "version": "0.96.0",
   "description": "OmniSight – zentraler Streaming-Hub als Desktop-App (Tauri v2 + SvelteKit)",
   "type": "module",
   "private": true,
@@ -32,6 +32,7 @@
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tailwindcss/vite": "^4.1.0",
     "@tauri-apps/cli": "^2.5.0",
+    "@types/node": "^25.9.2",
     "svelte": "^5.25.0",
     "svelte-check": "^4.1.0",
     "tailwindcss": "^4.1.0",

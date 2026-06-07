@@ -11,6 +11,56 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.96.0] – 2026-06-06
+
+### Stabilität: svelte-check als CI-Gate — 🔧
+- Neuer **`check`-Job** im Release-Workflow: vor jedem Build wird mit **svelte-check** auf Typfehler geprüft (der Vite-Build prüft Typen NICHT). Schlägt die Prüfung fehl, startet der Build gar nicht erst.
+- Dabei **11 echte, bisher unentdeckte Typfehler behoben** (u. a. fehlende `'movie'|'tv'`-Casts, falsche Objekt-Felder, `null`-Fälle, ein nicht abgesichertes `Logo`-Provider, fehlende Node-Typen). `@types/node` ergänzt.
+
+### Performance: TMDB-Cache — 🔧
+- Detail-Abrufe (Titel-Info, Empfehlungen, Serien-Tracker) werden jetzt **6 Stunden im Speicher zwischengespeichert** – weniger Anfragen, schnellere Modals und ein schnellerer Serien-Check beim Start.
+
+### Sicherheit/UX: Bestätigungen — 🔒
+- **Abmelden** (einzeln und „Von allen abmelden") sowie **Profil löschen** fragen jetzt vorher nach. Besonders das Profil-Löschen war zuvor ohne Rückfrage.
+
+---
+
+## [0.95.0] – 2026-06-06
+
+### Serien-Tracker erweitert — 🎨
+- In der **Titel-Info einer Serie** stehen jetzt **„Nächste Folge"** und **„Letzte Folge"** (Staffel·Episode, Datum, Episodentitel – aus TMDB). Erscheint eine Folge heute, wird das mit „heute" in Akzentfarbe hervorgehoben.
+- Nutzt die ohnehin geladenen Detaildaten – keine zusätzlichen Anfragen.
+
+---
+
+## [0.94.0] – 2026-06-06
+
+### Serien-Tracker: Hinweis bei neuen Folgen — 🎨
+- Beim Start prüft OmniSight für gemerkte **Serien**, ob heute eine **neue Folge** erschienen ist (TMDB), und meldet sie einmalig im Benachrichtigungs-Center („Neue Folge: …").
+- Neue Einstellung unter **Benachrichtigungen → Im Benachrichtigungs-Center**: „Neue Folgen von Serien" (an/aus). Läuft einmal pro Sitzung, dedupliziert je Folge.
+
+### Export der Watchlist zu Letterboxd & Trakt — 🎨
+- Neue Buttons auf der Gemerkt-Seite: **🎬 Letterboxd** (CSV, nur Filme – Spalten `Title, Year, tmdbID, Rating`) und **📺 Trakt** (CSV, Filme + Serien – `tmdb_id, type, title, year, rating`).
+- Bewertung wird passend umgerechnet (Letterboxd 1–5 wie in der App, Trakt 1–10 = Sterne × 2). Datei einfach beim jeweiligen Dienst importieren.
+
+---
+
+## [0.93.0] – 2026-06-06
+
+### Gemerkt-Seite aufgeräumt — 🎨
+- **Gesehen/Ungesehen-Filter entfernt.** Die Seite zeigt jetzt **nur noch ungesehene** Titel. Wer einen Titel auf „Gesehen" setzt, schiebt ihn aus „Gemerkt" – er zählt dann in den **Statistiken** (und ist über „Gesehene Titel" einsehbar).
+- **Empfehlungen sitzen jetzt als Leiste am unteren Bildschirmrand** (klebt beim Scrollen unten), **ohne Scrollleiste**: es werden nur so viele Empfehlungen gezeigt, wie in eine Reihe passen (Anzahl passt sich automatisch an die Fensterbreite an).
+
+---
+
+## [0.92.0] – 2026-06-06
+
+### Build-Fix (nativer Teil aus v0.90/v0.91)
+- Der CI-Build schlug fehl, weil die Konstante `STREAM_INIT_JS` versehentlich **zwischen `#[tauri::command]` und der Funktion** `create_embedded_webview` stand („expected `fn`" + Folgefehler bei den Command-Makros). Konstante nach **vor** das Attribut verschoben. Inhaltlich identisch zu v0.91.0; jetzt kompilierbar.
+- **Hinweis:** Dies betrifft nur den nativen Rust-Code → bitte erneut im **CI** bauen.
+
+---
+
 ## [0.91.0] – 2026-06-06
 
 ### „Accounts" – Anbieter-Logins je Profil (#9) — 🦀 muss im CI gebaut werden
