@@ -212,7 +212,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'wl.export': { de: 'Export', en: 'Export' },
 	'wl.exportTitle': { de: 'Als Datei speichern', en: 'Save as file' },
 	'wl.import': { de: 'Import', en: 'Import' },
-	'wl.importTitle': { de: 'Aus Datei laden', en: 'Load from file' },
+	'wl.importTitle': { de: 'Import: JSON-Sicherung oder CSV (Letterboxd/Trakt)', en: 'Import: JSON backup or CSV (Letterboxd/Trakt)' },
 	'wl.bannerSuffix': { de: 'Titel deiner Watchlist erscheinen heute!', en: 'titles from your watchlist release today!' },
 	'wl.weekHead': { de: 'Diese Woche in deiner Watchlist', en: 'This week on your watchlist' },
 	'wl.todayBadge': { de: 'heute', en: 'today' },
@@ -248,6 +248,9 @@ const dict: Record<string, { de: string; en: string }> = {
 	'wl.toastImportedBody': { de: '{n} neue Titel hinzugefügt.', en: '{n} new titles added.' },
 	'wl.toastImportFailTitle': { de: 'Import fehlgeschlagen', en: 'Import failed' },
 	'wl.toastImportFailBody': { de: 'Das ist keine gültige OmniSight-Watchlist-Datei.', en: 'That is not a valid OmniSight watchlist file.' },
+	'wl.importing': { de: 'Importiere Watchlist…', en: 'Importing watchlist…' },
+	'wl.importHint': { de: 'Titel werden über TMDB zugeordnet – bei großen Listen kann das etwas dauern.', en: 'Titles are matched via TMDB — this can take a moment for large lists.' },
+	'wl.importCsvDone': { de: '{added} von {total} hinzugefügt ({skipped} nicht gefunden oder Duplikate).', en: '{added} of {total} added ({skipped} not found or duplicates).' },
 
 	// --- CR-Kalender ---
 	'cal.title': { de: 'CR Kalender', en: 'CR Calendar' },

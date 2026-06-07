@@ -10,15 +10,67 @@ import { loadAccountsForProfile } from './accounts';
 import { loadTrackingForProfile, resetSessions } from './tracking';
 import { loadCelebratedForProfile, achievements } from './achievements';
 
-export async function hashPin(pin: string): Promise<string> {
-	const data = new TextEncoder().encode(`omnihub:${pin}`);
+// Sicherheit: PINs/Admin-Code werden mit gesalzenem PBKDF2-SHA256 gehasht.
+// Format: pbkdf2$<iterationen>$<salt-base64>$<hash-base64>. Alte (ungesalzene)
+// SHA-256-Hashes werden weiter akzeptiert und beim nächsten erfolgreichen Login
+// automatisch auf PBKDF2 umgestellt (siehe verifyPinUpgrade / verifyAdminCode).
+const PBKDF2_ITER = 100_000;
+
+function toB64(bytes: Uint8Array): string {
+	let s = '';
+	for (const b of bytes) s += String.fromCharCode(b);
+	return btoa(s);
+}
+function fromB64(s: string): Uint8Array {
+	return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+}
+async function pbkdf2Bits(secret: string, salt: Uint8Array, iter: number): Promise<Uint8Array> {
+	const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), 'PBKDF2', false, ['deriveBits']);
+	const bits = await crypto.subtle.deriveBits(
+		{ name: 'PBKDF2', salt: salt as unknown as BufferSource, iterations: iter, hash: 'SHA-256' },
+		key,
+		256
+	);
+	return new Uint8Array(bits);
+}
+// Alter, ungesalzener Hash – nur noch zum Verifizieren bestehender PINs.
+async function legacyHash(secret: string): Promise<string> {
+	const data = new TextEncoder().encode(`omnihub:${secret}`);
 	const digest = await crypto.subtle.digest('SHA-256', data);
 	return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export async function verifyPin(pin: string, hash: string | null): Promise<boolean> {
-	if (!hash) return true;
-	return (await hashPin(pin)) === hash;
+export async function hashPin(secret: string): Promise<string> {
+	const salt = crypto.getRandomValues(new Uint8Array(16));
+	const hash = await pbkdf2Bits(secret, salt, PBKDF2_ITER);
+	return `pbkdf2$${PBKDF2_ITER}$${toB64(salt)}$${toB64(hash)}`;
+}
+
+// Ist der gespeicherte Hash noch im alten (ungesalzenen) Format?
+export function isLegacyHash(stored: string | null | undefined): boolean {
+	return !!stored && !stored.startsWith('pbkdf2$');
+}
+
+export async function verifyPin(secret: string, stored: string | null): Promise<boolean> {
+	if (!stored) return true; // kein PIN gesetzt -> Zugang frei
+	if (stored.startsWith('pbkdf2$')) {
+		const parts = stored.split('$');
+		const iter = parseInt(parts[1], 10) || PBKDF2_ITER;
+		try {
+			const calc = await pbkdf2Bits(secret, fromB64(parts[2]), iter);
+			return toB64(calc) === parts[3];
+		} catch {
+			return false;
+		}
+	}
+	return (await legacyHash(secret)) === stored;
+}
+
+// Verifiziert einen Profil-PIN und rüstet einen alten Hash bei Erfolg auf PBKDF2 um.
+export async function verifyPinUpgrade(id: string, pin: string, stored: string | null): Promise<boolean> {
+	const ok = await verifyPin(pin, stored);
+	if (ok && isLegacyHash(stored)) await setPin(id, pin);
+	return ok;
 }
 
 export const MAX_PROFILES = 5;
@@ -72,7 +124,9 @@ export async function setAdminCode(code: string): Promise<void> {
 export async function verifyAdminCode(code: string): Promise<boolean> {
 	const h = get(adminCodeHash);
 	if (!h) return false;
-	return (await hashPin(`admin:${code}`)) === h;
+	const ok = await verifyPin(`admin:${code}`, h);
+	if (ok && isLegacyHash(h)) adminCodeHash.set(await hashPin(`admin:${code}`));
+	return ok;
 }
 export function clearAdminCode(): void {
 	adminCodeHash.set(null);

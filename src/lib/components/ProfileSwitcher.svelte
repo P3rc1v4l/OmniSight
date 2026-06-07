@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { profiles, activeProfileId, switchProfile, addProfile, verifyPin, MAX_PROFILES } from '$lib/stores/profiles';
+	import { profiles, activeProfileId, switchProfile, addProfile, verifyPinUpgrade, MAX_PROFILES } from '$lib/stores/profiles';
 	import { isImageAvatar } from '$lib/avatar';
 	import type { Profile } from '$lib/types';
 
@@ -21,7 +21,7 @@
 
 	async function submitPin() {
 		if (!pinFor) return;
-		if (await verifyPin(pinValue, pinFor.pinHash)) {
+		if (await verifyPinUpgrade(pinFor.id, pinValue, pinFor.pinHash)) {
 			await switchProfile(pinFor.id);
 			pinFor = null; open = false;
 		} else {

@@ -11,6 +11,7 @@
 	import { pushToast } from '$lib/stores/toasts';
 	import { hiddenRecs, excludedSeeds, currentRecReason, hideRec } from '$lib/stores/recs';
 	import { exportLetterboxd, exportTrakt } from '$lib/watchlistExport';
+	import { importWatchlistCsv } from '$lib/watchlistImport';
 	import type { WatchlistItem, TmdbItem } from '$lib/types';
 
 	// „Verfügbar bei dir": je Titel die DE-Anbieter von TMDB holen und auf die
@@ -137,6 +138,7 @@
 	let sortBy = 'added-desc';
 	let typeFilter: 'all' | 'movie' | 'tv' = 'all';
 	let recRowWidth = 0; // gemessene Breite der Empfehlungs-Leiste -> daraus: wie viele Karten passen
+	let importProgress: { done: number; total: number } | null = null; // CSV-Import-Fortschritt
 	let q = '';
 
 	function sortList(list: WatchlistItem[], by: string): WatchlistItem[] {
@@ -230,10 +232,29 @@
 		const input = e.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
 		if (!file) return;
+		const isCsv = file.name.toLowerCase().endsWith('.csv');
 		const reader = new FileReader();
-		reader.onload = () => {
+		reader.onload = async () => {
+			const text = String(reader.result);
+			const looksJson = text.trimStart().startsWith('{') || text.trimStart().startsWith('[');
+			if (isCsv || !looksJson) {
+				// CSV-Import (Letterboxd/Trakt/generisch) – löst Titel/IDs über TMDB auf.
+				importProgress = { done: 0, total: 0 };
+				try {
+					const res = await importWatchlistCsv(text, (done, total) => { importProgress = { done, total }; });
+					importProgress = null;
+					if (res.total === 0) pushToast(get(t)('wl.toastImportFailTitle'), get(t)('wl.toastImportFailBody'), '⚠️', 3400);
+					else pushToast(get(t)('wl.toastImportedTitle'), get(t)('wl.importCsvDone', { added: res.added, total: res.total, skipped: res.skipped }), '📥', 4500);
+				} catch {
+					importProgress = null;
+					pushToast(get(t)('wl.toastImportFailTitle'), get(t)('wl.toastImportFailBody'), '⚠️', 3400);
+				}
+				input.value = '';
+				return;
+			}
+			// JSON-Sicherung (eigenes Format)
 			try {
-				const parsed = JSON.parse(String(reader.result));
+				const parsed = JSON.parse(text);
 				const raw = Array.isArray(parsed) ? parsed : parsed.items;
 				if (!Array.isArray(raw)) throw new Error('Format');
 				const incoming = raw.map(normalize).filter(Boolean) as WatchlistItem[];
@@ -260,6 +281,16 @@
 </script>
 
 <div class="page">
+	{#if importProgress}
+		<div class="import-overlay" role="status" aria-live="polite">
+			<div class="import-box omni-card">
+				<div class="import-title">{$t('wl.importing')}</div>
+				<div class="import-count">{importProgress.done} / {importProgress.total}</div>
+				<div class="import-bar"><div class="import-fill" style="width: {importProgress.total ? (importProgress.done / importProgress.total) * 100 : 0}%"></div></div>
+				<div class="import-hint">{$t('wl.importHint')}</div>
+			</div>
+		</div>
+	{/if}
 	<header class="head">
 		<div>
 			<h1>{$t('wl.title')}</h1>
@@ -270,7 +301,7 @@
 			<button class="tool" onclick={triggerImport} title={$t('wl.importTitle')}>📥 {$t('wl.import')}</button>
 			<button class="tool" onclick={doExportLetterboxd} title={$t('wl.exportLbTitle')}>🎬 Letterboxd</button>
 			<button class="tool" onclick={doExportTrakt} title={$t('wl.exportTraktTitle')}>📺 Trakt</button>
-			<input bind:this={fileInput} type="file" accept=".json,application/json" onchange={onFile} hidden />
+			<input bind:this={fileInput} type="file" accept=".json,.csv,application/json,text/csv,text/plain" onchange={onFile} hidden />
 		</div>
 	</header>
 
@@ -375,6 +406,13 @@
 
 <style>
 	.page { padding: 22px 28px 36px; }
+	.import-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: grid; place-items: center; z-index: 1200; }
+	.import-box { width: min(420px, 90vw); padding: 24px; text-align: center; background: var(--bg-elev); }
+	.import-title { font-size: 16px; font-weight: 700; }
+	.import-count { font-size: 28px; font-weight: 800; margin: 10px 0; color: var(--accent); }
+	.import-bar { height: 8px; border-radius: 99px; background: var(--bg-card); overflow: hidden; }
+	.import-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.2s ease; }
+	.import-hint { font-size: 12.5px; color: var(--text-muted); margin-top: 12px; }
 	.head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
 	h1 { margin: 0; font-size: 26px; font-weight: 800; }
 	.sub { color: var(--text-muted); margin: 4px 0 0; }
