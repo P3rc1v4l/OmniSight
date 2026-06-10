@@ -336,7 +336,7 @@
 		</div>
 	{/if}
 	{#if displayed.length === 0}
-		<p class="empty-cat">Keine Anbieter in dieser Kategorie.</p>
+		<p class="empty-cat">{$t('home.emptyCat')}</p>
 	{:else if view === 'grid'}
 		<div class="grid all">
 			{#each displayed as p (p.id)}

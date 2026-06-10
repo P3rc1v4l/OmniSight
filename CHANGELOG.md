@@ -11,6 +11,16 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.99.0] – 2026-06-06
+
+### UI-Politur: Lade-Skelette & Leer-Zustände — 🎨
+- Neue, wiederverwendbare **Lade-Skelette** (schimmernde Poster-Platzhalter): Neuigkeiten/Upcoming zeigen während des Ladens jetzt ein Skelett statt nur „Laden…", und die **Empfehlungen** auf der Gemerkt-Seite zeigen beim Aufbau ein Skelett.
+- **Leer-Zustände vereinheitlicht:** Der Kategorie-Hinweis auf der Startseite war fest auf Deutsch – jetzt zweisprachig; der „keine Titel"-Zustand bekam ein Icon.
+
+Hinweis: Die vollständige Vereinheitlichung der Icons (Emoji → einheitliches Icon-Set) ist ein größerer eigener Schritt und folgt separat.
+
+---
+
 ## [0.98.0] – 2026-06-06
 
 ### Watchlist-Import — 🎨

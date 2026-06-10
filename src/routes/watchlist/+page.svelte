@@ -12,6 +12,7 @@
 	import { hiddenRecs, excludedSeeds, currentRecReason, hideRec } from '$lib/stores/recs';
 	import { exportLetterboxd, exportTrakt } from '$lib/watchlistExport';
 	import { importWatchlistCsv } from '$lib/watchlistImport';
+	import PosterRowSkeleton from '$lib/components/PosterRowSkeleton.svelte';
 	import type { WatchlistItem, TmdbItem } from '$lib/types';
 
 	// „Verfügbar bei dir": je Titel die DE-Anbieter von TMDB holen und auf die
@@ -54,6 +55,7 @@
 	let recsSig = '';
 
 	async function buildRecs(items: WatchlistItem[]): Promise<void> {
+		recsBuilding = true;
 		const have = new Set(items.map((w) => w.mediaType + '-' + w.tmdbId));
 		const excluded = new Set(get(excludedSeeds));
 		// Ausgeschlossene Seed-Titel nicht als Basis verwenden.
@@ -75,6 +77,7 @@
 		}
 		recReasonMap = reasons;
 		recs10.set([...pool.values()].sort(() => Math.random() - 0.5).slice(0, 24));
+		recsBuilding = false;
 	}
 
 	$: {
@@ -139,6 +142,7 @@
 	let typeFilter: 'all' | 'movie' | 'tv' = 'all';
 	let recRowWidth = 0; // gemessene Breite der Empfehlungs-Leiste -> daraus: wie viele Karten passen
 	let importProgress: { done: number; total: number } | null = null; // CSV-Import-Fortschritt
+	let recsBuilding = false; // Empfehlungen werden gerade geladen (für das Skeleton)
 	let q = '';
 
 	function sortList(list: WatchlistItem[], by: string): WatchlistItem[] {
@@ -381,23 +385,27 @@
 		{/if}
 	{/if}
 
-	{#if shownRecs.length}
+	{#if shownRecs.length || recsBuilding}
 		<div class="recs">
 			<div class="rec-row">
 				<div class="rec-head-row">
 					<div class="rec-head">{$t('wl.recsTitle')}</div>
-					<button class="rec-refresh" onclick={refreshRecs}>🔀 {$t('wl.recsNew')}</button>
+					<button class="rec-refresh" onclick={refreshRecs} disabled={recsBuilding}>🔀 {$t('wl.recsNew')}</button>
 				</div>
 				<div class="rec-scroller" bind:clientWidth={recRowWidth}>
-					{#each shownRecs.slice(0, recFit) as rec (rec.media_type + '-' + rec.id)}
-						<div class="rec-card-wrap">
-							<button class="rec-hide" onclick={() => hideRec(recKey(rec))} title={$t('wl.recHide')} aria-label={$t('wl.recHide')}>✕</button>
-							<button class="rec-card" onclick={() => openRecInfo(rec)} title={rec.title}>
-								{#if rec.poster}<img src={rec.poster} alt={rec.title} loading="lazy" decoding="async" />{:else}<div class="rec-noimg">?</div>{/if}
-								<span class="rec-name">{rec.title}</span>
-							</button>
-						</div>
-					{/each}
+					{#if recsBuilding && !shownRecs.length}
+						<PosterRowSkeleton count={recFit || 6} />
+					{:else}
+						{#each shownRecs.slice(0, recFit) as rec (rec.media_type + '-' + rec.id)}
+							<div class="rec-card-wrap">
+								<button class="rec-hide" onclick={() => hideRec(recKey(rec))} title={$t('wl.recHide')} aria-label={$t('wl.recHide')}>✕</button>
+								<button class="rec-card" onclick={() => openRecInfo(rec)} title={rec.title}>
+									{#if rec.poster}<img src={rec.poster} alt={rec.title} loading="lazy" decoding="async" />{:else}<div class="rec-noimg">?</div>{/if}
+									<span class="rec-name">{rec.title}</span>
+								</button>
+							</div>
+						{/each}
+					{/if}
 				</div>
 			</div>
 		</div>

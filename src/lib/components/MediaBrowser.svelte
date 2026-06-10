@@ -5,6 +5,7 @@
 	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist } from '$lib/stores/watchlist';
 	import { openUrlInApp } from '$lib/embedded';
 	import { extractWatchProviders, type WatchProvider } from '$lib/watchProviders';
+	import PosterRowSkeleton from './PosterRowSkeleton.svelte';
 	import type { TmdbItem } from '$lib/types';
 
 	let { kind = 'news' }: { kind?: 'news' | 'upcoming' } = $props();
@@ -227,11 +228,11 @@
 
 	<div class="hero">
 		{#if loading}
-			<div class="state">{$tt('mb.loading')}</div>
+			<div class="hero-sk shimmer"></div>
 		{:else if error}
 			<div class="state err">{$tt(error)}</div>
 		{:else if !hero}
-			<div class="state">{$tt('mb.noTitles')}</div>
+			<div class="state">🎬 {$tt('mb.noTitles')}</div>
 		{:else}
 			{#if heroImg}<div class="back" style="background-image: url({heroImg})"></div>{/if}
 			<div class="shade"></div>
@@ -268,6 +269,10 @@
 			{/key}
 		{/if}
 	</div>
+
+	{#if loading}
+		<div class="strip-sk"><PosterRowSkeleton count={10} /></div>
+	{/if}
 
 	{#if !loading && !error && visible.length}
 		<div class="strip" bind:this={stripEl}>
@@ -324,6 +329,17 @@
 	.nav.right { right: 14px; }
 	.nav:hover { background: rgba(0,0,0,0.6); }
 	.state { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-muted); padding: 24px; text-align: center; }
+	.hero-sk { position: absolute; inset: 0; }
+	.strip-sk { padding: 14px 20px 4px; }
+	.shimmer {
+		background: linear-gradient(90deg, var(--bg-card) 25%, var(--border) 37%, var(--bg-card) 63%);
+		background-size: 400% 100%;
+		animation: mb-shimmer 1.4s ease infinite;
+	}
+	@keyframes mb-shimmer {
+		0% { background-position: 100% 50%; }
+		100% { background-position: 0 50%; }
+	}
 	.state.err { color: #fca5a5; max-width: 640px; margin: 0 auto; }
 
 	.info { position: absolute; left: 48px; right: 48px; bottom: 26px; z-index: 3; max-width: 640px; animation: heroFade 0.45s ease; }

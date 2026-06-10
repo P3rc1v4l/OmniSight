@@ -148,6 +148,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'home.allProviders': { de: 'Alle Anbieter', en: 'All providers' },
 	'home.dragCards': { de: 'Karten zum Sortieren ziehen', en: 'drag cards to sort' },
 	'home.openTitle': { de: '{name} öffnen', en: 'Open {name}' },
+	'home.emptyCat': { de: 'Keine Anbieter in dieser Kategorie.', en: 'No providers in this category.' },
 	'home.favorite': { de: 'Favorit', en: 'Favorite' },
 	'home.toFavorites': { de: 'Zu Favoriten', en: 'Add to favorites' },
 	'home.toggleFavorite': { de: 'Favorit umschalten', en: 'Toggle favorite' },
