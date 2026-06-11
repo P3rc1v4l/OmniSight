@@ -12,13 +12,15 @@
 		onClose,
 		onOpenSettings,
 		onToggleTheme,
-		onShowShortcuts
+		onShowShortcuts,
+		onOpenSearch
 	}: {
 		open?: boolean;
 		onClose: () => void;
 		onOpenSettings: () => void;
 		onToggleTheme: () => void;
 		onShowShortcuts: () => void;
+		onOpenSearch: () => void;
 	} = $props();
 
 	type Cmd = {
@@ -38,6 +40,7 @@
 	const baseCmds = $derived.by<Cmd[]>(() => {
 		const T = $t;
 		return [
+			{ id: 'act-search', icon: '🔍', label: T('cmd.search'), hint: T('cmd.action'), keywords: 'suche search find titel film serie', run: () => onOpenSearch() },
 			{ id: 'nav-home', icon: '🏠', label: T('nav.home'), hint: T('cmd.page'), run: () => goto('/') },
 			{ id: 'nav-watchlist', icon: '🔖', label: T('nav.watchlist'), hint: T('cmd.page'), run: () => goto('/watchlist') },
 			{ id: 'nav-upcoming', icon: '📅', label: T('nav.upcoming'), hint: T('cmd.page'), run: () => goto('/upcoming') },

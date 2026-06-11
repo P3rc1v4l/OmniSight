@@ -18,6 +18,7 @@
 	import UpdateBanner from '$lib/components/UpdateBanner.svelte';
 	import NotificationCenter from '$lib/components/NotificationCenter.svelte';
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
+	import GlobalSearchModal from '$lib/components/GlobalSearchModal.svelte';
 	import YearReviewBanner from '$lib/components/YearReviewBanner.svelte';
 	import WrappedModal from '$lib/components/WrappedModal.svelte';
 	import { checkForUpdate } from '$lib/stores/updater';
@@ -37,6 +38,7 @@
 	let settingsTab = $state('appearance');
 	let showShortcuts = $state(false);
 	let showPalette = $state(false);
+	let showSearch = $state(false);
 	let showWrapped = $state(false);
 	let updateTimer: ReturnType<typeof setInterval>;
 
@@ -139,10 +141,12 @@
 
 	function onKey(e: KeyboardEvent) {
 		const inField = (e.target as HTMLElement)?.matches?.('input,textarea,select');
-		if (e.key === 'Escape') { if (showPalette) closePalette(); if (showSettings) closeSettings(); showShortcuts = false; return; }
+		if (e.key === 'Escape') { if (showPalette) closePalette(); if (showSettings) closeSettings(); if (showSearch) showSearch = false; showShortcuts = false; return; }
 		if (inField) return;
 		if (e.key === 'F1' || e.key === '?') { e.preventDefault(); showShortcuts = true; }
 		else if (e.key === ',' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); openSettings(); }
+		else if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); showSearch = true; }
+		else if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); showSearch = true; }
 		else if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
 			e.preventDefault();
 			openPalette();
@@ -197,7 +201,9 @@
 	onOpenSettings={() => openSettings()}
 	onToggleTheme={toggleTheme}
 	onShowShortcuts={() => (showShortcuts = true)}
+	onOpenSearch={() => { closePalette(); showSearch = true; }}
 />
+<GlobalSearchModal open={showSearch} onClose={() => (showSearch = false)} />
 <OnboardingModal open={$onboardingOpen} close={() => onboardingOpen.set(false)} />
 <CardEditorModal />
 <SleepTimer />
