@@ -155,7 +155,15 @@ jobs:
           Write-Host "latest.json -> $url"
           $draftFlag = @()
           if ($env:IS_DRAFT -eq 'true') { $draftFlag = @('--draft') }
-          gh release view $env:TAG --repo $env:REL_REPO 2>$null
+          # Leeres Repo? Dort kann GitHub keinen Release/Tag anlegen -> einmalig mit README initialisieren.
+          gh api "repos/$env:REL_REPO/commits?per_page=1" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Release-Repo ist leer -> README anlegen (einmalig)."
+            $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("# OmniSight Releases`n`nAutomatisch veroeffentlichte Builds fuer den Auto-Updater. Quellcode liegt privat.`n"))
+            gh api -X PUT "repos/$env:REL_REPO/contents/README.md" -f message="Release-Repo initialisieren" -f content="$b64" | Out-Null
+            Start-Sleep -Seconds 3
+          }
+          gh release view $env:TAG --repo $env:REL_REPO *> $null
           if ($LASTEXITCODE -eq 0) {
             Write-Host "Release $env:TAG existiert bereits -> Assets ersetzen."
             gh release upload $env:TAG $installer.FullName latest.json --repo $env:REL_REPO --clobber

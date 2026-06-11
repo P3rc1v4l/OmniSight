@@ -3,6 +3,7 @@
 	import { titleInfo, closeTitleInfo, tmdb } from '$lib/tmdb';
 	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist, toggleSeen } from '$lib/stores/watchlist';
 	import { currentRecReason, hideRec, excludeSeed } from '$lib/stores/recs';
+	import { watchedEpisodes, isEpisodeWatched, toggleEpisode, setSeasonWatched, seasonWatchedCount } from '$lib/stores/episodeProgress';
 	import { pushToast } from '$lib/stores/toasts';
 	import { settings } from '$lib/stores/settings';
 	import { openUrlInApp } from '$lib/embedded';
@@ -19,6 +20,8 @@
 		loadedId = item.id;
 		loading = true;
 		details = null;
+		expandedSeason = null;
+		seasonEps = [];
 		const mt = (item.media_type === 'tv' ? 'tv' : 'movie') as 'movie' | 'tv';
 		tmdb.details(mt, item.id).then((d) => {
 			if ($titleInfo?.id === item.id) {
@@ -72,6 +75,54 @@
 		const d = new Date(); const t = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 		return e.air_date === t;
 	}
+	// --- Episoden-Fortschritt: Staffeln aufklappen, Folgen einzeln abhaken ---
+	type SeasonInfo = { season_number: number; name: string; episode_count: number };
+	type SeasonEp = { episode_number: number; name: string; air_date: string | null; overview: string };
+	const seasons = $derived.by<SeasonInfo[]>(() => {
+		const arr = (details?.seasons ?? []) as any[];
+		return arr
+			.filter((s) => (s?.episode_count ?? 0) > 0)
+			.map((s) => ({
+				season_number: s.season_number as number,
+				name: (s.name as string) || `${$tt('common.season')} ${s.season_number}`,
+				episode_count: s.episode_count as number
+			}));
+	});
+	let expandedSeason = $state<number | null>(null);
+	let seasonEps = $state<SeasonEp[]>([]);
+	let loadingSeason = $state(false);
+
+	async function toggleSeasonExpand(seasonNumber: number) {
+		if (expandedSeason === seasonNumber) { expandedSeason = null; seasonEps = []; return; }
+		const id = $titleInfo?.id;
+		if (!id) return;
+		expandedSeason = seasonNumber;
+		seasonEps = [];
+		loadingSeason = true;
+		const data = await tmdb.season(id, seasonNumber);
+		const eps = ((data?.episodes ?? []) as any[]).map((e) => ({
+			episode_number: e.episode_number as number,
+			name: (e.name as string) || '',
+			air_date: (e.air_date as string) || null,
+			overview: (e.overview as string) || ''
+		}));
+		if (expandedSeason === seasonNumber) { seasonEps = eps; loadingSeason = false; }
+	}
+
+	function seasonNums(s: SeasonInfo): number[] {
+		return Array.from({ length: s.episode_count }, (_, i) => i + 1);
+	}
+	function seasonProgress(list: string[], s: SeasonInfo): number {
+		const id = $titleInfo?.id;
+		return id ? seasonWatchedCount(list, id, s.season_number, seasonNums(s)) : 0;
+	}
+	function toggleWholeSeason(s: SeasonInfo) {
+		const id = $titleInfo?.id;
+		if (!id) return;
+		const done = seasonProgress($watchedEpisodes, s) === s.episode_count;
+		setSeasonWatched(id, s.season_number, seasonNums(s), !done);
+	}
+
 	const rating = $derived(ratingRaw ? Math.round(ratingRaw * 10) / 10 : null);
 
 	function toggleWatchlist() {
@@ -184,6 +235,48 @@
 					</div>
 				{/if}
 
+				{#if isTv && seasons.length}
+					<div class="block">
+						<div class="block-label">{$tt('ti.episodes')}</div>
+						<div class="seasons">
+							{#each seasons as s (s.season_number)}
+								{@const prog = seasonProgress($watchedEpisodes, s)}
+								<div class="season">
+									<div class="season-head">
+										<button class="season-toggle" onclick={() => toggleSeasonExpand(s.season_number)} aria-expanded={expandedSeason === s.season_number}>
+											<span class="chev">{expandedSeason === s.season_number ? '▾' : '▸'}</span>
+											<span class="season-name">{s.name}</span>
+											<span class="season-prog" class:done={prog === s.episode_count}>{prog}/{s.episode_count}</span>
+										</button>
+										<button class="season-all" onclick={() => toggleWholeSeason(s)}>
+											{prog === s.episode_count ? $tt('ti.unmarkSeason') : $tt('ti.markSeason')}
+										</button>
+									</div>
+									{#if expandedSeason === s.season_number}
+										<div class="eps">
+											{#if loadingSeason}
+												<div class="eps-loading">{$tt('ti.loadingEps')}</div>
+											{:else}
+												{#each seasonEps as ep (ep.episode_number)}
+													<label class="ep-item">
+														<input
+															type="checkbox"
+															checked={isEpisodeWatched($watchedEpisodes, $titleInfo?.id ?? 0, s.season_number, ep.episode_number)}
+															onchange={() => toggleEpisode($titleInfo?.id ?? 0, s.season_number, ep.episode_number)}
+														/>
+														<span class="ep-num">E{ep.episode_number}</span>
+														<span class="ep-title">{ep.name || `${$tt('common.episode')} ${ep.episode_number}`}</span>
+													</label>
+												{/each}
+											{/if}
+										</div>
+									{/if}
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/if}
+
 				{#if trailerKey}
 					<div class="block">
 						<div class="block-label">{$tt('ti.trailer')}</div>
@@ -268,6 +361,24 @@
 	.ep-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; }
 	.ep-label { font-size: 12.5px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
 	.ep-info { font-size: 13.5px; color: var(--text); }
+	.seasons { display: flex; flex-direction: column; gap: 6px; }
+	.season { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+	.season-head { display: flex; align-items: center; gap: 8px; padding: 4px 8px 4px 4px; }
+	.season-toggle { flex: 1; display: flex; align-items: center; gap: 10px; background: transparent; border: none; color: var(--text); cursor: pointer; padding: 8px; text-align: left; border-radius: 8px; }
+	.season-toggle:hover { background: var(--bg-card); }
+	.chev { width: 14px; color: var(--text-muted); }
+	.season-name { flex: 1; font-weight: 600; font-size: 14px; }
+	.season-prog { font-size: 12.5px; color: var(--text-muted); background: var(--bg-card); padding: 2px 8px; border-radius: 99px; }
+	.season-prog.done { color: #fff; background: var(--accent); }
+	.season-all { background: transparent; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; font-size: 11.5px; padding: 5px 9px; border-radius: 8px; white-space: nowrap; }
+	.season-all:hover { color: var(--text); border-color: var(--accent); }
+	.eps { display: flex; flex-direction: column; padding: 4px 8px 8px; gap: 1px; max-height: 280px; overflow-y: auto; }
+	.eps-loading { padding: 10px; color: var(--text-muted); font-size: 13px; text-align: center; }
+	.ep-item { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 7px; cursor: pointer; }
+	.ep-item:hover { background: var(--bg-card); }
+	.ep-item input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; flex: 0 0 auto; }
+	.ep-num { font-size: 12px; color: var(--text-muted); min-width: 28px; }
+	.ep-title { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 	.ep-today { color: var(--accent); }
 	.muted { color: var(--text-muted); } .small { font-size: 13px; }
 	.block { margin-top: 22px; }

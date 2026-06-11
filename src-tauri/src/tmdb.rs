@@ -168,3 +168,11 @@ pub async fn tmdb_details(media_type: String, id: i64) -> Result<Value, String> 
     let path = format!("/{}/{}", media_type, id);
     get_json(&path, &[("append_to_response", "videos,watch/providers")]).await
 }
+
+// Liefert eine einzelne Staffel einer Serie inkl. ihrer Episodenliste
+// (Feld "episodes": episode_number, name, air_date, overview, still_path, ...).
+#[tauri::command]
+pub async fn tmdb_season(id: i64, season: i64) -> Result<Value, String> {
+    let path = format!("/tv/{}/season/{}", id, season);
+    get_json(&path, &[]).await
+}

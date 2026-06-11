@@ -532,6 +532,7 @@ pub fn run() {
             tmdb::tmdb_upcoming,
             tmdb::tmdb_list,
             tmdb::tmdb_details,
+            tmdb::tmdb_season,
             discord::discord_connect,
             discord::discord_set_activity,
             discord::discord_clear,

@@ -11,6 +11,24 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.102.0] – 2026-06-06
+
+### Episoden-Fortschritt — 🦀🎨
+- Neue native Abfrage `tmdb_season` holt die **Episodenliste einer Staffel** von TMDB.
+- Im **Titel-Detail** (Serien) lassen sich Staffeln **aufklappen** und **einzelne Folgen abhaken** – oder mit einem Klick die **ganze Staffel**. Pro Staffel wird der Fortschritt **X/Y** angezeigt.
+- Der Fortschritt wird **pro Profil** gespeichert (Schlüssel `tv-{id}-s{staffel}e{episode}`).
+- Episodenlisten werden 6 h zwischengespeichert (weniger Anfragen beim erneuten Aufklappen).
+
+---
+
+## [0.101.1] – 2026-06-06
+
+### Fix: Veröffentlichung ins (leere) Release-Repo — 🔧
+- Der Release-Schritt scheiterte mit „HTTP 422: Repository is empty", weil GitHub in einem **komplett leeren** Repo (ohne Commit) keinen Release/Tag anlegen kann.
+- Der Workflow **initialisiert das Release-Repo jetzt automatisch** mit einer README, falls es leer ist – danach klappt das Anlegen des Releases. (Alternativ einmalig manuell eine README ins Release-Repo committen.)
+
+---
+
 ## [0.101.0] – 2026-06-06
 
 ### Jahresrückblick nur im Dezember-Fenster — 🎨
