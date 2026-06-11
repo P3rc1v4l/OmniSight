@@ -11,6 +11,27 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.101.0] – 2026-06-06
+
+### Jahresrückblick nur im Dezember-Fenster — 🎨
+- Das Jahresrückblick-Banner erscheint jetzt **nur noch vom 16. bis 31. Dezember**. Das frühere Test-Fenster wurde entfernt.
+
+### Auto-Updater für privates Repo — 🔧
+- Da das Quell-Repo wieder **privat** ist, waren die Release-Dateien (inkl. `latest.json`) nicht mehr öffentlich abrufbar – der Updater konnte nichts finden.
+- Neu: Der CI baut + signiert wie bisher, **veröffentlicht die Artefakte aber in ein separates, öffentliches Repo** (`OmniSight-Releases`). Der Updater-Endpoint zeigt jetzt dorthin. **Der Quellcode bleibt privat, Updates sind öffentlich abrufbar – und der Zugriffstoken liegt ausschließlich in den CI-Secrets, niemals im Code/in der App.**
+- Einmalige Einrichtung nötig (öffentliches Repo + PAT-Secret) – siehe Hinweise.
+
+---
+
+## [0.100.0] – 2026-06-06
+
+### Globale Titelsuche — 🎨
+- Neue **globale Suche** über **Strg+F** oder **/** (sowie über die Befehlspalette → „Titel suchen"): durchsucht TMDB nach Filmen und Serien.
+- Ein Treffer öffnet das **bestehende Detail-Fenster** – dort steht u. a. **„Wo streamen"** (bei welchen Anbietern der Titel läuft) plus Merken-Button.
+- **Letzte Suchen** werden als anklickbare Chips angezeigt und können einzeln entfernt werden. Live-Suche mit Entprellung; veraltete Antworten werden verworfen.
+
+---
+
 ## [0.99.0] – 2026-06-06
 
 ### UI-Politur: Lade-Skelette & Leer-Zustände — 🎨
