@@ -11,6 +11,19 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.104.0] – 2026-06-06
+
+### Gemerkt: Empfehlungen überarbeitet — 🎨
+- Die Empfehlungs-Reihe sitzt **fest unten** und behält ihre Position.
+- Vorschläge aktualisieren sich **nur beim Betreten der Gemerkt-Seite oder per Refresh** – nicht mehr bei jeder Listenänderung.
+- **Merken/Ausblenden ersetzt nur den betroffenen Platz** an Ort und Stelle durch einen neuen Vorschlag; die übrigen Karten bleiben stehen (kein Verrutschen).
+- Neuer **„Merken"-Button** direkt auf jeder Vorschlagskarte (unter „Ausblenden") – spart den Umweg übers Detailfenster.
+
+### Einheitliche Icons – Teil 2 (Gemerkt) — 🎨
+- Import, Letterboxd-/Trakt-Export, „Neue Vorschläge", Ausblenden, Merken und „Gesehen" nutzen jetzt Lucide-Icons.
+
+---
+
 ## [0.103.0] – 2026-06-06
 
 ### Einheitliche Icons – Teil 1 (Sidebar) — 🎨

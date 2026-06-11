@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import { writable } from 'svelte/store';
 	import { t, tr } from '$lib/i18n';
 	import { settings } from '$lib/stores/settings';
-	import { watchlist, removeFromWatchlist, setRating, toggleSeen } from '$lib/stores/watchlist';
+	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist, setRating, toggleSeen } from '$lib/stores/watchlist';
 	import { visibleProviders } from '$lib/stores/providers';
 	import { tmdb, openTitleInfo } from '$lib/tmdb';
 	import { extractWatchProviders } from '$lib/watchProviders';
@@ -13,6 +14,7 @@
 	import { exportLetterboxd, exportTrakt } from '$lib/watchlistExport';
 	import { importWatchlistCsv } from '$lib/watchlistImport';
 	import PosterRowSkeleton from '$lib/components/PosterRowSkeleton.svelte';
+	import { RefreshCw, X, BookmarkPlus, Download, Film, Tv, Check, Eye } from '@lucide/svelte';
 	import type { WatchlistItem, TmdbItem } from '$lib/types';
 
 	// „Verfügbar bei dir": je Titel die DE-Anbieter von TMDB holen und auf die
@@ -52,7 +54,6 @@
 	const recs10 = writable<TmdbItem[]>([]);
 	// Merkt sich, aus welchem Seed-Titel eine Empfehlung stammt (für die Begründung).
 	let recReasonMap: Record<string, { seedLabel: string; seedKey: string }> = {};
-	let recsSig = '';
 
 	async function buildRecs(items: WatchlistItem[]): Promise<void> {
 		recsBuilding = true;
@@ -80,18 +81,42 @@
 		recsBuilding = false;
 	}
 
-	$: {
-		const sig = $watchlist.map((w) => w.mediaType + '-' + w.tmdbId).sort().join(',') + '|' + $excludedSeeds.join(',');
-		if (sig !== recsSig) {
-			recsSig = sig;
-			if ($watchlist.length) void buildRecs($watchlist);
-			else recs10.set([]);
-		}
-	}
+	// Empfehlungen werden NUR beim Betreten der Seite und beim manuellen Refresh neu berechnet
+	// (nicht bei jeder Watchlist-Änderung). Gemerkte/ausgeblendete Vorschläge fallen unten via
+	// shownRecs-Filter weg – dann rückt automatisch ein neuer Vorschlag aus dem Pool nach.
+	onMount(() => {
+		if (get(watchlist).length) void buildRecs(get(watchlist));
+	});
 
 	function recKey(r: TmdbItem): string { return (r.media_type === 'tv' ? 'tv' : 'movie') + '-' + r.id; }
-	// Anzeige: ausgeblendete Empfehlungen herausfiltern (reagiert sofort beim Ausblenden).
-	$: shownRecs = $recs10.filter((r) => !$hiddenRecs.includes(recKey(r)));
+
+	// Angezeigte Vorschläge ("Slots") als FESTE Reihe. Neu befüllt wird NUR, wenn die
+	// Empfehlungen neu berechnet werden (Seiten-Eintritt/Refresh) oder sich die sichtbare
+	// Breite ändert – NICHT bei jeder Watchlist-Änderung. Beim Merken/Ausblenden wird nur
+	// der betroffene Slot an Ort und Stelle durch einen neuen Vorschlag ersetzt.
+	let slots: TmdbItem[] = [];
+	function candidates(): TmdbItem[] {
+		const wl = get(watchlist);
+		const hidden = get(hiddenRecs);
+		return get(recs10).filter((r) => !hidden.includes(recKey(r)) && !isInWatchlist(wl, r.id, r.media_type));
+	}
+	function fillSlots(): void { slots = candidates().slice(0, Math.max(1, recFit)); }
+	function nextCandidate(): TmdbItem | null {
+		const inSlots = new Set(slots.map((r) => recKey(r)));
+		return candidates().find((r) => !inSlots.has(recKey(r))) ?? null;
+	}
+	function replaceSlot(rec: TmdbItem): void {
+		const i = slots.findIndex((r) => recKey(r) === recKey(rec));
+		if (i < 0) return;
+		const next = nextCandidate();
+		if (next) slots[i] = next;
+		else slots.splice(i, 1);
+		slots = slots;
+	}
+	function saveRec(rec: TmdbItem): void { addToWatchlist(rec); replaceSlot(rec); }
+	function hideRecInSlot(rec: TmdbItem): void { hideRec(recKey(rec)); replaceSlot(rec); }
+	// Befüllt die Slots neu bei (Re-)Build der Empfehlungen oder geänderter Breite.
+	$: { void $recs10; void recFit; fillSlots(); }
 
 	function openRecInfo(r: TmdbItem): void {
 		const k = recKey(r);
@@ -302,9 +327,9 @@
 		</div>
 		<div class="tools">
 			<button class="tool" onclick={exportWatchlist} title={$t('wl.exportTitle')}>📤 {$t('wl.export')}</button>
-			<button class="tool" onclick={triggerImport} title={$t('wl.importTitle')}>📥 {$t('wl.import')}</button>
-			<button class="tool" onclick={doExportLetterboxd} title={$t('wl.exportLbTitle')}>🎬 Letterboxd</button>
-			<button class="tool" onclick={doExportTrakt} title={$t('wl.exportTraktTitle')}>📺 Trakt</button>
+			<button class="tool" onclick={triggerImport} title={$t('wl.importTitle')}><Download size={15} /> {$t('wl.import')}</button>
+			<button class="tool" onclick={doExportLetterboxd} title={$t('wl.exportLbTitle')}><Film size={15} /> Letterboxd</button>
+			<button class="tool" onclick={doExportTrakt} title={$t('wl.exportTraktTitle')}><Tv size={15} /> Trakt</button>
 			<input bind:this={fileInput} type="file" accept=".json,.csv,application/json,text/csv,text/plain" onchange={onFile} hidden />
 		</div>
 	</header>
@@ -375,7 +400,7 @@
 								</div>
 							{/if}
 							<div class="card-actions">
-								<button class="seen-btn" class:on={w.seen} onclick={() => toggleSeen(w.tmdbId, w.mediaType)}>{w.seen ? '✓ ' + $t('wl.seen') : '👁 ' + $t('wl.markSeen')}</button>
+								<button class="seen-btn" class:on={w.seen} onclick={() => toggleSeen(w.tmdbId, w.mediaType)}>{#if w.seen}<Check size={14} /> {$t('wl.seen')}{:else}<Eye size={14} /> {$t('wl.markSeen')}{/if}</button>
 								<button class="rm" onclick={() => removeFromWatchlist(w.tmdbId, w.mediaType)}>{$t('common.remove')}</button>
 							</div>
 						</div>
@@ -385,20 +410,21 @@
 		{/if}
 	{/if}
 
-	{#if shownRecs.length || recsBuilding}
+	{#if slots.length || recsBuilding}
 		<div class="recs">
 			<div class="rec-row">
 				<div class="rec-head-row">
 					<div class="rec-head">{$t('wl.recsTitle')}</div>
-					<button class="rec-refresh" onclick={refreshRecs} disabled={recsBuilding}>🔀 {$t('wl.recsNew')}</button>
+					<button class="rec-refresh" onclick={refreshRecs} disabled={recsBuilding}><RefreshCw size={13} /> {$t('wl.recsNew')}</button>
 				</div>
 				<div class="rec-scroller" bind:clientWidth={recRowWidth}>
-					{#if recsBuilding && !shownRecs.length}
+					{#if recsBuilding && !slots.length}
 						<PosterRowSkeleton count={recFit || 6} />
 					{:else}
-						{#each shownRecs.slice(0, recFit) as rec (rec.media_type + '-' + rec.id)}
+						{#each slots as rec (recKey(rec))}
 							<div class="rec-card-wrap">
-								<button class="rec-hide" onclick={() => hideRec(recKey(rec))} title={$t('wl.recHide')} aria-label={$t('wl.recHide')}>✕</button>
+								<button class="rec-hide" onclick={() => hideRecInSlot(rec)} title={$t('wl.recHide')} aria-label={$t('wl.recHide')}><X size={13} /></button>
+								<button class="rec-save" onclick={() => saveRec(rec)} title={$t('mb.save')} aria-label={$t('mb.save')}><BookmarkPlus size={13} /></button>
 								<button class="rec-card" onclick={() => openRecInfo(rec)} title={rec.title}>
 									{#if rec.poster}<img src={rec.poster} alt={rec.title} loading="lazy" decoding="async" />{:else}<div class="rec-noimg">?</div>{/if}
 									<span class="rec-name">{rec.title}</span>
@@ -425,7 +451,7 @@
 	h1 { margin: 0; font-size: 26px; font-weight: 800; }
 	.sub { color: var(--text-muted); margin: 4px 0 0; }
 	.tools { display: flex; gap: 10px; }
-	.tool { background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 9px; padding: 9px 14px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
+	.tool { display: inline-flex; align-items: center; gap: 7px; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text); border-radius: 9px; padding: 9px 14px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
 	.tool:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
 	.bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
 	.seg-group { display: inline-flex; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
@@ -466,7 +492,7 @@
 	.star:hover { transform: scale(1.18); }
 	.card-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: auto; padding-top: 8px; }
 	.card-actions .rm { margin-top: 0; }
-	.seen-btn { background: transparent; border: 1px solid var(--border-strong); color: var(--text); padding: 5px 8px; border-radius: 7px; font-size: 11.5px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+	.seen-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px solid var(--border-strong); color: var(--text); padding: 5px 8px; border-radius: 7px; font-size: 11.5px; cursor: pointer; font-family: inherit; white-space: nowrap; }
 	.seen-btn.on { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 	.rm:hover { color: #f87171; border-color: #f87171; }
 	.recs {
@@ -482,13 +508,16 @@
 	}
 	.rec-head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 	.rec-head { font-size: 15px; font-weight: 700; }
-	.rec-refresh { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+	.rec-refresh { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
 	.rec-refresh:hover { border-color: var(--accent); color: var(--accent); }
 	.rec-scroller { display: flex; gap: 12px; overflow: hidden; padding-bottom: 4px; }
 	.rec-card-wrap { flex: 0 0 120px; width: 120px; position: relative; }
 	.rec-hide { position: absolute; top: 6px; right: 6px; z-index: 2; width: 24px; height: 24px; border-radius: 999px; border: 0; background: rgba(0, 0, 0, 0.65); color: #fff; font-size: 11px; cursor: pointer; opacity: 0; transition: opacity 0.12s ease; display: grid; place-items: center; }
 	.rec-card-wrap:hover .rec-hide { opacity: 1; }
 	.rec-hide:hover { background: #e23b3b; }
+	.rec-save { position: absolute; top: 36px; right: 6px; z-index: 2; width: 24px; height: 24px; border-radius: 999px; border: 0; background: rgba(0, 0, 0, 0.65); color: #fff; cursor: pointer; opacity: 0; transition: opacity 0.12s ease, background 0.12s ease; display: grid; place-items: center; }
+	.rec-card-wrap:hover .rec-save { opacity: 1; }
+	.rec-save:hover { background: var(--accent); }
 	.rec-card { width: 100%; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-family: inherit; color: var(--text); }
 	.rec-card img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 10px; display: block; border: 1px solid var(--border); transition: transform 0.15s ease; }
 	.rec-card:hover img { transform: translateY(-3px); }
