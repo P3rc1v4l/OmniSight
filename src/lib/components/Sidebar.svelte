@@ -8,6 +8,7 @@
 	import Logo from './Logo.svelte';
 	import ProfileSwitcher from './ProfileSwitcher.svelte';
 	import SleepCountdown from './SleepCountdown.svelte';
+	import { House, Bookmark, Rss, CalendarDays, Play, Pause, Volume2, VolumeX, Maximize2, X, ChevronDown, ChevronRight, Sparkles, BarChart3, Settings as SettingsIcon, Bell, Sun, Moon } from '@lucide/svelte';
 
 	export let openSettings: () => void;
 	export let openProfiles: () => void;
@@ -16,10 +17,10 @@
 	$: allMuted = $backgroundStreams.length > 0 && $backgroundStreams.every((s) => s.muted);
 
 	const nav = [
-		{ href: '/', key: 'nav.home', icon: '🏠' },
-		{ href: '/watchlist', key: 'nav.watchlist', icon: '🔖' },
-		{ href: '/news', key: 'nav.news', icon: '📡' },
-		{ href: '/upcoming', key: 'nav.upcoming', icon: '📅' }
+		{ href: '/', key: 'nav.home', icon: House },
+		{ href: '/watchlist', key: 'nav.watchlist', icon: Bookmark },
+		{ href: '/news', key: 'nav.news', icon: Rss },
+		{ href: '/upcoming', key: 'nav.upcoming', icon: CalendarDays }
 	];
 
 	$: path = $page.url.pathname;
@@ -36,12 +37,12 @@
 	<nav>
 		{#each nav as item}
 			<a href={item.href} class="nav-item" class:active={path === item.href}>
-				<span class="icon">{item.icon}</span><span>{$t(item.key)}</span>
+				<svelte:component this={item.icon} size={18} class="ic" /><span>{$t(item.key)}</span>
 			</a>
 		{/each}
 		{#if $activeStream}
 			<a href="/stream" class="nav-item" class:active={path === '/stream'}>
-				<span class="icon">▶️</span><span>{$t('nav.watchingNow')}</span>
+				<Play size={18} class="ic" /><span>{$t('nav.watchingNow')}</span>
 			</a>
 		{/if}
 	</nav>
@@ -52,7 +53,7 @@
 				<span class="bg-dot" aria-hidden="true"></span>
 				<span class="bg-title">{$t('sidebar.background')}</span>
 				<span class="bg-count">{$backgroundStreams.length}</span>
-				<span class="bg-chev" class:open={bgOpen} aria-hidden="true">▾</span>
+				{#if bgOpen}<ChevronDown size={14} class="bg-chev" />{:else}<ChevronRight size={14} class="bg-chev" />{/if}
 			</button>
 			{#if bgOpen}
 				<div class="bg-list">
@@ -61,10 +62,10 @@
 							<div class="bg-top">
 								<Logo provider={s.provider} size={18} />
 								<span class="bg-name" title={s.provider.name}>{s.provider.name}</span>
-								<button class="bg-ic" onclick={() => setBackgroundPaused(s.streamId, !s.paused)} title={s.paused ? $t('bg.resume') : $t('bg.pause')} aria-label={s.paused ? $t('bg.resume') : $t('bg.pause')}>{s.paused ? '▶' : '⏸'}</button>
-								<button class="bg-ic" onclick={() => setBackgroundMuted(s.streamId, !s.muted)} title={s.muted ? $t('common.unmute') : $t('common.mute')} aria-label={s.muted ? $t('common.unmute') : $t('common.mute')}>{s.muted ? '🔇' : '🔊'}</button>
-								<button class="bg-ic" onclick={() => bringToForeground(s.streamId)} title={$t('bg.toForeground')} aria-label={$t('bg.toForeground')}>⤢</button>
-								<button class="bg-ic close" onclick={() => closeBackgroundStream(s.streamId)} title={$t('bg.closeStream')} aria-label={$t('bg.closeStream')}>✕</button>
+								<button class="bg-ic" onclick={() => setBackgroundPaused(s.streamId, !s.paused)} title={s.paused ? $t('bg.resume') : $t('bg.pause')} aria-label={s.paused ? $t('bg.resume') : $t('bg.pause')}>{#if s.paused}<Play size={13} />{:else}<Pause size={13} />{/if}</button>
+								<button class="bg-ic" onclick={() => setBackgroundMuted(s.streamId, !s.muted)} title={s.muted ? $t('common.unmute') : $t('common.mute')} aria-label={s.muted ? $t('common.unmute') : $t('common.mute')}>{#if s.muted}<VolumeX size={13} />{:else}<Volume2 size={13} />{/if}</button>
+								<button class="bg-ic" onclick={() => bringToForeground(s.streamId)} title={$t('bg.toForeground')} aria-label={$t('bg.toForeground')}><Maximize2 size={13} /></button>
+								<button class="bg-ic close" onclick={() => closeBackgroundStream(s.streamId)} title={$t('bg.closeStream')} aria-label={$t('bg.closeStream')}><X size={13} /></button>
 							</div>
 							<input
 								class="bg-vol"
@@ -93,23 +94,23 @@
 	<div class="bottom">
 		<SleepCountdown />
 		<a href="/cr-calendar" class="nav-item" class:active={path === '/cr-calendar'}>
-			<span class="icon">⛩️</span><span>{$t('nav.crCalendar')}</span>
+			<Sparkles size={18} class="ic" /><span>{$t('nav.crCalendar')}</span>
 		</a>
 
 		<div class="controls">
 			<button class="ctrl" onclick={toggleTheme} title={$t('common.themeToggle')} aria-label={$t('common.themeToggle')}>
-				{$settings.appearance.theme === 'dark' ? '🌙' : '☀️'}
+				{#if $settings.appearance.theme === 'dark'}<Moon size={16} />{:else}<Sun size={16} />{/if}
 			</button>
-			<button class="ctrl" onclick={() => notifCenterOpen.update((v) => !v)} title={$t('common.notifications')} aria-label={$t('common.notifications')}>🔔</button>
+			<button class="ctrl" onclick={() => notifCenterOpen.update((v) => !v)} title={$t('common.notifications')} aria-label={$t('common.notifications')}><Bell size={16} /></button>
 		</div>
 
 		<ProfileSwitcher {openProfiles} />
 
 		<a href="/stats" class="nav-item" class:active={path === '/stats'}>
-			<span class="icon">📊</span><span>{$t('nav.stats')}</span>
+			<BarChart3 size={18} class="ic" /><span>{$t('nav.stats')}</span>
 		</a>
 		<button class="nav-item as-link" onclick={openSettings}>
-			<span class="icon">⚙️</span><span>{$t('nav.settings')}</span>
+			<SettingsIcon size={18} class="ic" /><span>{$t('nav.settings')}</span>
 		</button>
 	</div>
 </aside>
@@ -135,7 +136,7 @@
 	}
 	.nav-item:hover, .as-link:hover { background: var(--bg-card); color: var(--text); }
 	.nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-	.icon { width: 18px; text-align: center; font-size: 14px; }
+	:global(.sidebar svg) { flex-shrink: 0; }
 	.bottom { display: flex; flex-direction: column; gap: 2px; }
 	.controls { display: flex; gap: 6px; padding: 6px 4px; }
 	.ctrl {
@@ -150,8 +151,6 @@
 	.bg-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); flex-shrink: 0; }
 	.bg-title { font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); }
 	.bg-count { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 7px; }
-	.bg-chev { font-size: 11px; color: var(--text-muted); transition: transform 0.15s; }
-	.bg-chev.open { transform: rotate(180deg); }
 	.bg-list { display: flex; flex-direction: column; gap: 2px; padding: 0 6px 6px; max-height: 260px; overflow-y: auto; }
 	.bg-row { display: flex; flex-direction: column; gap: 5px; padding: 6px 4px; border-radius: 8px; }
 	.bg-row:hover { background: var(--bg-elev); }

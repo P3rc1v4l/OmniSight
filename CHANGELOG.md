@@ -11,6 +11,15 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 
 ---
 
+## [0.103.0] – 2026-06-06
+
+### Einheitliche Icons – Teil 1 (Sidebar) — 🎨
+- **`@lucide/svelte`** eingeführt – ein einheitliches, sauberes Icon-Set.
+- Die **Sidebar** (Navigation: Start/Gemerkt/News/Demnächst/Stats/Einstellungen, „Läuft gerade", Anime-Kalender, Theme- und Benachrichtigungs-Knopf) sowie die **Hintergrund-Stream-Steuerung** (Pause/Ton/Vordergrund/Schließen, Aufklapp-Pfeil) nutzen jetzt Lucide-Icons statt Emojis.
+- Die Titlebar nutzte bereits eigene, saubere SVGs und bleibt unverändert. **Weitere Flächen (Modals, Buttons in den Ansichten) folgen** in den nächsten Schritten – Ziel: durchgängig einheitlich bis 1.0.
+
+---
+
 ## [0.102.0] – 2026-06-06
 
 ### Episoden-Fortschritt — 🦀🎨
