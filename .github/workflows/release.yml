@@ -114,7 +114,7 @@ jobs:
           Get-ChildItem -Recurse -Depth 1 src-tauri/extensions_twitch
 
       - name: Build (Artefakte + Updater-Signatur erzeugen)
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Signiert die Updater-Artefakte (.sig). Schlüssel NUR als Secret, nie im Code.
