@@ -1,17 +1,20 @@
 // OmniSight – TMDB-Anbindung.
 //
-// === TMDB-API-KEY EINTRAGEN ===
-// 1. Kostenlos einen Key anlegen: https://www.themoviedb.org/settings/api
-// 2. Den "API Read Access Token" (v4) ODER den "API Key (v3 auth)" kopieren.
-// 3. Hier in die folgende Zeile einfügen (zwischen die Anführungszeichen).
-// 4. Diese Datei committen – fertig.
+// === TMDB-API-KEY (Public-Repo-sicher) ===
+// Der Key steht NICHT mehr im Code, sondern kommt zur BUILD-ZEIT aus der
+// Umgebungsvariable TMDB_API_KEY:
+//   - GitHub Actions: Repo -> Settings -> Secrets -> Actions -> "TMDB_API_KEY".
+//     Der Release-Workflow reicht das Secret an den Build durch.
+//   - Lokaler Build: `TMDB_API_KEY=... cargo build` bzw. Umgebungsvariable setzen.
+// Ohne Key baut die App trotzdem; TMDB-Funktionen melden dann einen klaren Fehler.
 //
-// Der Key landet im fertigen Build und ist dort technisch auslesbar. TMDB-Keys
-// sind kostenlos, ratenlimitiert und damit ein akzeptables Risiko für ein
-// Hobby-/Open-Source-Projekt. Wer den Key später besser schützen will, kann
-// auf einen eigenen Proxy-Server umstellen – das ist später möglich, ohne die
-// Frontend-Schnittstelle zu ändern.
-const TMDB_API_KEY: &str = "b3ddcb410ac0d357566b8f2910eea375";
+// Hinweis: Der Key landet (wie jeder Client-Key) im fertigen Binary und ist dort
+// technisch auslesbar. TMDB-Keys sind kostenlos und ratenlimitiert – akzeptabel.
+// Wichtig ist nur, dass er nicht im QUELLCODE eines öffentlichen Repos steht.
+const TMDB_API_KEY: &str = match option_env!("TMDB_API_KEY") {
+    Some(k) => k,
+    None => "",
+};
 
 const TMDB_BASE: &str = "https://api.themoviedb.org/3";
 const TMDB_IMG: &str = "https://image.tmdb.org/t/p";
@@ -78,9 +81,9 @@ fn item_from_value(v: &Value, media_type_fallback: &str) -> TmdbItem {
 }
 
 async fn get_json(path: &str, params: &[(&str, &str)]) -> Result<Value, String> {
-    if TMDB_API_KEY == "PASTE_YOUR_TMDB_KEY_HERE" || TMDB_API_KEY.is_empty() {
+    if TMDB_API_KEY.is_empty() {
         return Err(
-            "TMDB-API-Key fehlt. Bitte in src-tauri/src/tmdb.rs eintragen (siehe Kommentar)."
+            "TMDB-API-Key fehlt. Beim Build die Umgebungsvariable TMDB_API_KEY setzen (CI: Actions-Secret TMDB_API_KEY)."
                 .into(),
         );
     }

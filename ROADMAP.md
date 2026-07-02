@@ -1,7 +1,7 @@
 # OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v0.104.0
+Stand: v0.105.0
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
@@ -57,6 +57,16 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 - 💡 🦀 **Neue-Folgen-Benachrichtigung** via AniList-Abos.
 
 ---
+
+## 🆕 v0.105.0
+- 🔒 TMDB-Key -> Build-Secret (Public-Repo-vorbereitet). 🎨 Icon-Vereinheitlichung (UI) abgeschlossen inkl. Einstellungen. Changelog bereinigt (Profil-Akzent dokumentiert).
+
+### Masterplan zu 1.0.0 (beschlossen)
+- E2 Design-System 2.0: Tokens, Motion, Splash-Screen, Seiten-/Modal-Transitions (cinematic + Glas).
+- E3 Performance: Parallelisierung, Lazy-Loading, Start-Beschleunigung.
+- E4 Plattform-Abstraktion (Tauri <-> HTTP-Adapter).
+- E5 Web-Version: Login + TOTP-2FA, Admin-Benutzerverwaltung, SQLite, Docker (Proxmox/Tailscale).
+- E6 Feinschliff, Doku (PROJECT_DOCUMENTATION.md), Tests -> Schnitt 1.0.0.
 
 ## 🆕 v0.72.0
 - 🦀 **Navigations-/Download-Schutz für eingebettete Streams** (Rust-Erzeugung mit `on_navigation`/`on_download`); Fallback auf Fenster-Modus bleibt. Per CI bauen & testen.

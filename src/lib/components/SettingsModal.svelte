@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { settings, clockEditing, DEFAULT_SETTINGS, onboardingOpen } from '$lib/stores/settings';
+	import { Palette, KeyRound, Clock as ClockIcon, Bell, Puzzle, Settings as SettingsIcon, Lock, LockOpen, Trash2, Save, Download } from '@lucide/svelte';
+	import type { Component } from 'svelte';
 	import { resetProviders, providers } from '$lib/stores/providers';
 	import { usedProviders, logoutProvider, logoutAllProviders } from '$lib/stores/accounts';
 	import {
@@ -82,12 +84,12 @@
 	}
 
 	const tabs = [
-		{ id: 'appearance', key: 'set.tab.appearance', icon: '🎨' },
-		{ id: 'account', key: 'set.tab.account', icon: '🔑' },
-		{ id: 'clock', key: 'set.tab.clock', icon: '🕐' },
-		{ id: 'notifications', key: 'set.tab.notifications', icon: '🔔' },
-		{ id: 'plugins', key: 'set.tab.plugins', icon: '🧩' },
-		{ id: 'advanced', key: 'set.tab.advanced', icon: '⚙️' }
+		{ id: 'appearance', key: 'set.tab.appearance', icon: Palette },
+		{ id: 'account', key: 'set.tab.account', icon: KeyRound },
+		{ id: 'clock', key: 'set.tab.clock', icon: ClockIcon },
+		{ id: 'notifications', key: 'set.tab.notifications', icon: Bell },
+		{ id: 'plugins', key: 'set.tab.plugins', icon: Puzzle },
+		{ id: 'advanced', key: 'set.tab.advanced', icon: SettingsIcon }
 	];
 	let active = $state('appearance');
 	let tabSearch = $state('');
@@ -314,15 +316,16 @@
 		<div class="dialog" role="dialog" aria-modal="true" aria-label="Einstellungen">
 			<aside class="side">
 				<div class="head">
-					<span class="emoji">⚙️</span><h2>Einstellungen</h2>
+					<span class="emoji"><SettingsIcon size={17} /></span><h2>{$t('nav.settings')}</h2>
 				</div>
 				<div class="search">
 					<input type="text" placeholder={$t('set.searchPh')} bind:value={tabSearch} />
 				</div>
 				<nav>
 					{#each filteredTabs as tab}
+						{@const TabIcon = tab.icon}
 						<button class:active={active === tab.id} onclick={() => (active = tab.id)}>
-							<span class="i">{tab.icon}</span><span>{$t(tab.key)}</span>
+							<span class="i"><TabIcon size={15} /></span><span>{$t(tab.key)}</span>
 						</button>
 					{/each}
 				</nav>
@@ -650,7 +653,7 @@
 								</a>
 							{:else}
 								<div class="opt">
-									<div class="opt-ic">🧩</div>
+									<div class="opt-ic"><Puzzle size={16} /></div>
 									<div class="opt-tx2"><div class="opt-t">{$t('set.adv.wv2Runtime')}</div><div class="opt-d">{$t('set.adv.wv2RuntimeDesc')}</div></div>
 									<span class="opt-btn ghosty">{wv2Ver ?? 'Prüfe…'}</span>
 								</div>
@@ -693,12 +696,12 @@
 						<div class="opt-group">
 							<div class="opt-group-title">{$t('set.adv.backup')}</div>
 							<div class="opt">
-								<div class="opt-ic">💾</div>
+								<div class="opt-ic"><Save size={16} /></div>
 								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.backupExport')}</div><div class="opt-d">{$t('set.adv.backupExportDesc')}</div></div>
 								<button class="opt-btn" onclick={onBackupExport}>{$t('set.adv.backupExportBtn')}</button>
 							</div>
 							<div class="opt">
-								<div class="opt-ic">📥</div>
+								<div class="opt-ic"><Download size={16} /></div>
 								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.backupImport')}</div><div class="opt-d">{$t('set.adv.backupImportDesc')}</div></div>
 								<button class="opt-btn" onclick={() => backupFileInput?.click()}>{$t('set.adv.backupImportBtn')}</button>
 								<input bind:this={backupFileInput} type="file" accept="application/json,.json" onchange={onBackupFile} hidden />
@@ -758,7 +761,7 @@
 											<div class="pcard-badges">
 												{#if p.id === $mainProfileId}<span class="pbadge main">★ {$t('set.acc.mainBadge')}</span>{/if}
 												{#if p.id === $activeProfileId}<span class="pbadge">{$t('set.acc.activeBadge')}</span>{/if}
-												{#if p.pinHash}<span class="pbadge lock">🔒 PIN</span>{/if}
+												{#if p.pinHash}<span class="pbadge lock"><Lock size={10} /> PIN</span>{/if}
 											</div>
 										</div>
 									</div>
@@ -767,7 +770,7 @@
 										<button class="chip" onclick={() => { accentPickFor = accentPickFor === p.id ? null : p.id; avatarPickFor = null; }} title={$t('set.acc.colorTitle')}>
 											<span class="chip-dot" style="background: {p.accent || 'var(--accent)'}"></span>{$t('set.acc.colorChip')}
 										</button>
-										<button class="chip" onclick={() => openPinPanel(p.id)}>{p.pinHash ? '🔒 ' + $t('set.acc.pinChange') : '🔓 ' + $t('set.acc.pinSet')}</button>
+										<button class="chip" onclick={() => openPinPanel(p.id)}>{#if p.pinHash}<Lock size={12} /> {$t('set.acc.pinChange')}{:else}<LockOpen size={12} /> {$t('set.acc.pinSet')}{/if}</button>
 										{#if p.pinHash}
 											<button class="chip" onclick={() => openResetPanel(p.id)} title={$t('set.acc.pinForgotTitle')}>{$t('set.acc.pinForgot')}</button>
 										{/if}
@@ -779,7 +782,7 @@
 											disabled={$profiles.length <= MIN_PROFILES || p.id === $mainProfileId}
 											onclick={() => confirmDeleteProfile(p.id)}
 											title={p.id === $mainProfileId ? $t('set.acc.delMain') : ($profiles.length <= MIN_PROFILES ? $t('set.acc.delMin') : $t('set.acc.delOk'))}
-										>🗑 {$t('common.remove')}</button>
+										><Trash2 size={12} /> {$t('common.remove')}</button>
 									</div>
 
 									{#if avatarPickFor === p.id}
@@ -1010,7 +1013,7 @@
 	}
 	nav button:hover { background: var(--bg-card); color: var(--text); }
 	nav button.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
-	nav button .i { width: 18px; text-align: center; font-size: 15px; }
+	nav button .i { width: 18px; display: inline-flex; align-items: center; justify-content: center; }
 	.version { color: var(--text-dim); font-size: 11px; text-align: center; padding-top: 8px; }
 
 	.main { flex: 1; display: flex; flex-direction: column; }

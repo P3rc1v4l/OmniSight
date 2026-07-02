@@ -4,10 +4,12 @@ Alle nennenswerten Änderungen an OmniSight werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
-## [0.41.0] – 2026-05-31
+## [0.105.0] – 2026-07-02
 
-### Neu
-- **Akzentfarbe je Profil:** Jedes Profil kann jetzt eine **eigene Akzentfarbe** haben. Sie wird angewendet, sobald das Profil aktiv ist, und überschreibt die globale Akzentfarbe – ohne sie zu ändern. Auswahl im **Profil-Editor** (farbiger Punkt neben dem Avatar): Presets, eigene Farbe oder „Standard" (globale Farbe). Technisch sauber umgesetzt: die abgeleitete Variable `--accent-soft` wird automatisch passend zur gewählten Farbe gesetzt.
+### Auftakt zum 1.0-Umbau: Fundament — 🔒🎨
+- **TMDB-API-Key aus dem Quellcode entfernt** (Public-Repo-Vorbereitung): Der Key kommt jetzt zur Build-Zeit aus dem Actions-Secret `TMDB_API_KEY` (bzw. lokal aus der Umgebungsvariablen). Ohne Key baut die App weiterhin, TMDB-Funktionen melden dann einen klaren Hinweis.
+- **Icon-Vereinheitlichung abgeschlossen (UI):** Befehlspalette, Titel-Detail, Medien-Browser **und Einstellungen** (Tabs, Kopf, Optionen, PIN-Badges, Löschen) nutzen jetzt durchgängig Lucide-Icons. Profil-Avatare bleiben bewusst Emojis (Inhalt, kein UI). Toast-Icons folgen separat.
+- **Akzentfarbe je Profil** (aus Parallel-Arbeit übernommen) ist jetzt korrekt dokumentiert: Jedes Profil kann eine eigene Akzentfarbe haben; sie überschreibt die globale Farbe, solange das Profil aktiv ist. Der falsch einsortierte Changelog-Eintrag „0.41.0" wurde bereinigt.
 
 ---
 

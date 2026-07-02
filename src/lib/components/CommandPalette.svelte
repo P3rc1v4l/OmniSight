@@ -5,6 +5,8 @@
 	import { visibleProviders } from '$lib/stores/providers';
 	import { openProvider } from '$lib/embedded';
 	import { t } from '$lib/i18n';
+	import type { Component } from 'svelte';
+	import { Search, House, Bookmark, CalendarDays, Rss, Play, Sparkles, BarChart3, Settings as SettingsIcon, SunMoon, Keyboard, Tv } from '@lucide/svelte';
 	import type { Provider } from '$lib/types';
 
 	let {
@@ -25,7 +27,7 @@
 
 	type Cmd = {
 		id: string;
-		icon: string;
+		icon: Component;
 		label: string;
 		hint: string;
 		keywords?: string;
@@ -40,17 +42,17 @@
 	const baseCmds = $derived.by<Cmd[]>(() => {
 		const T = $t;
 		return [
-			{ id: 'act-search', icon: '🔍', label: T('cmd.search'), hint: T('cmd.action'), keywords: 'suche search find titel film serie', run: () => onOpenSearch() },
-			{ id: 'nav-home', icon: '🏠', label: T('nav.home'), hint: T('cmd.page'), run: () => goto('/') },
-			{ id: 'nav-watchlist', icon: '🔖', label: T('nav.watchlist'), hint: T('cmd.page'), run: () => goto('/watchlist') },
-			{ id: 'nav-upcoming', icon: '📅', label: T('nav.upcoming'), hint: T('cmd.page'), run: () => goto('/upcoming') },
-			{ id: 'nav-news', icon: '📡', label: T('nav.news'), hint: T('cmd.page'), run: () => goto('/news') },
-			{ id: 'nav-watching', icon: '▶️', label: T('nav.watchingNow'), hint: T('cmd.page'), run: () => goto('/stream') },
-			{ id: 'nav-cal', icon: '⛩️', label: T('nav.crCalendar'), hint: T('cmd.page'), run: () => goto('/cr-calendar') },
-			{ id: 'nav-stats', icon: '📊', label: T('nav.stats'), hint: T('cmd.page'), run: () => goto('/stats') },
-			{ id: 'act-settings', icon: '⚙️', label: T('nav.settings'), hint: T('cmd.action'), run: () => onOpenSettings() },
-			{ id: 'act-theme', icon: '🌓', label: T('cmd.toggleTheme'), hint: T('cmd.action'), run: () => onToggleTheme() },
-			{ id: 'act-shortcuts', icon: '⌨️', label: T('cmd.shortcuts'), hint: T('cmd.action'), run: () => onShowShortcuts() }
+			{ id: 'act-search', icon: Search, label: T('cmd.search'), hint: T('cmd.action'), keywords: 'suche search find titel film serie', run: () => onOpenSearch() },
+			{ id: 'nav-home', icon: House, label: T('nav.home'), hint: T('cmd.page'), run: () => goto('/') },
+			{ id: 'nav-watchlist', icon: Bookmark, label: T('nav.watchlist'), hint: T('cmd.page'), run: () => goto('/watchlist') },
+			{ id: 'nav-upcoming', icon: CalendarDays, label: T('nav.upcoming'), hint: T('cmd.page'), run: () => goto('/upcoming') },
+			{ id: 'nav-news', icon: Rss, label: T('nav.news'), hint: T('cmd.page'), run: () => goto('/news') },
+			{ id: 'nav-watching', icon: Play, label: T('nav.watchingNow'), hint: T('cmd.page'), run: () => goto('/stream') },
+			{ id: 'nav-cal', icon: Sparkles, label: T('nav.crCalendar'), hint: T('cmd.page'), run: () => goto('/cr-calendar') },
+			{ id: 'nav-stats', icon: BarChart3, label: T('nav.stats'), hint: T('cmd.page'), run: () => goto('/stats') },
+			{ id: 'act-settings', icon: SettingsIcon, label: T('nav.settings'), hint: T('cmd.action'), run: () => onOpenSettings() },
+			{ id: 'act-theme', icon: SunMoon, label: T('cmd.toggleTheme'), hint: T('cmd.action'), run: () => onToggleTheme() },
+			{ id: 'act-shortcuts', icon: Keyboard, label: T('cmd.shortcuts'), hint: T('cmd.action'), run: () => onShowShortcuts() }
 		];
 	});
 
@@ -59,7 +61,7 @@
 		const T = $t;
 		return $visibleProviders.map((p: Provider) => ({
 			id: 'prov-' + p.id,
-			icon: '📺',
+			icon: Tv,
 			label: T('cmd.open', { name: p.name }),
 			hint: p.category ?? '',
 			keywords: p.name,
@@ -143,6 +145,7 @@
 			</div>
 			<ul class="cmd-list" role="listbox" aria-label={$t('cmd.title')}>
 				{#each filtered as c, i (c.id)}
+					{@const Icon = c.icon}
 					<li>
 						<button
 							class="cmd-item"
@@ -152,7 +155,7 @@
 							onmouseenter={() => (sel = i)}
 							onclick={() => runAt(i)}
 						>
-							<span class="ci-ico" aria-hidden="true">{c.icon}</span>
+							<span class="ci-ico" aria-hidden="true"><Icon size={16} /></span>
 							<span class="ci-label">{c.label}</span>
 							{#if c.hint}<span class="ci-hint">{c.hint}</span>{/if}
 						</button>
@@ -248,9 +251,11 @@
 	}
 	.ci-ico {
 		flex: 0 0 auto;
-		font-size: 16px;
 		width: 20px;
-		text-align: center;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-muted);
 	}
 	.ci-label {
 		flex: 1;
