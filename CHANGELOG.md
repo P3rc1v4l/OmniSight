@@ -4,6 +4,13 @@ Alle nennenswerten Änderungen an OmniSight werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.0.7] – 2026-07-03
+
+### Fix: Ungültige Release-Workflow-Datei — 🔒🐛
+- **Ursache:** Der Schritt-Name `Vitest (kritische Logik: Krypto/Hashing, Parser, Auth-Kern)` aus v1.0.6 enthielt einen unmaskierten Doppelpunkt – YAML interpretierte das als neuen Schlüssel und die komplette Workflow-Datei wurde ungültig ("Invalid workflow file", Zeile 30). Behoben durch Umformulierung ohne Doppelpunkt. Komplette Datei erneut gegen einen YAML-Parser geprüft (gültig, beide Jobs korrekt erkannt) und nach weiteren Stellen mit demselben Muster durchsucht (keine gefunden).
+
+---
+
 ## [1.0.6] – 2026-07-03
 
 ### Security-Runde 2: QR-Code, Backup-Codes, Selbstbedienung — 🔒

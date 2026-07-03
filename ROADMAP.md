@@ -1,11 +1,14 @@
 # OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v1.0.6
+Stand: v1.0.7
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
 ---
+
+## 🐛 v1.0.7
+- Fix: ungültige release.yml (unmaskierter Doppelpunkt in einem Schritt-Namen aus v1.0.6) behoben, komplette Datei neu validiert.
 
 ## 🔒🎨🧪 v1.0.6
 - Security-Runde 2: QR-Code (2FA-Setup), 10 Backup-Codes (Login-Fallback), Selbstbedienungs-Passwortwechsel (/account).
