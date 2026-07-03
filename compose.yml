@@ -1,0 +1,18 @@
+# OmniSight Web – docker compose up -d
+# Danach im Browser: http://<host>:8480 (bzw. über Tailscale).
+services:
+  omnisight:
+    build: .
+    container_name: omnisight-web
+    restart: unless-stopped
+    ports:
+      - "8480:8480"
+    environment:
+      TMDB_API_KEY: ${TMDB_API_KEY:?TMDB_API_KEY in .env setzen}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD in .env setzen}
+      # COOKIE_SECURE: "1"   # aktivieren, wenn Zugriff ausschließlich über HTTPS läuft
+    volumes:
+      - omnisight-data:/data
+volumes:
+  omnisight-data:

@@ -4,10 +4,64 @@ Alle nennenswerten Änderungen an OmniSight werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
-## [0.41.0] – 2026-05-31
+## [1.0.2] – 2026-07-03
 
-### Neu
-- **Akzentfarbe je Profil:** Jedes Profil kann jetzt eine **eigene Akzentfarbe** haben. Sie wird angewendet, sobald das Profil aktiv ist, und überschreibt die globale Akzentfarbe – ohne sie zu ändern. Auswahl im **Profil-Editor** (farbiger Punkt neben dem Avatar): Presets, eigene Farbe oder „Standard" (globale Farbe). Technisch sauber umgesetzt: die abgeleitete Variable `--accent-soft` wird automatisch passend zur gewählten Farbe gesetzt.
+### Bugfix: Rohcode statt Icon in den Einstellungen — 🔒🐛
+- **Ursache gefunden und behoben:** Die Kopfzeile über dem Inhaltsbereich der Einstellungen (über "MODUS & FARBE" etc.) zeigte den kompilierten JavaScript-Quellcode des Tab-Icons als Text an, statt das Icon zu rendern (`{tab.icon}` als nackte Text-Interpolation statt als Komponenten-Tag – ein Rest aus der Lucide-Migration, der bei der Sidebar-Tab-Liste behoben wurde, bei diesem zweiten, separaten Header aber übersehen wurde).
+- Betroffen war jede Tab-Ansicht (Design, Profile, Uhr, Benachrichtigungen, Plugins, Mehr) – überall stand dort Rohcode statt Icon.
+- Fix: Icon wird jetzt korrekt als `<ActiveIcon />`-Komponente gerendert, über eine `$derived`-Ableitung im Skript-Teil (kein `{@const}` mehr in ungültiger Position).
+
+---
+
+## [1.0.1] – 2026-07-03
+
+### Aufräumen & Compliance — 🔒🧹
+- **Tote Zweit-Einstellungsseite entfernt** (`src/routes/settings/+page.svelte`): nirgends verlinkt, veraltete hartkodierte Strings, nicht synchron mit dem echten Einstellungs-Modal. War vermutlich Ursache für Verwirrung bei visuellen Prüfungen.
+- **TMDB-Pflichtnennung ergänzt** (Einstellungen → Erweitert): war komplett unvorhanden – Verstoß gegen die TMDB-Nutzungsbedingungen bei Weitergabe der App an andere. Jetzt mit Link auf themoviedb.org.
+- Hinweis: TMDB-Key-Rotation nach dem Entfernen aus dem Quellcode wird weiterhin empfohlen, unabhängig davon ob das Repo private oder public ist – siehe Chat.
+
+---
+
+## [1.0.0] – 2026-07-03
+
+### 🎉 OmniSight 1.0 – Desktop + Web
+
+**Hybrid-Architektur („ein Code, zwei Ziele"):**
+- **Web-Version** (`server/` + `Dockerfile` + `compose.yml`): Die App läuft jetzt auch als Docker-Container (z. B. Proxmox-VM, Zugriff via Tailscale). Ein abhängigkeitsfreier Node-Server dient die App hinter **Login + 2FA (TOTP)** aus; Streaming öffnet im Web in neuen Tabs.
+- **Benutzerverwaltung:** Admin wird beim Erststart aus `ADMIN_USER`/`ADMIN_PASSWORD` angelegt; unter **`/admin`** Nutzer anlegen/löschen/Passwort zurücksetzen. Jeder Nutzer richtet beim ersten Login seine eigene 2FA ein (Authenticator-App, manueller Schlüssel/otpauth-Link).
+- **Sicherheit:** scrypt-Passwort-Hashing, TOTP nach RFC 6238 (±1 Zeitschritt), HttpOnly/SameSite-Sessions (30 Tage), Login-Rate-Limit (5 Versuche → 5 min), CSP-Header, Healthcheck `/api/health`. **15 End-to-End-Tests bestanden.** TMDB-Key bleibt ausschließlich serverseitig (`TMDB_API_KEY`).
+- **Plattform-Abstraktion** (`src/lib/platform.ts`): TMDB-Aufrufe laufen im Web über `POST /api/rpc/…` (gleiche Kommandonamen wie Tauri), Persistenz über localStorage; Titlebar, Plugins-Tab, Anbieter-Anmeldungen und Auto-Updater sind im Web sauber deaktiviert. Desktop bleibt unverändert (inkl. Auto-Update und Crunchyroll-Kalender).
+
+**Feinschliff (Abschluss E2/E3):**
+- **Alle UI-Icons vereinheitlicht** (Lucide) – jetzt auch Startseiten-Werkzeugleiste, Sammlungs-/Ausgeblendet-Sektionen, Toasts und Benachrichtigungs-Center (zentrale Emoji→Icon-Zuordnung, Avatare bleiben bewusst Emojis).
+- **Empfehlungen laden parallel** (alle Seed-Abfragen gleichzeitig statt nacheinander – spürbar schnellerer Aufbau).
+- Empty-States poliert (Icon im Akzentkreis), hartkodierter TMDB-Abschnittstitel jetzt zweisprachig.
+
+**Deployment-Dateien:** `Dockerfile`, `compose.yml`, `.env.example` (`.env`/`data/` sind git-ignoriert). Doku aktualisiert (README, PROJECT_DOCUMENTATION).
+
+**Bekannte 1.0-Grenzen:** Web-Zustand liegt pro Browser (localStorage) – serverseitige Synchronisation pro Nutzer sowie QR-Code beim 2FA-Setup sind für 1.1 vorgesehen.
+
+---
+
+## [0.106.0] – 2026-07-02
+
+### Design-System 2.0 (Etappe 2 des 1.0-Umbaus) — 🎨
+- **Splash-Screen** beim App-Start: Wortmarke mit Akzent-Glow, wanderndem Lichtstreifen und **echtem Lade-Fortschritt** (Daten → Profil → Bereit), sanftes Ausblenden, Mindestanzeige gegen Flackern.
+- **Design-Tokens** eingeführt: einheitliche Motion-Dauern/Kurven, Schatten-Stufen, Akzent-Glow und **Glas-Variablen** – zentral in `app.css`, überall wiederverwendbar.
+- **Seiten-Übergänge:** Routenwechsel blenden sanft ein (bewusst ohne Verschiebung, damit eingebettete Anbieter-Webviews exakt ausgerichtet bleiben).
+- **Modal-Auftritte:** Einstellungen, Titel-Detail, Suche und Befehlspalette erscheinen mit weichem Overlay-Fade + Panel-Pop; Hintergründe werden dezent geblurrt.
+- **Glas-Akzente:** Sidebar, globale Suche und Befehlspalette sind jetzt transluzente Glas-Panels (cinematic Grundton + Glas, wie beschlossen).
+- **Hover-Tiefe:** Anbieter-Kacheln, Poster im Medien-Browser und Empfehlungs-Karten heben sich beim Überfahren mit Schatten + Akzent-Glow.
+- **Barrierefreiheit:** `prefers-reduced-motion` wird respektiert (alle Animationen praktisch aus); einheitliche, sichtbare Tastatur-Fokusringe.
+
+---
+
+## [0.105.0] – 2026-07-02
+
+### Auftakt zum 1.0-Umbau: Fundament — 🔒🎨
+- **TMDB-API-Key aus dem Quellcode entfernt** (Public-Repo-Vorbereitung): Der Key kommt jetzt zur Build-Zeit aus dem Actions-Secret `TMDB_API_KEY` (bzw. lokal aus der Umgebungsvariablen). Ohne Key baut die App weiterhin, TMDB-Funktionen melden dann einen klaren Hinweis.
+- **Icon-Vereinheitlichung abgeschlossen (UI):** Befehlspalette, Titel-Detail, Medien-Browser **und Einstellungen** (Tabs, Kopf, Optionen, PIN-Badges, Löschen) nutzen jetzt durchgängig Lucide-Icons. Profil-Avatare bleiben bewusst Emojis (Inhalt, kein UI). Toast-Icons folgen separat.
+- **Akzentfarbe je Profil** (aus Parallel-Arbeit übernommen) ist jetzt korrekt dokumentiert: Jedes Profil kann eine eigene Akzentfarbe haben; sie überschreibt die globale Farbe, solange das Profil aktiv ist. Der falsch einsortierte Changelog-Eintrag „0.41.0" wurde bereinigt.
 
 ---
 

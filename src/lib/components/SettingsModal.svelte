@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { settings, clockEditing, DEFAULT_SETTINGS, onboardingOpen } from '$lib/stores/settings';
+	import { Image, Hand, MessageCircle, GitBranch, ArrowUpCircle, FileText, Link2, Palette, KeyRound, Clock as ClockIcon, Bell, Puzzle, Settings as SettingsIcon, Lock, LockOpen, Trash2, Save, Download } from '@lucide/svelte';
+	import type { Component } from 'svelte';
+	import { isTauri } from '$lib/platform';
 	import { resetProviders, providers } from '$lib/stores/providers';
 	import { usedProviders, logoutProvider, logoutAllProviders } from '$lib/stores/accounts';
 	import {
@@ -82,13 +85,14 @@
 	}
 
 	const tabs = [
-		{ id: 'appearance', key: 'set.tab.appearance', icon: '🎨' },
-		{ id: 'account', key: 'set.tab.account', icon: '🔑' },
-		{ id: 'clock', key: 'set.tab.clock', icon: '🕐' },
-		{ id: 'notifications', key: 'set.tab.notifications', icon: '🔔' },
-		{ id: 'plugins', key: 'set.tab.plugins', icon: '🧩' },
-		{ id: 'advanced', key: 'set.tab.advanced', icon: '⚙️' }
+		{ id: 'appearance', key: 'set.tab.appearance', icon: Palette },
+		{ id: 'account', key: 'set.tab.account', icon: KeyRound },
+		{ id: 'clock', key: 'set.tab.clock', icon: ClockIcon },
+		{ id: 'notifications', key: 'set.tab.notifications', icon: Bell },
+		{ id: 'plugins', key: 'set.tab.plugins', icon: Puzzle },
+		{ id: 'advanced', key: 'set.tab.advanced', icon: SettingsIcon }
 	];
+	const platformTabs = isTauri ? tabs : tabs.filter((tb) => tb.id !== 'plugins');
 	let active = $state('appearance');
 	let tabSearch = $state('');
 
@@ -215,8 +219,10 @@
 	$effect(() => { clockEditing.set(open && active === 'clock'); });
 
 	const filteredTabs = $derived(
-		tabs.filter((tab) => $t(tab.key).toLowerCase().includes(tabSearch.toLowerCase()))
+		platformTabs.filter((tab) => $t(tab.key).toLowerCase().includes(tabSearch.toLowerCase()))
 	);
+	// Für die Kopfzeile über dem Content-Bereich: aktiver Tab (Icon-Komponente + Übersetzungsschlüssel).
+	const activeTabInfo = $derived(tabs.find((tab) => tab.id === active));
 
 	async function savePin(p: { id: string; pinHash: string | null }) {
 		if (p.pinHash && !(await verifyPin(oldPinInput, p.pinHash))) { pinError = 'Alter PIN ist falsch.'; return; }
@@ -310,19 +316,20 @@
 </script>
 
 {#if open}
-	<div class="backdrop" onclick={onBackdrop} role="presentation">
-		<div class="dialog" role="dialog" aria-modal="true" aria-label="Einstellungen">
+	<div class="backdrop ov-in" onclick={onBackdrop} role="presentation">
+		<div class="dialog modal-in" role="dialog" aria-modal="true" aria-label="Einstellungen">
 			<aside class="side">
 				<div class="head">
-					<span class="emoji">⚙️</span><h2>Einstellungen</h2>
+					<span class="emoji"><SettingsIcon size={17} /></span><h2>{$t('nav.settings')}</h2>
 				</div>
 				<div class="search">
 					<input type="text" placeholder={$t('set.searchPh')} bind:value={tabSearch} />
 				</div>
 				<nav>
 					{#each filteredTabs as tab}
+						{@const TabIcon = tab.icon}
 						<button class:active={active === tab.id} onclick={() => (active = tab.id)}>
-							<span class="i">{tab.icon}</span><span>{$t(tab.key)}</span>
+							<span class="i"><TabIcon size={15} /></span><span>{$t(tab.key)}</span>
 						</button>
 					{/each}
 				</nav>
@@ -331,7 +338,7 @@
 
 			<section class="main">
 				<div class="main-head">
-					<h3>{tabs.find((tab) => tab.id === active)?.icon} {$t(tabs.find((tab) => tab.id === active)?.key ?? '')}</h3>
+					<h3>{#if activeTabInfo}{@const ActiveIcon = activeTabInfo.icon}<ActiveIcon size={18} />{/if} {$t(activeTabInfo?.key ?? '')}</h3>
 					<button class="x" onclick={doClose} aria-label={$t('common.close')}>×</button>
 				</div>
 
@@ -650,17 +657,18 @@
 								</a>
 							{:else}
 								<div class="opt">
-									<div class="opt-ic">🧩</div>
+									<div class="opt-ic"><Puzzle size={16} /></div>
 									<div class="opt-tx2"><div class="opt-t">{$t('set.adv.wv2Runtime')}</div><div class="opt-d">{$t('set.adv.wv2RuntimeDesc')}</div></div>
 									<span class="opt-btn ghosty">{wv2Ver ?? 'Prüfe…'}</span>
 								</div>
 							{/if}
 						</div>
 
+						{#if isTauri}
 						<div class="opt-group">
 							<div class="opt-group-title">{$t('set.adv.updates')}</div>
 							<div class="opt">
-								<div class="opt-ic">🛤️</div>
+								<div class="opt-ic"><GitBranch size={16} /></div>
 								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.channel')}</div><div class="opt-d">{$t('set.adv.channelDesc')}</div></div>
 								<select class="opt-select" bind:value={$settings.updateChannel}>
 									<option value="stable">{$t('set.adv.channelStable')}</option>
@@ -668,12 +676,12 @@
 								</select>
 							</div>
 							<div class="opt">
-								<div class="opt-ic">⬆️</div>
+								<div class="opt-ic"><ArrowUpCircle size={16} /></div>
 								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.checkUpdates')}</div><div class="opt-d">{$t('set.adv.checkUpdatesDesc')}</div></div>
 								<button class="opt-btn" disabled={$updateState.checking} onclick={() => checkForUpdate(true)}>{$updateState.checking ? 'Prüfe…' : 'Suchen'}</button>
 							</div>
 							<a class="opt" href={LINKS.githubReleases} target="_blank" rel="noreferrer">
-								<div class="opt-ic">🗒️</div>
+								<div class="opt-ic"><FileText size={16} /></div>
 								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.allVersions')}</div><div class="opt-d">{$t('set.adv.allVersionsDesc')}</div></div>
 								<span class="opt-btn ghosty">Öffnen ↗</span>
 							</a>
@@ -681,6 +689,7 @@
 								<p class="hint">{$t('set.adv.updateAvail', { n: $updateState.version ?? '' })}</p>
 							{/if}
 						</div>
+						{/if}
 
 						<div class="opt-group">
 							<div class="opt-group-title">{$t('set.adv.system')}</div>
@@ -693,12 +702,12 @@
 						<div class="opt-group">
 							<div class="opt-group-title">{$t('set.adv.backup')}</div>
 							<div class="opt">
-								<div class="opt-ic">💾</div>
+								<div class="opt-ic"><Save size={16} /></div>
 								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.backupExport')}</div><div class="opt-d">{$t('set.adv.backupExportDesc')}</div></div>
 								<button class="opt-btn" onclick={onBackupExport}>{$t('set.adv.backupExportBtn')}</button>
 							</div>
 							<div class="opt">
-								<div class="opt-ic">📥</div>
+								<div class="opt-ic"><Download size={16} /></div>
 								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.backupImport')}</div><div class="opt-d">{$t('set.adv.backupImportDesc')}</div></div>
 								<button class="opt-btn" onclick={() => backupFileInput?.click()}>{$t('set.adv.backupImportBtn')}</button>
 								<input bind:this={backupFileInput} type="file" accept="application/json,.json" onchange={onBackupFile} hidden />
@@ -718,12 +727,12 @@
 						<div class="opt-group">
 							<div class="opt-group-title">{$t('set.adv.dataView')}</div>
 							<div class="opt">
-								<div class="opt-ic">🎴</div>
+								<div class="opt-ic"><Image size={16} /></div>
 								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.resetCards')}</div><div class="opt-d">{$t('set.adv.resetCardsDesc')}</div></div>
 								<button class="opt-btn" onclick={resetProviders}>{$t('common.reset')}</button>
 							</div>
 							<div class="opt">
-								<div class="opt-ic">👋</div>
+								<div class="opt-ic"><Hand size={16} /></div>
 								<div class="opt-tx2"><div class="opt-t">{$t('set.adv.redoOnboarding')}</div><div class="opt-d">{$t('set.adv.redoOnboardingDesc')}</div></div>
 								<button class="opt-btn" onclick={() => { close(); onboardingOpen.set(true); }}>{$t('set.adv.start')}</button>
 							</div>
@@ -732,12 +741,16 @@
 						<div class="opt-group">
 							<div class="opt-group-title">{$t('set.adv.helpFeedback')}</div>
 							<a class="opt" href={LINKS.discord} target="_blank" rel="noreferrer">
-								<div class="opt-ic">💬</div>
+								<div class="opt-ic"><MessageCircle size={16} /></div>
 								<div class="opt-tx2"><div class="opt-t">Discord</div><div class="opt-d">{$t('set.adv.discordDesc')}</div></div>
 								<span class="opt-btn ghosty">{$t('set.adv.join')}</span>
 							</a>
 						</div>
 
+						<p class="tmdb-credit">
+							{$t('set.adv.tmdbCredit')}
+							<a href="https://www.themoviedb.org" target="_blank" rel="noreferrer">themoviedb.org</a>
+						</p>
 						<p class="copyright">© 2026 Luka Kalinka · {APP_NAME}</p>
 					{:else if active === 'account'}
 						<p class="acc-intro">{$t('set.acc.intro')}</p>
@@ -758,7 +771,7 @@
 											<div class="pcard-badges">
 												{#if p.id === $mainProfileId}<span class="pbadge main">★ {$t('set.acc.mainBadge')}</span>{/if}
 												{#if p.id === $activeProfileId}<span class="pbadge">{$t('set.acc.activeBadge')}</span>{/if}
-												{#if p.pinHash}<span class="pbadge lock">🔒 PIN</span>{/if}
+												{#if p.pinHash}<span class="pbadge lock"><Lock size={10} /> PIN</span>{/if}
 											</div>
 										</div>
 									</div>
@@ -767,7 +780,7 @@
 										<button class="chip" onclick={() => { accentPickFor = accentPickFor === p.id ? null : p.id; avatarPickFor = null; }} title={$t('set.acc.colorTitle')}>
 											<span class="chip-dot" style="background: {p.accent || 'var(--accent)'}"></span>{$t('set.acc.colorChip')}
 										</button>
-										<button class="chip" onclick={() => openPinPanel(p.id)}>{p.pinHash ? '🔒 ' + $t('set.acc.pinChange') : '🔓 ' + $t('set.acc.pinSet')}</button>
+										<button class="chip" onclick={() => openPinPanel(p.id)}>{#if p.pinHash}<Lock size={12} /> {$t('set.acc.pinChange')}{:else}<LockOpen size={12} /> {$t('set.acc.pinSet')}{/if}</button>
 										{#if p.pinHash}
 											<button class="chip" onclick={() => openResetPanel(p.id)} title={$t('set.acc.pinForgotTitle')}>{$t('set.acc.pinForgot')}</button>
 										{/if}
@@ -779,7 +792,7 @@
 											disabled={$profiles.length <= MIN_PROFILES || p.id === $mainProfileId}
 											onclick={() => confirmDeleteProfile(p.id)}
 											title={p.id === $mainProfileId ? $t('set.acc.delMain') : ($profiles.length <= MIN_PROFILES ? $t('set.acc.delMin') : $t('set.acc.delOk'))}
-										>🗑 {$t('common.remove')}</button>
+										><Trash2 size={12} /> {$t('common.remove')}</button>
 									</div>
 
 									{#if avatarPickFor === p.id}
@@ -862,13 +875,14 @@
 
 						<p class="hint">{$t('set.acc.switchHint')}</p>
 
+						{#if isTauri}
 						<div class="opt-group-title" style="margin-top:22px">{$t('set.acc.loginsTitle')}</div>
 						<p class="hint" style="margin-top:0">{$t('set.acc.loginsHint')}</p>
 						{#if accountList.length}
 							<div class="acc-logins">
 								{#each accountList as a (a.id)}
 									<div class="acc-login">
-										<span class="acc-login-name">🔗 {a.name}</span>
+										<span class="acc-login-name"><Link2 size={13} /> {a.name}</span>
 										<button class="mini danger" onclick={() => doLogout(a.id)}>{$t('set.acc.logout')}</button>
 									</div>
 								{/each}
@@ -879,6 +893,7 @@
 						{/if}
 						<p class="hint" style="font-size:11.5px; opacity:0.8">{$t('set.acc.loginsNote')}</p>
 						{#if logoutMsg}<div class="admin-status">{logoutMsg}</div>{/if}
+						{/if}
 					{:else if active === 'plugins'}
 						<p class="acc-intro">{$t('set.plug.intro')}</p>
 
@@ -972,7 +987,8 @@
 {/if}
 
 <style>
-	.backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.62); display: grid; place-items: center; z-index: 90; animation: bd-in 0.18s ease; }
+	.backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.62); display: grid; place-items: center; z-index: 90; animation: bd-in 0.18s ease; 	backdrop-filter: blur(5px);
+	}
 	@keyframes bd-in { from { opacity: 0; } to { opacity: 1; } }
 	.dialog {
 		width: min(1180px, 94vw);
@@ -1010,12 +1026,12 @@
 	}
 	nav button:hover { background: var(--bg-card); color: var(--text); }
 	nav button.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
-	nav button .i { width: 18px; text-align: center; font-size: 15px; }
+	nav button .i { width: 18px; display: inline-flex; align-items: center; justify-content: center; }
 	.version { color: var(--text-dim); font-size: 11px; text-align: center; padding-top: 8px; }
 
 	.main { flex: 1; display: flex; flex-direction: column; }
 	.main-head { display: flex; justify-content: space-between; align-items: center; padding: 20px 28px; border-bottom: 1px solid var(--border); }
-	.main-head h3 { margin: 0; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
+	.main-head h3 { margin: 0; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 9px; color: var(--accent); }
 	.x { background: transparent; border: 0; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; transition: background 0.13s, color 0.13s; }
 	.x:hover { background: var(--bg-card); color: var(--text); }
 	.content { padding: 24px 28px; overflow: auto; contain: paint; transform: translateZ(0); }
@@ -1193,6 +1209,8 @@
 	.rc-tx { font-size: 13px; margin-bottom: 10px; }
 	.rc-actions { display: flex; gap: 8px; }
 	.copyright { text-align: center; color: var(--text-dim); font-size: 11.5px; margin-top: 8px; }
+	.tmdb-credit { text-align: center; color: var(--text-dim); font-size: 11px; margin-top: 18px; }
+	.tmdb-credit a { color: var(--text-muted); }
 	.theme-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 	.tp-group-label { font-size: 11px; font-weight: 700; color: var(--text-dim); margin: 12px 0 2px; }
 	.tp { display: flex; align-items: center; gap: 8px; padding: 6px 11px 6px 6px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: 600; transition: border-color 0.15s ease, transform 0.1s ease; }

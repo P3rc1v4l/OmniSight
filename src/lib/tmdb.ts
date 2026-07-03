@@ -1,5 +1,6 @@
 // Frontend-Wrapper für die Rust-Commands aus src-tauri/src/tmdb.rs.
 import { browser } from '$app/environment';
+import { isTauri, webRpc } from '$lib/platform';
 import { writable } from 'svelte/store';
 import type { TmdbItem } from '$lib/types';
 
@@ -15,8 +16,12 @@ export function closeTitleInfo(): void {
 async function call<T>(name: string, args: Record<string, unknown> = {}): Promise<T | null> {
 	if (!browser) return null;
 	try {
-		const { invoke } = await import('@tauri-apps/api/core');
-		return (await invoke(name, args)) as T;
+		if (isTauri) {
+			const { invoke } = await import('@tauri-apps/api/core');
+			return (await invoke(name, args)) as T;
+		}
+		// Web-Version: gleiche Kommandos über die Server-API (TMDB-Key bleibt serverseitig).
+		return await webRpc<T>(name, args);
 	} catch (e) {
 		console.warn(`[tmdb] ${name} fehlgeschlagen:`, e);
 		return null;
