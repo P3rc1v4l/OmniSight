@@ -43,6 +43,9 @@ Versionierung nach [SemVer](https://semver.org/lang/de/).
 ### Auftakt zum 1.0-Umbau: Fundament — 🔒🎨
 - **TMDB-API-Key aus dem Quellcode entfernt** (Public-Repo-Vorbereitung): Der Key kommt jetzt zur Build-Zeit aus dem Actions-Secret `TMDB_API_KEY` (bzw. lokal aus der Umgebungsvariablen). Ohne Key baut die App weiterhin, TMDB-Funktionen melden dann einen klaren Hinweis.
 - **Icon-Vereinheitlichung abgeschlossen (UI):** Befehlspalette, Titel-Detail, Medien-Browser **und Einstellungen** (Tabs, Kopf, Optionen, PIN-Badges, Löschen) nutzen jetzt durchgängig Lucide-Icons. Profil-Avatare bleiben bewusst Emojis (Inhalt, kein UI). Toast-Icons folgen separat.
+### Auftakt zum 1.0-Umbau: Fundament — 🔒🎨
+- **TMDB-API-Key aus dem Quellcode entfernt** (Public-Repo-Vorbereitung): Der Key kommt jetzt zur Build-Zeit aus dem Actions-Secret `TMDB_API_KEY` (bzw. lokal aus der Umgebungsvariablen). Ohne Key baut die App weiterhin, TMDB-Funktionen melden dann einen klaren Hinweis.
+- **Icon-Vereinheitlichung abgeschlossen (UI):** Befehlspalette, Titel-Detail, Medien-Browser **und Einstellungen** (Tabs, Kopf, Optionen, PIN-Badges, Löschen) nutzen jetzt durchgängig Lucide-Icons. Profil-Avatare bleiben bewusst Emojis (Inhalt, kein UI). Toast-Icons folgen separat.
 - **Akzentfarbe je Profil** (aus Parallel-Arbeit übernommen) ist jetzt korrekt dokumentiert: Jedes Profil kann eine eigene Akzentfarbe haben; sie überschreibt die globale Farbe, solange das Profil aktiv ist. Der falsch einsortierte Changelog-Eintrag „0.41.0" wurde bereinigt.
 
 ---

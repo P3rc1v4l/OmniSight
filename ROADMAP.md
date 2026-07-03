@@ -74,6 +74,8 @@ Ungeordnete Vorschläge für kommende Versionen. ⭐ = bevorzugt. 🦀 = braucht
 
 ## 🆕 v0.105.0
 - 🔒 TMDB-Key -> Build-Secret (Public-Repo-vorbereitet). 🎨 Icon-Vereinheitlichung (UI) abgeschlossen inkl. Einstellungen. Changelog bereinigt (Profil-Akzent dokumentiert).
+## 🆕 v0.105.0
+- 🔒 TMDB-Key -> Build-Secret (Public-Repo-vorbereitet). 🎨 Icon-Vereinheitlichung (UI) abgeschlossen inkl. Einstellungen. Changelog bereinigt (Profil-Akzent dokumentiert).
 
 ### Masterplan zu 1.0.0 (beschlossen)
 - E2 Design-System 2.0: Tokens, Motion, Splash-Screen, Seiten-/Modal-Transitions (cinematic + Glas).
