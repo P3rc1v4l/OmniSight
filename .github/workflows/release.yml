@@ -120,6 +120,8 @@ jobs:
           # Signiert die Updater-Artefakte (.sig). Schlüssel NUR als Secret, nie im Code.
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # TMDB-Key kommt zur Build-Zeit aus dem Secret (nie im Quellcode).
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         with:
           # KEIN tagName -> tauri-action BAUT nur und legt KEINEN Release im privaten Repo an.
           args: ${{ matrix.args }}

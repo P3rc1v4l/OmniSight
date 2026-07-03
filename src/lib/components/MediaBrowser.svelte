@@ -6,6 +6,7 @@
 	import { openUrlInApp } from '$lib/embedded';
 	import { extractWatchProviders, type WatchProvider } from '$lib/watchProviders';
 	import PosterRowSkeleton from './PosterRowSkeleton.svelte';
+	import { Clapperboard, Star } from '@lucide/svelte';
 	import type { TmdbItem } from '$lib/types';
 
 	let { kind = 'news' }: { kind?: 'news' | 'upcoming' } = $props();
@@ -232,7 +233,7 @@
 		{:else if error}
 			<div class="state err">{$tt(error)}</div>
 		{:else if !hero}
-			<div class="state">🎬 {$tt('mb.noTitles')}</div>
+			<div class="state"><Clapperboard size={20} /> {$tt('mb.noTitles')}</div>
 		{:else}
 			{#if heroImg}<div class="back" style="background-image: url({heroImg})"></div>{/if}
 			<div class="shade"></div>
@@ -244,7 +245,7 @@
 				<div class="info">
 					<h2 class="htitle">{hero.title}</h2>
 					<div class="meta">
-						{#if heroRating}<span class="rate">★ {heroRating}</span>{/if}
+						{#if heroRating}<span class="rate"><Star size={13} fill="currentColor" /> {heroRating}</span>{/if}
 						{#if year(hero.release_date)}<span>{year(hero.release_date)}</span>{/if}
 						<span>{hero.media_type === 'tv' ? $tt('common.series') : $tt('common.movie')}</span>
 					</div>
@@ -328,7 +329,7 @@
 	.nav.left { left: 14px; }
 	.nav.right { right: 14px; }
 	.nav:hover { background: rgba(0,0,0,0.6); }
-	.state { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-muted); padding: 24px; text-align: center; }
+	.state { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); padding: 24px; text-align: center; }
 	.hero-sk { position: absolute; inset: 0; }
 	.strip-sk { padding: 14px 20px 4px; }
 	.shimmer {
@@ -345,7 +346,7 @@
 	.info { position: absolute; left: 48px; right: 48px; bottom: 26px; z-index: 3; max-width: 640px; animation: heroFade 0.45s ease; }
 	.htitle { margin: 0 0 8px; font-size: 30px; font-weight: 800; line-height: 1.1; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65); }
 	.meta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 13px; color: rgba(255, 255, 255, 0.9); margin-bottom: 10px; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6); }
-	.rate { color: #facc15; font-weight: 800; }
+	.rate { color: #facc15; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; }
 	.desc { margin: 0 0 14px; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.88); display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55); }
 	.details { background: var(--accent); color: #00110f; border: 0; border-radius: 9px; padding: 9px 18px; font-family: inherit; font-weight: 700; font-size: 13.5px; cursor: pointer; }
 	.details:hover { filter: brightness(1.08); }
@@ -364,6 +365,8 @@
 	.strip::-webkit-scrollbar { width: 0; height: 0; display: none; }
 	.cell { flex: 0 0 132px; width: 132px; }
 	.thumb { position: relative; width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; overflow: hidden; border: 2px solid transparent; box-sizing: border-box; background: var(--bg-card-2); transition: border-color 0.15s, transform 0.15s; }
+	.thumb { transition: transform var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out); }
+	.cell:hover .thumb { transform: translateY(-4px) scale(1.03); box-shadow: var(--shadow-2), var(--glow-accent); }
 	.thumb:hover { transform: translateY(-2px); }
 	.thumb.on { border-color: var(--accent); }
 	.pbtn { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: none; cursor: pointer; }

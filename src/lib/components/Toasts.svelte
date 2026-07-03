@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { toasts, dismissToast } from '$lib/stores/toasts';
+	import { toastIcon } from '$lib/toastIcons';
 </script>
 
 <div class="toast-wrap" aria-live="polite">
 	{#each $toasts as t (t.id)}
+		{@const Ico = toastIcon(t.icon)}
 		<div class="toast omni-card">
-			<span class="icon">{t.icon}</span>
+			<span class="icon">{#if Ico}<Ico size={17} />{:else}{t.icon}{/if}</span>
 			<div class="content">
 				<div class="title">{t.title}</div>
 				{#if t.body}<div class="body">{t.body}</div>{/if}
@@ -29,7 +31,7 @@
 		animation: slidein 0.22s ease;
 	}
 	@keyframes slidein { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
-	.icon { font-size: 18px; line-height: 1.2; }
+	.icon { font-size: 18px; line-height: 1.2; display: inline-flex; align-items: center; color: var(--accent); padding-top: 1px; }
 	.content { flex: 1; min-width: 0; }
 	.title { font-weight: 700; font-size: 13.5px; }
 	.body { color: var(--text-muted); font-size: 12.5px; margin-top: 2px; }

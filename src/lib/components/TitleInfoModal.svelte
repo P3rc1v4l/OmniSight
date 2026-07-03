@@ -4,6 +4,7 @@
 	import { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist, toggleSeen } from '$lib/stores/watchlist';
 	import { currentRecReason, hideRec, excludeSeed } from '$lib/stores/recs';
 	import { watchedEpisodes, isEpisodeWatched, toggleEpisode, setSeasonWatched, seasonWatchedCount } from '$lib/stores/episodeProgress';
+	import { X, Star, Tv, History } from '@lucide/svelte';
 	import { pushToast } from '$lib/stores/toasts';
 	import { settings } from '$lib/stores/settings';
 	import { openUrlInApp } from '$lib/embedded';
@@ -183,9 +184,9 @@
 
 {#if $titleInfo}
 	{@const item = $titleInfo}
-	<div class="overlay" onclick={closeTitleInfo} role="presentation">
-		<div class="modal" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-			<button class="close" onclick={closeTitleInfo} aria-label={$tt('common.close')}>✕</button>
+	<div class="overlay ov-in" onclick={closeTitleInfo} role="presentation">
+		<div class="modal modal-in" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+			<button class="close" onclick={closeTitleInfo} aria-label={$tt('common.close')}><X size={18} /></button>
 
 			<div class="hero">
 				{#if backdrop}<img class="backdrop" src={backdrop} alt="" />{/if}
@@ -197,7 +198,7 @@
 						<div class="chips">
 							<span class="kind">{item.media_type === 'tv' ? $tt('common.series') : $tt('common.movie')}</span>
 							{#if year}<span>{year}</span>{/if}
-							{#if rating}<span class="star">★ {rating}</span>{/if}
+							{#if rating}<span class="star"><Star size={12} fill="currentColor" /> {rating}</span>{/if}
 							{#if runtime}<span>{runtime} Min</span>{/if}
 						</div>
 						{#if genres.length}
@@ -222,13 +223,13 @@
 					<div class="ep-block">
 						{#if nextEp}
 							<div class="ep-row">
-								<span class="ep-label">📺 {$tt('ti.nextEp')}</span>
+								<span class="ep-label"><Tv size={14} /> {$tt('ti.nextEp')}</span>
 								<span class="ep-info">{epCode(nextEp)} · {epDate(nextEp)}{#if epIsToday(nextEp)} · <b class="ep-today">{$tt('ti.epToday')}</b>{/if}{#if nextEp.name} · {nextEp.name}{/if}</span>
 							</div>
 						{/if}
 						{#if lastEp}
 							<div class="ep-row">
-								<span class="ep-label">⏮️ {$tt('ti.lastEp')}</span>
+								<span class="ep-label"><History size={14} /> {$tt('ti.lastEp')}</span>
 								<span class="ep-info">{epCode(lastEp)} · {epDate(lastEp)}{#if epIsToday(lastEp)} · <b class="ep-today">{$tt('ti.epToday')}</b>{/if}{#if lastEp.name} · {lastEp.name}{/if}</span>
 							</div>
 						{/if}
@@ -339,7 +340,7 @@
 		animation: pop 0.2s cubic-bezier(0.2, 0.8, 0.3, 1);
 	}
 	.modal::-webkit-scrollbar { width: 10px; } .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
-	.close { position: absolute; top: 12px; right: 12px; z-index: 3; width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #fff; border: 1px solid rgba(255,255,255,0.18); cursor: pointer; font-size: 14px; backdrop-filter: blur(4px); }
+	.close { position: absolute; top: 12px; right: 12px; z-index: 3; width: 34px; height: 34px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #fff; border: 1px solid rgba(255,255,255,0.18); cursor: pointer; display: grid; place-items: center; backdrop-filter: blur(4px); }
 	.close:hover { background: rgba(0,0,0,0.8); }
 
 	.hero { position: relative; }
@@ -351,7 +352,7 @@
 	h2 { margin: 0 0 8px; font-size: 24px; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
 	.chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--text-muted); }
 	.chips .kind { color: var(--accent); font-weight: 700; }
-	.chips .star { color: #fbbf24; font-weight: 700; }
+	.chips .star { color: #fbbf24; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; }
 	.genres { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 	.genre { font-size: 11px; font-weight: 600; color: var(--text); background: color-mix(in srgb, var(--accent) 14%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); padding: 3px 9px; border-radius: 999px; }
 
@@ -359,7 +360,7 @@
 	.overview { line-height: 1.6; color: var(--text); margin: 6px 0 0; }
 	.ep-block { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
 	.ep-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; }
-	.ep-label { font-size: 12.5px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+	.ep-label { font-size: 12.5px; font-weight: 700; color: var(--text-muted); white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
 	.ep-info { font-size: 13.5px; color: var(--text); }
 	.seasons { display: flex; flex-direction: column; gap: 6px; }
 	.season { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }

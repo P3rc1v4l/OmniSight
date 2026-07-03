@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { Star, Dices, LoaderCircle, RefreshCw, ArrowDownAZ, FolderOpen, Plus, LayoutGrid, List, ChevronDown, ChevronRight, ChevronUp, EyeOff } from '@lucide/svelte';
 	import { visibleProviders, favoriteProviders, favorites, toggleFavorite, providerOrder, setProviderOrder, setFavoritesOrder, collections, toggleCollectionCollapsed, providers as allProviders, unhideProvider } from '$lib/stores/providers';
 	import { settings } from '$lib/stores/settings';
 	import ProviderCard from '$lib/components/ProviderCard.svelte';
@@ -246,16 +247,16 @@
 			/>
 		</div>
 		<div class="tools">
-			<button class="tool" class:busy={surprising} title={$t('home.surprise')} onclick={surprise} aria-label={$t('home.surpriseAria')} disabled={surprising}>{surprising ? '⏳' : '🎲'}</button>
+			<button class="tool" class:busy={surprising} title={$t('home.surprise')} onclick={surprise} aria-label={$t('home.surpriseAria')} disabled={surprising}>{#if surprising}<LoaderCircle size={16} class="spin" />{:else}<Dices size={16} />{/if}</button>
 			{#if $settings.appearance.showReachability}
-				<button class="tool" title={$t('reach.refresh')} aria-label={$t('reach.refresh')} onclick={() => refreshReach(true)}>🔄</button>
+				<button class="tool" title={$t('reach.refresh')} aria-label={$t('reach.refresh')} onclick={() => refreshReach(true)}><RefreshCw size={16} /></button>
 			{/if}
-			<button class="tool" title={$t('home.sortAZ')} onclick={() => setProviderOrder([])}>A↓Z</button>
-			<button class="tool" title={$t('home.collections')} onclick={() => (showCollections = true)} aria-label={$t('home.collections')}>📁</button>
-			<button class="primary" onclick={() => (showAdd = true)}><span>＋</span> {$t('home.addProvider')}</button>
+			<button class="tool" title={$t('home.sortAZ')} onclick={() => setProviderOrder([])}><ArrowDownAZ size={16} /></button>
+			<button class="tool" title={$t('home.collections')} onclick={() => (showCollections = true)} aria-label={$t('home.collections')}><FolderOpen size={16} /></button>
+			<button class="primary" onclick={() => (showAdd = true)}><Plus size={16} /> {$t('home.addProvider')}</button>
 			<div class="view">
-				<button class:active={view === 'grid'} onclick={() => (view = 'grid')} aria-label={$t('home.gridAria')} title={$t('home.grid')}>▦</button>
-				<button class:active={view === 'list'} onclick={() => (view = 'list')} aria-label={$t('home.listAria')} title={$t('home.list')}>≡</button>
+				<button class:active={view === 'grid'} onclick={() => (view = 'grid')} aria-label={$t('home.gridAria')} title={$t('home.grid')}><LayoutGrid size={15} /></button>
+				<button class:active={view === 'list'} onclick={() => (view = 'list')} aria-label={$t('home.listAria')} title={$t('home.list')}><List size={15} /></button>
 			</div>
 		</div>
 	</header>
@@ -287,7 +288,7 @@
 	{/if}
 
 	{#if $favoriteProviders.length && !search}
-		<div class="section-label">⭐ {$t('home.favorites')} <span class="hint-inline">· {$t('home.dragToSort')}</span></div>
+		<div class="section-label"><Star size={15} /> {$t('home.favorites')} <span class="hint-inline">· {$t('home.dragToSort')}</span></div>
 		<div class="grid favs">
 			{#each $favoriteProviders as p (p.id)}
 				<div
@@ -312,7 +313,7 @@
 		{#each collectionViews as col (col.id)}
 			<div class="section-label col-label">
 				<button class="col-toggle" onclick={() => toggleCollectionCollapsed(col.id)}>
-					<span class="chev">{col.collapsed ? '▸' : '▾'}</span> 📁 {col.name}
+					<span class="chev">{#if col.collapsed}<ChevronRight size={13} />{:else}<ChevronDown size={13} />{/if}</span> <FolderOpen size={14} /> {col.name}
 					<span class="hint-inline">· {col.items.length}</span>
 				</button>
 			</div>
@@ -391,7 +392,7 @@
 	{/if}
 
 	{#if search.trim().length >= 3}
-		<div class="section-label" style="margin-top: 26px">Filme & Serien (TMDB)</div>
+		<div class="section-label" style="margin-top: 26px">{$t('home.tmdbSection')}</div>
 		{#if searching}
 			<p class="muted">Suche läuft…</p>
 		{:else if tmdbResults.length === 0}
@@ -425,8 +426,8 @@
 	{/if}
 	{#if hiddenList.length}
 		<div class="section-label" style="margin-top: 26px">
-			🙈 {$t('home.hiddenSection')} ({hiddenList.length})
-			<button class="hidden-toggle" onclick={() => (showHidden = !showHidden)} aria-expanded={showHidden}>{showHidden ? '▲' : '▼'}</button>
+			<EyeOff size={15} /> {$t('home.hiddenSection')} ({hiddenList.length})
+			<button class="hidden-toggle" onclick={() => (showHidden = !showHidden)} aria-expanded={showHidden}>{#if showHidden}<ChevronUp size={14} />{:else}<ChevronDown size={14} />{/if}</button>
 		</div>
 		{#if showHidden}
 			<div class="hidden-list">
@@ -476,6 +477,7 @@
 		background: var(--bg-card); border: 1px solid var(--border);
 		color: var(--text-muted); padding: 9px 14px; border-radius: 12px;
 		cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600;
+		display: inline-flex; align-items: center; justify-content: center; gap: 6px;
 	}
 	.primary { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); display: inline-flex; gap: 6px; align-items: center; }
 	.view { display: flex; gap: 4px; }
@@ -499,7 +501,7 @@
 	.cr-cta { flex-shrink: 0; background: var(--accent); color: var(--accent-text); font-weight: 700; font-size: 13px; padding: 9px 16px; border-radius: 10px; white-space: nowrap; }
 	.col-label { padding: 0; }
 	.col-toggle { display: inline-flex; align-items: center; gap: 7px; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; color: inherit; }
-	.col-toggle .chev { color: var(--text-muted); font-size: 11px; width: 12px; display: inline-block; }
+	.col-toggle .chev { color: var(--text-muted); width: 14px; display: inline-flex; align-items: center; }
 	.col-toggle:hover { color: var(--accent); }
 	.catbar { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 16px; }
 	.cat { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 13px; font-weight: 600; padding: 6px 13px; border-radius: 999px; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
