@@ -19,6 +19,9 @@
 	import NotificationCenter from '$lib/components/NotificationCenter.svelte';
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import GlobalSearchModal from '$lib/components/GlobalSearchModal.svelte';
+	import SplashScreen from '$lib/components/SplashScreen.svelte';
+	import { page } from '$app/stores';
+	import { isTauri } from '$lib/platform';
 	import YearReviewBanner from '$lib/components/YearReviewBanner.svelte';
 	import WrappedModal from '$lib/components/WrappedModal.svelte';
 	import { checkForUpdate } from '$lib/stores/updater';
@@ -31,6 +34,7 @@
 	import { achievements, maybeNotify } from '$lib/stores/achievements';
 	import { watchlist, maybeNotifyReleases, maybeNotifyEpisodes } from '$lib/stores/watchlist';
 	import { get } from 'svelte/store';
+	import { t } from '$lib/i18n';
 
 	let { children } = $props();
 
@@ -89,27 +93,48 @@
 		void unhideEmbedded();
 	}
 
+	// Splash-Screen: echter Lade-Fortschritt + Mindestanzeigezeit gegen Flackern.
+	let splashProgress = $state(8);
+	let splashLabel = $state('');
+	let splashDone = $state(false);
+	let splashGone = $state(false);
+
 	onMount(async () => {
+		const splashStart = Date.now();
 		// Settings, Profile und Katalog sind voneinander unabhängig und werden parallel
 		// geladen (schnellerer Start). applySettings läuft direkt nach den Settings.
 		// Erst danach die profilbezogenen Daten (brauchen das aktive Profil).
+		splashLabel = get(t)('splash.data');
 		await Promise.all([
 			hydrateSettings().then(() => applySettings(get(settings))).catch((e) => console.error('[init] settings', e)),
 			hydrateProfiles().catch((e) => console.error('[init] profiles', e)),
 			hydrateCatalog().catch((e) => console.error('[init] catalog', e))
 		]);
+		splashProgress = 55;
 		// Update-Prüfung zügig nach dem Laden der Einstellungen anstoßen – läuft parallel
 		// zu den Profildaten und blockiert das Rendern nicht; danach einmal pro Stunde.
 		setTimeout(() => { void checkForUpdate(false); }, 800);
 		updateTimer = setInterval(() => { void checkForUpdate(false); }, 60 * 60 * 1000);
 
+		splashLabel = get(t)('splash.profile');
 		try {
 			const pid = get(activeProfileId);
 			if (pid) await loadProfileData(pid);
 		} catch (e) { console.error('[init] profileData', e); }
+		splashProgress = 92;
 
 		// Serien-Tracker: einmal pro Sitzung prüfen, ob heute neue Folgen erschienen sind.
 		void maybeNotifyEpisodes(get(watchlist), get(settings).notifications.episodeReminder);
+
+		// Splash sauber beenden: auf 100 %, Mindestdauer wahren, ausblenden, entfernen.
+		splashLabel = get(t)('splash.ready');
+		splashProgress = 100;
+		const MIN_SPLASH = 1000;
+		const wait = Math.max(0, MIN_SPLASH - (Date.now() - splashStart));
+		setTimeout(() => {
+			splashDone = true;
+			setTimeout(() => { splashGone = true; }, 500);
+		}, wait);
 
 		if (!get(settings).onboardingDone) onboardingOpen.set(true);
 		window.addEventListener('keydown', onKey);
@@ -174,7 +199,7 @@
 <div class="root">
 	{#if !perfActive}<Particles />{/if}
 	{#if !$immersive}
-		<Titlebar onHelp={() => (showShortcuts = true)} />
+		{#if isTauri}<Titlebar onHelp={() => (showShortcuts = true)} />{/if}
 		<UpdateBanner />
 		<YearReviewBanner onOpenReview={() => (showWrapped = true)} />
 	{/if}
@@ -182,7 +207,7 @@
 		{#if !$immersive}
 			<Sidebar openSettings={() => openSettings()} openProfiles={() => openSettings('account')} />
 		{/if}
-		<main>{@render children()}</main>
+		<main>{#key $page.url.pathname}<div class="route-fade">{@render children()}</div>{/key}</main>
 	</div>
 </div>
 
@@ -204,6 +229,9 @@
 	onOpenSearch={() => { closePalette(); showSearch = true; }}
 />
 <GlobalSearchModal open={showSearch} onClose={() => (showSearch = false)} />
+{#if !splashGone}
+	<SplashScreen progress={splashProgress} label={splashLabel} done={splashDone} />
+{/if}
 <OnboardingModal open={$onboardingOpen} close={() => onboardingOpen.set(false)} />
 <CardEditorModal />
 <SleepTimer />
@@ -216,4 +244,5 @@
 	.root { display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
 	.below { display: flex; flex: 1; min-height: 0; position: relative; z-index: 1; }
 	main { flex: 1; overflow-y: auto; background: transparent; height: 100%; }
+	.route-fade { height: 100%; animation: ov-in var(--dur-med) var(--ease-out) both; }
 </style>

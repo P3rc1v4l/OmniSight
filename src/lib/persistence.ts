@@ -11,6 +11,25 @@ type StoreLike = {
 
 let storePromise: Promise<StoreLike | null> | null = null;
 
+// localStorage-Store für die Web-Version: gleiche Schnittstelle wie tauri-plugin-store.
+function makeLocalStore(): StoreLike {
+	const P = 'omnisight:';
+	return {
+		async get<T = unknown>(key: string): Promise<T | undefined> {
+			try {
+				const raw = localStorage.getItem(P + key);
+				return raw === null ? undefined : (JSON.parse(raw) as T);
+			} catch {
+				return undefined;
+			}
+		},
+		async set(key: string, value: unknown): Promise<void> {
+			try { localStorage.setItem(P + key, JSON.stringify(value)); } catch { /* voll/gesperrt */ }
+		},
+		async save(): Promise<void> { /* localStorage schreibt sofort */ }
+	};
+}
+
 async function getStore(): Promise<StoreLike | null> {
 	if (!browser) return null;
 	if (!storePromise) {
@@ -21,8 +40,8 @@ async function getStore(): Promise<StoreLike | null> {
 				const store = await mod.load('omnisight.json', { autoSave: true, defaults: {} });
 				return store as unknown as StoreLike;
 			} catch {
-				// Wir sind im Browser-Dev oder Plugin nicht verfügbar -> kein Persistieren.
-				return null;
+				// Web-Version/Browser: Persistenz über localStorage (pro Browser-Profil).
+				return makeLocalStore();
 			}
 		})();
 	}

@@ -9,6 +9,7 @@
 //
 // Defensiv: Klappt das Einbetten nicht, wird ein separates Fenster geöffnet.
 import { browser } from '$app/environment';
+import { isTauri } from '$lib/platform';
 import { get, writable } from 'svelte/store';
 import { goto } from '$app/navigation';
 import type { Provider } from '$lib/types';
@@ -83,6 +84,13 @@ function chooseLabel(providerId: string): string {
 
 // Vom Nutzer ausgelöstes Öffnen.
 export function openProvider(p: Provider): void {
+	if (!isTauri) {
+		// Web-Version: Streaming öffnet in neuem Tab (Einbetten ist im Browser nicht möglich).
+		markOpened(p.id);
+		recordOpen({ label: p.name, subtitle: p.subtitle ?? '', url: p.url, id: p.id, color: p.color, color2: p.color2 ?? p.color, poster: null });
+		window.open(p.url, '_blank', 'noopener');
+		return;
+	}
 	markOpened(p.id);
 	recordOpen({ label: p.name, subtitle: p.subtitle ?? '', url: p.url, id: p.id, color: p.color, color2: p.color2 ?? p.color, poster: null });
 
@@ -111,6 +119,12 @@ export async function openUrlInApp(
 	color2 = '#1f6f6a',
 	poster: string | null = null
 ): Promise<void> {
+	if (!isTauri) {
+		if (id === 'crunchyroll') markOpened('crunchyroll');
+		recordOpen({ label: name, subtitle, url, id, color, color2, poster });
+		window.open(url, '_blank', 'noopener');
+		return;
+	}
 	await closeEmbedded(); // vorherigen Vordergrund schließen (Hintergrund bleibt)
 	if (id === 'crunchyroll') markOpened('crunchyroll');
 	recordOpen({ label: name, subtitle, url, id, color, color2, poster });

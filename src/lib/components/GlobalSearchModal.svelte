@@ -65,9 +65,9 @@
 </script>
 
 {#if open}
-	<div class="ov" onclick={close} role="presentation">
+	<div class="ov ov-in" onclick={close} role="presentation">
 		<div
-			class="modal omni-card"
+			class="modal omni-card glass modal-in"
 			role="dialog"
 			aria-modal="true"
 			aria-label={$t('search.title')}
@@ -125,8 +125,8 @@
 {/if}
 
 <style>
-	.ov { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; z-index: 1150; }
-	.modal { width: min(620px, 94vw); max-height: 74vh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-elev); }
+	.ov { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; z-index: 1150; }
+	.modal { width: min(620px, 94vw); max-height: 74vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-3); }
 	.bar { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
 	.ico { font-size: 16px; opacity: 0.8; }
 	.bar input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-size: 16px; }
