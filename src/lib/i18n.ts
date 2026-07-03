@@ -15,6 +15,10 @@ const dict: Record<string, { de: string; en: string }> = {
 	'nav.crCalendar': { de: 'CR Kalender', en: 'CR Calendar' },
 	'nav.stats': { de: 'Statistiken', en: 'Statistics' },
 	'nav.settings': { de: 'Einstellungen', en: 'Settings' },
+	'splash.start': { de: 'Starte…', en: 'Starting…' },
+	'splash.data': { de: 'Lade Daten…', en: 'Loading data…' },
+	'splash.profile': { de: 'Lade Profil…', en: 'Loading profile…' },
+	'splash.ready': { de: 'Bereit', en: 'Ready' },
 	'cmd.title': { de: 'Befehlspalette', en: 'Command palette' },
 	'cmd.placeholder': { de: 'Befehl oder Anbieter suchen …', en: 'Search commands or providers …' },
 	'cmd.page': { de: 'Seite', en: 'Page' },
@@ -163,6 +167,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'home.dragCards': { de: 'Karten zum Sortieren ziehen', en: 'drag cards to sort' },
 	'home.openTitle': { de: '{name} öffnen', en: 'Open {name}' },
 	'home.emptyCat': { de: 'Keine Anbieter in dieser Kategorie.', en: 'No providers in this category.' },
+	'home.tmdbSection': { de: 'Filme & Serien (TMDB)', en: 'Movies & Series (TMDB)' },
 	'home.favorite': { de: 'Favorit', en: 'Favorite' },
 	'home.toFavorites': { de: 'Zu Favoriten', en: 'Add to favorites' },
 	'home.toggleFavorite': { de: 'Favorit umschalten', en: 'Toggle favorite' },
@@ -552,6 +557,7 @@ const dict: Record<string, { de: string; en: string }> = {
 	'set.adv.start': { de: 'Starten', en: 'Start' },
 	'set.adv.helpFeedback': { de: 'Hilfe & Feedback', en: 'Help & feedback' },
 	'set.adv.discordDesc': { de: 'Feedback, Hilfe und Neuigkeiten.', en: 'Feedback, help and news.' },
+	'set.adv.tmdbCredit': { de: 'Dieses Produkt verwendet die TMDB API, wird jedoch nicht von TMDB unterstützt oder zertifiziert.', en: 'This product uses the TMDB API but is not endorsed or certified by TMDB.' },
 	'set.adv.join': { de: 'Beitreten ↗', en: 'Join ↗' },
 
 	// --- Einstellungen: Meldungen ---

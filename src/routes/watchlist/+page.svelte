@@ -14,7 +14,7 @@
 	import { exportLetterboxd, exportTrakt } from '$lib/watchlistExport';
 	import { importWatchlistCsv } from '$lib/watchlistImport';
 	import PosterRowSkeleton from '$lib/components/PosterRowSkeleton.svelte';
-	import { RefreshCw, X, BookmarkPlus, Download, Film, Tv, Check, Eye } from '@lucide/svelte';
+	import { RefreshCw, X, BookmarkPlus, Download, Film, Tv, Check, Eye, Bookmark, SearchX } from '@lucide/svelte';
 	import type { WatchlistItem, TmdbItem } from '$lib/types';
 
 	// „Verfügbar bei dir": je Titel die DE-Anbieter von TMDB holen und auf die
@@ -64,15 +64,21 @@
 		const seedTitles = [...usable].sort(() => Math.random() - 0.5).slice(0, 12);
 		const pool = new Map<string, TmdbItem>();
 		const reasons: Record<string, { seedLabel: string; seedKey: string }> = {};
-		for (const s of seedTitles) {
-			const mt = (s.mediaType === 'tv' ? 'tv' : 'movie') as 'movie' | 'tv';
-			const seedKey = s.mediaType + '-' + s.tmdbId;
-			const res = (await tmdb.list(`/${mt}/${s.tmdbId}/recommendations`, [], mt)) ?? [];
+		// Alle Seed-Abfragen PARALLEL (statt nacheinander) – deutlich schnellerer Aufbau.
+		const results = await Promise.all(
+			seedTitles.map(async (s) => {
+				const mt = (s.mediaType === 'tv' ? 'tv' : 'movie') as 'movie' | 'tv';
+				const res = (await tmdb.list(`/${mt}/${s.tmdbId}/recommendations`, [], mt)) ?? [];
+				return { seed: s, res };
+			})
+		);
+		for (const { seed, res } of results) {
+			const seedKey = seed.mediaType + '-' + seed.tmdbId;
 			for (const r of res) {
 				const k = (r.media_type === 'tv' ? 'tv' : 'movie') + '-' + r.id;
 				if (r.poster && !have.has(k) && !pool.has(k)) {
 					pool.set(k, r);
-					reasons[k] = { seedLabel: s.title, seedKey };
+					reasons[k] = { seedLabel: seed.title, seedKey };
 				}
 			}
 		}
@@ -336,7 +342,7 @@
 
 	{#if $watchlist.length === 0}
 		<div class="empty omni-card">
-			<span class="emoji">🔖</span>
+			<span class="emoji"><Bookmark size={26} /></span>
 			<p>{$t('wl.emptyTitle')}</p>
 			<small>{$t('wl.emptyHint')}</small>
 		</div>
@@ -361,7 +367,7 @@
 
 		{#if shown.length === 0}
 			<div class="empty omni-card">
-				<span class="emoji">🔍</span>
+				<span class="emoji"><SearchX size={26} /></span>
 				<p>{$t('wl.noMatch')}</p>
 				<button class="reset" onclick={resetFilters}>{$t('wl.resetFilters')}</button>
 			</div>
@@ -470,7 +476,7 @@
 	.avail-chip img { width: 22px; height: 22px; border-radius: 4px; object-fit: cover; display: block; }
 	.avail-fallback { font-size: 12px; font-weight: 800; color: var(--text-muted); }
 	.empty { padding: 56px; text-align: center; color: var(--text-muted); }
-	.emoji { font-size: 40px; display: block; margin-bottom: 10px; }
+	.emoji { width: 58px; height: 58px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); color: var(--accent); margin-bottom: 12px; }
 	.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 	.card { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
 	.thumb { padding: 0; border: 0; background: none; cursor: pointer; display: block; width: 100%; position: relative; }
@@ -519,6 +525,8 @@
 	.rec-card-wrap:hover .rec-save { opacity: 1; }
 	.rec-save:hover { background: var(--accent); }
 	.rec-card { width: 100%; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; font-family: inherit; color: var(--text); }
+	.rec-card { transition: transform var(--dur-med) var(--ease-out); }
+	.rec-card:hover { transform: translateY(-3px) scale(1.03); }
 	.rec-card img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 10px; display: block; border: 1px solid var(--border); transition: transform 0.15s ease; }
 	.rec-card:hover img { transform: translateY(-3px); }
 	.rec-noimg { width: 100%; aspect-ratio: 2 / 3; border-radius: 10px; background: var(--bg-card-2); display: grid; place-items: center; color: var(--text-dim); font-size: 24px; }

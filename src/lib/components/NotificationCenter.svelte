@@ -2,6 +2,8 @@
 	// Benachrichtigungs-Center: zeigt nur wichtige Hinweise (Achievements, Watchlist-Releases)
 	// als In-App-Fenster. Kurze „Gespeichert"-Toasts landen hier bewusst NICHT.
 	import { notifHistory, notifCenterOpen, clearNotifHistory } from '$lib/stores/toasts';
+	import { toastIcon } from '$lib/toastIcons';
+	import { BellOff } from '@lucide/svelte';
 	import { t } from '$lib/i18n';
 
 	function fmt(at?: number): string {
@@ -42,14 +44,15 @@
 			<div class="body">
 				{#if $notifHistory.length === 0}
 					<div class="empty">
-						<span class="empty-ic">🔕</span>
+						<span class="empty-ic"><BellOff size={26} /></span>
 						<p class="empty-t">{$t('notif.empty')}</p>
 						<p class="empty-h">{$t('notif.emptyHint')}</p>
 					</div>
 				{:else}
 					{#each $notifHistory as n (n.id)}
+						{@const NIco = toastIcon(n.icon ?? '🔔')}
 						<div class="item">
-							<span class="ic">{n.icon ?? '🔔'}</span>
+							<span class="ic">{#if NIco}<NIco size={15} />{:else}{n.icon ?? '🔔'}{/if}</span>
 							<div class="txt">
 								<div class="t">{n.title}</div>
 								{#if n.body}<div class="b">{n.body}</div>{/if}

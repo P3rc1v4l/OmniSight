@@ -28,6 +28,22 @@
 	--text-dim: #5e6068;
 	--border: #1f222b;
 	--border-strong: #2a2e3a;
+
+	/* === Design-System 2.0: Motion === */
+	--dur-fast: 140ms;
+	--dur-med: 240ms;
+	--dur-slow: 420ms;
+	--ease-out: cubic-bezier(0.16, 1, 0.3, 1);      /* sanftes Auslaufen */
+	--ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1); /* leichter Überschwinger */
+
+	/* === Design-System 2.0: Tiefe & Glas === */
+	--shadow-1: 0 2px 10px -4px rgba(0, 0, 0, 0.5);
+	--shadow-2: 0 10px 30px -10px rgba(0, 0, 0, 0.65);
+	--shadow-3: 0 24px 60px -18px rgba(0, 0, 0, 0.75);
+	--glow-accent: 0 0 26px -6px var(--accent);
+	--glass-bg: color-mix(in srgb, var(--bg-elev) 74%, transparent);
+	--glass-brd: color-mix(in srgb, var(--border-strong) 65%, transparent);
+	--glass-blur: 16px;
 }
 
 :root[data-theme='light'] {
@@ -183,3 +199,60 @@ input[type='checkbox']:checked::after { transform: translateX(17px); }
 :root[data-shadow='true'] .omni-card,
 :root[data-shadow='true'] .card { box-shadow: 0 10px 26px -10px rgba(0,0,0,0.6); }
 :root[data-shadow='false'] .card { box-shadow: none; }
+
+/* === Design-System 2.0: globale Bausteine === */
+
+/* Glas-Panel: transluzent + Blur (cinematic Grundton, Glas-Akzent). */
+.glass {
+	background: var(--glass-bg);
+	border: 1px solid var(--glass-brd);
+	backdrop-filter: blur(var(--glass-blur)) saturate(1.25);
+	-webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.25);
+}
+
+/* Karten-Tiefe beim Überfahren (Poster, Kacheln). */
+.lift {
+	transition: transform var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out);
+	will-change: transform;
+}
+.lift:hover {
+	transform: translateY(-4px) scale(1.025);
+	box-shadow: var(--shadow-2), var(--glow-accent);
+}
+
+/* Einheitlicher, sichtbarer Tastatur-Fokus. */
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+	border-radius: 6px;
+}
+
+/* Sanftes Erscheinen für Seiteninhalte. */
+@keyframes page-in {
+	from { opacity: 0; transform: translateY(8px); }
+	to { opacity: 1; transform: none; }
+}
+.page-in { animation: page-in var(--dur-med) var(--ease-out) both; }
+
+/* Modal-Erscheinen: Overlay blendet, Panel poppt minimal. */
+@keyframes ov-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-in {
+	from { opacity: 0; transform: translateY(10px) scale(0.975); }
+	to { opacity: 1; transform: none; }
+}
+.ov-in { animation: ov-in var(--dur-fast) ease-out both; }
+.modal-in { animation: modal-in var(--dur-med) var(--ease-spring) both; }
+
+/* Barrierefreiheit: Wer weniger Bewegung wünscht, bekommt sie. */
+@media (prefers-reduced-motion: reduce) {
+	*, *::before, *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* Drehende Icons (z. B. Laden-Zustand in Buttons). */
+@keyframes spin360 { to { transform: rotate(360deg); } }
+.spin { animation: spin360 0.9s linear infinite; }
