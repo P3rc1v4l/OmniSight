@@ -4,6 +4,14 @@ Alle nennenswerten Änderungen an OmniSight werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.0.3] – 2026-07-03
+
+### Fix: Zeilenenden-Rauschen (Windows) — 🔧
+- **`.gitattributes` ergänzt** (`* text=auto eol=lf`): erzwingt einheitliche Zeilenenden im gesamten Repo. Behebt das Problem, dass inhaltlich unveränderte Dateien in Git/GitHub Desktop trotzdem als "geändert" markiert wurden, weil Windows CRLF nutzt und die Dateien LF enthielten.
+- Binärdateien (Bilder, Fonts, .exe, .zip) sind jetzt explizit als `binary` markiert, damit Git nie versucht, sie als Text zu behandeln oder Zeilenenden darin zu ändern.
+
+---
+
 ## [1.0.2] – 2026-07-03
 
 ### Bugfix: Rohcode statt Icon in den Einstellungen — 🔒🐛

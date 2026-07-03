@@ -1,0 +1,17 @@
+# Erzwingt einheitliche Zeilenenden (LF) im Repo, unabhängig vom Betriebssystem.
+# Löst das klassische Windows-Problem, dass inhaltlich unveränderte Dateien als
+# "geändert" markiert werden, nur weil CRLF/LF durcheinandergeraten ist.
+* text=auto eol=lf
+
+# Binärdateien nie als Text behandeln (kein Zeilenenden-Umwandeln, kein Diff-Versuch).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.zip binary
+*.exe binary

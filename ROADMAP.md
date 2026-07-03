@@ -1,11 +1,14 @@
 # OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v1.0.2
+Stand: v1.0.3
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
 ---
+
+## 🔧 v1.0.3
+- .gitattributes ergänzt (Zeilenenden-Fix, behebt falsche "geändert"-Anzeigen unter Windows).
 
 ## 🐛 v1.0.2
 - Bugfix: Rohcode-Anzeige im Einstellungen-Content-Header (Icon-Migrations-Rest) behoben.
