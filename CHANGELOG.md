@@ -4,6 +4,16 @@ Alle nennenswerten Änderungen an OmniSight werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.0.4] – 2026-07-03
+
+### Release-Prozess vereinfacht: zurück auf ein Repo — 🔧
+- Da `OmniSight` inzwischen **public** ist, entfällt der Grund für den Umweg über ein separates `OmniSight-Releases`-Repo (der war nötig, solange der Quellcode privat war und der Auto-Updater eine ohne Login abrufbare `latest.json` brauchte).
+- **Releases erscheinen jetzt wieder direkt im Haupt-Repo** (`github.com/P3rc1v4l/OmniSight/releases`) – `tauri-action` erstellt Release + signierte `latest.json` wieder selbst, der manuelle PowerShell-Veröffentlichungsschritt entfällt.
+- **Updater-Endpoint** in `tauri.conf.json` zeigt wieder auf das Haupt-Repo.
+- **Aufräumen (optional, auf deiner Seite):** Das Secret `RELEASES_TOKEN` wird nicht mehr gebraucht (kann in den Repo-Secrets gelöscht werden). Das alte `OmniSight-Releases`-Repo kann bei Bedarf gelöscht werden.
+
+---
+
 ## [1.0.3] – 2026-07-03
 
 ### Fix: Zeilenenden-Rauschen (Windows) — 🔧

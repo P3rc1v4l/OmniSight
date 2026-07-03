@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.0.3';
+export const APP_VERSION = '1.0.4';
 export const APP_NAME = 'OmniSight';
 
 // Eingebaute OmniSight-Discord-Application-ID (öffentliche ID, KEIN Geheimnis).

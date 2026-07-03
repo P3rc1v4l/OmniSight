@@ -1,11 +1,14 @@
 # OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v1.0.3
+Stand: v1.0.4
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
 ---
+
+## 🔧 v1.0.4
+- Release-Prozess vereinfacht: zurück auf ein Repo (Releases + Updater-Endpoint direkt im Haupt-Repo, da public). RELEASES_TOKEN nicht mehr nötig.
 
 ## 🔧 v1.0.3
 - .gitattributes ergänzt (Zeilenenden-Fix, behebt falsche "geändert"-Anzeigen unter Windows).
