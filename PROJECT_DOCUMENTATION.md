@@ -1,5 +1,23 @@
 # OmniSight – Vollständiges Projekt-Backup & Übergabe-Dokument
 
+> **Stand: v1.0.0** – Hybrid-Architektur (Desktop + Web). Dieser Abschnitt beschreibt die 1.0-Neuerungen; Details zu Bestandsmodulen weiter unten.
+
+## 1.0.0 – Architekturüberblick
+
+**Ein Code, zwei Ziele:**
+- **Desktop:** Tauri v2 (unverändert das Sicherheitsmodell: nur `main` hat Capabilities, embed-*/stream-* keine; strenge CSP; Secrets nur in CI).
+- **Web:** `server/index.mjs` (Node ≥ 20, **keine Abhängigkeiten**) dient `build/` hinter **Login + TOTP-2FA** aus und spiegelt die TMDB-Tauri-Kommandos als `POST /api/rpc/{command}` (Key nur serverseitig via `TMDB_API_KEY`).
+
+**Plattform-Abstraktion (`src/lib/platform.ts`):** `isTauri` erkennt die Umgebung; `webRpc()` ist der HTTP-Zwilling von `invoke()`. Verzweigungen: `tmdb.ts` (invoke ↔ /api/rpc), `persistence.ts` (tauri-store ↔ localStorage), `embedded.ts`/`streamWindow.ts` (Einbettung ↔ neuer Tab), `updater.ts` (Web: aus), Titlebar/Plugins-Tab/Anbieter-Logins (Web: ausgeblendet). Reachability/Favicons degradieren automatisch.
+
+**Auth (`server/auth.mjs`):** Nutzer/Sessions als JSON unter `DATA_DIR` (Docker-Volume, atomare Writes). Passwörter: scrypt+Salt. 2FA: TOTP RFC 6238 (±1 Zeitschritt). Sessions: 30 Tage, HttpOnly/SameSite=Lax (`COOKIE_SECURE=1` bei HTTPS). Rate-Limit: 5 Fehlversuche → 5 min. Admin wird beim Erststart aus `ADMIN_USER`/`ADMIN_PASSWORD` angelegt; Verwaltung unter `/admin` (anlegen, Passwort-Reset [setzt 2FA zurück], löschen). Neue Nutzer richten 2FA beim ersten Login ein. **15 E2E-Tests bestanden** (kompletter Auth-Flow).
+
+**Deployment:** `Dockerfile` (Multi-Stage) + `compose.yml` (Port 8480, Volume `omnisight-data`, Healthcheck `/api/health`) + `.env.example`. Betrieb hinter Tailscale empfohlen.
+
+**Bekannte 1.0-Grenzen (bewusst):** Web-Zustand (Watchlist etc.) liegt pro Browser in localStorage – serverseitige Synchronisation pro Nutzer ist für 1.1 vorgesehen. Kein QR-Code beim 2FA-Setup (manueller Schlüssel/otpauth-Link); ebenfalls 1.1.
+
+---
+
 > **Zweck dieser Datei:** Falls dieser Chat abbricht, kannst du einen neuen starten und Claude **diese Datei** geben. Sie enthält ALLES: wie Claude sich verhalten soll, das ganze Projekt, jede Datei, alle Daten, alle wiederkehrenden Aufgaben, die Versions-Historie und die offenen Punkte. Stand: **v0.91.0** (Juni 2026).
 >
 > **So startest du neu:** Neuen Chat öffnen → diese Datei anhängen → schreiben: *„Das ist mein OmniSight-Projekt-Backup. Verhalte dich exakt nach Abschnitt 1 und 11 und arbeite am Projekt weiter."* Dann lädst du am besten den neuesten Projekt-Zip hoch (oder gibst Claude Zugriff auf das Repo), damit der aktuelle Code vorliegt.
