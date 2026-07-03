@@ -118,8 +118,10 @@
 <style>
 	.sidebar {
 		height: 100%;
-		background: var(--bg-elev);
-		border-right: 1px solid var(--border);
+		background: var(--glass-bg);
+		backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+		-webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+		border-right: 1px solid var(--glass-brd);
 		display: flex; flex-direction: column;
 		padding: 14px 12px;
 		flex-shrink: 0; box-sizing: border-box;

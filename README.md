@@ -10,6 +10,32 @@ TMDB-Metadaten.
 
 ---
 
+## Zwei Auslieferungen, ein Code
+
+| | Desktop (Windows) | Web (Docker) |
+|---|---|---|
+| Installation | `OmniSight_x.y.z_x64-setup.exe` aus den Releases | `docker compose up -d` |
+| Streaming | eingebettet in der App | öffnet Anbieter in neuen Tabs |
+| Login | Profile + optional PIN | **Login + 2FA (TOTP)**, Admin lädt Nutzer ein |
+| Updates | Auto-Updater (signiert) | neues Image ziehen |
+
+### Web-Version starten (Proxmox/Docker)
+1. `.env.example` nach `.env` kopieren und `TMDB_API_KEY`, `ADMIN_USER`, `ADMIN_PASSWORD` setzen.
+2. `docker compose up -d` → App läuft auf Port **8480**.
+3. Erster Login mit dem Admin-Konto → 2FA einrichten (Authenticator-App).
+4. Nutzer verwalten unter **`/admin`**. Zugriff am besten über **Tailscale** (privat) oder Tailscale Funnel (öffentlich, HTTPS → dann `COOKIE_SECURE=1`).
+
+### Benötigte GitHub-Secrets (für Releases)
+| Secret | Zweck |
+|---|---|
+| `TMDB_API_KEY` | wird beim Desktop-Build eingebettet (steht nie im Code) |
+| `TAURI_SIGNING_PRIVATE_KEY` (+ `_PASSWORD`) | signiert den Auto-Updater |
+| `RELEASES_TOKEN` | veröffentlicht Installer + `latest.json` ins öffentliche Release-Repo |
+
+Das Repo enthält **keine Secrets** und ist damit public-tauglich.
+
+---
+
 ## Release bauen – komplett in GitHub, ohne lokale Installation
 
 Du brauchst auf deinem PC **nichts** außer der fertigen `.exe`. Der gesamte Build

@@ -2,6 +2,7 @@
 // - Umgeht X-Frame-Options/CSP-Sperren, nutzt das native Edge WebView (inkl. DRM).
 // - Pro Profil ein eigenes dataDirectory -> getrennte Cookies/Logins je Profil.
 import { browser } from '$app/environment';
+import { isTauri } from '$lib/platform';
 import { get } from 'svelte/store';
 import type { Provider } from '$lib/types';
 import { startSession, endSession, incrementOpenCount } from '$lib/stores/tracking';
@@ -10,6 +11,10 @@ import { markProviderUsed } from '$lib/stores/accounts';
 
 export async function openInWindow(p: Provider): Promise<void> {
 	if (!browser) return;
+	if (!isTauri) {
+		window.open(p.url, '_blank', 'noopener');
+		return;
+	}
 	const pid = get(activeProfileId) ?? 'default';
 	try {
 		const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');

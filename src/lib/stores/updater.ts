@@ -2,6 +2,7 @@
 // Prüft beim Start und auf Knopfdruck gegen die GitHub-Releases. Gibt es eine
 // neuere, signierte Version, kann sie direkt heruntergeladen und installiert werden.
 import { writable } from 'svelte/store';
+import { isTauri } from '$lib/platform';
 import { browser } from '$app/environment';
 import { get } from 'svelte/store';
 import { pushToast } from './toasts';
@@ -83,6 +84,7 @@ let pending: { version: string; body?: string; downloadAndInstall: (cb?: (e: unk
 
 export async function checkForUpdate(manual = false): Promise<void> {
 	if (!browser) return;
+	if (!isTauri) return; // Web-Version: Updates macht der Server/Docker, nicht die App.
 	updateState.update((s) => ({ ...s, checking: true, error: null }));
 	// 1) Signierter Tauri-Updater (bevorzugt: erlaubt Installation in der App).
 	try {

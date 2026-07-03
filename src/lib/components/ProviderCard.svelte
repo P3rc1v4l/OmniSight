@@ -126,15 +126,15 @@
 		text-align: left;
 		cursor: pointer;
 		overflow: hidden;
-		transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+		transition: transform var(--dur-med) var(--ease-out), border-color var(--dur-med) ease, box-shadow var(--dur-med) var(--ease-out);
 		min-height: 0;
 	}
 	.card.large { aspect-ratio: 1.65 / 1; }
 	.card.compact { aspect-ratio: 1.45 / 1; }
 	.card:hover {
-		transform: translateY(-3px);
+		transform: translateY(-4px) scale(1.015);
 		border-color: color-mix(in srgb, var(--accent) 65%, var(--border));
-		box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+		box-shadow: var(--shadow-2), var(--glow-accent);
 	}
 	.badge {
 		position: absolute; top: 10px; left: 10px;
