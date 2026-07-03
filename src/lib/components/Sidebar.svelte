@@ -93,7 +93,7 @@
 
 	<div class="bottom">
 		<SleepCountdown />
-		<a href="/cr-calendar" class="nav-item" class:active={path === '/cr-calendar'}>
+		<a href="/cr-calendar" class="nav-item" class:active={path === '/cr-calendar'} title={$t('nav.crCalendar')}>
 			<Sparkles size={18} class="ic" /><span>{$t('nav.crCalendar')}</span>
 		</a>
 
@@ -106,10 +106,10 @@
 
 		<ProfileSwitcher {openProfiles} />
 
-		<a href="/stats" class="nav-item" class:active={path === '/stats'}>
+		<a href="/stats" class="nav-item" class:active={path === '/stats'} title={$t('nav.stats')}>
 			<BarChart3 size={18} class="ic" /><span>{$t('nav.stats')}</span>
 		</a>
-		<button class="nav-item as-link" onclick={openSettings}>
+		<button class="nav-item as-link" onclick={openSettings} title={$t('nav.settings')}>
 			<SettingsIcon size={18} class="ic" /><span>{$t('nav.settings')}</span>
 		</button>
 	</div>
@@ -169,4 +169,15 @@
 	.bg-actions button { flex: 1; background: var(--bg-elev); border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; padding: 6px 4px; font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s; }
 	.bg-actions button:hover { color: var(--text); border-color: var(--border-strong); }
 	.bg-actions button.warn:hover { background: rgba(220, 45, 45, 0.85); color: #fff; border-color: transparent; }
+
+	/* Mobile/schmale Fenster: Sidebar wird zur reinen Icon-Leiste (Text ausgeblendet,
+	   title-Attribut übernimmt die Beschriftung als Tooltip/Screenreader-Fallback). */
+	@media (max-width: 700px) {
+		.nav-item span,
+		.bg-name,
+		.profile-name,
+		:global(.sidebar .clock-text) { display: none; }
+		.nav-item { justify-content: center; padding: 10px; }
+		.bg-list { display: none; } /* Hintergrund-Stream-Details brauchen zu viel Breite für Icon-Modus */
+	}
 </style>

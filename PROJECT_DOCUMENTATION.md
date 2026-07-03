@@ -1,20 +1,24 @@
 # OmniSight – Vollständiges Projekt-Backup & Übergabe-Dokument
 
-> **Stand: v1.0.0** – Hybrid-Architektur (Desktop + Web). Dieser Abschnitt beschreibt die 1.0-Neuerungen; Details zu Bestandsmodulen weiter unten.
+> **Stand: v1.0.6** – Hybrid-Architektur (Desktop + Web), inkl. Security-Runde 2 (QR-2FA, Backup-Codes, Selbstbedienungs-Passwortwechsel), Mobile/Responsive für die Web-Version, automatisierte Tests (Vitest).
 
-## 1.0.0 – Architekturüberblick
+## Architekturüberblick
 
 **Ein Code, zwei Ziele:**
-- **Desktop:** Tauri v2 (unverändert das Sicherheitsmodell: nur `main` hat Capabilities, embed-*/stream-* keine; strenge CSP; Secrets nur in CI).
-- **Web:** `server/index.mjs` (Node ≥ 20, **keine Abhängigkeiten**) dient `build/` hinter **Login + TOTP-2FA** aus und spiegelt die TMDB-Tauri-Kommandos als `POST /api/rpc/{command}` (Key nur serverseitig via `TMDB_API_KEY`).
+- **Desktop:** Tauri v2 (unverändert das Sicherheitsmodell: nur `main` hat Capabilities, embed-*/stream-* keine; strenge CSP; Secrets nur in CI). Releases + Auto-Updater direkt im Haupt-Repo (seit v1.0.4, da public – kein zweites Repo mehr nötig).
+- **Web:** `server/index.mjs` (Node ≥ 20, **fast keine Abhängigkeiten** – einzige Ausnahme: `qrcode-generator`, 0 Unterabhängigkeiten, für den 2FA-QR-Code) dient `build/` hinter **Login + TOTP-2FA** aus und spiegelt die TMDB-Tauri-Kommandos als `POST /api/rpc/{command}` (Key nur serverseitig via `TMDB_API_KEY`).
 
-**Plattform-Abstraktion (`src/lib/platform.ts`):** `isTauri` erkennt die Umgebung; `webRpc()` ist der HTTP-Zwilling von `invoke()`. Verzweigungen: `tmdb.ts` (invoke ↔ /api/rpc), `persistence.ts` (tauri-store ↔ localStorage), `embedded.ts`/`streamWindow.ts` (Einbettung ↔ neuer Tab), `updater.ts` (Web: aus), Titlebar/Plugins-Tab/Anbieter-Logins (Web: ausgeblendet). Reachability/Favicons degradieren automatisch.
+**Plattform-Abstraktion (`src/lib/platform.ts`):** `isTauri` erkennt die Umgebung; `webRpc()` ist der HTTP-Zwilling von `invoke()`. Verzweigungen: `tmdb.ts` (invoke ↔ /api/rpc), `persistence.ts` (tauri-store ↔ localStorage), `embedded.ts`/`streamWindow.ts` (Einbettung ↔ neuer Tab), `updater.ts` (Web: aus), Titlebar/Plugins-Tab/Anbieter-Logins/Onboarding-Tray-Optionen (Web: ausgeblendet). Reachability/Favicons degradieren automatisch.
 
-**Auth (`server/auth.mjs`):** Nutzer/Sessions als JSON unter `DATA_DIR` (Docker-Volume, atomare Writes). Passwörter: scrypt+Salt. 2FA: TOTP RFC 6238 (±1 Zeitschritt). Sessions: 30 Tage, HttpOnly/SameSite=Lax (`COOKIE_SECURE=1` bei HTTPS). Rate-Limit: 5 Fehlversuche → 5 min. Admin wird beim Erststart aus `ADMIN_USER`/`ADMIN_PASSWORD` angelegt; Verwaltung unter `/admin` (anlegen, Passwort-Reset [setzt 2FA zurück], löschen). Neue Nutzer richten 2FA beim ersten Login ein. **15 E2E-Tests bestanden** (kompletter Auth-Flow).
+**Auth (`server/auth.mjs`):** Nutzer/Sessions als JSON unter `DATA_DIR` (Docker-Volume, atomare Writes). Passwörter: scrypt+Salt. 2FA: TOTP RFC 6238 (±1 Zeitschritt) **mit gerendertem QR-Code** (SVG, per OpenCV-Scan während der Entwicklung verifiziert) beim Setup. **10 Backup-Codes** (Format `xxxxx-xxxxx`, einmalig nutzbar, gehasht gespeichert) werden nach 2FA-Einrichtung einmalig angezeigt und können beim Login **anstelle** des TOTP-Codes verwendet werden. **Selbstbedienungs-Passwortwechsel** unter `/account` (verlangt altes Passwort, lässt 2FA unangetastet – im Unterschied zum Admin-Reset, der 2FA + Backup-Codes zurücksetzt). Sessions: 30 Tage, HttpOnly/SameSite=Lax (`COOKIE_SECURE=1` bei HTTPS). Rate-Limit: 5 Fehlversuche → 5 min. Admin wird beim Erststart aus `ADMIN_USER`/`ADMIN_PASSWORD` angelegt; Verwaltung unter `/admin`. `/api/health` liefert die echte, dynamisch gelesene Version (kein hartkodierter Wert mehr).
 
-**Deployment:** `Dockerfile` (Multi-Stage) + `compose.yml` (Port 8480, Volume `omnisight-data`, Healthcheck `/api/health`) + `.env.example`. Betrieb hinter Tailscale empfohlen.
+**Responsive/Mobile:** Sidebar wird unter 700px zur reinen Icon-Leiste (Labels als `title`-Tooltip). Einstellungen-Dialog stapelt unter 720px vertikal (Tabs als horizontale Scroll-Leiste statt Seitenspalte, Vollbild statt floatendem Panel). Home-Werkzeugleiste und Suchzeile brechen um. Übrige Modals (Titel-Detail, Suche, Befehlspalette) skalieren bereits über `min(px, vw)` automatisch.
 
-**Bekannte 1.0-Grenzen (bewusst):** Web-Zustand (Watchlist etc.) liegt pro Browser in localStorage – serverseitige Synchronisation pro Nutzer ist für 1.1 vorgesehen. Kein QR-Code beim 2FA-Setup (manueller Schlüssel/otpauth-Link); ebenfalls 1.1.
+**Automatisierte Tests (Vitest):** `npm test` läuft in der CI (`check`-Job, nach svelte-check). Getestet: PIN-/Admin-PBKDF2-Hashing inkl. Legacy-Migration (`profiles.test.ts`), CSV-Import-Parser (`watchlistImport.test.ts`), Episoden-Fortschritts-Logik (`episodeProgress.test.ts`), kompletter Web-Auth-Kern – Passwort-Hashing, TOTP, Backup-Codes, Selbstbedienung (`server/auth.test.mjs`). 30 Tests, bewusst ohne Component-/Browser-Tests (Fokus auf sicherheits-/datenkritischer Logik).
+
+**Deployment:** `Dockerfile` (Multi-Stage, kopiert seit v1.0.6 zusätzlich `node_modules/qrcode-generator` in die finale Stage) + `compose.yml` (Port 8480, Volume `omnisight-data`, Healthcheck `/api/health`) + `.env.example`. Betrieb hinter Tailscale empfohlen.
+
+**Bekannte Grenzen (bewusst, für v1.1 vorgesehen):** Web-Zustand (Watchlist etc.) liegt weiterhin pro Browser in localStorage – serverseitige Synchronisation pro Nutzer-Account ist der größte offene Punkt. Kein explizites CSRF-Token (SameSite=Lax als Basis-Schutz). Rate-Limit nur In-Memory (übersteht keinen Server-Neustart).
 
 ---
 

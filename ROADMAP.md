@@ -1,11 +1,25 @@
 # OmniSight – Roadmap
 
 Diese Datei hält den geplanten Funktionsumfang fest und wird **bei jeder Version automatisch aktualisiert**.
-Stand: v1.0.4
+Stand: v1.0.6
 
 Legende: ✅ erledigt · 🟡 teilweise · ⏳ geplant · 💡 in Klärung (Machbarkeit)
 
 ---
+
+## 🔒🎨🧪 v1.0.6
+- Security-Runde 2: QR-Code (2FA-Setup), 10 Backup-Codes (Login-Fallback), Selbstbedienungs-Passwortwechsel (/account).
+- Mobile/Responsive: Sidebar (Icon-Modus <700px), Einstellungen (Stack <720px), Home-Toolbar-Wrap.
+- Vitest: 30 Tests (PIN-Hashing, CSV-Parser, Episoden-Logik, Web-Auth-Kern), ins CI-Gate eingehängt.
+- Fixes: Health-Endpoint-Version dynamisch, Onboarding im Web gefiltert, Doku synchronisiert.
+
+### v1.1 (weiterhin offen)
+- Serverseitige Zustands-Synchronisation pro Nutzer-Account (größter verbleibender Punkt).
+- Explizites CSRF-Token (aktuell SameSite=Lax als Basis-Schutz).
+- Persistentes Rate-Limit (übersteht aktuell keinen Server-Neustart).
+
+## 🧹 v1.0.5
+- README-Secrets-Tabelle bereinigt (RELEASES_TOKEN-Zeile entfernt).
 
 ## 🔧 v1.0.4
 - Release-Prozess vereinfacht: zurück auf ein Repo (Releases + Updater-Endpoint direkt im Haupt-Repo, da public). RELEASES_TOKEN nicht mehr nötig.

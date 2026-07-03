@@ -4,15 +4,24 @@
 // Nur Node-Standardbibliothek – keine Abhängigkeiten. Start: node server/index.mjs
 import { createServer } from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
-import { join, extname, normalize } from 'node:path';
+import { join, extname, normalize, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import qrcodegen from 'qrcode-generator';
 import {
 	findUser, userById, createUser, deleteUser, resetPassword, listUsers, adminExists,
-	verifyPassword, newTotpSecret, verifyTotp, setTotp,
+	verifyPassword, newTotpSecret, verifyTotp, setTotp, changeOwnPassword,
+	generateBackupCodes, verifyBackupCode, backupCodesRemaining,
 	createSession, getSession, upgradeSession, destroySession,
 	rateLimited, noteFailure, noteSuccess
 } from './auth.mjs';
 
 const PORT = Number(process.env.PORT || 8480);
+// Version aus package.json lesen statt hartzukodieren (sonst veraltet sie bei jedem Release).
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const APP_VERSION = (() => {
+	try { return JSON.parse(readFileSync(join(__dirname, '..', 'package.json'), 'utf8')).version; }
+	catch { return 'unknown'; }
+})();
 const BUILD_DIR = process.env.BUILD_DIR || './build';
 const TMDB_KEY = process.env.TMDB_API_KEY || '';
 const TMDB_BASE = 'https://api.themoviedb.org/3';
@@ -102,6 +111,24 @@ const rpc = {
 	tmdb_season: async ({ id, season }) => tmdbGet(`/tv/${Number(id)}/season/${Number(season)}`)
 };
 
+// ---------- QR-Code (verifiziert per OpenCV-Scan-Test während der Entwicklung) ----------
+function qrSvg(text, { moduleSize = 5, quiet = 4, dark = '#0b0c10', light = '#ffffff' } = {}) {
+	const qr = qrcodegen(0, 'M'); // typeNumber 0 = automatisch passende Version, EC-Level M
+	qr.addData(text);
+	qr.make();
+	const n = qr.getModuleCount();
+	const size = (n + quiet * 2) * moduleSize;
+	let rects = '';
+	for (let r = 0; r < n; r++) {
+		for (let c = 0; c < n; c++) {
+			if (qr.isDark(r, c)) {
+				rects += `<rect x="${(c + quiet) * moduleSize}" y="${(r + quiet) * moduleSize}" width="${moduleSize}" height="${moduleSize}"/>`;
+			}
+		}
+	}
+	return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="220" height="220" shape-rendering="crispEdges" role="img" aria-label="QR-Code für die Authenticator-App"><rect width="${size}" height="${size}" fill="${light}"/><g fill="${dark}">${rects}</g></svg>`;
+}
+
 // ---------- Login-/Setup-Seiten (eigenständig, im App-Design) ----------
 function loginPage(msg = '') {
 	return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -135,14 +162,23 @@ function setupPage(secret, username, msg = '') {
 	return loginPage().replace(/<form[\s\S]+<\/form>/, `<form class="card" method="post" action="/setup-2fa">
 <h1>Omni<b>Sight</b></h1><p class="sub">2-Faktor-Authentifizierung einrichten</p>
 ${msg ? `<div class="err">${msg}</div>` : ''}
-<p class="hint" style="text-align:left;margin:0 0 8px">1. Öffne deine Authenticator-App (z. B. Google Authenticator, Aegis).<br>2. Wähle „Schlüssel manuell eingeben" und füge diesen Schlüssel ein:</p>
+<p class="hint" style="text-align:left;margin:0 0 10px">Scanne diesen Code mit deiner Authenticator-App (Google Authenticator, Aegis, 1Password, ...):</p>
+<div style="display:flex;justify-content:center;margin:0 0 10px"><div style="background:#fff;padding:10px;border-radius:10px">${qrSvg(otpauth)}</div></div>
+<p class="hint" style="text-align:left;margin:0 0 6px">Geht das Scannen nicht? Schlüssel manuell eingeben:</p>
 <code>${secret}</code>
-<p class="hint" style="text-align:left;margin:10px 0 0">Oder öffne diesen Link auf dem Gerät mit der Authenticator-App:</p>
-<code style="margin-top:4px">${otpauth}</code>
 <label>Code aus der App zur Bestätigung</label><input name="totp" inputmode="numeric" pattern="[0-9 ]*" placeholder="123456" required autofocus autocomplete="one-time-code">
 <input type="hidden" name="secret" value="${secret}">
 <button type="submit">2FA aktivieren</button>
 </form>`);
+}
+function backupCodesPage(codes) {
+	const list = codes.map((c) => `<code style="display:block;margin:3px 0;font-size:15px;letter-spacing:0.5px">${c}</code>`).join('');
+	return loginPage().replace(/<form[\s\S]+<\/form>/, `<div class="card">
+<h1>Omni<b>Sight</b></h1><p class="sub">Backup-Codes – jetzt sichern!</p>
+<p class="hint" style="text-align:left;margin:0 0 10px">Diese 10 Codes werden <b>nur dieses eine Mal</b> angezeigt. Jeder Code funktioniert einmalig als Ersatz für deine Authenticator-App, falls du das Gerät verlierst. Speichere sie an einem sicheren Ort (Passwort-Manager, Ausdruck).</p>
+<div style="background:#14161d;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center">${list}</div>
+<a href="/" style="display:block;margin-top:20px;text-align:center;padding:12px;border-radius:10px;background:var(--accent);color:#00201e;font-weight:700;text-decoration:none;font-size:14px">Verstanden, weiter zur App</a>
+</div>`);
 }
 function parseForm(body) {
 	const out = {};
@@ -181,7 +217,7 @@ const server = createServer(async (req, res) => {
 	const user = sess ? userById(sess.userId) : null;
 
 	// --- Öffentlich: Health + Login/Setup ---
-	if (path === '/api/health') return send(res, 200, { ok: true, version: '1.0.0' });
+	if (path === '/api/health') return send(res, 200, { ok: true, version: APP_VERSION });
 
 	if (path === '/login' && req.method === 'GET') return send(res, 200, loginPage(), { 'Content-Type': MIME['.html'] });
 
@@ -201,9 +237,9 @@ const server = createServer(async (req, res) => {
 			setSession(res, half);
 			return send(res, 200, setupPage(newTotpSecret(), u.username), { 'Content-Type': MIME['.html'] });
 		}
-		if (!verifyTotp(u.totpSecret, f.totp)) {
+		if (!verifyTotp(u.totpSecret, f.totp) && !verifyBackupCode(u.id, f.totp)) {
 			noteFailure(ip);
-			return send(res, 401, loginPage('2FA-Code falsch oder abgelaufen.'), { 'Content-Type': MIME['.html'] });
+			return send(res, 401, loginPage('2FA-Code falsch oder abgelaufen. (Auch als Backup-Code nutzbar.)'), { 'Content-Type': MIME['.html'] });
 		}
 		noteSuccess(ip);
 		setSession(res, createSession(u.id, 'full'));
@@ -219,9 +255,9 @@ const server = createServer(async (req, res) => {
 			return send(res, 400, setupPage(secret, user.username, 'Code falsch – bitte erneut versuchen.'), { 'Content-Type': MIME['.html'] });
 		}
 		setTotp(user.id, secret);
+		const codes = generateBackupCodes(user.id, 10);
 		upgradeSession(sid);
-		res.writeHead(302, { Location: '/' });
-		return res.end();
+		return send(res, 200, backupCodesPage(codes), { 'Content-Type': MIME['.html'] });
 	}
 
 	if (path === '/logout') {
@@ -277,6 +313,24 @@ const server = createServer(async (req, res) => {
 
 	if (path === '/api/me') return send(res, 200, { username: user.username, isAdmin: !!user.isAdmin });
 
+	// --- Mein Konto (Selbstbedienung: eigenes Passwort ändern, Backup-Codes verwalten) ---
+	if (path === '/account' && req.method === 'GET') {
+		return send(res, 200, accountPage(user, backupCodesRemaining(user.id)), { 'Content-Type': MIME['.html'] });
+	}
+	if (path === '/account/password' && req.method === 'POST') {
+		const f = parseForm(await readRawBody(req));
+		try {
+			changeOwnPassword(user.id, f.oldPassword || '', f.newPassword || '');
+			return send(res, 200, accountPage(user, backupCodesRemaining(user.id), 'Passwort geändert.'), { 'Content-Type': MIME['.html'] });
+		} catch (e) {
+			return send(res, 400, accountPage(user, backupCodesRemaining(user.id), null, String(e.message || e)), { 'Content-Type': MIME['.html'] });
+		}
+	}
+	if (path === '/account/backup-codes' && req.method === 'POST') {
+		const codes = generateBackupCodes(user.id, 10);
+		return send(res, 200, backupCodesPage(codes), { 'Content-Type': MIME['.html'] });
+	}
+
 	// --- Admin-Oberfläche ---
 	if (path === '/admin') {
 		if (!user.isAdmin) { res.writeHead(302, { Location: '/' }); return res.end(); }
@@ -305,6 +359,50 @@ function secHeaders() {
 		'X-Content-Type-Options': 'nosniff',
 		'Referrer-Policy': 'no-referrer'
 	};
+}
+
+function accountPage(user, codesLeft, okMsg = null, errMsg = null) {
+	return `<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OmniSight – Mein Konto</title><style>
+:root{--accent:#30c5bb;--bg:#0b0c10;--elev:#14161d;--text:#f1f3f6;--muted:#8b8f9a;--border:#2a2e3a}
+body{margin:0;min-height:100vh;background:#0b0c10;font-family:'DM Sans',system-ui,sans-serif;color:var(--text);padding:40px 16px}
+.wrap{max-width:460px;margin:0 auto}h1{font-size:22px}h1 b{color:var(--accent)}
+.card{background:var(--elev);border:1px solid var(--border);border-radius:14px;padding:20px;margin-top:16px}
+.card h2{font-size:14px;margin:0 0 12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 5px}
+input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:#0f1015;color:var(--text);font-size:13.5px;box-sizing:border-box}
+button{margin-top:14px;padding:10px 16px;border:0;border-radius:8px;background:var(--accent);color:#00201e;font-weight:700;font-size:13px;cursor:pointer}
+.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.msg{margin:10px 0;font-size:13px;padding:8px 12px;border-radius:8px}
+.msg.ok{background:#0f2f27;color:#6ee7c8}.msg.err{background:#3a1518;color:#fca5a5}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;padding:6px 0}
+a{color:var(--muted);font-size:13px}
+</style></head><body><div class="wrap">
+<h1>Omni<b>Sight</b> – Mein Konto</h1>
+${okMsg ? `<div class="msg ok">${okMsg}</div>` : ''}
+${errMsg ? `<div class="msg err">${errMsg}</div>` : ''}
+<div class="card">
+<h2>Übersicht</h2>
+<div class="row"><span>Benutzername</span><b>${user.username}</b></div>
+<div class="row"><span>Backup-Codes übrig</span><b>${codesLeft} / 10</b></div>
+</div>
+<div class="card">
+<h2>Passwort ändern</h2>
+<form method="post" action="/account/password">
+<label>Aktuelles Passwort</label><input name="oldPassword" type="password" required autocomplete="current-password">
+<label>Neues Passwort (min. 8 Zeichen)</label><input name="newPassword" type="password" required autocomplete="new-password">
+<button type="submit">Passwort ändern</button>
+</form>
+</div>
+<div class="card">
+<h2>Backup-Codes</h2>
+<p style="color:var(--muted);font-size:13px;margin:0 0 10px">Neu erzeugen macht alle bisherigen Codes ungültig – die neuen werden einmalig angezeigt.</p>
+<form method="post" action="/account/backup-codes" onsubmit="return confirm('Alte Backup-Codes werden ungültig. Neue erzeugen?')">
+<button type="submit" class="ghost">Neue Backup-Codes erzeugen</button>
+</form>
+</div>
+<p style="margin-top:20px"><a href="/">← Zurück zur App</a> · <a href="/logout">Abmelden</a></p>
+</div></body></html>`;
 }
 
 function adminPage() {

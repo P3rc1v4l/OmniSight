@@ -8,7 +8,7 @@ import { watchlist, addToWatchlist } from '$lib/stores/watchlist';
 import type { TmdbItem } from '$lib/types';
 
 // --- CSV-Parser (RFC-4180-artig: Anführungszeichen, "" als Escape, Zeilen/Kommas in Quotes) ---
-function parseCsvRows(text: string): string[][] {
+export function parseCsvRows(text: string): string[][] {
 	const rows: string[][] = [];
 	let row: string[] = [];
 	let field = '';
@@ -30,7 +30,7 @@ function parseCsvRows(text: string): string[][] {
 	return rows;
 }
 
-function parseCsv(text: string): Record<string, string>[] {
+export function parseCsv(text: string): Record<string, string>[] {
 	const raw = parseCsvRows(text).filter((r) => r.length && !(r.length === 1 && r[0].trim() === ''));
 	if (raw.length < 2) return [];
 	const headers = raw[0].map((h) => h.trim().toLowerCase());

@@ -3,6 +3,7 @@
 	import { profiles } from '$lib/stores/profiles';
 	import { providers } from '$lib/stores/providers';
 	import { setAutostart, applyCloseToTray } from '$lib/native';
+	import { isTauri } from '$lib/platform';
 	import { t } from '$lib/i18n';
 	import type { Provider } from '$lib/types';
 
@@ -99,14 +100,16 @@
 							<span class="ot">{$t('ob.optContinue')}</span>
 							<input type="checkbox" checked={$settings.plugins.continueWatching} onchange={(e) => ($settings.plugins.continueWatching = e.currentTarget.checked)} />
 						</label>
-						<label class="opt">
-							<span class="ot">{$t('ob.optTray')}</span>
-							<input type="checkbox" checked={$settings.plugins.closeToTray} onchange={(e) => setTray(e.currentTarget.checked)} />
-						</label>
-						<label class="opt">
-							<span class="ot">{$t('ob.optAutostart')}</span>
-							<input type="checkbox" checked={$settings.plugins.autostart} onchange={(e) => setAuto(e.currentTarget.checked)} />
-						</label>
+						{#if isTauri}
+							<label class="opt">
+								<span class="ot">{$t('ob.optTray')}</span>
+								<input type="checkbox" checked={$settings.plugins.closeToTray} onchange={(e) => setTray(e.currentTarget.checked)} />
+							</label>
+							<label class="opt">
+								<span class="ot">{$t('ob.optAutostart')}</span>
+								<input type="checkbox" checked={$settings.plugins.autostart} onchange={(e) => setAuto(e.currentTarget.checked)} />
+							</label>
+						{/if}
 					</div>
 					<small>{$t('ob.basicsHint')}</small>
 				{:else if step === 5}

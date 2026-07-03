@@ -4,6 +4,36 @@ Alle nennenswerten Änderungen an OmniSight werden hier dokumentiert.
 Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/),
 Versionierung nach [SemVer](https://semver.org/lang/de/).
 
+## [1.0.6] – 2026-07-03
+
+### Security-Runde 2: QR-Code, Backup-Codes, Selbstbedienung — 🔒
+- **QR-Code beim 2FA-Setup:** Der `otpauth://`-Link wird jetzt als scanbarer QR-Code (SVG) angezeigt statt nur als Text/Link. Erzeugt mit `qrcode-generator` (0 Unterabhängigkeiten) – die einzige bewusste Ausnahme von der "keine Abhängigkeiten"-Regel des Servers, weil ein selbstgebauter QR-Encoder ohne Testmöglichkeit auf einem echten Scanner ein zu hohes Risiko für einen Sicherheits-Baustein gewesen wäre. Korrektheit während der Entwicklung mit einem echten Scan-Test (OpenCV-Decoder) verifiziert.
+- **10 Backup-Codes** werden nach der 2FA-Einrichtung einmalig angezeigt (Format `xxxxx-xxxxx`, gehasht gespeichert, je einmal nutzbar) und können beim Login **anstelle** des TOTP-Codes eingegeben werden – rettet, wer sein Authenticator-Gerät verliert. Ein Admin-Passwort-Reset macht alte Backup-Codes ungültig (neue 2FA-Einrichtung nötig).
+- **Selbstbedienungs-Passwortwechsel** unter `/account` (eigene Seite, verlangt das aktuelle Passwort, lässt 2FA unangetastet) – bisher konnte nur der Admin Passwörter zurücksetzen (was gleichzeitig die 2FA gekillt hat). Verlinkt aus den Einstellungen (nur in der Web-Version sichtbar).
+
+### Mobile/Responsive für die Web-Version — 🎨
+- Sidebar wird unter 700px zur Icon-Leiste (Beschriftung als Tooltip).
+- Einstellungen-Dialog stapelt unter 720px vertikal (Tabs als horizontale Leiste, Vollbild statt schwebendem Panel).
+- Home-Werkzeugleiste und Suchzeile brechen auf schmalen Bildschirmen sauber um.
+
+### Automatisierte Tests (Vitest) — 🧪
+- **30 Tests** in 4 Dateien, ins CI-Gate eingehängt (läuft nach svelte-check): PIN-/Admin-PBKDF2-Hashing inkl. Legacy-Migration, CSV-Import-Parser, Episoden-Fortschritts-Logik, kompletter Web-Auth-Kern (Passwörter, TOTP, Backup-Codes, Selbstbedienung).
+
+### Kleinere Fixes — 🧹
+- `/api/health` zeigt die echte, dynamisch gelesene Version statt hartkodiert `1.0.0`.
+- Onboarding blendet Desktop-only-Optionen (Autostart, In-Tray-minimieren) in der Web-Version aus.
+- `PROJECT_DOCUMENTATION.md` auf aktuellen Stand gebracht (war seit v1.0.0 nicht mehr aktualisiert).
+- Dockerfile kopiert jetzt `node_modules/qrcode-generator` in die finale Stage (sonst würde der QR-Code im Docker-Betrieb fehlschlagen).
+
+---
+
+## [1.0.5] – 2026-07-03
+
+### Doku-Fix — 🧹
+- README: veraltete Zeile zu `RELEASES_TOKEN` in der Secrets-Tabelle entfernt (seit v1.0.4 nicht mehr benötigt).
+
+---
+
 ## [1.0.4] – 2026-07-03
 
 ### Release-Prozess vereinfacht: zurück auf ein Repo — 🔧

@@ -1,6 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 // @tauri-apps/cli setzt die ENV-Variable TAURI_DEV_HOST (z.B. für mobile/LAN).
 const host = process.env.TAURI_DEV_HOST;
@@ -21,5 +21,13 @@ export default defineConfig({
 			// src-tauri wird von Rust gewatcht, nicht von Vite.
 			ignored: ['**/src-tauri/**']
 		}
+	},
+
+	// Vitest: testet reine Logik (Krypto/Hashing, Parser, Auth-Kern) in Node-Umgebung.
+	// Bewusst KEIN Component-Testing (bräuchte jsdom + @testing-library/svelte) – der
+	// Fokus liegt auf sicherheits-/datenkritischer Logik, die keinen Browser braucht.
+	test: {
+		environment: 'node',
+		include: ['src/**/*.test.ts', 'server/**/*.test.mjs']
 	}
 });

@@ -88,7 +88,14 @@ export function newTotpSecret() {
 
 // ---------- Nutzerverwaltung ----------
 export function listUsers() {
-	return db.users.map((u) => ({ id: u.id, username: u.username, isAdmin: !!u.isAdmin, totp: !!u.totpSecret, mustSetup: !!u.mustSetup }));
+	return db.users.map((u) => ({
+		id: u.id,
+		username: u.username,
+		isAdmin: !!u.isAdmin,
+		totp: !!u.totpSecret,
+		mustSetup: !!u.mustSetup,
+		backupCodesLeft: Array.isArray(u.backupCodes) ? u.backupCodes.filter((e) => !e.used).length : 0
+	}));
 }
 export function findUser(username) {
 	return db.users.find((u) => u.username.toLowerCase() === String(username || '').toLowerCase()) || null;
@@ -124,7 +131,19 @@ export function resetPassword(id, newPw) {
 	if (String(newPw).length < 8) throw new Error('Passwort braucht mindestens 8 Zeichen.');
 	u.passHash = hashPassword(newPw);
 	u.totpSecret = null;
+	u.backupCodes = []; // an das alte 2FA-Secret gebundene Codes werden ungültig
 	u.mustSetup = true; // 2FA neu einrichten
+	save(db);
+}
+// Selbstbedienung: Nutzer ändert sein eigenes Passwort (Gegensatz zum Admin-Reset:
+// verlangt das aktuelle Passwort, lässt 2FA unangetastet).
+export function changeOwnPassword(id, oldPw, newPw) {
+	const u = userById(id);
+	if (!u) throw new Error('Nutzer nicht gefunden.');
+	if (!verifyPassword(oldPw, u.passHash)) throw new Error('Aktuelles Passwort ist falsch.');
+	if (String(newPw).length < 8) throw new Error('Neues Passwort braucht mindestens 8 Zeichen.');
+	if (oldPw === newPw) throw new Error('Neues Passwort muss sich vom alten unterscheiden.');
+	u.passHash = hashPassword(newPw);
 	save(db);
 }
 export function setTotp(id, secret) {
@@ -133,6 +152,43 @@ export function setTotp(id, secret) {
 	u.totpSecret = secret;
 	u.mustSetup = false;
 	save(db);
+}
+
+// ---------- Backup-Codes (Einmal-Codes für den Fall eines verlorenen Authenticators) ----------
+// Werden EINMALIG im Klartext zurückgegeben (beim Erzeugen) und danach nur noch gehasht
+// gespeichert – wie Passwörter. Format xxxxx-xxxxx (10 Hex-Zeichen, gut lesbar/abtippbar).
+export function generateBackupCodes(id, count = 10) {
+	const u = userById(id);
+	if (!u) throw new Error('Nutzer nicht gefunden.');
+	const plain = [];
+	const stored = [];
+	for (let i = 0; i < count; i++) {
+		const raw = randomBytes(5).toString('hex'); // 10 Hex-Zeichen
+		const code = `${raw.slice(0, 5)}-${raw.slice(5, 10)}`;
+		plain.push(code);
+		stored.push({ hash: hashPassword(code), used: false });
+	}
+	u.backupCodes = stored;
+	save(db);
+	return plain; // NUR hier im Klartext sichtbar – dem Nutzer einmalig anzeigen.
+}
+export function verifyBackupCode(id, code) {
+	const u = userById(id);
+	if (!u || !Array.isArray(u.backupCodes)) return false;
+	const clean = String(code || '').trim().toLowerCase();
+	for (const entry of u.backupCodes) {
+		if (!entry.used && verifyPassword(clean, entry.hash)) {
+			entry.used = true;
+			save(db);
+			return true;
+		}
+	}
+	return false;
+}
+export function backupCodesRemaining(id) {
+	const u = userById(id);
+	if (!u || !Array.isArray(u.backupCodes)) return 0;
+	return u.backupCodes.filter((e) => !e.used).length;
 }
 export function adminExists() {
 	return db.users.some((u) => u.isAdmin);

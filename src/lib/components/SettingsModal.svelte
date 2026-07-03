@@ -873,6 +873,14 @@
 							<div class="admin-status">{$t('set.acc.statusPrefix')} {$adminCodeHash ? $t('set.acc.adminStatusSet') : $t('set.acc.adminStatusNone')}{#if adminMsg} · {adminMsg}{/if}</div>
 						</div>
 
+						{#if !isTauri}
+							<div class="block" style="margin-top:18px">
+								<div class="block-label"><KeyRound size={15} /> {$t('set.acc.webAccountTitle')}</div>
+								<p class="hint" style="margin-top:0">{$t('set.acc.webAccountHint')}</p>
+								<a class="opt-btn" href="/account" target="_blank" rel="noreferrer">{$t('set.acc.webAccountOpen')}</a>
+							</div>
+						{/if}
+
 						<p class="hint">{$t('set.acc.switchHint')}</p>
 
 						{#if isTauri}
@@ -1219,4 +1227,24 @@
 	.tp-prev { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg, var(--c1) 55%, var(--c2) 55%); border: 1px solid var(--cb); display: grid; place-items: center; flex: 0 0 auto; }
 	.tp-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ca); box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.25); }
 	.tp-name { white-space: nowrap; }
+
+	/* Mobile: Dialog wird Vollbild, Sidebar stapelt sich als horizontale Tab-Leiste über
+	   den Content statt links daneben – sonst bliebe auf Handy-Breite kaum Platz. */
+	@media (max-width: 720px) {
+		.backdrop { padding: 0; }
+		.dialog { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; flex-direction: column; }
+		.side {
+			width: 100%; flex-shrink: 0;
+			border-right: 0; border-bottom: 1px solid var(--border);
+			padding: 12px 10px;
+		}
+		.head { padding: 0 4px 10px; }
+		.search { margin-bottom: 8px; }
+		nav { flex-direction: row; overflow-x: auto; gap: 4px; margin-top: 0; flex: 0 0 auto; -webkit-overflow-scrolling: touch; }
+		nav button { flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; }
+		.version { display: none; }
+		.main-head { padding: 14px 16px; }
+		.content { padding: 16px; }
+		.grid, .look-head { grid-template-columns: 1fr; }
+	}
 </style>

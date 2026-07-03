@@ -459,7 +459,7 @@
 	.lrow.dragover { outline: 2px dashed var(--accent); outline-offset: -2px; }
 	/* Bilder/Logos nicht einzeln ziehbar – so wird die ganze Karte gezogen. */
 	.dragwrap :global(img), .dragwrap :global(svg), .lrow :global(img), .lrow :global(svg) { -webkit-user-drag: none; }
-	.top { display: flex; gap: 14px; align-items: center; margin-bottom: 22px; }
+	.top { display: flex; gap: 14px; align-items: center; margin-bottom: 22px; flex-wrap: wrap; }
 	.searchhist { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: -8px 0 20px; }
 	.sh-label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-right: 2px; }
 	.sh-chip { display: inline-flex; align-items: center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px; overflow: hidden; transition: border-color 0.14s; }
@@ -469,7 +469,7 @@
 	.sh-x:hover { color: var(--text); }
 	.sh-clear { background: transparent; border: 0; color: var(--text-muted); font-family: inherit; font-size: 12px; cursor: pointer; padding: 4px 6px; text-decoration: underline; }
 	.sh-clear:hover { color: var(--text); }
-	.search { flex: 1; display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 16px; }
+	.search { flex: 1; min-width: 220px; display: flex; align-items: center; gap: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 16px; }
 	.search input { flex: 1; background: transparent; border: 0; outline: 0; color: var(--text); font-size: 14px; font-family: inherit; }
 	.ic { color: var(--text-muted); font-size: 14px; }
 	.tools { display: flex; gap: 8px; align-items: center; }

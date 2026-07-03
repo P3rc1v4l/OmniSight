@@ -30,7 +30,6 @@ TMDB-Metadaten.
 |---|---|
 | `TMDB_API_KEY` | wird beim Desktop-Build eingebettet (steht nie im Code) |
 | `TAURI_SIGNING_PRIVATE_KEY` (+ `_PASSWORD`) | signiert den Auto-Updater |
-| `RELEASES_TOKEN` | veröffentlicht Installer + `latest.json` ins öffentliche Release-Repo |
 
 Das Repo enthält **keine Secrets** und ist damit public-tauglich.
 

@@ -27,6 +27,8 @@ jobs:
         run: npm install
       - name: svelte-check (Typfehler abfangen, bevor gebaut wird)
         run: npm run check
+      - name: Vitest (kritische Logik: Krypto/Hashing, Parser, Auth-Kern)
+        run: npm test
 
   build-tauri:
     needs: check
